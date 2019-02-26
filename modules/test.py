@@ -2,15 +2,14 @@ from .. import loader
 import logging
 
 def register(cb):
-    logging.debug('registering testmod')
+    logging.debug('Registering %s', __file__)
     cb(TestMod())
 
 class TestMod(loader.Module):
     def __init__(self):
-        logging.debug('testmod started')
+        logging.debug('%s started', __file__)
         self.commands = {'ping':self.pingcmd}
-        self.name = "testmod"
+        self.name = "TestMod"
     async def pingcmd(self, message):
-        print('pong')
-        await message.edit('pong')
+        await message.edit('Pong')
 

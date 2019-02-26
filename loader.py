@@ -15,9 +15,9 @@ class Module():
 
 
 class Modules():
-    def __init__(self):
-        self.commands = {}
-        self.modules = []
+    commands = {}
+    modules = []
+    watchers = []
     def register_all(self):
         print(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), config.MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), config.MODULES_NAME)))
@@ -27,10 +27,10 @@ class Modules():
             mod = mod[:-3]
             importlib.import_module('.'+config.MODULES_NAME+'.'+mod, __package__)
             mod = __package__+'.'+config.MODULES_NAME+'.'+mod
-            sys.modules[mod].register(self.register_cb)
+            sys.modules[mod].register(self.register_module)
             del sys.modules[mod]
 
-    def register_cb(self, instance):
+    def register_module(self, instance):
         if not issubclass(instance.__class__, Module):
             logging.error("Not a subclass %s", repr(instance.__class__))
         for command in instance.commands:
@@ -38,6 +38,11 @@ class Modules():
                 logging.error("Duplicate command %s", command)
                 return False
             self.commands.update({command: instance.commands[command]})
+        try:
+            if instance.watcher:
+                self.watchers += [instance.watcher]
+        except AttributeError:
+            pass
         self.modules += [instance]
     def dispatch(self, command, message):
         logging.debug(self.commands)

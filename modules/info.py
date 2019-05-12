@@ -17,9 +17,6 @@ class InfoMod(loader.Module):
         self.name = "InfoMod"
 
     async def infocmd(self, message):
-        kernelver = subprocess.run(['uname', '-r'], stdout=subprocess.PIPE)
-        os = subprocess.run(['uname', '-o'], stdout=subprocess.PIPE)
-
         reply = "`System Info\nKernel: " + platform.release()
         reply += "\nArch: " + platform.architecture()[0]
         reply += "\nOS: " + platform.system()

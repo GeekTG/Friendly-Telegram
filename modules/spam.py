@@ -31,4 +31,7 @@ class SpamMod(loader.Module):
             await message.edit("Haha much spam")
             return
         await message.delete()
-        await asyncio.gather(*[main.client.send_message(message.to_id, str(spam)) for x in range(count)])
+        i = 0
+        while i < count:
+            await asyncio.gather(*[main.client.send_message(message.to_id, str(spam)) for x in range(min(count, 100))])
+            i += 100

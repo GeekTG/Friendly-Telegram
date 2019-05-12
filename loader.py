@@ -36,7 +36,7 @@ class Modules():
         for command in instance.commands:
             if command in self.commands.keys():
                 logging.error("Duplicate command %s", command)
-                return False
+                continue
             self.commands.update({command: instance.commands[command]})
         try:
             if instance.watcher:

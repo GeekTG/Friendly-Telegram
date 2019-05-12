@@ -10,7 +10,7 @@ del api_token.ID
 del api_token.HASH
 
 from . import loader
-modules = loader.Modules()
+modules = loader.Modules.get()
 modules.register_all()
 
 @client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))

@@ -15,6 +15,12 @@ class Module():
 
 
 class Modules():
+    instance = None
+    @classmethod
+    def get(clas):
+        if not clas.instance:
+            clas.instance = clas()
+        return clas.instance
     commands = {}
     modules = []
     watchers = []

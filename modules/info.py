@@ -28,7 +28,7 @@ class InfoMod(loader.Module):
                 b[line.split('=')[0]] = line.split('=')[1].strip().strip('"')
 
             reply += "\nLinux Distribution: " + b["PRETTY_NAME"]
-        reply += "\nMisc\n"
-        reply += "Python version:" + platform.python_version()
+        reply += "\nMisc"
+        reply += "\nPython version: " + platform.python_version()
         reply += '`'
         await message.edit(reply)

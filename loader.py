@@ -1,15 +1,26 @@
 import importlib, os, logging, sys
-from . import config
+
+try:
+	import config
+except ImportError:
+	print("Failed to import config.py, trying different import method") 
+try:
+	from . import config
+except ImportError:
+	print("Failed to import config.py")
 
 class Module():
     def __init__(self):
         self.name = name
         self.instance = instance
         self.help = help
+
     def handle_command(self, message):
         logging.error("NI! %s", __func__)
+
     def get_help(self):
         logging.error("NI! %s", __func__)
+
     def get_name(self):
         logging.error("NI! %s", __func__)
 
@@ -24,6 +35,7 @@ class Modules():
     commands = {}
     modules = []
     watchers = []
+
     def register_all(self):
         print(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), config.MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), config.MODULES_NAME)))
@@ -50,6 +62,7 @@ class Modules():
         except AttributeError:
             pass
         self.modules += [instance]
+
     def dispatch(self, command, message):
         logging.debug(self.commands)
         for com in self.commands:

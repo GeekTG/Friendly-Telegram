@@ -25,7 +25,7 @@ class YesNoMod(loader.Module):
                 elif x == 3:
                     await message.edit("Absolutely")
                 else:
-                    await message.edit("No'nt")
+                    await message.edit("Non't")
         else:
             x = random.randint(1, 4)
             if x == 1:

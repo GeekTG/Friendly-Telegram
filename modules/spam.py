@@ -1,5 +1,5 @@
 from .. import loader, main, utils
-import logging
+import logging, asyncio
 
 def register(cb):
     logging.debug('registering %s', __file__)
@@ -31,8 +31,4 @@ class SpamMod(loader.Module):
             await message.edit("Haha much spam")
             return
         await message.delete()
-        i = 0
-        while i < count:
-            logging.debug(spam)
-            await main.client.send_message(message.to_id, str(spam))
-            i += 1
+        await asyncio.gather(*[main.client.send_message(message.to_id, str(spam)) for x in range(count)])

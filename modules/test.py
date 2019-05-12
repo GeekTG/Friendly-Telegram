@@ -9,6 +9,7 @@ class TestMod(loader.Module):
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'ping':self.pingcmd}
+        self.config = {}
         self.name = "TestMod"
     async def pingcmd(self, message):
         await message.edit('Pong')

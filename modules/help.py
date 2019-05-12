@@ -9,6 +9,7 @@ class HelpMod(loader.Module):
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'help':self.helpcmd}
+        self.config = {}
         self.name = "HelpMod"
     async def helpcmd(self, message):
         reply = "```Available Modules:\n"

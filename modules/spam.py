@@ -9,6 +9,7 @@ class SpamMod(loader.Module):
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'spam':self.spamcmd}
+        self.config = {}
         self.name = "Spammer"
     async def spamcmd(self, message):
         args = utils.get_args(message)

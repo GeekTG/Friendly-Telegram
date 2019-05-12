@@ -10,6 +10,7 @@ class QuickTypeMod(loader.Module):
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'quicktype':self.typecmd}
+        self.config = {}
         self.name = "Quick Typer"
     async def typecmd(self, message):
         args = utils.get_args(message)

@@ -10,6 +10,7 @@ class TyperMod(loader.Module):
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'type':self.typecmd}
+        self.config = {}
         self.name = "TyperMod"
     async def typecmd(self, message):
         a = utils.get_args_raw(message)

@@ -14,16 +14,16 @@ Step by step explanation:
 
 ### Installing Python 3.7 and required packages
 
-1.  Add the deadsnakes PPA
+1.  Add the deadsnakes PPA  
     `sudo add-apt-repository ppa:deadsnakes/ppa`
 
-2. Update package list
+2. Update package list  
 ` sudo apt update`
 
-3. Install required packages
+3. Install required packages  
 `sudo apt install python3.7 dialog python3-dialog git`
 
-4. Set Python 3.7 as default Python
+4. Set Python 3.7 as default Python  
 `sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1`
 
 ### Configuring the userbot
@@ -34,7 +34,7 @@ Step by step explanation:
 
 2. Install requirements  
 `cd friendly-telegram`  
-`pip install -r requirements.txt`
+`pip3 install -r requirements.txt`
 
 3.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
 

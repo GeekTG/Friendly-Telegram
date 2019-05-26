@@ -16,23 +16,9 @@ class YesNoMod(loader.Module):
         self.name = "YesNoMod"
 
     async def yesnocmd(self, message):
+        yes = ["Yes", "Yup", "Absolutely", "Non't"]
+        no = ["No", "Nope", "Nah", "Yesn't"]
         if random.randint(1, 2) == 1:
-                x = random.randint(1, 4)
-                if x == 1:
-                    await message.edit("Yes")
-                elif x == 2:
-                    await message.edit("Yup")
-                elif x == 3:
-                    await message.edit("Absolutely")
-                else:
-                    await message.edit("Non't")
+            await message.edit(random.choice(yes))
         else:
-            x = random.randint(1, 4)
-            if x == 1:
-                await message.edit("No")
-            elif x == 2:
-                await message.edit("Nope")
-            elif x == 3:
-                await message.edit("Nah")
-            else:
-                await message.edit("Yesn't")
+            await message.edit(random.choice(no))

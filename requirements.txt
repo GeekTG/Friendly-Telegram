@@ -1,2 +1,3 @@
 lyricsgenius
 telethon
+pythondialog

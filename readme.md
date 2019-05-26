@@ -12,10 +12,13 @@ Step by step explanation:
 
 ### Installing Python 3.7 and required packages
 
-1. Update package list  
+1.  Add the deadsnakes PPA  
+    `sudo add-apt-repository ppa:deadsnakes/ppa`
+
+2. Update package list  
 ` sudo apt update`
 
-2. Install required packages  
+3. Install required packages  
 `sudo apt install python3.7 dialog git`
 
 ### Configuring the userbot

@@ -23,9 +23,6 @@ Step by step explanation:
 3. Install required packages  
 `sudo apt install python3.7 dialog python3-dialog git`
 
-4. Set Python 3.7 as default Python  
-`sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1`
-
 ### Configuring the userbot
 
 1. Clone the source code  
@@ -34,17 +31,17 @@ Step by step explanation:
 
 2. Install requirements  
 `cd friendly-telegram`  
-`pip3 install -r requirements.txt`
+`python3.7 -m pip3 install -r requirements.txt`
 
 3.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
 
 4. Run the configuration script  
-`python3 configurator.py`
+`python3.7 configurator.py`
 
 5. On the newly opened menu, select "API Key/hash and ID"
 When prompted, enter your API key/hash and ID
 
 6. Finally, run the bot!  
 `cd ..`  
-`python3 -m friendly-telegram`
+`python3.7 -m friendly-telegram`
 

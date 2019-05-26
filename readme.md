@@ -2,8 +2,6 @@
 
 Hey, welcome to our userbot!
 
-This project is still a heavy WIP(be warned!)
-
 ## But how do I set it up?
 
 All of the setup instructions are in this readme, read carefully!
@@ -14,14 +12,11 @@ Step by step explanation:
 
 ### Installing Python 3.7 and required packages
 
-1.  Add the deadsnakes PPA  
-    `sudo add-apt-repository ppa:deadsnakes/ppa`
-
-2. Update package list  
+1. Update package list  
 ` sudo apt update`
 
-3. Install required packages  
-`sudo apt install python3.7 dialog python3-dialog git`
+2. Install required packages  
+`sudo apt install python3.7 dialog git`
 
 ### Configuring the userbot
 

@@ -1,29 +1,22 @@
-import importlib, os, logging, sys
+import importlib, os, logging, sys, ast, asyncio
 
-try:
-	import config
-except ImportError:
-	print("Failed to import config.py, trying different import method") 
-try:
-	from . import config
-except ImportError:
-	print("Failed to import config.py")
+from . import config
 
 class Module():
     def __init__(self):
-        self.name = name
-        self.instance = instance
-        self.help = help
+        self.name = "Unknown"
+        self.help = "Unknown"
+        self.config = {}
 
-    def handle_command(self, message):
-        logging.error("NI! %s", __func__)
+    def config_complete(self):
+        pass
 
-    def get_help(self):
-        logging.error("NI! %s", __func__)
+    # Will always be called after config loaded.
+    async def client_ready(self):
+        pass
 
-    def get_name(self):
-        logging.error("NI! %s", __func__)
-
+    async def handle_command(self, message):
+        logging.error("NI! handle_command")
 
 class Modules():
     instance = None
@@ -63,10 +56,30 @@ class Modules():
             pass
         self.modules += [instance]
 
+
     def dispatch(self, command, message):
         logging.debug(self.commands)
+        watchers = [watcher(message) for watcher in self.watchers]
         for com in self.commands:
             logging.debug(com)
             if command == '.'+com:
                 logging.debug('found command')
-                return self.commands[com](message) # Returns a coroutine.
+                return asyncio.gather(self.commands[com](message), *watchers) # Returns a coroutine.
+
+    def send_config(self, additional_config=None):
+        for mod in self.modules:
+            if hasattr(mod, "config"):
+                for conf in mod.config.keys():
+                    logging.debug(conf)
+                    if conf in additional_config:
+                        mod.config[conf] = ast.literal_eval(additional_config[conf])
+                    elif hasattr(config, conf):
+                        mod.config[conf] = getattr(config, conf)
+                    else:
+                        logging.warning("No config value for "+conf)
+            logging.debug(mod.config)
+            mod.config_complete()
+
+    async def send_ready(self):
+        for mod in self.modules:
+            await mod.client_ready()

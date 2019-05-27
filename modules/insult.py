@@ -23,7 +23,7 @@ class InsultMod(loader.Module):
         start = random.choice(starts)
         adjective_start = random.choice(adjectives_start)
         adjective_mid = random.choice(adjectives_mid)
-        noun = random.choice(noun)
+        noun = random.choice(nouns)
         end = random.choice(ends)
         insult = start + " " + adjective_start + " " + adjective_mid + (" " if adjective_mid else "") + noun + end
         await message.edit(insult)

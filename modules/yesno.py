@@ -13,7 +13,8 @@ class YesNoMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'yesno': self.yesnocmd}
         self.config = {}
-        self.name = "YesNoMod"
+        self.name = "YesNo"
+        self.help = "Helps you make important life choices"
 
     async def yesnocmd(self, message):
         yes = ["Yes", "Yup", "Absolutely", "Non't"]

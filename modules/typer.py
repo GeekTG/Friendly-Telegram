@@ -1,6 +1,6 @@
 from .. import loader, utils, main, config
 from telethon.errors.rpcerrorlist import *
-import logging, time
+import logging, time, asyncio
 
 def register(cb):
     logging.debug('Registering %s', __file__)
@@ -11,17 +11,19 @@ class TyperMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'type':self.typecmd}
         self.config = {}
-        self.name = "TyperMod"
+        self.name = "Typewriter"
+        self.help = "Makes your messages type slower"
+
     async def typecmd(self, message):
         a = utils.get_args_raw(message)
         m = ""
         for c in a:
             m += config.TYPE_CHAR
             message = await update_message(message, m)
-            time.sleep(0.04)
+            await asyncio.sleep(0.04)
             m = m[:-1]+c
             message = await update_message(message, m)
-            time.sleep(0.02)
+            await asyncio.sleep(0.02)
 
 async def update_message(message, m):
     try:

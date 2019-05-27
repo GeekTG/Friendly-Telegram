@@ -16,8 +16,12 @@ def get_args_raw(message):
         pass
     if not message:
         return False
-    print(message.split(' ', 1)[1])
     return message.split(' ', 1)[1]
+
+def get_args_split_by(message, s):
+    m = get_args_raw(message)
+    mess = m.split(s)
+    return [st.strip() for st in mess]
 
 def get_chat_id(message):
     chat = message.to_id

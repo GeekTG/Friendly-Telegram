@@ -11,6 +11,8 @@ class SpamMod(loader.Module):
         self.commands = {'spam':self.spamcmd}
         self.config = {}
         self.name = "Spammer"
+        self.help = "Annoys people really effectively"
+
     async def spamcmd(self, message):
         use_reply = False
         args = utils.get_args(message)
@@ -44,5 +46,5 @@ class SpamMod(loader.Module):
                 i += 100
         else:
             while i < count:
-                await asyncio.gather(*[main.client.send_message(message.to_id, str(spam)) for x in range(min(count, 100))])
+                await asyncio.gather(*[message.client.send_message(message.to_id, str(spam)) for x in range(min(count, 100))])
                 i += 100

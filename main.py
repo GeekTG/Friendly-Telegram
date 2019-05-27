@@ -3,27 +3,11 @@ logging.basicConfig(level=logging.DEBUG, datefmt='')
 
 from telethon import TelegramClient, sync, events
 
-from . import api_token
-client = TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()
-del api_token.ID
-del api_token.HASH
-
 from . import loader, __main__
 
+# Not public.
 modules = loader.Modules.get()
-modules.register_all()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", "-c", action="append")
-parser.add_argument("--value", "-v", action="append")
-arguments = parser.parse_args()
-logging.debug(arguments)
-cfg = arguments.config if arguments.config else []
-vlu = arguments.value if arguments.value else []
-logging.debug(str(dict(zip(cfg, vlu))))
-modules.send_config(dict(zip(cfg, vlu)))
-
-@client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
 async def handle_command(event):
     logging.debug("Incoming command!")
     if not event.message:
@@ -42,7 +26,6 @@ async def handle_command(event):
     logging.debug(command)
     await modules.dispatch(command, message) # modules.dispatch is not a coro, but returns one
 
-@client.on(events.NewMessage(incoming=True, forwards=False))
 async def handle_incoming(event):
     logging.debug("Incoming message!")
     message = event.message
@@ -51,10 +34,39 @@ async def handle_incoming(event):
         await fun(message)
 
 def main():
-    asyncio.get_event_loop().run_until_complete(amain())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--setup", "-s", action="store_true")
+    parser.add_argument("--config", "-c", action="append")
+    parser.add_argument("--value", "-v", action="append")
+    arguments = parser.parse_args()
+    logging.debug(arguments)
 
-async def amain():
+    if arguments.setup:
+        from . import configurator
+        configurator.main()
+        return
+
+    cfg = arguments.config if arguments.config else []
+    vlu = arguments.value if arguments.value else []
+
+    from . import api_token
+    # Do this early on so we can register listeners
+    client = TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()
+    # Stop modules taking personal data so easily, or by accident
+    del api_token.ID
+    del api_token.HASH
+
+    client.on(events.NewMessage(incoming=True, forwards=False))(handle_incoming)
+    client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))(handle_command)
+
+    modules.register_all()
+
+    modules.send_config(dict(zip(cfg, vlu)))
+
+    asyncio.get_event_loop().run_until_complete(amain(client))
+
+async def amain(client):
     async with client as c:
         await c.start()
-        await modules.send_ready()
+        await modules.send_ready(client)
         await c.run_until_disconnected()

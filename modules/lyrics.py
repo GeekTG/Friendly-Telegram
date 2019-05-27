@@ -14,13 +14,14 @@ class LyricsMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'lyrics': self.lyricscmd}
         self.config = {"GENUIS_API_TOKEN": ""}
-        self.name = "LyricsMod"
+        self.name = "Lyrics"
+        self.help = "Sings songs"
 
     def config_complete(self):
         self.genius = lyricsgenius.Genius(self.config["GENUIS_API_TOKEN"])
 
     async def lyricscmd(self, message):
-        args = utils.get_args(message)
-        logging.debug("getting song lyrics for "+args[0]+": "+args[1])
+        args = utils.get_args_split_by(message, ",")
+        logging.debug("getting song lyrics for "+args[0]+", "+args[1])
         song = self.genius.search_song(args[1], args[0])
-        await message.edit(song.lyrics)
+        await message.edit(utils.escape_html(song.lyrics))

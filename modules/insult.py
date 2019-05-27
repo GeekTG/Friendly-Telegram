@@ -12,11 +12,12 @@ class InsultMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'insult':self.insultcmd}
         self.config = {}
-        self.name = "InsultMod"
+        self.name = "Insulter"
+        self.help = "Shouts at people"
 
     async def insultcmd(self, message):
         adjectives_start = ["salty", "fat", "fucking", "shitty", "stupid", "retarded"]
-        adjectives_mid = ["little", None]
+        adjectives_mid = ["little", ""]
         nouns = ["cunt", "pig", "pedophile", "alpha male", "retard", "ass licker"]
         starts = ["You're a", "You"]
         ends = ["!!!!", "!", ""]

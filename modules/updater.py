@@ -10,13 +10,14 @@ class UpdaterMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'selfupdate': self.updatecmd, "pull": self.pullcmd}
         self.config = {"selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
-        self.name = "UpdaterMod"
+        self.name = "Updater"
+        self.help = "Provides self updates"
 
     async def updatecmd(self, message):
         await message.edit('Updating...')
         logging.debug("Self-update. " + sys.executable + "-m" + utils.get_base_dir())
         atexit.register(functools.partial(restart, "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
-        await main.client.disconnect()
+        await message.client.disconnect()
 
     async def pullcmd(self, message):
         await message.edit("Downloading...")
@@ -26,10 +27,10 @@ class UpdaterMod(loader.Module):
             await message.edit("Error!\nStdout:\n<code>"+utils.escape_html(out.decode("utf-8"))+"</code>\nStderr:\n<code>"+utils.escape_html(err.decode("utf-8"))+"</code>", parse_mode="HTML")
         else:
             await message.edit("Downloaded!")
-    async def client_ready(self):
+    async def client_ready(self, client):
         if self.config["selfupdatemsg"] >= 0:
             logging.debug("Self update successful! Edit message: "+str(self.config))
-            await main.client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], "Update successful!")
+            await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], "Update successful!")
 
 def restart(*args):
     os.execl(sys.executable, sys.executable, "-m", utils.get_base_dir(), *args)

@@ -1,7 +1,5 @@
-from .. import loader
-import logging
-import subprocess
-import platform
+from .. import loader, utils
+import logging, subprocess, platform
 
 
 def register(cb):
@@ -14,12 +12,13 @@ class InfoMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'info': self.infocmd}
         self.config = {}
-        self.name = "InfoMod"
+        self.name = "Info"
+        self.help = "Provides system information about the computer hosting this bot"
 
     async def infocmd(self, message):
-        reply = "`System Info\nKernel: " + platform.release()
-        reply += "\nArch: " + platform.architecture()[0]
-        reply += "\nOS: " + platform.system()
+        reply = "<code>System Info\nKernel: " + utils.escape_html(platform.release())
+        reply += "\nArch: " + utils.escape_html(platform.architecture()[0])
+        reply += "\nOS: " + utils.escape_html(platform.system())
 
         if platform.system() == 'Linux':
             a = open('/etc/os-release').readlines()
@@ -27,8 +26,8 @@ class InfoMod(loader.Module):
             for line in a:
                 b[line.split('=')[0]] = line.split('=')[1].strip().strip('"')
 
-            reply += "\nLinux Distribution: " + b["PRETTY_NAME"]
+            reply += "\nLinux Distribution: " + utils.escape_html(b["PRETTY_NAME"])
         reply += "\nMisc"
-        reply += "\nPython version: " + platform.python_version()
-        reply += '`'
-        await message.edit(reply)
+        reply += "\nPython version: " + utils.escape_html(platform.python_version())
+        reply += '</code>'
+        await message.edit(reply, parse_mode="HTML")

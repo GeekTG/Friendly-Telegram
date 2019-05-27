@@ -11,14 +11,16 @@ class PurgeMod(loader.Module):
         logging.debug('%s started', __file__)
         self.commands = {'purge':self.purgecmd}
         self.config = {}
-        self.name = "PurgeMod"
+        self.name = "Purge"
+        self.help = "Deletes things quickly"
+
     async def purgecmd(self, message):
         if not message.is_reply:
             await message.edit("From where shall I purge?")
             return
-        msgs = [msg.id async for msg in main.client.iter_messages(
+        msgs = [msg.id async for msg in message.client.iter_messages(
             entity=message.to_id,
             min_id=message.reply_to_msg_id,
             reverse=True
         )]
-        await main.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])
+        await message.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])

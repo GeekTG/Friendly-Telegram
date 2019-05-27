@@ -1,4 +1,4 @@
-from .. import loader, main
+from .. import loader
 import logging
 
 def register(cb):
@@ -11,9 +11,11 @@ class AFKMod(loader.Module):
         self.commands = {}
         self.config = {}
         self.name = "AFK"
-        self._me = main.client.get_me()
+        self.help = "Provides a message saying that you are unavailable (out of office)"
+        self._me = None
     async def watcher(self, message):
-        print(getattr(message.to_id, 'user_id', None))
+        if self._me == None:
+            self._me = await message.client.get_me()
         if message.mentioned or getattr(message.to_id, 'user_id', None) == self._me.id:
             logging.debug("tagged!")
             if await self.is_afk():

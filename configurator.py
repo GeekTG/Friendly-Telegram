@@ -1,43 +1,64 @@
-#Userbot configuration
+#!/usr/bin/env python3.7
 
-import locale
-import time
+import locale, time, os
 
 from dialog import Dialog
 
-import loader
+from . import loader, utils
+
+TITLE = "Userbot Configuration"
 
 d = Dialog(dialog="dialog")
 locale.setlocale(locale.LC_ALL, '')
 
+modules = loader.Modules.get()
+modules.register_all()
 
-while True:
-    code, tag = d.menu("Userbot configuration",
-                       choices=[("API Token and ID", "Configure API Token and ID")])
-
+def modules_config():
+    code, tag = d.menu(TITLE, choices=[(module.name, module.help) if len(module.config) > 0 else () for module in modules.modules])
     if code == d.OK:
-        #if tag == "Modules":
-            #d.infobox("Updating modules list...")
-            #time.sleep(1)
-            #Modules = loader.Modules.get()
-            #Modules.register_all()
-            #code, tag = d.menu("Userbot configuration",
-            #                   choices=[Modules.modules])
-
-        if tag == "API Token and ID":
-            code, string = d.inputbox("Enter your API Token")
-            if code == d.OK:
-                f = open("api_token.py", "w")
-                string1 = 'HASH="' + string + '"'
-                code, string = d.inputbox("Enter your API ID")
-                string2 = 'ID="' + string + '"'
-                f.write(string1 + "\n" + string2)
-                f.close()
-                d.msgbox("API Token and ID set.")
+        for mod in modules.modules:
+            if mod.name == tag and len(mod.config) > 0:
+                # Match
+                choices = []
+                for key, value in mod.config.items():
+                    if key.upper() == key: # Constants only
+                        choices += [(key, "")]
+                code, tag = d.menu(TITLE, choices=choices)
+                if code == d.OK:
+                    code, string = d.inputbox(tag)
+                    if code == d.OK:
+                        print(key+"="+string)
+                        f = open(os.path.join(utils.get_base_dir(), "config.py"), "a")
+                        f.write("\n"+key+"="+string)
+                        f.close()
+                modules_config()
+                return
     else:
-        timer = 3
-        for i in range(timer):
-            d.infobox("Program will exit in " + str(timer) + "...")
-            time.sleep(1)
-            timer -= 1
-        exit()
+        return
+
+def main():
+    while main_config():
+        pass
+
+def api_config():
+    code, string = d.inputbox("Enter your API Token")
+    if code == d.OK:
+        string1 = 'HASH="' + string + '"'
+        code, string = d.inputbox("Enter your API ID")
+        string2 = 'ID="' + string + '"'
+        f = open(os.path.join(utils.get_base_dir(), "api_token.py"), "w")
+        f.write(string1 + "\n" + string2)
+        f.close()
+        d.msgbox("API Token and ID set.")
+
+def main_config():
+    code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules")])
+    if code == d.OK:
+        if tag == "Modules":
+            modules_config()
+        if tag == "API Token and ID":
+            api_config()
+    else:
+        return False
+    return True

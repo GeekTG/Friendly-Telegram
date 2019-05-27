@@ -12,6 +12,8 @@ class QuickTypeMod(loader.Module):
         self.commands = {'quicktype':self.typecmd}
         self.config = {}
         self.name = "Quick Typer"
+        self.help = "Deletes your message after some time"
+
     async def typecmd(self, message):
         args = utils.get_args(message)
         logging.debug(args)
@@ -29,6 +31,6 @@ class QuickTypeMod(loader.Module):
             await message.edit("Nice number bro")
             return
         await message.delete()
-        m = await main.client.send_message(message.to_id, str(mess))
+        m = await message.client.send_message(message.to_id, str(mess))
         await asyncio.sleep(t)
         await m.delete()

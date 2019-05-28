@@ -1,4 +1,4 @@
-from .. import loader, utils, main
+from .. import loader, utils
 import logging
 from telethon.tl.functions.users import GetFullUserRequest
 

@@ -1,6 +1,5 @@
-from .. import loader, main, utils
-import logging
-import asyncio
+from .. import loader, utils
+import logging, asyncio
 
 def register(cb):
     logging.debug('registering %s', __file__)

@@ -1,4 +1,4 @@
-from .. import loader, main, utils
+from .. import loader, utils
 import logging, asyncio
 
 def register(cb):

@@ -1,6 +1,5 @@
 from .. import loader
-import logging
-import random
+import logging, random
 
 def register(cb):
     logging.debug('Registering %s', __file__)

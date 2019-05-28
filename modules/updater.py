@@ -1,4 +1,4 @@
-from .. import loader, utils, main, __main__
+from .. import loader, utils, __main__
 import logging, os, sys, atexit, functools, asyncio
 
 def register(cb):

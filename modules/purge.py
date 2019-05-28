@@ -1,4 +1,4 @@
-from .. import loader, main
+from .. import loader
 import logging
 from telethon import functions
 

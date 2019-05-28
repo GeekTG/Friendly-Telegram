@@ -32,14 +32,14 @@ class Modules():
     watchers = []
 
     def register_all(self):
-        print(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), config.MODULES_NAME)))
-        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), config.MODULES_NAME)))
+        print(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
+        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         logging.debug(mods)
         print('mods')
         for mod in mods:
-            mod = mod[:-3]
-            importlib.import_module('.'+config.MODULES_NAME+'.'+mod, __package__)
-            mod = __package__+'.'+config.MODULES_NAME+'.'+mod
+            mod = mod[:-3] # Cut .py
+            importlib.import_module('.'+MODULES_NAME+'.'+mod, __package__)
+            mod = __package__+'.'+MODULES_NAME+'.'+mod
             sys.modules[mod].register(self.register_module)
             del sys.modules[mod]
 

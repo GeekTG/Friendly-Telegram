@@ -1,9 +1,8 @@
 import importlib, os, logging, sys, ast, asyncio
+from . import config
 
-try:
-    from . import config
-except ImportError:
-    from .. import config
+MODULES_NAME="modules"
+
 class Module():
     def __init__(self):
         self.name = "Unknown"

@@ -1,4 +1,4 @@
-from .. import loader, config
+from .. import loader, config, utils
 import logging
 import lyricsgenius
 

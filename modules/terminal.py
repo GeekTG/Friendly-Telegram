@@ -8,7 +8,7 @@ def register(cb):
 class TerminalMod(loader.Module):
     def __init__(self):
         logging.debug("%s started", __file__)
-        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd}
+        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "info":self.infocmd}
         self.config = {"FLOOD_WAIT_PROTECT":2}
         self.name = "Terminal"
         self.help = "Runs commands"
@@ -18,7 +18,7 @@ class TerminalMod(loader.Module):
         await self.runcmd(message, utils.get_args_raw(message))
 
     async def aptcmd(self, message):
-        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message), AptMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
 
     async def runcmd(self, message, cmd, editor=None):
         sproc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -32,15 +32,29 @@ class TerminalMod(loader.Module):
 
     async def terminatecmd(self, message):
         if hash_msg(await message.get_reply_message()) in self.activecmds:
-            self.activecmds[hash_msg(await message.get_reply_message())].terminate()
+            try:
+                self.activecmds[hash_msg(await message.get_reply_message())].terminate()
+            except:
+                await message.edit("Could not kill!")
+            else:
+                await message.edit("Killed!")
         else:
             await message.edit("No command is running in that message.")
 
     async def killcmd(self, message):
         if hash_msg(await message.get_reply_message()) in self.activecmds:
-            self.activecmds[hash_msg(await message.get_reply_message())].kill()
+            try:
+                self.activecmds[hash_msg(await message.get_reply_message())].kill()
+            except:
+                await message.edit("Could not kill!")
+            else:
+                await message.edit("Killed!")
         else:
             await message.edit("No command is running in that message.")
+
+    async def infocmd(self, message):
+        await self.runcmd(message, "neofetch --stdout", RawMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
+
 
 def hash_msg(message):
     return str(utils.get_chat_id(message))+"/"+str(message.id)
@@ -97,7 +111,7 @@ class MessageEditor():
         self.rc = rc
         await self.redraw(True)
 
-class AptMessageEditor(MessageEditor):
+class RawMessageEditor(MessageEditor):
     async def redraw(self, skip_wait=False):
         # Avoid spamming telegram servers with requests. Require a pause before sending data.
         if not skip_wait:
@@ -108,15 +122,7 @@ class AptMessageEditor(MessageEditor):
                 self.floodwaittime += 0.5
                 return
             self.floodwaittime = max(1, self.floodwaittime - 1)
-        if self.rc == None:
-            text = utils.escape_html(self.stdout[max(len(self.stdout) - 4095, 0):])
-        elif self.rc == 0:
-            text = "APT invoked successfully!"
-        else:
-            text = utils.escape_html(self.stderr.rstrip("\n").rsplit("\n", 1)[1])
-        print(self.stdout)
-        print(self.stderr)
-        print(text)
+        text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4095, 0):]) + '</code>'
         try:
             await self.message.edit(text, parse_mode="HTML")
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
@@ -127,4 +133,3 @@ class AptMessageEditor(MessageEditor):
         except telethon.errors.rpcerrorlist.MessageTooLongError as e:
             logging.error(e)
             logging.error(text)
-

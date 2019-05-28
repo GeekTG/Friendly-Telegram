@@ -1,5 +1,5 @@
 from .. import loader, utils
-import logging, asyncio, telethon
+import logging, asyncio, telethon, os
 
 def register(cb):
     logging.debug("Registering %s", __file__)
@@ -8,8 +8,8 @@ def register(cb):
 class TerminalMod(loader.Module):
     def __init__(self):
         logging.debug("%s started", __file__)
-        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd}
-        self.config = {"FLOOD_WAIT_PROTECT":5}
+        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd}
+        self.config = {"FLOOD_WAIT_PROTECT":2}
         self.name = "Terminal"
         self.help = "Runs commands"
         self.activecmds = {}
@@ -17,14 +17,17 @@ class TerminalMod(loader.Module):
     async def terminalcmd(self, message):
         await self.runcmd(message, utils.get_args_raw(message))
 
+    async def aptcmd(self, message):
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message), AptMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
 
-    async def runcmd(self, message, cmd):
+    async def runcmd(self, message, cmd, editor=None):
         sproc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        msg = MessageEditor(message, cmd, self.config["FLOOD_WAIT_PROTECT"])
+        if editor == None:
+            editor = MessageEditor(message, cmd, self.config["FLOOD_WAIT_PROTECT"])
         self.activecmds[hash_msg(message)] = sproc
-        await msg.redraw()
-        await asyncio.gather(read_stream(msg.update_stdout, sproc.stdout), read_stream(msg.update_stderr, sproc.stderr))
-        await msg.cmd_ended(await sproc.wait())
+        await editor.redraw(True)
+        await asyncio.gather(read_stream(editor.update_stdout, sproc.stdout), read_stream(editor.update_stderr, sproc.stderr))
+        await editor.cmd_ended(await sproc.wait())
         del self.activecmds[hash_msg(message)]
 
     async def terminatecmd(self, message):
@@ -66,13 +69,16 @@ class MessageEditor():
     async def update_stderr(self, stderr):
         self.stderr = stderr
         await self.redraw()
-    async def redraw(self):
+    async def redraw(self, skip_wait=False):
         # Avoid spamming telegram servers with requests. Require a pause before sending data.
-        self.redraws += 1
-        await asyncio.sleep(self.floodwaittime)
-        self.redraws -= 1
-        if self.redraws > 0:
-            return
+        if not skip_wait:
+            self.redraws += 1
+            await asyncio.sleep(self.floodwaittime)
+            self.redraws -= 1
+            if self.redraws > 0:
+                self.floodwaittime += 0.5
+                return
+            self.floodwaittime = max(1, self.floodwaittime - 1)
 
         text = "<code>Running command: "+utils.escape_html(self.command)+"\n"
         if self.rc != None:
@@ -89,4 +95,36 @@ class MessageEditor():
             logging.error(text)
     async def cmd_ended(self, rc):
         self.rc = rc
-        await self.redraw()
+        await self.redraw(True)
+
+class AptMessageEditor(MessageEditor):
+    async def redraw(self, skip_wait=False):
+        # Avoid spamming telegram servers with requests. Require a pause before sending data.
+        if not skip_wait:
+            self.redraws += 1
+            await asyncio.sleep(self.floodwaittime)
+            self.redraws -= 1
+            if self.redraws > 0:
+                self.floodwaittime += 0.5
+                return
+            self.floodwaittime = max(1, self.floodwaittime - 1)
+        if self.rc == None:
+            text = utils.escape_html(self.stdout[max(len(self.stdout) - 4095, 0):])
+        elif self.rc == 0:
+            text = "APT invoked successfully!"
+        else:
+            text = utils.escape_html(self.stderr.rstrip("\n").rsplit("\n", 1)[1])
+        print(self.stdout)
+        print(self.stderr)
+        print(text)
+        try:
+            await self.message.edit(text, parse_mode="HTML")
+        except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
+            logging.warning(e)
+        except telethon.errors.rpcerrorlist.MessageEmptyError as e:
+            logging.warning(e)
+            logging.error(text)
+        except telethon.errors.rpcerrorlist.MessageTooLongError as e:
+            logging.error(e)
+            logging.error(text)
+

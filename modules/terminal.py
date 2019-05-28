@@ -8,7 +8,7 @@ def register(cb):
 class TerminalMod(loader.Module):
     def __init__(self):
         logging.debug("%s started", __file__)
-        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "info":self.infocmd}
+        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd}
         self.config = {"FLOOD_WAIT_PROTECT":2}
         self.name = "Terminal"
         self.help = "Runs commands"
@@ -52,7 +52,7 @@ class TerminalMod(loader.Module):
         else:
             await message.edit("No command is running in that message.")
 
-    async def infocmd(self, message):
+    async def neocmd(self, message):
         await self.runcmd(message, "neofetch --stdout", RawMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
 
 

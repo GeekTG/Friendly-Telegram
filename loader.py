@@ -1,6 +1,9 @@
 import importlib, os, logging, sys, ast, asyncio
-from . import config
-
+try:
+    from . import config
+    use_config = True
+except:
+    use_config = False
 MODULES_NAME="modules"
 
 class Module():
@@ -37,10 +40,18 @@ class Modules():
         print('mods')
         for mod in mods:
             mod = mod[:-3] # Cut .py
-            importlib.import_module('.'+MODULES_NAME+'.'+mod, __package__)
-            mod = __package__+'.'+MODULES_NAME+'.'+mod
-            sys.modules[mod].register(self.register_module)
-            del sys.modules[mod]
+            try:
+                importlib.import_module('.'+MODULES_NAME+'.'+mod, __package__)
+                mod = __package__+'.'+MODULES_NAME+'.'+mod
+                sys.modules[mod].register(self.register_module)
+            except BaseException as e:
+                logging.exception("Failed to load module %s due to:", mod)
+            finally:
+                try:
+                    del sys.modules[mod]
+                except BaseException as e:
+                    logging.exception("Failed to clear namespace of module %s due to:", mod)
+                    pass
 
     def register_module(self, instance):
         if not issubclass(instance.__class__, Module):
@@ -68,6 +79,8 @@ class Modules():
                 return asyncio.gather(self.commands[com](message), *watchers) # Returns a coroutine.
 
     def send_config(self, additional_config=None):
+        if not use_config:
+            return
         for mod in self.modules:
             if hasattr(mod, "config"):
                 for conf in mod.config.keys():

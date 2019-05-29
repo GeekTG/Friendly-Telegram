@@ -33,6 +33,10 @@ async def handle_incoming(event):
     for fun in modules.watchers:
         await fun(message)
 
+def run_config():
+    from . import configurator
+    configurator.main()
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--setup", "-s", action="store_true")
@@ -42,8 +46,13 @@ def main():
     logging.debug(arguments)
 
     if arguments.setup:
-        from . import configurator
-        configurator.main()
+        run_config()
+        return
+
+    try:
+        from . import config
+    except:
+        run_config()
         return
 
     cfg = arguments.config if arguments.config else []

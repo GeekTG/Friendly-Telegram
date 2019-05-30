@@ -72,6 +72,7 @@ def main():
 
     modules.send_config(dict(zip(cfg, vlu)))
 
+    asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
     asyncio.get_event_loop().run_until_complete(amain(client))
 
 async def amain(client):

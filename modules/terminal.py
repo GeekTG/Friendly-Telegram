@@ -18,7 +18,7 @@ class TerminalMod(loader.Module):
         await self.runcmd(message, utils.get_args_raw(message))
 
     async def aptcmd(self, message):
-        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt command dummy", self.config["FLOOD_WAIT_PROTECT"]))
 
     async def runcmd(self, message, cmd, editor=None):
         if cmd.split(" ")[0] == "sudo":
@@ -32,12 +32,12 @@ class TerminalMod(loader.Module):
             cmd = " ".join([cmd.split(" ", 1)[0], "-S", cmd.split(" ", 1)[1]])
         sproc = await asyncio.create_subprocess_shell(cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         if editor == None:
-            editor = SudoMessageEditor(message, cmd, self.config, sproc)
+            editor = SudoMessageEditor(message, cmd, self.config)
         else:
             editor.update_process(sproc)
         self.activecmds[hash_msg(message)] = sproc
         await editor.redraw(True)
-        await asyncio.gather(read_stream(editor.update_stdout, sproc.stdout, self.config["FLOOD_WAIT_PROTECT"]), read_stream(editor.update_stderr, sproc.stderr, self.config["FLOOD_WAIT_PROTECT"]))
+        await asyncio.gather(read_stream(editor.update_stdout, sproc.stdout, self.config["FLOOD_WAIT_PROTECT"]), read_stream(editor.update_stderr, sproc.stderr, self.config))
         await editor.cmd_ended(await sproc.wait())
         del self.activecmds[hash_msg(message)]
 
@@ -64,7 +64,7 @@ class TerminalMod(loader.Module):
             await message.edit("No command is running in that message.")
 
     async def neocmd(self, message):
-        await self.runcmd(message, "neofetch --stdout", RawMessageEditor(message, "", self.config["FLOOD_WAIT_PROTECT"]))
+        await self.runcmd(message, "neofetch --stdout", RawMessageEditor(message, "neofetch --stdout", self.config))
 
 
 def hash_msg(message):
@@ -122,16 +122,20 @@ class MessageEditor():
         self.rc = rc
         self.state = 4
         await self.redraw(True)
+    def update_process(self, process):
+        pass
 
 class SudoMessageEditor(MessageEditor):
     PASS_REQ = "[sudo] password for"
     WRONG_PASS = r"\[sudo\] password for (.*): Sorry, try again\."
     TOO_MANY_TRIES = r"\[sudo\] password for (.*): sudo: [0-9]+ incorrect password attempts"
-    def __init__(self, message, command, config, process):
+    def __init__(self, message, command, config):
         super().__init__(message, command, config)
-        self.process = process
+        self.process = None
         self.state = 0
         self.authmsg = None
+    def update_process(self, process):
+        self.process = process
     async def update_stderr(self, stderr):
         logging.debug("stderr update "+stderr)
         self.stderr = stderr
@@ -139,9 +143,6 @@ class SudoMessageEditor(MessageEditor):
         lastline = lines[-1]
         lastlines = lastline.rsplit(" ", 1)
         handled = False
-        logging.debug(lastline)
-        logging.debug(self.WRONG_PASS)
-        logging.debug(re.fullmatch(self.WRONG_PASS, lastline))
         if len(lines) > 1 and re.fullmatch(self.WRONG_PASS, lines[-2]) and lastlines[0] == self.PASS_REQ and self.state == 1:
             logging.debug("switching state to 0")
             await self.authmsg.edit(self.config["AUTH_FAILED_STRING"])
@@ -157,7 +158,6 @@ class SudoMessageEditor(MessageEditor):
             text += r'">'
             text += utils.escape_html(self.config["INTERACTIVE_AUTH_STRING"])
             text += r"</a>"
-            # WARNING: If you put the above concatenations all on one line, the entire program hangs. There is no reason for this it just happens.
             try:
                 await self.message.edit(text, parse_mode="HTML")
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
@@ -169,12 +169,6 @@ class SudoMessageEditor(MessageEditor):
             self.message.client.add_event_handler(self.on_message_edited, telethon.events.messageedited.MessageEdited(chats=['me']))
             logging.debug("registered handler")
             handled = True
-        if len(lines) > 1:
-            logging.debug(len(lines))
-            logging.debug(self.TOO_MANY_TRIES)
-            logging.debug(lastline)
-            logging.debug(re.fullmatch(self.TOO_MANY_TRIES, lastline))
-            logging.debug(self.state)
         if len(lines) > 1 and re.fullmatch(self.TOO_MANY_TRIES, lastline) and (self.state == 1 or self.state == 3 or self.state == 4):
             logging.debug("password wrong lots of times")
             await self.message.edit(self.config["AUTH_TOO_MANY_TRIES_STRING"])

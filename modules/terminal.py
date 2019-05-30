@@ -185,7 +185,7 @@ class SudoMessageEditor(MessageEditor):
         logging.debug(self.state)
     async def update_stdout(self, stdout):
         self.stdout = stdout
-        if state != 2:
+        if self.state != 2:
             self.state = 3 # Means that we got stdout only
         if self.authmsg != None:
             await self.authmsg.delete()

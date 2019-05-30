@@ -18,7 +18,7 @@ class TerminalMod(loader.Module):
         await self.runcmd(message, utils.get_args_raw(message))
 
     async def aptcmd(self, message):
-        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt command dummy", self.config["FLOOD_WAIT_PROTECT"]))
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt command dummy", self.config))
 
     async def runcmd(self, message, cmd, editor=None):
         if cmd.split(" ")[0] == "sudo":
@@ -37,7 +37,7 @@ class TerminalMod(loader.Module):
             editor.update_process(sproc)
         self.activecmds[hash_msg(message)] = sproc
         await editor.redraw(True)
-        await asyncio.gather(read_stream(editor.update_stdout, sproc.stdout, self.config["FLOOD_WAIT_PROTECT"]), read_stream(editor.update_stderr, sproc.stderr, self.config))
+        await asyncio.gather(read_stream(editor.update_stdout, sproc.stdout, self.config["FLOOD_WAIT_PROTECT"]), read_stream(editor.update_stderr, sproc.stderr, self.config["FLOOD_WAIT_PROTECT"]))
         await editor.cmd_ended(await sproc.wait())
         del self.activecmds[hash_msg(message)]
 

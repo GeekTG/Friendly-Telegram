@@ -18,7 +18,7 @@ class TerminalMod(loader.Module):
         await self.runcmd(message, utils.get_args_raw(message))
 
     async def aptcmd(self, message):
-        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt command dummy", self.config))
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt "+utils.get_args_raw(message), self.config))
 
     async def runcmd(self, message, cmd, editor=None):
         if cmd.split(" ")[0] == "sudo":
@@ -28,8 +28,8 @@ class TerminalMod(loader.Module):
                     break
                 if word == "-S":
                     needsswitch = False
-        if needsswitch:
-            cmd = " ".join([cmd.split(" ", 1)[0], "-S", cmd.split(" ", 1)[1]])
+            if needsswitch:
+                cmd = " ".join([cmd.split(" ", 1)[0], "-S", cmd.split(" ", 1)[1]])
         sproc = await asyncio.create_subprocess_shell(cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
         if editor == None:
             editor = SudoMessageEditor(message, cmd, self.config)

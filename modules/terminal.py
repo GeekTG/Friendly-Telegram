@@ -30,7 +30,7 @@ class TerminalMod(loader.Module):
                     needsswitch = False
             if needsswitch:
                 cmd = " ".join([cmd.split(" ", 1)[0], "-S", cmd.split(" ", 1)[1]])
-        sproc = await asyncio.create_subprocess_shell(cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        sproc = await asyncio.create_subprocess_shell(cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=utils.get_base_dir())
         if editor == None:
             editor = SudoMessageEditor(message, cmd, self.config)
         else:

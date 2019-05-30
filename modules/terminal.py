@@ -207,12 +207,14 @@ class SudoMessageEditor(MessageEditor):
 
 class RawMessageEditor(SudoMessageEditor):
     async def redraw(self, skip_wait=False):
+        logging.debug(self.rc)
         if self.rc == None:
             text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4095, 0):]) + '</code>'
         elif self.rc == 0:
             text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4090, 0):]) + '</code>\nDone'
         else:
-            text = '<code>' + utils.escape_html(self.stdout[max(len(self.stderr) - 4095, 0):]) + '</code>'
+            text = '<code>' + utils.escape_html(self.stderr[max(len(self.stderr) - 4095, 0):]) + '</code>\nDone'
+        logging.debug(text)
         try:
             await self.message.edit(text, parse_mode="HTML")
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:

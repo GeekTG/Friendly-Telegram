@@ -23,8 +23,9 @@ class UserInfoMod(loader.Module):
             args = utils.get_args(message)
             full = await message.client(GetFullUserRequest(args[0]))
         logging.debug(full)
-        reply = "<code>First name: " + full.user.first_name
-        reply += "\nLast name: " + str(full.user.last_name)
-        reply += "\nBio: " + full.about
-        reply += "\nRestricted: " + str(full.user.restricted) + "</code>"
+        reply = "First name: <code>" + utils.escape_html(full.user.first_name)
+        reply += "</code>\nLast name: <code>" + utils.escape_html(str(full.user.last_name))
+        reply += "</code>\nBio: <code>" + utils.escape_html(full.about)
+        reply += "</code>\nRestricted: <code>" + utils.escape_html(str(full.user.restricted))
+        reply += "</code>"
         await message.edit(reply, parse_mode="HTML")

@@ -1,4 +1,4 @@
-from .. import loader, config, utils
+from .. import loader, utils
 import logging, lyricsgenius, asyncio, functools
 
 

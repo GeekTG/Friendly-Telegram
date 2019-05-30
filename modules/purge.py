@@ -1,6 +1,5 @@
 from .. import loader
 import logging
-from telethon import functions
 
 def register(cb):
     logging.debug('Registering %s', __file__)

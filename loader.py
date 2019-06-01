@@ -57,10 +57,10 @@ class Modules():
         if not issubclass(instance.__class__, Module):
             logging.error("Not a subclass %s", repr(instance.__class__))
         for command in instance.commands:
-            if lower(command) in self.commands.keys():
+            if command.lower() in self.commands.keys():
                 logging.error("Duplicate command %s", command)
                 continue
-            self.commands.update({lower(command): instance.commands[command]})
+            self.commands.update({command.lower(): instance.commands[command]})
         try:
             if instance.watcher:
                 self.watchers += [instance.watcher]
@@ -74,7 +74,7 @@ class Modules():
         watchers = [watcher(message) for watcher in self.watchers]
         for com in self.commands:
             logging.debug(com)
-            if lower(command) == "."+com:
+            if command.lower() == "."+com:
                 logging.debug('found command')
                 return asyncio.gather(self.commands[com](message), *watchers) # Returns a coroutine.
 

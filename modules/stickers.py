@@ -59,7 +59,7 @@ class StickersMod(loader.Module):
                 # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
                 conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
                 async with conv:
-                    await conv.send_message("/cancel")
+                    first = await conv.send_message("/cancel")
                     await conv.send_message("/addsticker")
                     buttons = (await conv.get_response()).buttons
                     if buttons != None:
@@ -77,8 +77,16 @@ class StickersMod(loader.Module):
                     await conv.send_message("/done")
                     # Block now so that we mark it all as read
                     await conv.get_response()
-                    await message.client.send_read_acknowledge(conv.chat_id)
-                await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
+                await message.client.send_read_acknowledge(conv.chat_id)
+
+                msgs = [msg.id async for msg in message.client.iter_messages(
+                        entity="t.me/"+self.config["STICKERS_USERNAME"],
+                        min_id=first.id,
+                        reverse=True
+                )]
+                logging.debug(msgs)
+                await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
+#                await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
             finally:
                 thumb.close()
         finally:

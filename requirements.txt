@@ -1,3 +1,6 @@
-lyricsgenius
 telethon
+lyricsgenius
 pythondialog
+cryptg
+Pillow
+emoji

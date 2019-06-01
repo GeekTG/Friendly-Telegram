@@ -7,6 +7,16 @@ def register(cb):
     logging.debug('Registering %s', __file__)
     cb(StickersMod())
 
+def is_just_emoji(string):
+    reg = emoji.get_emoji_regexp()
+    off = 0
+    while off < len(string):
+        r = reg.match(string[off:])
+        if not r:
+            return False
+        off += r.span()[1]
+    return True
+
 class StickersMod(loader.Module):
     def __init__(self):
         logging.debug('%s started', __file__)
@@ -18,7 +28,7 @@ class StickersMod(loader.Module):
 
     async def kangcmd(self, message):
         args = utils.get_args(message)
-        if (len(args) != 1 and len(args) != 2) or (len(args) == 2 and emoji.emoji_count(args[1]) != len(args[1])):
+        if (len(args) != 1 and len(args) != 2) or (len(args) == 2 and not is_just_emoji(args[1])):
             logging.debug("wrong args len or bad emoji args")
             await message.edit("Provide a pack name and optionally emojis too")
             return
@@ -52,7 +62,7 @@ class StickersMod(loader.Module):
                     emojis = sticker.file.emoji
                 else:
                     emojis = ""
-                if len(args) > 1 and emoji.emoji_count(args[1]) == len(args[1]):
+                if len(args) > 1:
                     emojis = args[0]
                 if emojis == "":
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]

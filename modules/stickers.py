@@ -80,11 +80,19 @@ class StickersMod(loader.Module):
                     # We have sent the pack we wish to modify.
                     # Upload sticker
                     # No need to wait for response, the bot doesn't care.
-                    await conv.send_file(thumb, force_document=True)
+                    m = await conv.send_file(thumb, force_document=True)
                     await conv.send_message(emojis)
                     await conv.send_message("/done")
                     # Block now so that we mark it all as read
                     await conv.get_response()
+                    r = await conv.get_response(m)
+                    if "512" in r.message:
+                        # That's an error:
+                        # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
+                        logging.error("Bad response from StickerBot")
+                        logging.error(r)
+                        await message.edit("<code>Something went wrong internally!</code>", parse_mode="HTML")
+                        return
                 await message.client.send_read_acknowledge(conv.chat_id)
 
                 msgs = [msg.id async for msg in message.client.iter_messages(
@@ -124,8 +132,17 @@ def click_buttons(buttons, target_pack):
 
 def resize_image(img, size, dest):
     # Wrapper for asyncio purposes
-    im = Image.open(img)
-    # We don't want to upscale
-    im.thumbnail(size)
-    im.save(dest, "PNG")
-
+    try:
+        im = Image.open(img)
+        # We used to use thumbnail(size) here, but it returns with a *max* dimension of 512,512 rather than making one side exactly 512
+        # So we have to calculate dimensions manually :(
+        if im.width == im.height:
+            size = (512, 512)
+        elif im.width < im.height:
+            size = (int(512*im.width/im.height), 512)
+        else:
+            size = (512, int(512*im.height/im.width))
+        logging.debug("Resizing to %s", size)
+        im.resize(size).save(dest, "PNG")
+    finally:
+        del im

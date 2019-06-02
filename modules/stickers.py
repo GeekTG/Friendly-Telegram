@@ -1,25 +1,18 @@
 from .. import loader, utils
-import logging, warnings, functools, asyncio, emoji, itertools, re
-from emoji import unicode_codes
+import logging, warnings, functools, asyncio, itertools, re
 from io import BytesIO
 from PIL import Image
 
 def register(cb):
     logging.debug('Registering %s', __file__)
     cb(StickersMod())
-
-_FULLEMOJI_REGEXP = None
+#                             normal emojis        emoji mod  join mod
+RE_EMOJI = re.compile('(?:[\U00010000-\U0010ffff]|(?:.\ufe0f)|\u200d)*', flags=re.UNICODE)
 
 def is_just_emoji(string):
-    global _FULLEMOJI_REGEXP
-    if _FULLEMOJI_REGEXP is None:
-        emojis = sorted(unicode_codes.EMOJI_UNICODE.values(), key=len,
-                        reverse=True)
-        pattern = u'^(?:' + u'|'.join(re.escape(u) for u in emojis) + u')*'
-        # Matches ALL the emojis
-        _FULLEMOJI_REGEXP = re.compile(pattern)
-    reg = _FULLEMOJI_REGEXP
-    r = reg.fullmatch(string)
+    r = RE_EMOJI.fullmatch(string)
+    logging.debug(ascii(r))
+    logging.debug(RE_EMOJI)
     return r != None
 
 class StickersMod(loader.Module):
@@ -27,14 +20,14 @@ class StickersMod(loader.Module):
         logging.debug('%s started', __file__)
         warnings.simplefilter('error', Image.DecompressionBombWarning)
         self.commands = {'kang':self.kangcmd}
-        self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":emoji.emojize("🤔")}
+        self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
         self.name = "Stickers"
         self.help = "Tasks with stickers"
 
     async def kangcmd(self, message):
         args = utils.get_args(message)
         if (len(args) != 1 and len(args) != 2) or (len(args) == 2 and not is_just_emoji(args[1].strip())):
-            logging.debug("wrong args len(%s) or bad(%s) emoji(%s) args(%s)", len(args), is_just_emoji(args[1].strip()), args[1].strip(), args)
+            logging.debug("wrong args len(%s) or bad(%s) emoji(%s) args(%s)", len(args), is_just_emoji(args[1].strip()), ascii(args[1].strip()), args)
             await message.edit("Provide a pack name and optionally emojis too")
             return
 
@@ -63,13 +56,11 @@ class StickersMod(loader.Module):
                 thumb.name = "sticker.png"
                 thumb.seek(0)
                 # The data is now in thumb.
-                if sticker.sticker:
-                    emojis = sticker.file.emoji
-                else:
-                    emojis = ""
                 if len(args) > 1:
                     emojis = args[1]
-                if emojis == "":
+                elif sticker.sticker:
+                    emojis = sticker.file.emoji
+                else:
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]
                 # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
                 conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
@@ -79,9 +70,11 @@ class StickersMod(loader.Module):
                     buttons = (await conv.get_response()).buttons
                     if buttons != None:
                         logging.debug("there are buttons, good")
-                        await click_buttons(buttons, args[0]).click()
+                        button = click_buttons(buttons, args[0])
+                        await button.click()
                     else:
                         logging.warning("there's no buttons!")
+                        await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
                         await message.edit("Something went wrong")
                         return
                     # We have sent the pack we wish to modify.
@@ -106,6 +99,8 @@ class StickersMod(loader.Module):
                 thumb.close()
         finally:
             img.close()
+        packurl = utils.escape_quotes(f"https://t.me/addstickers/{button.text}")
+        await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>', parse_mode="HTML")
 
 def click_buttons(buttons, target_pack):
     buttons = list(itertools.chain.from_iterable(buttons))

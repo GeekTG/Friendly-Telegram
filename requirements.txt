@@ -3,4 +3,3 @@ lyricsgenius
 pythondialog
 cryptg
 Pillow
-emoji

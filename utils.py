@@ -33,5 +33,8 @@ def get_chat_id(message):
 def escape_html(text):
     return text.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
 
+def escape_quotes(text):
+    return text.replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;").replace('"', "&quot;")
+
 def get_base_dir():
     return os.path.relpath(os.path.dirname(__main__.__file__))

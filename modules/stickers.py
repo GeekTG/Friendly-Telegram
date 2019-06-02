@@ -63,7 +63,7 @@ class StickersMod(loader.Module):
                 else:
                     emojis = ""
                 if len(args) > 1:
-                    emojis = args[0]
+                    emojis = args[1]
                 if emojis == "":
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]
                 # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned

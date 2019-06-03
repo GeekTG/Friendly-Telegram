@@ -23,7 +23,7 @@ class HelpMod(loader.Module):
             if module.__doc__:
                 reply += utils.escape_html(inspect.cleandoc(module.__doc__))
             for name, fun in module.commands.items():
-                reply += f"\n  {name}\n    "
+                reply += f"\n  {name}\n"
                 if fun.__doc__:
                     reply += "\n".join(["    "+x for x in inspect.cleandoc(fun.__doc__).splitlines()])
                 else:

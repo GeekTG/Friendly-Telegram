@@ -16,7 +16,7 @@ Step by step explanation:
 ` sudo apt update`
 
 2. Install required packages
-`sudo apt install python3.7 python3.7-dev dialog git`
+`sudo apt install python3.7 python3.7-dev dialog git neofetch`
 
 ### Configuring the userbot
 

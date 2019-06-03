@@ -14,6 +14,7 @@ class PurgeMod(loader.Module):
         self.name = "Purge"
 
     async def purgecmd(self, message):
+        """Purge from the replied message"""
         if not message.is_reply:
             await message.edit("From where shall I purge?")
             return
@@ -25,6 +26,7 @@ class PurgeMod(loader.Module):
         await message.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])
 
     async def delcmd(self, message):
+        """Delete the replied message"""
         await message.delete()
         if not message.is_reply:
             iter = message.client.iter_messages(

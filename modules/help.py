@@ -13,6 +13,7 @@ class HelpMod(loader.Module):
         self.config = {}
         self.name = "Help"
     async def helpcmd(self, message):
+        """.help [module]"""
         args = utils.get_args(message)
         if len(args) == 1:
             for mod in loader.Modules.modules:

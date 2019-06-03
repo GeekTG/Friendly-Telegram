@@ -15,6 +15,7 @@ class TyperMod(loader.Module):
         self.name = "Typewriter"
 
     async def typecmd(self, message):
+        """.type <message>"""
         a = utils.get_args_raw(message)
         m = ""
         for c in a:

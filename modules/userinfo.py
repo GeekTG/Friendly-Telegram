@@ -17,6 +17,7 @@ class UserInfoMod(loader.Module):
         self.name = "User Info"
 
     async def userinfocmd(self, message):
+        """Use in reply to get user info"""
         if message.is_reply:
             full = await message.client(GetFullUserRequest((await message.get_reply_message()).from_id))
         else:

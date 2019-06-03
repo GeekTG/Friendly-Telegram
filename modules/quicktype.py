@@ -14,6 +14,7 @@ class QuickTypeMod(loader.Module):
         self.name = "Quick Typer"
 
     async def typecmd(self, message):
+        """.quicktype <timeout> <message>"""
         args = utils.get_args(message)
         logging.debug(args)
         if len(args) == 0:

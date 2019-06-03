@@ -20,6 +20,7 @@ class LyricsMod(loader.Module):
         self.genius = lyricsgenius.Genius(self.config["GENUIS_API_TOKEN"])
 
     async def lyricscmd(self, message):
+        """.lyrics Song, Artist"""
         args = utils.get_args_split_by(message, ",")
         logging.debug("getting song lyrics for "+args[0]+", "+args[1])
         song = await asyncio.get_event_loop().run_in_executor(None, functools.partial(self.genius.search_song, args[0], args[1]))

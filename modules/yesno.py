@@ -16,6 +16,7 @@ class YesNoMod(loader.Module):
         self.name = "YesNo"
 
     async def yesnocmd(self, message):
+        """Make a life choice"""
         yes = ["Yes", "Yup", "Absolutely", "Non't"]
         no = ["No", "Nope", "Nah", "Yesn't"]
         if random.randint(1, 2) == 1:

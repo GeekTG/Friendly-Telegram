@@ -15,9 +15,11 @@ class TerminalMod(loader.Module):
         self.activecmds = {}
 
     async def terminalcmd(self, message):
+        """.terminal <command>"""
         await self.runcmd(message, utils.get_args_raw(message))
 
     async def aptcmd(self, message):
+        """Shorthand for '.terminal apt'"""
         await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt "+utils.get_args_raw(message), self.config))
 
     async def runcmd(self, message, cmd, editor=None):
@@ -42,6 +44,7 @@ class TerminalMod(loader.Module):
         del self.activecmds[hash_msg(message)]
 
     async def terminatecmd(self, message):
+        """Use in reply to send SIGTERM to a process"""
         if hash_msg(await message.get_reply_message()) in self.activecmds:
             try:
                 self.activecmds[hash_msg(await message.get_reply_message())].terminate()
@@ -53,6 +56,7 @@ class TerminalMod(loader.Module):
             await message.edit("No command is running in that message.")
 
     async def killcmd(self, message):
+        """Use in reply to send SIGKILL to a process"""
         if hash_msg(await message.get_reply_message()) in self.activecmds:
             try:
                 self.activecmds[hash_msg(await message.get_reply_message())].kill()
@@ -64,6 +68,7 @@ class TerminalMod(loader.Module):
             await message.edit("No command is running in that message.")
 
     async def neocmd(self, message):
+        """Show system stats via neofetch"""
         await self.runcmd(message, "neofetch --stdout", RawMessageEditor(message, "neofetch --stdout", self.config))
 
 

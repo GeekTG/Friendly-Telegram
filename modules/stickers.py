@@ -25,6 +25,9 @@ class StickersMod(loader.Module):
         self.name = "Stickers"
 
     async def kangcmd(self, message):
+        """Use in reply or with an attached media:
+           .kang <pack name> [emojis]
+           If pack is not matched the most recent will be used instead"""
         args = utils.get_args(message)
         if (len(args) != 1 and len(args) != 2) or (len(args) == 2 and not is_just_emoji(args[1].strip())):
             logging.debug("wrong args len(%s) or bad(%s) emoji(%s) args(%s)", len(args), is_just_emoji(args[1].strip()), ascii(args[1].strip()), args)

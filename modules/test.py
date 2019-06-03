@@ -14,5 +14,6 @@ class TestMod(loader.Module):
         self.name = "Tester"
 
     async def pingcmd(self, message):
+        """Does nothing"""
         await message.edit('Pong')
 

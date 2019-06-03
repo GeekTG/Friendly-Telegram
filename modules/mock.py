@@ -14,6 +14,7 @@ class MockMod(loader.Module):
         self.name = "Mocker"
 
     async def mockcmd(self, message):
+        """Use in reply to another message"""
         if message.is_reply:
             text = list((await message.get_reply_message()).message)
         else:

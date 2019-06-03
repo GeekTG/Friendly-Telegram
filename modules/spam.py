@@ -14,6 +14,7 @@ class SpamMod(loader.Module):
         self.name = "Spammer"
 
     async def spamcmd(self, message):
+        """.spam <count> <message>"""
         use_reply = False
         args = utils.get_args(message)
         logging.debug(args)

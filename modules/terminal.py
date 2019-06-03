@@ -9,7 +9,7 @@ def register(cb):
 class TerminalMod(loader.Module):
     """Runs commands"""
     def __init__(self):
-        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd}
+        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd, "uptime":self.upcmd}
         self.config = {"FLOOD_WAIT_PROTECT":2, "INTERACTIVE_AUTH_STRING":"Interactive authentication required.", "INTERACTIVE_PRIV_AUTH_STRING":"Please edit this message to the password for user {user} to run command {command}", "AUTHENTICATING_STRING":"Authenticating...", "AUTH_FAILED_STRING":"Authentication failed, please try again.", "AUTH_TOO_MANY_TRIES_STRING":"Authentication failed, please try again later."}
         self.name = "Terminal"
         self.activecmds = {}
@@ -71,6 +71,9 @@ class TerminalMod(loader.Module):
         """Show system stats via neofetch"""
         await self.runcmd(message, "neofetch --stdout", RawMessageEditor(message, "neofetch --stdout", self.config))
 
+    async def upcmd(self, message):
+        """Show system uptime"""
+        await self.runcmd(message, "uptime", RawMessageEditor(message, "uptime", self.config))
 
 def hash_msg(message):
     return str(utils.get_chat_id(message))+"/"+str(message.id)

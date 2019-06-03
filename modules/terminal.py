@@ -1,14 +1,14 @@
 from .. import loader, utils
 import logging, asyncio, telethon, os, re
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug("Registering %s", __file__)
     cb(TerminalMod())
 
 class TerminalMod(loader.Module):
     """Runs commands"""
     def __init__(self):
-        logging.debug("%s started", __file__)
         self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd}
         self.config = {"FLOOD_WAIT_PROTECT":2, "INTERACTIVE_AUTH_STRING":"Interactive authentication required.", "INTERACTIVE_PRIV_AUTH_STRING":"Please edit this message to the password for user {user} to run command {command}", "AUTHENTICATING_STRING":"Authenticating...", "AUTH_FAILED_STRING":"Authentication failed, please try again.", "AUTH_TOO_MANY_TRIES_STRING":"Authentication failed, please try again later."}
         self.name = "Terminal"
@@ -119,10 +119,10 @@ class MessageEditor():
         try:
             await self.message.edit(text, parse_mode="HTML")
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
-            logging.warning(e)
+            logger.warning(e)
         except telethon.errors.rpcerrorlist.MessageTooLongError as e:
-            logging.error(e)
-            logging.error(text)
+            logger.error(e)
+            logger.error(text)
     async def cmd_ended(self, rc):
         self.rc = rc
         self.state = 4
@@ -142,22 +142,22 @@ class SudoMessageEditor(MessageEditor):
     def update_process(self, process):
         self.process = process
     async def update_stderr(self, stderr):
-        logging.debug("stderr update "+stderr)
+        logger.debug("stderr update "+stderr)
         self.stderr = stderr
         lines = stderr.strip().split("\n")
         lastline = lines[-1]
         lastlines = lastline.rsplit(" ", 1)
         handled = False
         if len(lines) > 1 and re.fullmatch(self.WRONG_PASS, lines[-2]) and lastlines[0] == self.PASS_REQ and self.state == 1:
-            logging.debug("switching state to 0")
+            logger.debug("switching state to 0")
             await self.authmsg.edit(self.config["AUTH_FAILED_STRING"])
             self.state = 0
             handled = True
             await asyncio.sleep(2)
             await self.authmsg.delete()
-        logging.debug("got here")
+        logger.debug("got here")
         if lastlines[0] == self.PASS_REQ and self.state == 0:
-            logging.debug("Success to find sudo log!")
+            logger.debug("Success to find sudo log!")
             text = r'<a href="tg://user?id='
             text += str((await self.message.client.get_me()).id)
             text += r'">'
@@ -166,28 +166,28 @@ class SudoMessageEditor(MessageEditor):
             try:
                 await self.message.edit(text, parse_mode="HTML")
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
-                logging.debug(e)
-            logging.debug("edited message with link to self")
+                logger.debug(e)
+            logger.debug("edited message with link to self")
             self.authmsg = await self.message.client.send_message('me', self.config["INTERACTIVE_PRIV_AUTH_STRING"].format(command="<code>"+utils.escape_html(self.command)+"</code>", user=utils.escape_html(lastlines[1][:-1])), parse_mode="HTML")
-            logging.debug("sent message to self")
+            logger.debug("sent message to self")
             self.message.client.remove_event_handler(self.on_message_edited)
             self.message.client.add_event_handler(self.on_message_edited, telethon.events.messageedited.MessageEdited(chats=['me']))
-            logging.debug("registered handler")
+            logger.debug("registered handler")
             handled = True
         if len(lines) > 1 and re.fullmatch(self.TOO_MANY_TRIES, lastline) and (self.state == 1 or self.state == 3 or self.state == 4):
-            logging.debug("password wrong lots of times")
+            logger.debug("password wrong lots of times")
             await self.message.edit(self.config["AUTH_TOO_MANY_TRIES_STRING"])
             await self.authmsg.delete()
             self.state = 2
             handled = True
         if not handled:
-            logging.debug("Didn't find sudo log.")
+            logger.debug("Didn't find sudo log.")
             if self.authmsg != None:
                 await self.authmsg.delete()
                 self.authmsg = None
             self.state = 2
             await self.redraw()
-        logging.debug(self.state)
+        logger.debug(self.state)
     async def update_stdout(self, stdout):
         self.stdout = stdout
         if self.state != 2:
@@ -200,7 +200,7 @@ class SudoMessageEditor(MessageEditor):
         # Message contains sensitive information.
         if self.authmsg == None:
             return
-        logging.debug("got message edit update in self"+str(message.id))
+        logger.debug("got message edit update in self"+str(message.id))
         if hash_msg(message) == hash_msg(self.authmsg):
             # The user has provided interactive authentication. Send password to stdin for sudo.
             try:
@@ -215,7 +215,7 @@ class RawMessageEditor(SudoMessageEditor):
         super().__init__(message, command, config)
         self.show_done = show_done
     async def redraw(self, skip_wait=False):
-        logging.debug(self.rc)
+        logger.debug(self.rc)
         if self.rc == None:
             text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4095, 0):]) + '</code>'
         elif self.rc == 0:
@@ -224,15 +224,15 @@ class RawMessageEditor(SudoMessageEditor):
             text = '<code>' + utils.escape_html(self.stderr[max(len(self.stderr) - 4095, 0):]) + '</code>'
         if self.rc != None and self.show_done:
             text += "\nDone"
-        logging.debug(text)
+        logger.debug(text)
         try:
             await self.message.edit(text, parse_mode="HTML")
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
-            logging.warning(e)
+            logger.warning(e)
         except telethon.errors.rpcerrorlist.MessageEmptyError as e:
-            logging.warning(e)
-            logging.error(text)
+            logger.warning(e)
+            logger.error(text)
         except telethon.errors.rpcerrorlist.MessageTooLongError as e:
-            logging.error(e)
-            logging.error(text)
+            logger.error(e)
+            logger.error(text)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.7
 
-import locale, time, os
+import locale, time, os, inspect
 
 from dialog import Dialog
 
@@ -31,7 +31,7 @@ def validate_value(string):
         return '"'+ (string.replace('"', r'\"')) + '"'
 
 def modules_config():
-    code, tag = d.menu(TITLE, choices=[(module.name, module.help) if len(module.config) > 0 else () for module in modules.modules])
+    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(module.__doc__)) if len(module.config) > 0 else () for module in modules.modules])
     if code == d.OK:
         for mod in modules.modules:
             if mod.name == tag and len(mod.config) > 0:
@@ -44,9 +44,8 @@ def modules_config():
                 if code == d.OK:
                     code, string = d.inputbox(tag)
                     if code == d.OK:
-                        f = open_config()
-                        f.write("\n"+key+"="+validate_value(string))
-                        f.close()
+                        with open_config() as f:
+                            f.write("\n"+key+"="+validate_value(string))
                 modules_config()
                 return
     else:
@@ -55,7 +54,7 @@ def modules_config():
 def main():
     if new_config:
         with open_config("w") as f:
-            f.write("import logging\n")
+            f.write("import logging")
     while main_config():
         pass
 
@@ -74,10 +73,10 @@ def logging_config():
     code, tag = d.menu(TITLE, choices=[("CRITICAL", "CRITICAL"), ("ERROR", "ERROR"), ("WARNING", "WARNING"), ("INFO", "INFO"), ("DEBUG", "DEBUG"), ("NOTSET", "ALL")])
     if code == d.OK:
         with open_config() as f:
-            f.write("logging.basicConfig(logging.basicConfig(level=logging.{tag}, datefmt='')"
+            f.write(f"\nlogging.basicConfig(level=logging.{tag}, datefmt='')")
 
 def main_config():
-    code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules")])
+    code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules"), ("Logging", "Configure debug output")])
     if code == d.OK:
         if tag == "Modules":
             modules_config()

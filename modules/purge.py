@@ -1,14 +1,14 @@
 from .. import loader
 import logging
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('Registering %s', __file__)
     cb(PurgeMod())
 
 class PurgeMod(loader.Module):
     """Deletes your messages"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'purge':self.purgecmd, "del":self.delcmd}
         self.config = {}
         self.name = "Purge"
@@ -23,6 +23,7 @@ class PurgeMod(loader.Module):
             min_id=message.reply_to_msg_id,
             reverse=True
         )]
+        logging.debug(msgs)
         await message.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])
 
     async def delcmd(self, message):

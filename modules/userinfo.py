@@ -2,16 +2,15 @@ from .. import loader, utils
 import logging
 from telethon.tl.functions.users import GetFullUserRequest
 
+logger = logging.getLogger(__name__)
 
 def register(cb):
-    logging.info('Registering %s', __file__)
     cb(UserInfoMod())
 
 
 class UserInfoMod(loader.Module):
     """Tells you about people"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'uinfo': self.userinfocmd}
         self.config = {}
         self.name = "User Info"
@@ -23,7 +22,7 @@ class UserInfoMod(loader.Module):
         else:
             args = utils.get_args(message)
             full = await message.client(GetFullUserRequest(args[0]))
-        logging.debug(full)
+        logger.debug(full)
         reply = "First name: <code>" + utils.escape_html(full.user.first_name)
         reply += "</code>\nLast name: <code>" + utils.escape_html(str(full.user.last_name))
         reply += "</code>\nBio: <code>" + utils.escape_html(full.about)

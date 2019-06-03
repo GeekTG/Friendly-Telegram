@@ -1,14 +1,14 @@
 from .. import loader, utils
 import logging, random
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('Registering %s', __file__)
     cb(MockMod())
 
 class MockMod(loader.Module):
     """mOcKs PeOpLe"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'mock':self.mockcmd}
         self.config = {}
         self.name = "Mocker"
@@ -30,7 +30,7 @@ class MockMod(loader.Module):
                 n += 1
             rn += 1
         text = "".join(text)
-        logging.debug(text)
+        logger.debug(text)
         await message.edit(text)
 
 

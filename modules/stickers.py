@@ -3,22 +3,24 @@ import logging, warnings, functools, asyncio, itertools, re
 from io import BytesIO
 from PIL import Image
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('Registering %s', __file__)
     cb(StickersMod())
+
 #                             normal emojis        emoji mod  join mod
 RE_EMOJI = re.compile('(?:[\U00010000-\U0010ffff]|(?:.\ufe0f)|\u200d)*', flags=re.UNICODE)
 
 def is_just_emoji(string):
     r = RE_EMOJI.fullmatch(string)
-    logging.debug(ascii(r))
-    logging.debug(RE_EMOJI)
+    logger.debug(ascii(r))
+    logger.debug(RE_EMOJI)
     return r != None
 
 class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
-        logging.debug('%s started', __file__)
+        logger.debug('%s started', __file__)
         warnings.simplefilter('error', Image.DecompressionBombWarning)
         self.commands = {'kang':self.kangcmd}
         self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
@@ -30,16 +32,16 @@ class StickersMod(loader.Module):
            If pack is not matched the most recent will be used instead"""
         args = utils.get_args(message)
         if (len(args) != 1 and len(args) != 2) or (len(args) == 2 and not is_just_emoji(args[1].strip())):
-            logging.debug("wrong args len(%s) or bad(%s) emoji(%s) args(%s)", len(args), is_just_emoji(args[1].strip()), ascii(args[1].strip()), args)
+            logger.debug("wrong args len(%s) or bad(%s) emoji(%s) args(%s)", len(args), is_just_emoji(args[1].strip()), ascii(args[1].strip()), args)
             await message.edit("Provide a pack name and optionally emojis too")
             return
 
         if not message.is_reply:
             if message.sticker or message.photo:
-                logging.debug("user sent photo/sticker directly not reply")
+                logger.debug("user sent photo/sticker directly not reply")
                 sticker = message
             else:
-                logging.debug("user didnt send any sticker/photo or reply")
+                logger.debug("user didnt send any sticker/photo or reply")
                 await message.edit("Reply to a sticker or photo to nick it")
                 return
         else:
@@ -47,11 +49,11 @@ class StickersMod(loader.Module):
         if not (sticker.sticker or sticker.photo):
             await message.edit("That ain't no photo")
             return
-        logging.debug("user did send photo/sticker")
+        logger.debug("user did send photo/sticker")
         try:
             img = BytesIO()
             await sticker.download_media(file=img)
-            logging.debug(img)
+            logger.debug(img)
             try:
                 thumb = BytesIO()
                 await asyncio.get_event_loop().run_in_executor(None, functools.partial(resize_image, img, self.config["STICKER_SIZE"], thumb))
@@ -72,11 +74,11 @@ class StickersMod(loader.Module):
                     await conv.send_message("/addsticker")
                     buttons = (await conv.get_response()).buttons
                     if buttons != None:
-                        logging.debug("there are buttons, good")
+                        logger.debug("there are buttons, good")
                         button = click_buttons(buttons, args[0])
                         await button.click()
                     else:
-                        logging.warning("there's no buttons!")
+                        logger.warning("there's no buttons!")
                         await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
                         await message.edit("Something went wrong")
                         return
@@ -92,8 +94,8 @@ class StickersMod(loader.Module):
                     if "512" in r.message:
                         # That's an error:
                         # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
-                        logging.error("Bad response from StickerBot")
-                        logging.error(r)
+                        logger.error("Bad response from StickerBot")
+                        logger.error(r)
                         await message.edit("<code>Something went wrong internally!</code>", parse_mode="HTML")
                         return
                 await message.client.send_read_acknowledge(conv.chat_id)
@@ -103,7 +105,7 @@ class StickersMod(loader.Module):
                         min_id=first.id,
                         reverse=True
                 )]
-                logging.debug(msgs)
+                logger.debug(msgs)
                 await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
 #                await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
             finally:
@@ -120,9 +122,9 @@ def click_buttons(buttons, target_pack):
         return buttons[int(target_pack)]
     except:
         pass
-    logging.debug(buttons)
+    logger.debug(buttons)
     for button in buttons:
-        logging.debug(button)
+        logger.debug(button)
         if button.text == target_pack:
             return button
     for button in buttons:
@@ -145,7 +147,7 @@ def resize_image(img, size, dest):
             size = (int(512*im.width/im.height), 512)
         else:
             size = (512, int(512*im.height/im.width))
-        logging.debug("Resizing to %s", size)
+        logger.debug("Resizing to %s", size)
         im.resize(size).save(dest, "PNG")
     finally:
         del im

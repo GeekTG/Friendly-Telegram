@@ -1,14 +1,14 @@
 from .. import loader, utils
 import logging, asyncio
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('registering %s', __file__)
     cb(QuickTypeMod())
 
 class QuickTypeMod(loader.Module):
     """Deletes your message after a timeout"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'quicktype':self.typecmd}
         self.config = {}
         self.name = "Quick Typer"
@@ -16,7 +16,7 @@ class QuickTypeMod(loader.Module):
     async def typecmd(self, message):
         """.quicktype <timeout> <message>"""
         args = utils.get_args(message)
-        logging.debug(args)
+        logger.debug(args)
         if len(args) == 0:
             await message.edit("U wot? I need something to type")
             return

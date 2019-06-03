@@ -1,14 +1,14 @@
 from .. import loader, utils
 import logging, inspect
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.info('Registering %s', __file__)
     cb(HelpMod())
 
 class HelpMod(loader.Module):
     """Provides this help message"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'help':self.helpcmd}
         self.config = {}
         self.name = "Help"
@@ -22,6 +22,8 @@ class HelpMod(loader.Module):
             reply = f"<code>Help for {utils.escape_html(module.name)}:\n  "
             if module.__doc__:
                 reply += utils.escape_html(inspect.cleandoc(module.__doc__))
+            else:
+                logging.warning("Module %s is missing docstring!", module)
             for name, fun in module.commands.items():
                 reply += f"\n  {name}\n"
                 if fun.__doc__:

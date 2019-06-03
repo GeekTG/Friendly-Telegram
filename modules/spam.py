@@ -1,14 +1,14 @@
 from .. import loader, utils
 import logging, asyncio
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('registering %s', __file__)
     cb(SpamMod())
 
 class SpamMod(loader.Module):
     """Annoys people really effectively"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'spam':self.spamcmd}
         self.config = {}
         self.name = "Spammer"
@@ -17,7 +17,7 @@ class SpamMod(loader.Module):
         """.spam <count> <message>"""
         use_reply = False
         args = utils.get_args(message)
-        logging.debug(args)
+        logger.debug(args)
         if len(args) == 0:
             await message.edit("U wot? I need something to spam")
             return
@@ -41,7 +41,7 @@ class SpamMod(loader.Module):
         i = 0
         if use_reply:
             reply = await message.get_reply_message()
-            logging.debug(reply)
+            logger.debug(reply)
             while i < count:
                 await asyncio.gather(*[reply.forward_to(message.to_id) for x in range(min(count, 100))])
                 i += 100

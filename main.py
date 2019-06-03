@@ -1,5 +1,5 @@
 import logging, os, sys, argparse, asyncio
-logging.basicConfig(level=logging.ERROR, datefmt='')
+#logging.basicConfig(level=logging.ERROR, datefmt='')
 
 from telethon import TelegramClient, sync, events
 

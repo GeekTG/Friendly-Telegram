@@ -1,14 +1,14 @@
 from .. import loader, utils, __main__
 import logging, os, sys, atexit, functools, asyncio
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('Registering %s', __file__)
     cb(UpdaterMod())
 
 class UpdaterMod(loader.Module):
     """Updates itself"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'selfupdate': self.updatecmd, "pull": self.pullcmd}
         self.config = {"selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
         self.name = "Updater"
@@ -16,7 +16,7 @@ class UpdaterMod(loader.Module):
     async def updatecmd(self, message):
         """Restarts the userbot"""
         await message.edit('Updating...')
-        logging.debug("Self-update. " + sys.executable + "-m" + utils.get_base_dir())
+        logger.debug("Self-update. " + sys.executable + "-m" + utils.get_base_dir())
         atexit.register(functools.partial(restart, "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
         await message.client.disconnect()
 
@@ -31,7 +31,7 @@ class UpdaterMod(loader.Module):
             await message.edit("Downloaded! Use <code>.selfupdate</code> to restart.", parse_mode="HTML")
     async def client_ready(self, client):
         if self.config["selfupdatemsg"] >= 0:
-            logging.debug("Self update successful! Edit message: "+str(self.config))
+            logger.debug("Self update successful! Edit message: "+str(self.config))
             await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], "Update successful!")
 
 def restart(*args):

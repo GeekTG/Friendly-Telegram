@@ -1,15 +1,15 @@
 from .. import loader
 import logging, random
 
+logger = logging.getLogger(__name__)
+
 def register(cb):
-    logging.debug('Registering %s', __file__)
     cb(InsultMod())
 
 
 class InsultMod(loader.Module):
     """Shouts at people"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'insult':self.insultcmd}
         self.config = {}
         self.name = "Insulter"
@@ -26,5 +26,6 @@ class InsultMod(loader.Module):
         noun = random.choice(nouns)
         end = random.choice(ends)
         insult = start + " " + adjective_start + " " + adjective_mid + (" " if adjective_mid else "") + noun + end
+        logger.debug(insult)
         await message.edit(insult)
 

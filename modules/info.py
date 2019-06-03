@@ -1,16 +1,15 @@
 from .. import loader, utils
 import logging, subprocess, platform
 
+logger = logging.getLogger(__name__)
 
 def register(cb):
-    logging.info('Registering %s', __file__)
     cb(InfoMod())
 
 
 class InfoMod(loader.Module):
     """Provides system information about the computer hosting this bot"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'info': self.infocmd}
         self.config = {}
         self.name = "Info"
@@ -30,4 +29,5 @@ class InfoMod(loader.Module):
         reply += "\nMisc"
         reply += "\nPython version: " + utils.escape_html(platform.python_version())
         reply += '</code>'
+        logger.debug(reply)
         await message.edit(reply, parse_mode="HTML")

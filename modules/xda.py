@@ -1,8 +1,7 @@
 from .. import loader
-import logging, random
+import random
 
 def register(cb):
-    logging.debug('Registering %s', __file__)
     cb(XDAMod())
 
 RANDOM_WORDS = ["sur", "Sir", "bro", "yes", "no", "bolte", "bolit", "bholit", "volit", "mustah", "fap", "lit", "lmao", "iz", "jiosim", "ijo", "nut", "workz", "workang"]
@@ -17,7 +16,6 @@ WEIGHT_WORDS += [3              , 2            , 4     , 5     , 3    , 3       
 class XDAMod(loader.Module):
     """Gibes bholte bro"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'xda':self.xdacmd}
         self.config = {"XDA_RANDOM_WORDS":RANDOM_WORDS, "XDA_WEIGHT_WORDS":WEIGHT_WORDS}
         self.name = "XDA"

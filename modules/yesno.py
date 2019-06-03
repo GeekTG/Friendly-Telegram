@@ -1,16 +1,13 @@
 from .. import loader
-import logging, random
-
+import random
 
 def register(cb):
-    logging.info('Registering %s', __file__)
     cb(YesNoMod())
 
 
 class YesNoMod(loader.Module):
     """Helps you make important life choices"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'yesno': self.yesnocmd}
         self.config = {}
         self.name = "YesNo"

@@ -1,17 +1,15 @@
 from .. import loader, utils
 import logging, lyricsgenius, asyncio, functools
 
-
+logger = logging.getLogger(__name__)
 
 def register(cb):
-    logging.info('Registering %s', __file__)
     cb(LyricsMod())
 
 
 class LyricsMod(loader.Module):
     """Sings songs"""
     def __init__(self):
-        logging.debug('%s started', __file__)
         self.commands = {'lyrics': self.lyricscmd}
         self.config = {"GENUIS_API_TOKEN": ""}
         self.name = "Lyrics"
@@ -22,9 +20,9 @@ class LyricsMod(loader.Module):
     async def lyricscmd(self, message):
         """.lyrics Song, Artist"""
         args = utils.get_args_split_by(message, ",")
-        logging.debug("getting song lyrics for "+args[0]+", "+args[1])
+        logger.debug("getting song lyrics for "+args[0]+", "+args[1])
         song = await asyncio.get_event_loop().run_in_executor(None, functools.partial(self.genius.search_song, args[0], args[1]))
-        logging.debug(song)
-        logging.debug(song.lyrics)
+        logger.debug(song)
+        logger.debug(song.lyrics)
         #song = self.genius.search_song(args[1], args[0])
         await message.edit(utils.escape_html(song.lyrics))

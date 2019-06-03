@@ -131,10 +131,11 @@ class MessageEditor():
         try:
             await self.message.edit(text, parse_mode="HTML")
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
-            logger.warning(e)
+            pass
         except telethon.errors.rpcerrorlist.MessageTooLongError as e:
             logger.error(e)
             logger.error(text)
+        # The message is never empty due to the template header
     async def cmd_ended(self, rc):
         self.rc = rc
         self.state = 4
@@ -240,10 +241,9 @@ class RawMessageEditor(SudoMessageEditor):
         try:
             await self.message.edit(text, parse_mode="HTML")
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
-            logger.warning(e)
+            pass
         except telethon.errors.rpcerrorlist.MessageEmptyError as e:
-            logger.warning(e)
-            logger.error(text)
+            pass
         except telethon.errors.rpcerrorlist.MessageTooLongError as e:
             logger.error(e)
             logger.error(text)

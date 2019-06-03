@@ -16,7 +16,7 @@ Step by step explanation:
 ` sudo apt update`
 
 2. Install required packages
-`sudo apt install python3.7 dialog git`
+`sudo apt install python3.7 python3.7-dev dialog git`
 
 ### Configuring the userbot
 
@@ -26,7 +26,7 @@ Step by step explanation:
 
 2. Install requirements
 `cd friendly-telegram`
-`python3.7 -m pip3 install -r requirements.txt`
+`python3.7 -m pip install -r requirements.txt`
 
 3.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
 

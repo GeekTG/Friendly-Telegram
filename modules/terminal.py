@@ -9,7 +9,7 @@ def register(cb):
 class TerminalMod(loader.Module):
     """Runs commands"""
     def __init__(self):
-        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd, "uptime":self.upcmd}
+        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd, "uptime":self.upcmd, "speedtest":self.speedcmd}
         self.config = {"FLOOD_WAIT_PROTECT":2, "INTERACTIVE_AUTH_STRING":"Interactive authentication required.", "INTERACTIVE_PRIV_AUTH_STRING":"Please edit this message to the password for user {user} to run command {command}", "AUTHENTICATING_STRING":"Authenticating...", "AUTH_FAILED_STRING":"Authentication failed, please try again.", "AUTH_TOO_MANY_TRIES_STRING":"Authentication failed, please try again later."}
         self.name = "Terminal"
         self.activecmds = {}
@@ -74,6 +74,11 @@ class TerminalMod(loader.Module):
     async def upcmd(self, message):
         """Show system uptime"""
         await self.runcmd(message, "uptime", RawMessageEditor(message, "uptime", self.config))
+
+    async def speedcmd(self, message):
+        """Make an internet speed test"""
+        await message.edit("<code>Running speedtest...</code>", parse_mode="HTML")
+        await self.runcmd(message, "speedtest --simple --secure", RawMessageEditor(message, "speedtest --simple --secure", self.config))
 
 def hash_msg(message):
     return str(utils.get_chat_id(message))+"/"+str(message.id)

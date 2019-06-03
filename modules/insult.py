@@ -7,12 +7,12 @@ def register(cb):
 
 
 class InsultMod(loader.Module):
+    """Shouts at people"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'insult':self.insultcmd}
         self.config = {}
         self.name = "Insulter"
-        self.help = "Shouts at people"
 
     async def insultcmd(self, message):
         adjectives_start = ["salty", "fat", "fucking", "shitty", "stupid", "retarded"]

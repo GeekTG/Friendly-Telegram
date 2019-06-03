@@ -8,12 +8,12 @@ def register(cb):
 
 
 class InfoMod(loader.Module):
+    """Provides system information about the computer hosting this bot"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'info': self.infocmd}
         self.config = {}
         self.name = "Info"
-        self.help = "Provides system information about the computer hosting this bot"
 
     async def infocmd(self, message):
         reply = "<code>System Info\nKernel: " + utils.escape_html(platform.release())

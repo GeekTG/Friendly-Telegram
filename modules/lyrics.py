@@ -9,12 +9,12 @@ def register(cb):
 
 
 class LyricsMod(loader.Module):
+    """Sings songs"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'lyrics': self.lyricscmd}
         self.config = {"GENUIS_API_TOKEN": ""}
         self.name = "Lyrics"
-        self.help = "Sings songs"
 
     def config_complete(self):
         self.genius = lyricsgenius.Genius(self.config["GENUIS_API_TOKEN"])

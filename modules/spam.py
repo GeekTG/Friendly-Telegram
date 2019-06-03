@@ -6,12 +6,12 @@ def register(cb):
     cb(SpamMod())
 
 class SpamMod(loader.Module):
+    """Annoys people really effectively"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'spam':self.spamcmd}
         self.config = {}
         self.name = "Spammer"
-        self.help = "Annoys people really effectively"
 
     async def spamcmd(self, message):
         use_reply = False

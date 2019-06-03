@@ -3,7 +3,7 @@ import logging, random
 
 def register(cb):
     logging.debug('Registering %s', __file__)
-    cb(TestMod())
+    cb(XDAMod())
 
 RANDOM_WORDS = ["sur", "Sir", "bro", "yes", "no", "bolte", "bolit", "bholit", "volit", "mustah", "fap", "lit", "lmao", "iz", "jiosim", "ijo", "nut", "workz", "workang"]
 WEIGHT_WORDS = [6    , 6,     6    , 5    , 5   , 2      , 2      , 3       , 3      , 4       , 5    , 3    , 6     , 7   , 8       , 4    , 7    , 4      , 4        ]
@@ -14,7 +14,8 @@ WEIGHT_WORDS += [6             , 6       , 6      , 5           , 5    ,  2     
 RANDOM_WORDS += ["plz make room", "andreid pai", "when", "port", "mtk", "send moni", "bad rom", "dot", "kenzo", "rr", "linage"]
 WEIGHT_WORDS += [3              , 2            , 4     , 5     , 3    , 3          , 2        , 4    , 4      , 4   , 4       ]
 
-class TestMod(loader.Module):
+class XDAMod(loader.Module):
+    """Pretends to be XDA"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'xda':self.xdacmd}

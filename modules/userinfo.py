@@ -9,12 +9,12 @@ def register(cb):
 
 
 class UserInfoMod(loader.Module):
+    """Tells you about people"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'uinfo': self.userinfocmd}
         self.config = {}
         self.name = "User Info"
-        self.help = "Tells you about people"
 
     async def userinfocmd(self, message):
         if message.is_reply:

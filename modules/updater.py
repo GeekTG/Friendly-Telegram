@@ -6,12 +6,12 @@ def register(cb):
     cb(UpdaterMod())
 
 class UpdaterMod(loader.Module):
+    """Updates itself"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'selfupdate': self.updatecmd, "pull": self.pullcmd}
         self.config = {"selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
         self.name = "Updater"
-        self.help = "Provides self updates"
 
     async def updatecmd(self, message):
         await message.edit('Updating...')

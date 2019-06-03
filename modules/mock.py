@@ -6,12 +6,12 @@ def register(cb):
     cb(MockMod())
 
 class MockMod(loader.Module):
+    """mOcKs PeOpLe"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'mock':self.mockcmd}
         self.config = {}
         self.name = "Mocker"
-        self.help = "mOcKs PeOpLe"
 
     async def mockcmd(self, message):
         if message.is_reply:

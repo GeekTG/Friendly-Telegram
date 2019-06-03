@@ -6,12 +6,12 @@ def register(cb):
     cb(PurgeMod())
 
 class PurgeMod(loader.Module):
+    """Deletes your messages"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'purge':self.purgecmd, "del":self.delcmd}
         self.config = {}
         self.name = "Purge"
-        self.help = "Deletes things quickly"
 
     async def purgecmd(self, message):
         if not message.is_reply:

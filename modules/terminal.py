@@ -6,12 +6,12 @@ def register(cb):
     cb(TerminalMod())
 
 class TerminalMod(loader.Module):
+    """Runs commands"""
     def __init__(self):
         logging.debug("%s started", __file__)
         self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd}
         self.config = {"FLOOD_WAIT_PROTECT":2, "INTERACTIVE_AUTH_STRING":"Interactive authentication required.", "INTERACTIVE_PRIV_AUTH_STRING":"Please edit this message to the password for user {user} to run command {command}", "AUTHENTICATING_STRING":"Authenticating...", "AUTH_FAILED_STRING":"Authentication failed, please try again.", "AUTH_TOO_MANY_TRIES_STRING":"Authentication failed, please try again later."}
         self.name = "Terminal"
-        self.help = "Runs commands"
         self.activecmds = {}
 
     async def terminalcmd(self, message):

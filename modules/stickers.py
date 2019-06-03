@@ -16,13 +16,13 @@ def is_just_emoji(string):
     return r != None
 
 class StickersMod(loader.Module):
+    """Tasks with stickers"""
     def __init__(self):
         logging.debug('%s started', __file__)
         warnings.simplefilter('error', Image.DecompressionBombWarning)
         self.commands = {'kang':self.kangcmd}
         self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
         self.name = "Stickers"
-        self.help = "Tasks with stickers"
 
     async def kangcmd(self, message):
         args = utils.get_args(message)

@@ -6,12 +6,12 @@ def register(cb):
     cb(QuickTypeMod())
 
 class QuickTypeMod(loader.Module):
+    """Deletes your message after a timeout"""
     def __init__(self):
         logging.debug('%s started', __file__)
         self.commands = {'quicktype':self.typecmd}
         self.config = {}
         self.name = "Quick Typer"
-        self.help = "Deletes your message after some time"
 
     async def typecmd(self, message):
         args = utils.get_args(message)

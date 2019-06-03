@@ -7,9 +7,9 @@ except:
 MODULES_NAME="modules"
 
 class Module():
+    """There is no help for this module"""
     def __init__(self):
         self.name = "Unknown"
-        self.help = "Unknown"
         self.config = {}
 
     def config_complete(self):

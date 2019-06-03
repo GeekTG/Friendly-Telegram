@@ -34,10 +34,9 @@ class Modules():
     watchers = []
 
     def register_all(self):
-        print(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
+        logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         logging.debug(mods)
-        print('mods')
         for mod in mods:
             mod = mod[:-3] # Cut .py
             try:

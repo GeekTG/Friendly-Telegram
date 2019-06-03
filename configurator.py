@@ -44,7 +44,6 @@ def modules_config():
                 if code == d.OK:
                     code, string = d.inputbox(tag)
                     if code == d.OK:
-                        print(key+"="+string)
                         f = open_config()
                         f.write("\n"+key+"="+validate_value(string))
                         f.close()
@@ -55,7 +54,8 @@ def modules_config():
 
 def main():
     if new_config:
-        open_config("w").close()
+        with open_config("w") as f:
+            f.write("import logging\n")
     while main_config():
         pass
 
@@ -70,6 +70,12 @@ def api_config():
         f.close()
         d.msgbox("API Token and ID set.")
 
+def logging_config():
+    code, tag = d.menu(TITLE, choices=[("CRITICAL", "CRITICAL"), ("ERROR", "ERROR"), ("WARNING", "WARNING"), ("INFO", "INFO"), ("DEBUG", "DEBUG"), ("NOTSET", "ALL")])
+    if code == d.OK:
+        with open_config() as f:
+            f.write("logging.basicConfig(logging.basicConfig(level=logging.{tag}, datefmt='')"
+
 def main_config():
     code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules")])
     if code == d.OK:
@@ -77,6 +83,8 @@ def main_config():
             modules_config()
         if tag == "API Token and ID":
             api_config()
+        if tag == "Logging":
+            logging_config()
     else:
         return False
     return True

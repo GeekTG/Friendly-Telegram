@@ -20,7 +20,7 @@ class TerminalMod(loader.Module):
 
     async def aptcmd(self, message):
         """Shorthand for '.terminal apt'"""
-        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt "+utils.get_args_raw(message), self.config))
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt "+utils.get_args_raw(message), self.config, True))
 
     async def runcmd(self, message, cmd, editor=None):
         if cmd.split(" ")[0] == "sudo":
@@ -211,14 +211,19 @@ class SudoMessageEditor(MessageEditor):
             self.process.stdin.write(message.message.message.split("\n", 1)[0].encode("utf-8")+b"\n")
 
 class RawMessageEditor(SudoMessageEditor):
+    def __init__(self, message, command, config, show_done=False):
+        super().__init__(message, command, config)
+        self.show_done = show_done
     async def redraw(self, skip_wait=False):
         logging.debug(self.rc)
         if self.rc == None:
             text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4095, 0):]) + '</code>'
         elif self.rc == 0:
-            text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4090, 0):]) + '</code>\nDone'
+            text = '<code>' + utils.escape_html(self.stdout[max(len(self.stdout) - 4090, 0):]) + '</code>'
         else:
-            text = '<code>' + utils.escape_html(self.stderr[max(len(self.stderr) - 4095, 0):]) + '</code>\nDone'
+            text = '<code>' + utils.escape_html(self.stderr[max(len(self.stderr) - 4095, 0):]) + '</code>'
+        if self.rc != None and self.show_done:
+            text += "\nDone"
         logging.debug(text)
         try:
             await self.message.edit(text, parse_mode="HTML")

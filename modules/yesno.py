@@ -19,7 +19,7 @@ class YesNoMod(loader.Module):
         """Make a life choice"""
         yes = ["Yes", "Yup", "Absolutely", "Non't"]
         no = ["No", "Nope", "Nah", "Yesn't"]
-        if random.randint(1, 2) == 1:
+        if random.getrandbits(1):
             await message.edit(random.choice(yes))
         else:
             await message.edit(random.choice(no))

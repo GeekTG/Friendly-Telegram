@@ -84,6 +84,9 @@ async def read_stream(func, stream, delay):
     while True:
         dat = (await stream.read(1)).decode("utf-8")
         if not dat:
+            if last_task:
+                last_task.cancel()
+                await func(data) # If there is no last task there is inherantly no data, so theres no point sending a blank string
             break
         data += dat
         if last_task:
@@ -91,11 +94,12 @@ async def read_stream(func, stream, delay):
         last_task = asyncio.create_task(sleep_for_task(func(data), delay))
 
 async def sleep_for_task(coro, delay):
-    await asyncio.sleep(delay)
     try:
+        await asyncio.sleep(delay)
         await coro
     except asyncio.CancelledError:
         del coro
+        raise
 
 class MessageEditor():
     def __init__(self, message, command, config):

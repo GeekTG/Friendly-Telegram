@@ -9,7 +9,7 @@ def register(cb):
     cb(StickersMod())
 
 #                             normal emojis        emoji mod  join mod
-RE_EMOJI = re.compile('(?:[\U00010000-\U0010ffff]|(?:.\ufe0f)|\u200d)*', flags=re.UNICODE)
+RE_EMOJI = re.compile('(?:[\U00010000-\U0010ffff]|(?:.\ufe0f)|\u200d|\u20e3)*', flags=re.UNICODE)
 
 def is_just_emoji(string):
     r = RE_EMOJI.fullmatch(string)
@@ -67,6 +67,7 @@ class StickersMod(loader.Module):
                     emojis = sticker.file.emoji
                 else:
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]
+                logging.debug(emojis)
                 # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
                 conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
                 async with conv:

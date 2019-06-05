@@ -16,9 +16,10 @@ class InsultMod(loader.Module):
 
     async def insultcmd(self, message):
         adjectives_start = ["salty", "fat", "fucking", "shitty", "stupid", "retarded", "gay"]
-        adjectives_mid = ["little", "vitamin D deficient", ""]
-        nouns = ["cunt", "pig", "pedophile", "alpha male", "retard", "ass licker", "cunt nugget", "PENIS", "dickhead", "flute"]
-        starts = ["You're a", "You", "Fuck off you"]
+        adjectives_mid = ["little", "vitamin D deficient", "idiotic", "incredibly stupid",]
+        nouns = ["cunt", "pig", "pedophile", "beta male","bottom" "retard", "ass licker", "cunt nugget", "PENIS", "dickhead", "flute","idiot","motherfucker
+,"loner"]
+        starts = ["You're a", "You", "Fuck off you","Actually die you", "Listen up you", "What the fuck is wrong with you, you"]
         ends = ["!!!!", "!", ""]
         start = random.choice(starts)
         adjective_start = random.choice(adjectives_start)

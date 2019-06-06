@@ -19,12 +19,11 @@ async def handle_command(event):
         logging.debug("Ignoring inline bot.")
         return
     message = event.message
+    if len(message.message) > 1 and message.message[:2] == "..":
+        # Allow escaping commands using .'s
+        await message.edit(message.message[1:])
     logging.debug(message)
     command = message.message.split(' ',1)[0]
-    try:
-        params = message.message.split(' ',1)[1]
-    except IndexError:
-        params = ""
     logging.debug(command)
     await modules.dispatch(command, message) # modules.dispatch is not a coro, but returns one
 

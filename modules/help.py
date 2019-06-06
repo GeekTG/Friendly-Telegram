@@ -23,7 +23,7 @@ class HelpMod(loader.Module):
             if module.__doc__:
                 reply += utils.escape_html(inspect.cleandoc(module.__doc__))
             else:
-                logging.warning("Module %s is missing docstring!", module)
+                logger.warning("Module %s is missing docstring!", module)
             for name, fun in module.commands.items():
                 reply += f"\n  {name}\n"
                 if fun.__doc__:

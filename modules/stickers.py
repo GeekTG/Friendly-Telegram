@@ -67,7 +67,7 @@ class StickersMod(loader.Module):
                     emojis = sticker.file.emoji
                 else:
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]
-                logging.debug(emojis)
+                logger.debug(emojis)
                 # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
                 conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
                 async with conv:

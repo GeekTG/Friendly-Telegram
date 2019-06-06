@@ -13,7 +13,7 @@ class AFKMod(loader.Module):
         self.config = {}
         self.name = "AFK"
         self._me = None
-        self._ratelimit = {}
+        self._ratelimit = []
 
     async def client_ready(self, client, db):
         self._db = db
@@ -36,11 +36,11 @@ class AFKMod(loader.Module):
     async def watcher(self, message):
         if message.mentioned or getattr(message.to_id, 'user_id', None) == self._me.id:
             logger.debug("tagged!")
-            if message.from_id in self._ratelimit.keys():
-                await asyncio.sleep(self._ratelimit[message.from_id]/2)
-                self._ratelimit[message.from_id] = self._ratelimit[message.from_id] * 1.5
+            if message.from_id in self._ratelimit:
+                self._ratelimit.remove(message.from_id)
+                continue
             else:
-                self._ratelimit[message.from_id] = 1
+                self._ratelimit += [message.from_id]
             if self.get_afk() == True:
                 await message.reply("<code>I'm AFK!</code>", parse_mode="HTML")
             elif self.get_afk() != False:

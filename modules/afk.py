@@ -38,7 +38,7 @@ class AFKMod(loader.Module):
             logger.debug("tagged!")
             if message.from_id in self._ratelimit:
                 self._ratelimit.remove(message.from_id)
-                continue
+                return
             else:
                 self._ratelimit += [message.from_id]
             if self.get_afk() == True:

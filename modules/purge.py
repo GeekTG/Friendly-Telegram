@@ -23,7 +23,7 @@ class PurgeMod(loader.Module):
             min_id=message.reply_to_msg_id,
             reverse=True
         )]
-        logging.debug(msgs)
+        logger.debug(msgs)
         await message.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])
 
     async def delcmd(self, message):

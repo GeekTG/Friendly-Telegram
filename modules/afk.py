@@ -25,7 +25,7 @@ class AFKMod(loader.Module):
         await message.edit("<code>I'm AFK</code>", parse_mode="HTML")
 
     async def unafkcmd(self, message):
-        self._db.set(__name__, "afk", True)
+        self._db.set(__name__, "afk", False)
         await message.edit("<code>I'm no longer AFK</code>", parse_mode="HTML")
 
     async def watcher(self, message):

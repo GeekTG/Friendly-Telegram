@@ -17,8 +17,8 @@ def get_args_raw(message):
     if not message:
         return False
     args = message.split(' ', 1)
-    if len(args) > 0:
-        return message.split(' ', 1)[1]
+    if len(args) > 1:
+        return args[1]
 
 def get_args_split_by(message, s):
     m = get_args_raw(message)

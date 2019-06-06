@@ -1,5 +1,5 @@
 from .. import loader, utils
-import logging
+import logging, asyncio
 
 logger = logging.getLogger(__name__)
 

@@ -44,7 +44,7 @@ class AFKMod(loader.Module):
             if self.get_afk() == True:
                 await message.reply("<code>I'm AFK!</code>", parse_mode="HTML")
             elif self.get_afk() != False:
-                await message.reply(f"<code>{self.get_afk()}</code>", parse_mode="HTML")
+                await message.reply(f"<code>{utils.escape_html(self.get_afk())}</code>", parse_mode="HTML")
 
     def get_afk(self):
         return self._db.get(__name__, "afk")

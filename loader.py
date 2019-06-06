@@ -16,7 +16,7 @@ class Module():
         pass
 
     # Will always be called after config loaded.
-    async def client_ready(self, client):
+    async def client_ready(self, client, db):
         pass
 
     async def handle_command(self, message):
@@ -93,6 +93,6 @@ class Modules():
             logging.debug(mod.config)
             mod.config_complete()
 
-    async def send_ready(self, client):
+    async def send_ready(self, client, db):
         for mod in self.modules:
-            await mod.client_ready(client)
+            await mod.client_ready(client, db)

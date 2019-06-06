@@ -29,7 +29,7 @@ class UpdaterMod(loader.Module):
             await message.edit("Error!\nStdout:\n<code>"+utils.escape_html(out.decode("utf-8"))+"</code>\nStderr:\n<code>"+utils.escape_html(err.decode("utf-8"))+"</code>", parse_mode="HTML")
         else:
             await message.edit("Downloaded! Use <code>.selfupdate</code> to restart.", parse_mode="HTML")
-    async def client_ready(self, client):
+    async def client_ready(self, client, db):
         if self.config["selfupdatemsg"] >= 0:
             logger.debug("Self update successful! Edit message: "+str(self.config))
             await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], "Update successful!")

@@ -5,6 +5,8 @@ from telethon import TelegramClient, sync, events
 
 from . import loader, __main__
 
+from .database import backend, frontend
+
 # Not public.
 modules = loader.Modules.get()
 
@@ -81,5 +83,8 @@ def main():
 async def amain(client):
     async with client as c:
         await c.start()
-        await modules.send_ready(client)
+        db = frontend.Database(backend.CloudBackend(c))
+        logging.debug("got db")
+        await db.init()
+        await modules.send_ready(client, db)
         await c.run_until_disconnected()

@@ -1,6 +1,5 @@
-from .. import loader
+from .. import loader, utils
 import logging
-from telethon.tl.types import PeerUser
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +20,16 @@ class AFKMod(loader.Module):
         self._me = await client.get_me()
 
     async def afkcmd(self, message):
-        self._db.set(__name__, "afk", True)
+        """.afk [message]
+           If no message is provided, 'I'm AFK' will be used as default"""
+        if utils.get_args_raw(message):
+            self._db.set(__name__, "afk", utils.get_args_raw(message))
+        else:
+            self._db.set(__name__, "afk", True)
         await message.edit("<code>I'm AFK</code>", parse_mode="HTML")
 
     async def unafkcmd(self, message):
+        """Remove the AFK status"""
         self._db.set(__name__, "afk", False)
         await message.edit("<code>I'm no longer AFK</code>", parse_mode="HTML")
 
@@ -36,8 +41,10 @@ class AFKMod(loader.Module):
                 self._ratelimit[message.from_id] = self._ratelimit[message.from_id] * 1.5
             else:
                 self._ratelimit[message.from_id] = 1
-            if await self.is_afk():
+            if self.get_afk() == True:
                 await message.reply("<code>I'm AFK!</code>", parse_mode="HTML")
+            elif self.get_afk() != False:
+                await message.reply(f"<code>{self.get_afk()}</code>", parse_mode="HTML")
 
-    async def is_afk(self):
+    def get_afk(self):
         return self._db.get(__name__, "afk")

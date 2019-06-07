@@ -10,8 +10,15 @@ from .database import backend, frontend
 # Not public.
 modules = loader.Modules.get()
 
+global _waiting, _ready
+_ready = False
+_waiting = []
+
 async def handle_command(event):
     logging.debug("Incoming command!")
+    global _waiting, _ready
+    if not _ready:
+        _waiting += [handle_command(event)]
     if not event.message:
         logging.debug("Ignoring command with no text.")
         return
@@ -29,6 +36,9 @@ async def handle_command(event):
 
 async def handle_incoming(event):
     logging.debug("Incoming message!")
+    global _waiting, _ready
+    if not _ready:
+       _waiting += [handle_incoming(event)]
     message = event.message
     logging.debug(message)
     for fun in modules.watchers:
@@ -80,10 +90,14 @@ def main():
     asyncio.get_event_loop().run_until_complete(amain(client))
 
 async def amain(client):
+    global _ready, _waiting
     async with client as c:
         await c.start()
         db = frontend.Database(backend.CloudBackend(c))
         logging.debug("got db")
         await db.init()
         await modules.send_ready(client, db)
+        _ready = True
+        await asyncio.gather(*_waiting)
+        _waiting.clear()
         await c.run_until_disconnected()

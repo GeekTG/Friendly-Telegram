@@ -52,11 +52,9 @@ class CloudBackend():
     async def do_upload(self, data):
         """Attempt to upload the database.
            Return True or throw"""
-        newmsg = False
         if not self._db:
             self._db = await self._find_data_channel()
         if not self._db:
-            newmsg = True
             self._db = await self._make_data_channel()
         msgs = await self._client.get_messages(
             entity=self._db,
@@ -66,23 +64,10 @@ class CloudBackend():
         if not newmsg:
             for msg in msgs[:-1]:
                 logger.debug(msg)
-                if not isinstance(msg, Message):
-                    continue
-                if len(data):
-                    if msg.message != data[:4096]:
-                        await msg.edit(data[:4096])
-                    logger.debug(data)
-                    data = data[4096:]
-                    logger.debug(data)
-                else:
-                    logger.debug("deleting")
+                if isinstance(msg, Message):
                     await msg.delete()
-        if len(data):
-            newmsg = True
-            await msgs[-1].delete()
         while len(data):
             await self._client.send_message(self._db, data[:4096])
             data = data[4096:]
-        if newmsg:
-            await self._client.send_message(self._db, "Please ignore this chat.")
+        await self._client.send_message(self._db, "Please ignore this chat.")
         return True

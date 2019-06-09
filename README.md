@@ -19,7 +19,7 @@ Step by step explanation:
 `sudo apt install python3.7 git dialog`
 
 3. Install optional modular dependencies
-`sudo apt install python3.7-dev neofetch speedtest-cli`
+`sudo apt install python3.7-dev neofetch speedtest-cli libjpeg-dev`
 
 ### Configuring the userbot
 

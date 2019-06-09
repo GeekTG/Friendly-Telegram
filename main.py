@@ -19,6 +19,7 @@ async def handle_command(event):
     global _waiting, _ready
     if not _ready:
         _waiting += [handle_command(event)]
+        return
     if not event.message:
         logging.debug("Ignoring command with no text.")
         return
@@ -39,10 +40,14 @@ async def handle_incoming(event):
     global _waiting, _ready
     if not _ready:
        _waiting += [handle_incoming(event)]
+       return
     message = event.message
     logging.debug(message)
     for fun in modules.watchers:
-        await fun(message)
+        try:
+            await fun(message)
+        except:
+            logging.exception("Error running watcher")
 
 def run_config():
     from . import configurator

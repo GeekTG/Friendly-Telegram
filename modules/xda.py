@@ -14,8 +14,7 @@ RANDOM_WORDS += ["plz make room", "andreid pai", "when", "port", "mtk", "send mo
 WEIGHT_WORDS += [3              , 2            , 4     , 5     , 3    , 3          , 2        , 4    , 4      , 4   , 4       ]
 
 # Workaround for 3.5
-WORDS = {RANDOM_WORDS[i]:WEIGHT_WORDS[i] for i in len(RANDOM_WORDS)}
-WORDS_WEIGHTED = [k for k in items for dummy in range(items[k])]
+WORDS_WEIGHTED = [RANDOM_WORDS[i] for i in range(len(RANDOM_WORDS)) for dummy in range(WEIGHT_WORDS[i])]
 
 class XDAMod(loader.Module):
     """Gibes bholte bro"""

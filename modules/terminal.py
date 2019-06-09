@@ -98,7 +98,7 @@ async def read_stream(func, stream, delay):
         data += dat
         if last_task:
             last_task.cancel()
-        last_task = asyncio.create_task(sleep_for_task(func(data), delay))
+        last_task = asyncio.ensure_future(sleep_for_task(func(data), delay))
 
 async def sleep_for_task(coro, delay):
     try:

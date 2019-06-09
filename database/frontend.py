@@ -23,7 +23,7 @@ class Database():
     def set(self, owner, key, value):
         self._ensure_owned(owner)
         self._db[owner][key] = value
-        asyncio.create_task(self._backend.do_upload(json.dumps(self._db)))
+        asyncio.ensure_future(self._backend.do_upload(json.dumps(self._db)))
     def _ensure_owned(self, owner):
         if not owner in self._db.keys():
             self._db[owner] = {}

@@ -1,3 +1,5 @@
+# -*- coding: future_fstrings -*-
+
 from .. import loader, utils
 import logging, warnings, functools, asyncio, itertools, re
 from io import BytesIO
@@ -101,11 +103,12 @@ class StickersMod(loader.Module):
                         return
                 await message.client.send_read_acknowledge(conv.chat_id)
 
-                msgs = [msg.id async for msg in message.client.iter_messages(
+                msgs = []
+                async for msg in message.client.iter_messages(
                         entity="t.me/"+self.config["STICKERS_USERNAME"],
                         min_id=first.id,
-                        reverse=True
-                )]
+                        reverse=True):
+                    msgs += [msg.id]
                 logger.debug(msgs)
                 await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
 #                await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")

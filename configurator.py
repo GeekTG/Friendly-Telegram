@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+# -*- coding: future_fstrings -*-
 
 import locale, time, os, inspect
 

@@ -1,3 +1,5 @@
+# -*- coding: future_fstrings -*-
+
 from .. import loader, utils
 import logging, inspect
 

@@ -1,3 +1,5 @@
+# -*- coding: future_fstrings -*-
+
 import atexit, logging, asyncio
 
 from telethon.tl.functions.channels import CreateChannelRequest

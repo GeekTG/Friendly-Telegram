@@ -1,3 +1,5 @@
+# -*- coding: future_fstrings -*-
+
 from .. import loader, utils, __main__
 import logging, os, sys, atexit, functools, asyncio
 

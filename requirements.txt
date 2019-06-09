@@ -3,3 +3,4 @@ lyricsgenius
 pythondialog
 cryptg
 Pillow
+future-fstrings

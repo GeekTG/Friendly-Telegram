@@ -18,11 +18,13 @@ class PurgeMod(loader.Module):
         if not message.is_reply:
             await message.edit("From where shall I purge?")
             return
-        msgs = [msg.id async for msg in message.client.iter_messages(
-            entity=message.to_id,
-            min_id=message.reply_to_msg_id,
-            reverse=True
-        )]
+        msgs = []
+        async for msg in msg in message.client.iter_messages(
+                entity=message.to_id,
+                min_id=message.reply_to_msg_id,
+                reverse=True):
+            msgs += [msg.id]
+            # No async list comprehension in 3.5
         logger.debug(msgs)
         await message.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])
 

@@ -38,9 +38,6 @@ class AFKMod(loader.Module):
     async def watcher(self, message):
         if message.mentioned or getattr(message.to_id, 'user_id', None) == self._me.id:
             logger.debug("tagged!")
-            if message.get_sender().bot:
-                # There's no good way to see if a bot tagged us except to look them up :(
-                return
             if message.from_id in self._ratelimit:
                 self._ratelimit.remove(message.from_id)
                 return

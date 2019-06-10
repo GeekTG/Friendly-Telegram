@@ -89,7 +89,7 @@ class Modules():
                     elif hasattr(config, conf):
                         mod.config[conf] = getattr(config, conf)
                     else:
-                        logging.warning("No config value for "+conf)
+                        logging.debug("No config value for "+conf)
             logging.debug(mod.config)
             mod.config_complete()
 

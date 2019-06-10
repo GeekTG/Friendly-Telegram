@@ -19,7 +19,7 @@ class PurgeMod(loader.Module):
             await message.edit("From where shall I purge?")
             return
         msgs = []
-        async for msg in msg in message.client.iter_messages(
+        async for msg in message.client.iter_messages(
                 entity=message.to_id,
                 min_id=message.reply_to_msg_id,
                 reverse=True):

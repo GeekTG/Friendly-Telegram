@@ -46,6 +46,7 @@ class StickersMod(loader.Module):
         try:
             img = BytesIO()
             await sticker.download_media(file=img)
+            img.seek(0)
             logger.debug(img)
             try:
                 thumb = BytesIO()

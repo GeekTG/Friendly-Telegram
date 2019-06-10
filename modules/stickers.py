@@ -10,15 +10,6 @@ logger = logging.getLogger(__name__)
 def register(cb):
     cb(StickersMod())
 
-#                             normal emojis        emoji mod  join mod
-RE_EMOJI = re.compile('(?:[\U00010000-\U0010ffff]|(?:.\ufe0f)|\u200d|\u20e3)*', flags=re.UNICODE)
-
-def is_just_emoji(string):
-    r = RE_EMOJI.fullmatch(string)
-    logger.debug(ascii(r))
-    logger.debug(RE_EMOJI)
-    return r != None
-
 class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
@@ -33,8 +24,8 @@ class StickersMod(loader.Module):
            .kang <pack name> [emojis]
            If pack is not matched the most recent will be used instead"""
         args = utils.get_args(message)
-        if (len(args) != 1 and len(args) != 2) or (len(args) == 2 and not is_just_emoji(args[1].strip())):
-            logger.debug("wrong args len(%s) or bad(%s) emoji(%s) args(%s)", len(args), is_just_emoji(args[1].strip()), ascii(args[1].strip()), args)
+        if len(args) != 1 and len(args) != 2:
+            logger.debug("wrong args len(%s) or bad args(%s)", len(args), args)
             await message.edit("Provide a pack name and optionally emojis too")
             return
 
@@ -88,21 +79,21 @@ class StickersMod(loader.Module):
                     # We have sent the pack we wish to modify.
                     # Upload sticker
                     # No need to wait for response, the bot doesn't care.
-                    m = await conv.send_file(thumb, force_document=True)
-                    await conv.send_message(emojis)
+                    m1 = await conv.send_file(thumb, force_document=True)
+                    m2 = await conv.send_message(emojis)
                     await conv.send_message("/done")
                     # Block now so that we mark it all as read
                     await conv.get_response()
-                    r = await conv.get_response(m)
-                    if "512" in r.message:
+                    await message.client.send_read_acknowledge(conv.chat_id)
+                    r1 = await conv.get_response(m1)
+                    if "512" in r1.message:
                         # That's an error:
                         # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
-                        logger.error("Bad response from StickerBot")
-                        logger.error(r)
+                        logger.error("Bad response from StickerBot 1")
+                        logger.error(r1)
                         await message.edit("<code>Something went wrong internally!</code>", parse_mode="HTML")
                         return
-                await message.client.send_read_acknowledge(conv.chat_id)
-
+                    r2 = await conv.get_response(m2)
                 msgs = []
                 async for msg in message.client.iter_messages(
                         entity="t.me/"+self.config["STICKERS_USERNAME"],
@@ -111,7 +102,12 @@ class StickersMod(loader.Module):
                     msgs += [msg.id]
                 logger.debug(msgs)
                 await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
-#                await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
+                if "emoji" in r2.message:
+                    # The emoji(s) are invalid.
+                    logger.error("Bad response from StickerBot 2")
+                    logger.error(r2)
+                    await message.edit("<code>Please provide valid emoji(s).</code>", parse_mode="HTML")
+                    return
             finally:
                 thumb.close()
         finally:

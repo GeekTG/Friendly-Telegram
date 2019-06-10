@@ -1,6 +1,14 @@
+# Core
 telethon
-lyricsgenius
+# Compatibility for 3.5
+future-fstrings
+# Config
 pythondialog
+
+
+## Modules
+# Lyrics
+lyricsgenius
+# Stickers
 cryptg
 Pillow
-future-fstrings

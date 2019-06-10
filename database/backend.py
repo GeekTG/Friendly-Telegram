@@ -61,11 +61,10 @@ class CloudBackend():
             reverse=True
         )
         ops = []
-        if not newmsg:
-            for msg in msgs[:-1]:
-                logger.debug(msg)
-                if isinstance(msg, Message):
-                    await msg.delete()
+        for msg in msgs[:-1]:
+            logger.debug(msg)
+            if isinstance(msg, Message):
+                await msg.delete()
         while len(data):
             await self._client.send_message(self._db, data[:4096])
             data = data[4096:]

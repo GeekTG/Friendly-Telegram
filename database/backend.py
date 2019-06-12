@@ -65,7 +65,7 @@ class CloudBackend():
             logger.debug(msg)
             if isinstance(msg, Message):
                 ops += [msg.id]
-        self._client.delete_messages(self._db, ops)
+        await self._client.delete_messages(self._db, ops)
         while len(data):
             await self._client.send_message(self._db, data[:4096])
             data = data[4096:]

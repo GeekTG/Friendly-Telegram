@@ -1,5 +1,7 @@
 # -*- coding: future_fstrings -*-
 
+from .. import utils
+
 import atexit, logging, asyncio
 
 from telethon.tl.functions.channels import CreateChannelRequest
@@ -31,6 +33,7 @@ class CloudBackend():
         if not self._db:
             self._db = await self._find_data_channel()
         if not self._db:
+            logging.debug("No DB, returning")
             return None
 
         msgs = self._client.iter_messages(
@@ -67,7 +70,7 @@ class CloudBackend():
                 ops += [msg.id]
         await self._client.delete_messages(self._db, ops)
         while len(data):
-            await self._client.send_message(self._db, data[:4096])
+            await self._client.send_message(self._db, utils.escape_html(data[:4096]))
             data = data[4096:]
         await self._client.send_message(self._db, "Please ignore this chat.")
         return True

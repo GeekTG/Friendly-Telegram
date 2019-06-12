@@ -11,11 +11,11 @@ class LyricsMod(loader.Module):
     """Sings songs"""
     def __init__(self):
         self.commands = {'lyrics': self.lyricscmd}
-        self.config = {"GENUIS_API_TOKEN": ""}
+        self.config = {"GENIUS_API_TOKEN": ""}
         self.name = "Lyrics"
 
     def config_complete(self):
-        self.genius = lyricsgenius.Genius(self.config["GENUIS_API_TOKEN"])
+        self.genius = lyricsgenius.Genius(self.config["GENIUS_API_TOKEN"])
 
     async def lyricscmd(self, message):
         """.lyrics Song, Artist"""

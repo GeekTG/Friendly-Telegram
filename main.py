@@ -1,5 +1,5 @@
-import logging, os, sys, argparse, asyncio
-#logging.basicConfig(level=logging.ERROR, datefmt='')
+import logging, os, sys, argparse, asyncio, json
+logging.basicConfig(level=logging.DEBUG, datefmt='')
 
 from telethon import TelegramClient, sync, events
 
@@ -49,9 +49,9 @@ async def handle_incoming(event):
         except:
             logging.exception("Error running watcher")
 
-def run_config():
+def run_config(db, init=False):
     from . import configurator
-    configurator.main()
+    return configurator.main(db, init)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -61,14 +61,15 @@ def main():
     arguments = parser.parse_args()
     logging.debug(arguments)
 
-    if arguments.setup:
-        run_config()
-        return
-
     try:
-        from . import config
+        from . import api_token
+        # Do this early on so we can register listeners
+        client = TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()
+        # Stop modules taking personal data so easily, or by accident
+        del api_token.ID
+        del api_token.HASH
     except:
-        run_config()
+        run_config({}, True)
         return
 
     # Load config first, as logger can only be set up once
@@ -77,30 +78,34 @@ def main():
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []
 
-    from . import api_token
-    # Do this early on so we can register listeners
-    client = TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()
-    # Stop modules taking personal data so easily, or by accident
-    del api_token.ID
-    del api_token.HASH
-
     client.on(events.NewMessage(incoming=True, forwards=False))(handle_incoming)
     client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))(handle_command)
 
     modules.register_all()
 
-    modules.send_config(dict(zip(cfg, vlu)))
-
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
-    asyncio.get_event_loop().run_until_complete(amain(client))
+    asyncio.get_event_loop().run_until_complete(amain(client, dict(zip(cfg, vlu)), arguments.setup))
 
-async def amain(client):
+async def amain(client, cfg, setup=False):
     global _ready, _waiting
     async with client as c:
         await c.start()
+        c.parse_mode = "HTML"
+        if setup:
+            db = backend.CloudBackend(c)
+            await db.init()
+            jdb = await db.do_download()
+            try:
+                pdb = json.loads(jdb)
+            except:
+                pdb = {}
+            pdb = run_config(pdb)
+            await db.do_upload(json.dumps(pdb))
+            return
         db = frontend.Database(backend.CloudBackend(c))
-        logging.debug("got db")
         await db.init()
+        logging.debug("got db")
+        modules.send_config(db, cfg)
         await modules.send_ready(client, db)
         _ready = True
         await asyncio.gather(*_waiting)

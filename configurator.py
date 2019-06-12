@@ -6,12 +6,6 @@ from dialog import Dialog
 
 from . import loader, utils
 
-try:
-    from . import config
-    new_config = False
-except:
-    new_config = True
-
 TITLE = "Userbot Configuration"
 
 d = Dialog(dialog="dialog")
@@ -20,17 +14,16 @@ locale.setlocale(locale.LC_ALL, '')
 modules = loader.Modules.get()
 modules.register_all()
 
-def open_config(mode = "a"):
-    return open(os.path.join(utils.get_base_dir(), "config.py"), mode)
+global db
 
 def validate_value(string):
     try:
-        ast.literal_eval(string)
-        return string
+        return ast.literal_eval(string)
     except:
-        return '"'+ (string.replace('"', r'\"')) + '"'
+        return string
 
 def modules_config():
+    global db
     code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(module.__doc__)) if len(module.config) > 0 else () for module in modules.modules])
     if code == d.OK:
         for mod in modules.modules:
@@ -44,19 +37,19 @@ def modules_config():
                 if code == d.OK:
                     code, string = d.inputbox(tag)
                     if code == d.OK:
-                        with open_config() as f:
-                            f.write("\n"+key+"="+validate_value(string))
+                        db.setdefault(mod.__module__, {}).setdefault("__config__", {})[key] = validate_value(string)
                 modules_config()
                 return
     else:
         return
 
-def main():
-    if new_config:
-        with open_config("w") as f:
-            f.write("import logging")
-    while main_config():
+def main(database, init):
+    global db
+    db = database
+    while main_config(init):
         pass
+    print(db)
+    return db
 
 def api_config():
     code, string = d.inputbox("Enter your API Token")
@@ -70,12 +63,12 @@ def api_config():
         d.msgbox("API Token and ID set.")
 
 def logging_config():
-    code, tag = d.menu(TITLE, choices=[("CRITICAL", "CRITICAL"), ("ERROR", "ERROR"), ("WARNING", "WARNING"), ("INFO", "INFO"), ("DEBUG", "DEBUG"), ("NOTSET", "ALL")])
+    global db
+    code, tag = d.menu(TITLE, choices=[("CRITICAL", "50"), ("ERROR", "40"), ("WARNING", "30"), ("INFO", "20"), ("DEBUG", "10"), ("ALL", "0")])
     if code == d.OK:
-        with open_config() as f:
-            f.write(f"\nlogging.basicConfig(level=logging.{tag}, datefmt='')")
+        db[loglevel] = int(tag, 10)
 
-def main_config():
+def main_config(init):
     code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules"), ("Logging", "Configure debug output")])
     if code == d.OK:
         if tag == "Modules":

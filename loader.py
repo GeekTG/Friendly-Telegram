@@ -1,9 +1,4 @@
 import importlib, os, logging, sys, ast, asyncio
-try:
-    from . import config
-    use_config = True
-except:
-    use_config = False
 MODULES_NAME="modules"
 
 class Module():
@@ -77,22 +72,27 @@ class Modules():
                 logging.debug('found command')
                 return asyncio.gather(self.commands[com](message), *watchers) # Returns a coroutine.
 
-    def send_config(self, additional_config=None):
-        if not use_config:
-            return
+    def send_config(self, db, additional_config=None):
         for mod in self.modules:
             if hasattr(mod, "config"):
+                modcfg = db.get(mod.__module__, "__config__", {})
+                logging.debug(modcfg)
                 for conf in mod.config.keys():
                     logging.debug(conf)
                     if conf in additional_config:
                         mod.config[conf] = ast.literal_eval(additional_config[conf])
-                    elif hasattr(config, conf):
-                        mod.config[conf] = getattr(config, conf)
+                    elif conf in modcfg.keys():
+                        mod.config[conf] = modcfg[conf]
                     else:
                         logging.debug("No config value for "+conf)
             logging.debug(mod.config)
-            mod.config_complete()
+            try:
+                mod.config_complete()
+            except:
+                logging.exception("Failed to send mod config complete signal")
 
     async def send_ready(self, client, db):
-        for mod in self.modules:
-            await mod.client_ready(client, db)
+        try:
+            await asyncio.gather(*[m.client_ready(client, db) for m in self.modules])
+        except:
+            logging.exception("Failed to send mod init complete signal")

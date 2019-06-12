@@ -14,11 +14,11 @@ class Database():
                 self._db = {}
         else:
             self._db = {}
-    def get(self, owner, key):
+    def get(self, owner, key, default=None):
         try:
             return self._db[owner][key]
         except KeyError:
-            return None
+            return default
 
     def set(self, owner, key, value):
         self._ensure_owned(owner)

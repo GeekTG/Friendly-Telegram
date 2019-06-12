@@ -16,7 +16,7 @@ Step by step explanation:
 ` sudo apt update`
 
 2. Install required packages
-`sudo apt install python3 git dialog`
+`sudo apt install python3 python3-pip git dialog`
 
 3. Install optional modular dependencies (required for some modules)
 ```

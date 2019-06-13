@@ -80,7 +80,15 @@ class TerminalMod(loader.Module):
     async def speedcmd(self, message):
         """Make an internet speed test"""
         await message.edit("<code>Running speedtest...</code>", parse_mode="HTML")
-        await self.runcmd(message, "speedtest --simple --secure", RawMessageEditor(message, "speedtest --simple --secure", self.config))
+        cmd = "speedtest --simple --secure"
+        args = utils.get_args(message)
+        for arg in args:
+            try:
+                int(arg)
+                cmd += " --server "+arg
+            except:
+                pass
+        await self.runcmd(message, cmd, RawMessageEditor(message, cmd, self.config))
 
 def hash_msg(message):
     return str(utils.get_chat_id(message))+"/"+str(message.id)

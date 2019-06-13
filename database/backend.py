@@ -4,7 +4,7 @@ from .. import utils
 
 import atexit, logging, asyncio
 
-from telethon.tl.functions.channels import CreateChannelRequest
+from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
 from telethon.tl.types import Message
 from telethon.errors.rpcerrorlist import *
 
@@ -26,7 +26,7 @@ class CloudBackend():
                 logger.debug(f"Found data chat! It is {dialog}.")
                 return dialog.entity
     async def _make_data_channel(self):
-        return (await self._client(CreateChannelRequest(f"friendly-{self._me.id}-data", "// Don't touch", megagroup=False))).chats[0]
+        return (await self._client(CreateChannelRequest(f"friendly-{self._me.id}-data", "// Don't touch", megagroup=True))).chats[0]
     async def do_download(self):
         """Attempt to download the database.
            Return the database (as unparsed JSON) or None"""
@@ -64,13 +64,34 @@ class CloudBackend():
             reverse=True
         )
         ops = []
+        sdata = data
+        newmsg = False
         for msg in msgs:
             logger.debug(msg)
             if isinstance(msg, Message):
-                ops += [msg.id]
-        await self._client.delete_messages(self._db, ops)
-        while len(data):
-            await self._client.send_message(self._db, utils.escape_html(data[:4096]))
-            data = data[4096:]
-        await self._client.send_message(self._db, "Please ignore this chat.")
+                if len(sdata):
+                    logging.debug("editing message "+msg.stringify()+" last is "+msgs[-1].stringify())
+                    if msg.id == msgs[-1].id:
+                        newmsg = True
+                    ops += [msg.edit(utils.escape_html(sdata[:4096]))]
+                    sdata = sdata[4096:]
+                else:
+                    logging.debug("maybe deleting message")
+                    if not msg.id == msgs[-1].id:
+                        ops += [msg.delete()]
+        try:
+#            raise MessageEditTimeExpiredError(request=None)
+            await asyncio.gather(*ops)
+        except MessageEditTimeExpiredError:
+            logging.debug("Making new channel.")
+            _db = self._db
+            self._db = None
+            await self._client(DeleteChannelRequest(channel=_db))
+            return await self.do_upload(data)
+        while len(sdata): # Only happens if newmsg is True or there was no message before
+            newmsg = True
+            await self._client.send_message(self._db, utils.escape_html(sdata[:4096]))
+            sdata = sdata[4096:]
+        if newmsg:
+            await self._client.send_message(self._db, "Please ignore this chat.")
         return True

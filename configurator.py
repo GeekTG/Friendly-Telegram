@@ -4,7 +4,7 @@ import locale, time, os, inspect
 
 from dialog import Dialog
 
-from . import loader, utils
+from . import loader, utils, main
 
 TITLE = "Userbot Configuration"
 
@@ -43,7 +43,7 @@ def modules_config():
     else:
         return
 
-def main(database, init):
+def run(database, init):
     global db
     db = database
     while main_config(init):
@@ -66,7 +66,7 @@ def logging_config():
     global db
     code, tag = d.menu(TITLE, choices=[("CRITICAL", "50"), ("ERROR", "40"), ("WARNING", "30"), ("INFO", "20"), ("DEBUG", "10"), ("ALL", "0")])
     if code == d.OK:
-        db[loglevel] = int(tag, 10)
+        db.setdefault(main.__module__, {})["loglevel"] = int(tag)
 
 def main_config(init):
     code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules"), ("Logging", "Configure debug output")])

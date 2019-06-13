@@ -86,7 +86,7 @@ class TerminalMod(loader.Module):
             try:
                 int(arg)
                 cmd += " --server "+arg
-            except:
+            except ValueError:
                 pass
         await self.runcmd(message, cmd, RawMessageEditor(message, cmd, self.config))
 

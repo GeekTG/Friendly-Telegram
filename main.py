@@ -1,5 +1,44 @@
-import logging, os, sys, argparse, asyncio, json
-logging.basicConfig(level=logging.DEBUG, datefmt='')
+import logging
+
+class MemoryHandler(logging.Handler):
+    """Keeps 2 buffers. One for dispatched messages. One for unused messages.
+       When the length of the 2 together is > 100, truncate to make them 100 together, first trimming handled then unused."""
+    def __init__(self, target, capacity):
+        super().__init__(0)
+        self.target = target
+        self.capacity = capacity
+        self.buffer = []
+        self.handledbuffer = []
+        self.lvl = logging.WARNING
+    def setLevel(self, level):
+        self.lvl = level
+    def dump(self):
+        return self.handledbuffer + self.buffer
+    def dumps(self):
+        return [self.format(record) for record in (self.buffer+self.handledbuffer)]
+    def emit(self, record):
+#        print(self.buffer)
+#        print(self.handledbuffer)
+        if len(self.buffer) + len(self.handledbuffer) >= self.capacity:
+            if len(self.handledbuffer):
+                del self.handledbuffer[0]
+            else:
+                del self.buffer[0]
+        self.buffer.append(record)
+        if record.levelno >= self.lvl and self.lvl >= 0:
+            self.acquire()
+            try:
+                for record in self.buffer:
+                    self.target.handle(record)
+                self.handledbuffer = self.handledbuffer[-(self.capacity-len(self.buffer)):] + self.buffer
+                self.buffer = []
+            finally:
+                self.release()
+
+logging.getLogger().addHandler(MemoryHandler(logging.StreamHandler(), 500))
+logging.getLogger().setLevel(0)
+
+import os, sys, argparse, asyncio, json
 
 from telethon import TelegramClient, sync, events
 
@@ -51,7 +90,7 @@ async def handle_incoming(event):
 
 def run_config(db, init=False):
     from . import configurator
-    return configurator.main(db, init)
+    return configurator.run(db, init)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -73,7 +112,7 @@ def main():
         return
 
     # Load config first, as logger can only be set up once
-    logging.basicConfig(level=logging.WARNING, datefmt='')
+#    logging.basicConfig(level=logging.WARNING, datefmt='')
 
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []
@@ -105,6 +144,9 @@ async def amain(client, cfg, setup=False):
         db = frontend.Database(backend.CloudBackend(c))
         await db.init()
         logging.debug("got db")
+        logging.info("Loading logging config...")
+        [handler] = logging.getLogger().handlers
+        handler.flushLevel = db.get(__name__, "loglevel") or logging.WARNING
         modules.send_config(db, cfg)
         await modules.send_ready(client, db)
         _ready = True

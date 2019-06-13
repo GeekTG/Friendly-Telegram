@@ -80,7 +80,6 @@ class CloudBackend():
                     if not msg.id == msgs[-1].id:
                         ops += [msg.delete()]
         try:
-#            raise MessageEditTimeExpiredError(request=None)
             await asyncio.gather(*ops)
         except MessageEditTimeExpiredError:
             logging.debug("Making new channel.")

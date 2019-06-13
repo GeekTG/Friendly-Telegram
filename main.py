@@ -108,6 +108,6 @@ async def amain(client, cfg, setup=False):
         modules.send_config(db, cfg)
         await modules.send_ready(client, db)
         _ready = True
-        await asyncio.gather(*_waiting)
+        await asyncio.gather(*_waiting, return_exceptions=True)
         _waiting.clear()
         await c.run_until_disconnected()

@@ -54,10 +54,10 @@ class AntiPMMod(loader.Module):
                 return
             else:
                 self._ratelimit += [message.from_id]
-            if self.get_allowed(message.from_id) == True:
+            if self.get_allowed(message.from_id):
                 logger.debug("Authorised pm detected")
             else:
-                await message.reply(f"<code>Please do not PM me. You will get reported spam.</code>", parse_mode="HTML")
+                await message.respond(f"<code>Please do not PM me. You will get reported spam.</code>")
 
     def get_allowed(self, id):
         return id in self._db.get(__name__, "allow", [])

@@ -32,6 +32,7 @@ class AFKMod(loader.Module):
 
     async def unafkcmd(self, message):
         """Remove the AFK status"""
+        self._ratelimit.clear()
         self._db.set(__name__, "afk", False)
         await message.edit("<code>I'm no longer AFK</code>", parse_mode="HTML")
 

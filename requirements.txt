@@ -12,3 +12,5 @@ lyricsgenius
 # Stickers
 cryptg
 Pillow
+# Speedtest
+speedtest-cli

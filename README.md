@@ -23,7 +23,7 @@ Step by step explanation:
 # Pillow for stickers/kang
 sudo apt install python3-dev libwebp-dev libz-dev libjpeg-dev
 # Utilities
-sudo apt install neofetch speedtest-cli
+sudo apt install neofetch
 ```
 
 ### Configuring the userbot
@@ -57,7 +57,7 @@ Try typing .help in any Telegram chat while the bot is running
 
 Use Termux
 ```
-pkg install git python-dev libjpeg-turbo-dev zlib-dev libwebp-dev libffi-dev build-essential dialog
+pkg install git python-dev libjpeg-turbo-dev zlib-dev libwebp-dev libffi-dev build-essential dialog neofetch
 git clone https://github.com/penn5/friendly-telegram
 pip install -r friendly-telegram/requirements.txt
 # For setup
@@ -65,7 +65,7 @@ python -m friendly-telegram
 # And again for actual execution
 python -m friendly-telegram
 ```
-Make sure to enable the wakelock from Termux notification
+Make sure to enable the wakelock from Termux notification, especially on MIUI
 
 ### Windows
 

@@ -16,7 +16,7 @@ class MemoryHandler(logging.Handler):
     def dump(self):
         return self.handledbuffer + self.buffer
     def dumps(self):
-        return [self.format(record) for record in (self.buffer+self.handledbuffer)]
+        return [self.target.format(record) for record in (self.buffer+self.handledbuffer)]
     def emit(self, record):
         if len(self.buffer) + len(self.handledbuffer) >= self.capacity:
             if len(self.handledbuffer):
@@ -33,8 +33,10 @@ class MemoryHandler(logging.Handler):
                 self.buffer = []
             finally:
                 self.release()
-
-logging.getLogger().addHandler(MemoryHandler(logging.StreamHandler(), 500))
+formatter = logging.Formatter(logging.BASIC_FORMAT, "")
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
+logging.getLogger().addHandler(MemoryHandler(handler, 500))
 logging.getLogger().setLevel(0)
 
 import os, sys, argparse, asyncio, json

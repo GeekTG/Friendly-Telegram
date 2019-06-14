@@ -1,0 +1,21 @@
+# -*- coding: future_fstrings -*-
+
+import logging
+
+from .. import loader, utils
+
+def register(cb):
+    cb(YourMod())
+
+class YourMod(loader.Module):
+    """Description for module"""
+    def __init__(self):
+        self.commands = {"command":self.yourcmd}
+        self.config = {"CONFIG_STRING":"hello"}
+        self.name = "A Name"
+
+    async def yourcmd(self, message):
+        """.command
+           Does something"""
+        await message.edit(self.config["CONFIG_STRING"])
+

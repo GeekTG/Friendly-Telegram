@@ -1,4 +1,5 @@
 import logging
+from . import utils
 
 class MemoryHandler(logging.Handler):
     """Keeps 2 buffers. One for dispatched messages. One for unused messages.
@@ -17,8 +18,6 @@ class MemoryHandler(logging.Handler):
     def dumps(self):
         return [self.format(record) for record in (self.buffer+self.handledbuffer)]
     def emit(self, record):
-#        print(self.buffer)
-#        print(self.handledbuffer)
         if len(self.buffer) + len(self.handledbuffer) >= self.capacity:
             if len(self.handledbuffer):
                 del self.handledbuffer[0]
@@ -49,13 +48,14 @@ from .database import backend, frontend
 # Not public.
 modules = loader.Modules.get()
 
-global _waiting, _ready
+global _waiting, _ready, db
 _ready = False
 _waiting = []
+db = None
 
 async def handle_command(event):
     logging.debug("Incoming command!")
-    global _waiting, _ready
+    global _waiting, _ready, db
     if not _ready:
         _waiting += [handle_command(event)]
         return
@@ -66,6 +66,11 @@ async def handle_command(event):
         logging.debug("Ignoring inline bot.")
         return
     message = event.message
+    blacklist_chats = db.get(__name__, "blacklist_chats", [])
+    whitelist_chats = db.get(__name__, "whitelist_chats", [])
+    if (utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and not utils.get_chat_id(message) in whitelist_chats)) and not utils.get_chat_id(message) == message.from_id:
+        logging.debug("Message is blacklisted or not in whitelist")
+        return
     if len(message.message) > 1 and message.message[:2] == "..":
         # Allow escaping commands using .'s
         await message.edit(message.message[1:])
@@ -76,12 +81,17 @@ async def handle_command(event):
 
 async def handle_incoming(event):
     logging.debug("Incoming message!")
-    global _waiting, _ready
+    global _waiting, _ready, db
     if not _ready:
        _waiting += [handle_incoming(event)]
        return
     message = event.message
     logging.debug(message)
+    blacklist_chats = db.get(__name__, "blacklist_chats", [])
+    whitelist_chats = db.get(__name__, "whitelist_chats", [])
+    if (utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and not utils.get_chat_id(message) in whitelist_chats)) and not utils.get_chat_id(message) == message.from_id:
+        logging.debug("Message is blacklisted or not in whitelist")
+        return
     for fun in modules.watchers:
         try:
             await fun(message)
@@ -126,7 +136,7 @@ def main():
     asyncio.get_event_loop().run_until_complete(amain(client, dict(zip(cfg, vlu)), arguments.setup))
 
 async def amain(client, cfg, setup=False):
-    global _ready, _waiting
+    global _ready, _waiting, db
     async with client as c:
         await c.start()
         c.parse_mode = "HTML"
@@ -146,7 +156,9 @@ async def amain(client, cfg, setup=False):
         logging.debug("got db")
         logging.info("Loading logging config...")
         [handler] = logging.getLogger().handlers
-        handler.flushLevel = db.get(__name__, "loglevel") or logging.WARNING
+        handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
+        blacklist_chats = db.get(__name__, "blacklist_chats", [])
+        whitelist_chats = db.get(__name__, "whitelist_chats", [])
         modules.send_config(db, cfg)
         await modules.send_ready(client, db)
         _ready = True

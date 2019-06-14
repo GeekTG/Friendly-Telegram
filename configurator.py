@@ -64,9 +64,9 @@ def api_config():
 
 def logging_config():
     global db
-    code, tag = d.menu(TITLE, choices=[("CRITICAL", "50"), ("ERROR", "40"), ("WARNING", "30"), ("INFO", "20"), ("DEBUG", "10"), ("ALL", "0")])
+    code, tag = d.menu(TITLE, choices=[("50", "CRITICAL"), ("40", "ERROR"), ("30", "WARNING"), ("20", "INFO"), ("10", "DEBUG"), ("0", "ALL")])
     if code == d.OK:
-        db.setdefault(main.__module__, {})["loglevel"] = int(tag)
+        db.setdefault(main.__name__, {})["loglevel"] = int(tag)
 
 def main_config(init):
     code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules"), ("Logging", "Configure debug output")])

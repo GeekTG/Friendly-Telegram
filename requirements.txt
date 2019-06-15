@@ -14,3 +14,5 @@ cryptg
 Pillow
 # Speedtest
 speedtest-cli
+# Weather
+pyowm

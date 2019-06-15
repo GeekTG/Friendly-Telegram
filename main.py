@@ -166,4 +166,5 @@ async def amain(client, cfg, setup=False):
         _ready = True
         await asyncio.gather(*_waiting, return_exceptions=True)
         _waiting.clear()
+        print("Started")
         await c.run_until_disconnected()

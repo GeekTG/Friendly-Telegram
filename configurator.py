@@ -37,7 +37,7 @@ def modules_config():
                 if code == d.OK:
                     code, string = d.inputbox(tag)
                     if code == d.OK:
-                        db.setdefault(mod.__module__, {}).setdefault("__config__", {})[key] = validate_value(string)
+                        db.setdefault(mod.__module__, {}).setdefault("__config__", {})[tag] = validate_value(string)
                 modules_config()
                 return
     else:

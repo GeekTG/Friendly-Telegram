@@ -54,4 +54,4 @@ class AFKMod(loader.Module):
                 await message.reply(f"<code>{utils.escape_html(self.get_afk())}</code>", parse_mode="HTML")
 
     def get_afk(self):
-        return self._db.get(__name__, "afk")
+        return self._db.get(__name__, "afk", False)

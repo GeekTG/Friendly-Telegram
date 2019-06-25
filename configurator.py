@@ -12,7 +12,7 @@ d = Dialog(dialog="dialog")
 locale.setlocale(locale.LC_ALL, '')
 
 modules = loader.Modules.get()
-modules.register_all()
+modules.register_all([])
 
 global db
 
@@ -29,7 +29,7 @@ def modules_config():
         for mod in modules.modules:
             if mod.name == tag and len(mod.config) > 0:
                 # Match
-                choices = []
+                choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
                 for key, value in mod.config.items():
                     if key.upper() == key: # Constants only
                         choices += [(key, "")]
@@ -37,7 +37,20 @@ def modules_config():
                 if code == d.OK:
                     code, string = d.inputbox(tag)
                     if code == d.OK:
-                        db.setdefault(mod.__module__, {}).setdefault("__config__", {})[tag] = validate_value(string)
+                        if tag == "Enabled":
+                            try:
+                                enabled = int(string) > 0
+                            except ValueError:
+                                enabled = True
+                            help(mod.__module__)
+                            try:
+                                db.setdefault(main.__name__, {}).setdefault("disable_modules", []).remove(mod.__module__)
+                            except ValueError:
+                                pass
+                            if not enabled:
+                                db.setdefault(main.__name__, {}).setdefault("disable_modules", []).append(mod.__module__)
+                        else:
+                            db.setdefault(mod.__module__, {}).setdefault("__config__", {})[tag] = validate_value(string)
                 modules_config()
                 return
     else:

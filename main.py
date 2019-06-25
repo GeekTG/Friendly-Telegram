@@ -132,8 +132,6 @@ def main():
     client.on(events.NewMessage(incoming=True, forwards=False))(handle_incoming)
     client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))(handle_command)
 
-    modules.register_all()
-
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
     asyncio.get_event_loop().run_until_complete(amain(client, dict(zip(cfg, vlu)), arguments.setup))
 
@@ -159,6 +157,9 @@ async def amain(client, cfg, setup=False):
         logging.info("Loading logging config...")
         [handler] = logging.getLogger().handlers
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
+
+        modules.register_all(db.get(__name__, "disable_modules", []))
+
         blacklist_chats = db.get(__name__, "blacklist_chats", [])
         whitelist_chats = db.get(__name__, "whitelist_chats", [])
         modules.send_config(db, cfg)

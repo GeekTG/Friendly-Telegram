@@ -77,6 +77,7 @@ class LydiaMod(loader.Module):
             logger.debug("pm'd!")
             if message.from_id in self._ratelimit:
                 self._ratelimit.remove(message.from_id)
+                return
             else:
                 self._ratelimit += [message.from_id]
             if self.get_allowed(message.from_id):

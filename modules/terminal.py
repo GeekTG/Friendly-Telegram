@@ -37,8 +37,7 @@ class TerminalMod(loader.Module):
         sproc = await asyncio.create_subprocess_shell(cmd, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=utils.get_base_dir())
         if editor == None:
             editor = SudoMessageEditor(message, cmd, self.config)
-        else:
-            editor.update_process(sproc)
+        editor.update_process(sproc)
         self.activecmds[hash_msg(message)] = sproc
         await editor.redraw(True)
         await asyncio.gather(read_stream(editor.update_stdout, sproc.stdout, self.config["FLOOD_WAIT_PROTECT"]), read_stream(editor.update_stderr, sproc.stderr, self.config["FLOOD_WAIT_PROTECT"]))
@@ -163,6 +162,7 @@ class SudoMessageEditor(MessageEditor):
         self.state = 0
         self.authmsg = None
     def update_process(self, process):
+        logging.debug("got sproc obj %s", process)
         self.process = process
     async def update_stderr(self, stderr):
         logger.debug("stderr update "+stderr)
@@ -223,13 +223,14 @@ class SudoMessageEditor(MessageEditor):
         # Message contains sensitive information.
         if self.authmsg == None:
             return
-        logger.debug("got message edit update in self"+str(message.id))
+        logger.debug("got message edit update in self "+str(message.id))
         if hash_msg(message) == hash_msg(self.authmsg):
             # The user has provided interactive authentication. Send password to stdin for sudo.
             try:
                 self.authmsg = await message.edit(self.config["AUTHENTICATING_STRING"])
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
-                pass
+                # Try to clear personal info if the edit fails
+                await message.delete()
             self.state = 1
             self.process.stdin.write(message.message.message.split("\n", 1)[0].encode("utf-8")+b"\n")
 

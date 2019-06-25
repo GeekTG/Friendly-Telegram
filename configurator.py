@@ -42,7 +42,6 @@ def modules_config():
                                 enabled = int(string) > 0
                             except ValueError:
                                 enabled = True
-                            help(mod.__module__)
                             try:
                                 db.setdefault(main.__name__, {}).setdefault("disable_modules", []).remove(mod.__module__)
                             except ValueError:

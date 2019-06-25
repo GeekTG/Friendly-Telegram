@@ -2,10 +2,8 @@
 # All licensed under project license
 
 from .. import loader, utils
-import logging, asyncio
+import logging, asyncio, requests, asyncio, functools
 from telethon import functions, types
-import requests
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +16,15 @@ class LydiaAPI():
         self.endpoint = "https://api.intellivoid.info/coffeehouse/v1"
         self.client_key = client_key
 
-    def think(self, user_id, data):
+    async def think(self, user_id, data):
         payload = {
             "client_key": self.client_key,
             "user_id": user_id,
             "input": data
         }
-        response = requests.post(self.endpoint + "/ThinkTelegramThought", payload)
-        j_response = json.loads(response.text)
+        response = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, self.endpoint + "/ThinkTelegramThought", payload))
 
-        return j_response["payload"]["output"]
+        return response.json()["payload"]["output"]
 
 class LydiaMod(loader.Module):
     """Talks to a robot instead of a human"""
@@ -83,7 +80,7 @@ class LydiaMod(loader.Module):
                 logger.debug("PM received from user who is not using AI service")
             else:
                 # AI Response method
-                await message.respond(self._lydia.think(str(message.from_id), str(message.message)))
+                await message.respond(await self._lydia.think(str(message.from_id), str(message.message)))
 
     def get_allowed(self, id):
         return id in self._db.get(__name__, "allow", [])

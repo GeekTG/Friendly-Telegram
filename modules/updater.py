@@ -18,7 +18,7 @@ class UpdaterMod(loader.Module):
     async def updatecmd(self, message):
         """Restarts the userbot"""
         await message.edit('Updating...')
-        logger.debug("Self-update. " + sys.executable + "-m" + utils.get_base_dir())
+        logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
         atexit.register(functools.partial(restart, "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
         await message.client.disconnect()
 

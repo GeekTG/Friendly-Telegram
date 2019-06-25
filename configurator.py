@@ -24,10 +24,10 @@ def validate_value(string):
 
 def modules_config():
     global db
-    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(module.__doc__)) if len(module.config) > 0 else () for module in modules.modules])
+    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(module.__doc__)) for module in modules.modules])
     if code == d.OK:
         for mod in modules.modules:
-            if mod.name == tag and len(mod.config) > 0:
+            if mod.name == tag:
                 # Match
                 choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
                 for key, value in mod.config.items():

@@ -1,4 +1,4 @@
-import os
+import os, logging
 from . import __main__
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
 def get_args(message):

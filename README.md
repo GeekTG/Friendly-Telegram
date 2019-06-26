@@ -33,7 +33,10 @@ sudo apt install neofetch
 `git clone https://github.com/penn5/friendly-telegram`
 
 2. Install requirements
-`python3 -m pip install -r friendly-telegram/requirements.txt`
+```
+python3 -m pip install cryptg
+python3 -m pip install -r friendly-telegram/requirements.txt
+```
 
 3.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
 
@@ -59,6 +62,7 @@ Use Termux
 ```
 pkg install git python-dev libjpeg-turbo-dev zlib-dev libwebp-dev libffi-dev build-essential dialog neofetch
 git clone https://github.com/penn5/friendly-telegram
+pip install cryptg
 pip install -r friendly-telegram/requirements.txt
 # For setup
 python -m friendly-telegram

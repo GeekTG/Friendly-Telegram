@@ -79,8 +79,16 @@ class LydiaMod(loader.Module):
             if self.get_allowed(message.from_id):
                 logger.debug("PM received from user who is not using AI service")
             else:
+                await message.client(functions.messages.SetTypingRequest(
+                    peer=message.from_id,
+                    action=types.SendMessageTypingAction()
+                ))
                 # AI Response method
                 await message.respond(await self._lydia.think(str(message.from_id), str(message.message)))
+                await message.client(functions.messages.SetTypingRequest(
+                    peer=message.from_id,
+                    action=types.SendMessageCancelAction()
+                ))
 
     def get_allowed(self, id):
         return id in self._db.get(__name__, "allow", [])

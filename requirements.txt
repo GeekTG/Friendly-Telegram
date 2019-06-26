@@ -10,7 +10,6 @@ pythondialog
 # Lyrics
 lyricsgenius
 # Stickers
-cryptg
 Pillow
 # Speedtest
 speedtest-cli

@@ -96,7 +96,7 @@ class LydiaMod(loader.Module):
                     await message.respond(await self._lydia.think(message.from_id, str(msg)))
                 finally:
                     await message.client(functions.messages.SetTypingRequest(
-                        peer=message.from_id,
+                        peer=await utils.get_user(message),
                         action=types.SendMessageCancelAction()
                     ))
 

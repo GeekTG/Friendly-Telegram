@@ -68,12 +68,11 @@ class Modules():
 
     def dispatch(self, command, message):
         logging.debug(self.commands)
-        watchers = [watcher(message) for watcher in self.watchers]
         for com in self.commands:
             logging.debug(com)
             if command.lower() == "."+com:
                 logging.debug('found command')
-                return asyncio.gather(self.commands[com](message), *watchers) # Returns a coroutine.
+                return self.commands[com](message) # Returns a coroutine
 
     def send_config(self, db, additional_config=None):
         for mod in self.modules:

@@ -1,20 +1,17 @@
-# Don't install [normal] on iOS. All other platforms can use a [normal] install.
-
 # Core
 telethon
 # Compatibility for 3.5
 future-fstrings
 # Config
-pythondialog[normal]
+pythondialog
 
 
 ## Modules
 # Lyrics
 lyricsgenius
 # Stickers
+cryptg
 Pillow
-# Improves stickers performance
-cryptg[normal]
 # Speedtest
 speedtest-cli
 # Weather

@@ -2,13 +2,51 @@
 
 import locale, time, os, inspect
 
-from dialog import Dialog
+from dialog import Dialog, ExecutableNotFound
 
 from . import loader, utils, main
 
+class TDialog():
+    OK=0
+    NOT_OK=1
+    # Similar interface to pythondialog
+    def menu(self, title, choices):
+        print()
+        print()
+        print(title)
+        print()
+        biggest = max(*[len(k) for k,d in choices])
+        i = 1
+        for k, d in choices:
+            print(" "+str(i)+". "+k+(" "*(biggest+2-len(k)))+(d.replace("\n", "...\n      ")))
+            i += 1
+        while True:
+            inp = input("Please enter your selection as a number, or 0 to cancel: ")
+            try:
+                inp = int(inp)
+                if inp == 0:
+                    return (self.NOT_OK, "Cancelled")
+                return (self.OK, choices[inp-1][0])
+            except (ValueError, IndexError):
+                pass
+    def inputbox(self, query):
+        print()
+        print()
+        print(query)
+        print()
+        inp = input("Please enter your response, or type nothing to cancel: ")
+        if inp == "":
+            return (self.NOT_OK, "Cancelled")
+        return (self.OK, inp)
+
 TITLE = "Userbot Configuration"
 
-d = Dialog(dialog="dialog")
+try:
+    d = Dialog(dialog="dialog")
+except ExecutableNotFound:
+    # Fall back to a terminal based configurator.
+    d = TDialog()
+
 locale.setlocale(locale.LC_ALL, '')
 
 modules = loader.Modules.get()

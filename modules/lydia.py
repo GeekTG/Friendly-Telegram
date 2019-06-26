@@ -1,8 +1,10 @@
 # Some parts are Copyright (C) Diederik Noordhuis (@AntiEngineer) 2019
 # All licensed under project license
 
+# The API is not yet public. To get a key, go to https://t.me/Intellivoid then ask Qián Zhào.
+
 from .. import loader, utils
-import logging, asyncio, requests, asyncio, functools
+import logging, asyncio, requests, asyncio, functools, hashlib
 from telethon import functions, types
 
 logger = logging.getLogger(__name__)
@@ -17,9 +19,11 @@ class LydiaAPI():
         self.client_key = client_key
 
     async def think(self, user_id, data):
+        sha1 = hashlib.sha1()
+        sha1.update(user_id.to_bytes((user_id.bit_length() + 7) // 8, "big"))
         payload = {
             "client_key": self.client_key,
-            "user_id": user_id,
+            "user_id": sha1.hexdigest(),
             "input": data
         }
         response = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, self.endpoint + "/ThinkTelegramThought", payload))
@@ -70,6 +74,9 @@ class LydiaMod(loader.Module):
         msg = await message.edit("<code>AI disabled for this user.</code>", parse_mode="HTML")
 
     async def watcher(self, message):
+        if self.config["CLIENT_KEY"] == "":
+            logging.debug("no key set for lydia, returning")
+            return
         if getattr(message.to_id, 'user_id', None) == self._me.id:
             logger.debug("pm'd!")
             if message.from_id in self._ratelimit:
@@ -80,15 +87,18 @@ class LydiaMod(loader.Module):
                 logger.debug("PM received from user who is not using AI service")
             else:
                 await message.client(functions.messages.SetTypingRequest(
-                    peer=message.from_id,
+                    peer=await utils.get_user(message),
                     action=types.SendMessageTypingAction()
                 ))
-                # AI Response method
-                await message.respond(await self._lydia.think(str(message.from_id), str(message.message)))
-                await message.client(functions.messages.SetTypingRequest(
-                    peer=message.from_id,
-                    action=types.SendMessageCancelAction()
-                ))
+                try:
+                    # AI Response method
+                    msg = message.message if isinstance(message.message, str) else ""
+                    await message.respond(await self._lydia.think(message.from_id, str(msg)))
+                finally:
+                    await message.client(functions.messages.SetTypingRequest(
+                        peer=message.from_id,
+                        action=types.SendMessageCancelAction()
+                    ))
 
     def get_allowed(self, id):
         return id in self._db.get(__name__, "allow", [])

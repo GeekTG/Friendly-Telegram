@@ -28,13 +28,13 @@ class AFKMod(loader.Module):
             self._db.set(__name__, "afk", utils.get_args_raw(message))
         else:
             self._db.set(__name__, "afk", True)
-        await message.edit("<code>I'm AFK</code>", parse_mode="HTML")
+        await message.edit("<code>I'm AFK</code>")
 
     async def unafkcmd(self, message):
         """Remove the AFK status"""
         self._ratelimit.clear()
         self._db.set(__name__, "afk", False)
-        await message.edit("<code>I'm no longer AFK</code>", parse_mode="HTML")
+        await message.edit("<code>I'm no longer AFK</code>")
 
     async def watcher(self, message):
         if message.mentioned or getattr(message.to_id, 'user_id', None) == self._me.id:
@@ -49,9 +49,9 @@ class AFKMod(loader.Module):
                 logging.debug("User is self, bot or verified.")
                 return
             if self.get_afk() == True:
-                await message.reply("<code>I'm AFK!</code>", parse_mode="HTML")
+                await message.reply("<code>I'm AFK!</code>")
             elif self.get_afk() != False:
-                await message.reply(f"<code>{utils.escape_html(self.get_afk())}</code>", parse_mode="HTML")
+                await message.reply(f"<code>{utils.escape_html(self.get_afk())}</code>")
 
     def get_afk(self):
         return self._db.get(__name__, "afk", False)

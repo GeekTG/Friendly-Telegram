@@ -78,7 +78,7 @@ class TerminalMod(loader.Module):
 
     async def speedcmd(self, message):
         """Make an internet speed test"""
-        await message.edit("<code>Running speedtest...</code>", parse_mode="HTML")
+        await message.edit("<code>Running speedtest...</code>")
         cmd = "speedtest --simple --secure"
         args = utils.get_args(message)
         for arg in args:
@@ -138,7 +138,7 @@ class MessageEditor():
         text += utils.escape_html(self.stdout[max(len(self.stdout) - 2048, 0):])+"\n\nStderr:\n"
         text += utils.escape_html(self.stderr[max(len(self.stdout) - 1024, 0):])+"</code>"
         try:
-            await self.message.edit(text, parse_mode="HTML")
+            await self.message.edit(text)
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
             pass
         except telethon.errors.rpcerrorlist.MessageTooLongError as e:
@@ -187,11 +187,11 @@ class SudoMessageEditor(MessageEditor):
             text += utils.escape_html(self.config["INTERACTIVE_AUTH_STRING"])
             text += r"</a>"
             try:
-                await self.message.edit(text, parse_mode="HTML")
+                await self.message.edit(text)
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
                 logger.debug(e)
             logger.debug("edited message with link to self")
-            self.authmsg = await self.message.client.send_message('me', self.config["INTERACTIVE_PRIV_AUTH_STRING"].format(command="<code>"+utils.escape_html(self.command)+"</code>", user=utils.escape_html(lastlines[1][:-1])), parse_mode="HTML")
+            self.authmsg = await self.message.client.send_message('me', self.config["INTERACTIVE_PRIV_AUTH_STRING"].format(command="<code>"+utils.escape_html(self.command)+"</code>", user=utils.escape_html(lastlines[1][:-1])))
             logger.debug("sent message to self")
             self.message.client.remove_event_handler(self.on_message_edited)
             self.message.client.add_event_handler(self.on_message_edited, telethon.events.messageedited.MessageEdited(chats=['me']))
@@ -250,7 +250,7 @@ class RawMessageEditor(SudoMessageEditor):
             text += "\nDone"
         logger.debug(text)
         try:
-            await self.message.edit(text, parse_mode="HTML")
+            await self.message.edit(text)
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
             pass
         except telethon.errors.rpcerrorlist.MessageEmptyError as e:

@@ -45,4 +45,4 @@ class InfoMod(loader.Module):
         reply += "\nPython version: " + utils.escape_html(platform.python_version())
         reply += '</code>'
         logger.debug(reply)
-        await message.edit(reply, parse_mode="HTML")
+        await message.edit(reply)

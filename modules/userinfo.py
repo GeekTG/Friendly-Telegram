@@ -28,4 +28,4 @@ class UserInfoMod(loader.Module):
         reply += "</code>\nBio: <code>" + utils.escape_html(full.about)
         reply += "</code>\nRestricted: <code>" + utils.escape_html(str(full.user.restricted))
         reply += "</code>"
-        await message.edit(reply, parse_mode="HTML")
+        await message.edit(reply)

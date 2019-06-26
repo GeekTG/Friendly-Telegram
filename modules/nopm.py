@@ -29,10 +29,10 @@ class AntiPMMod(loader.Module):
         else:
             user = getattr(message.to_id, "user_id", None)
         if not user:
-            await message.edit("<code>Who shall I allow to PM?</code>", parse_mode="HTML")
+            await message.edit("<code>Who shall I allow to PM?</code>")
             return
         self._db.set(__name__, "allow", self._db.get(__name__, "allow", [])+[user])
-        await message.edit("<code>PM Authorised</code>", parse_mode="HTML")
+        await message.edit("<code>PM Authorised</code>")
 
     async def reportcmd(self, message):
         """Report the user spam. Use only in PM"""
@@ -43,7 +43,7 @@ class AntiPMMod(loader.Module):
         except ValueError:
             pass
         await self._client(functions.account.ReportPeerRequest(peer=message.to_id, reason=types.InputReportReasonSpam()))
-        msg = await message.edit("<code>You just got reported spam!</code>", parse_mode="HTML")
+        msg = await message.edit("<code>You just got reported spam!</code>")
 #        await msg.delete(revoke=False)
 
     async def watcher(self, message):

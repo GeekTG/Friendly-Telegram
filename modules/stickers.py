@@ -92,7 +92,7 @@ class StickersMod(loader.Module):
                         # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
                         logger.error("Bad response from StickerBot 1")
                         logger.error(r1)
-                        await message.edit("<code>Something went wrong internally!</code>", parse_mode="HTML")
+                        await message.edit("<code>Something went wrong internally!</code>")
                         return
                     r2 = await conv.get_response(m2)
                 msgs = []
@@ -107,14 +107,14 @@ class StickersMod(loader.Module):
                     # The emoji(s) are invalid.
                     logger.error("Bad response from StickerBot 2")
                     logger.error(r2)
-                    await message.edit("<code>Please provide valid emoji(s).</code>", parse_mode="HTML")
+                    await message.edit("<code>Please provide valid emoji(s).</code>")
                     return
             finally:
                 thumb.close()
         finally:
             img.close()
         packurl = utils.escape_quotes(f"https://t.me/addstickers/{button.text}")
-        await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>', parse_mode="HTML")
+        await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>')
 
 def click_buttons(buttons, target_pack):
     buttons = list(itertools.chain.from_iterable(buttons))

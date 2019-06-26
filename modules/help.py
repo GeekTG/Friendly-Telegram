@@ -39,5 +39,5 @@ class HelpMod(loader.Module):
                 for cmd in mod.commands:
                     reply += f"    {cmd}\n"
         reply += "</code>"
-        await message.edit(reply, parse_mode="HTML")
+        await message.edit(reply)
 

@@ -28,9 +28,9 @@ class UpdaterMod(loader.Module):
         gitproc = await asyncio.create_subprocess_exec(*self.config["GIT_PULL_COMMAND"], stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=utils.get_base_dir())
         out, err = await gitproc.communicate()
         if gitproc.returncode != 0:
-            await message.edit("Error!\nStdout:\n<code>"+utils.escape_html(out.decode("utf-8"))+"</code>\nStderr:\n<code>"+utils.escape_html(err.decode("utf-8"))+"</code>", parse_mode="HTML")
+            await message.edit("Error!\nStdout:\n<code>"+utils.escape_html(out.decode("utf-8"))+"</code>\nStderr:\n<code>"+utils.escape_html(err.decode("utf-8"))+"</code>")
         else:
-            await message.edit("Downloaded! Use <code>.selfupdate</code> to restart.", parse_mode="HTML")
+            await message.edit("Downloaded! Use <code>.selfupdate</code> to restart.")
     async def client_ready(self, client, db):
         if self.config["selfupdatemsg"] >= 0:
             logger.debug("Self update successful! Edit message: "+str(self.config))

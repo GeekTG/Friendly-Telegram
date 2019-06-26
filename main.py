@@ -79,7 +79,9 @@ async def handle_command(event):
     logging.debug(message)
     command = message.message.split(' ',1)[0]
     logging.debug(command)
-    await modules.dispatch(command, message) # modules.dispatch is not a coro, but returns one
+    coro = modules.dispatch(command, message) # modules.dispatch is not a coro, but returns one
+    if not coro is None:
+        await coro
 
 async def handle_incoming(event):
     logging.debug("Incoming message!")

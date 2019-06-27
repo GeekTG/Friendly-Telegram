@@ -29,8 +29,11 @@ sudo apt install neofetch
 ### Configuring the userbot
 
 1. Clone the source code
-`cd`
-`git clone https://github.com/penn5/friendly-telegram`
+```
+cd
+git clone https://github.com/penn5/friendly-telegram
+cd friendly-telegram
+```
 
 2. Install requirements
 ```
@@ -41,14 +44,17 @@ python3 -m pip install -r friendly-telegram/requirements.txt
 3.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
 
 4. Run the configuration script
-`python3 -m friendly-telegram`
+`python3 -m friendly-telegram --setup`
 
 5. On the newly opened menu, select "API Key/hash and ID"
 When prompted, enter your API key/hash and ID
 
 ### Launching the bot
 
-`python3 -m friendly-telegram.friendly-telegram`
+```
+cd ~/friendly-telegram
+python3 -m friendly-telegram
+```
 
 ## Usage
 
@@ -62,12 +68,13 @@ Use Termux
 ```
 pkg install git python-dev libjpeg-turbo-dev zlib-dev libwebp-dev libffi-dev build-essential dialog neofetch
 git clone https://github.com/penn5/friendly-telegram
+cd friendly-telegram
 pip install cryptg
 pip install -r friendly-telegram/requirements.txt
 # For setup
-python -m friendly-telegram.friendly-telegram
+python -m friendly-telegram --setup
 # And again for actual execution
-python -m friendly-telegram.friendly-telegram
+python -m friendly-telegram
 ```
 Make sure to enable the wakelock from Termux notification, especially on MIUI
 

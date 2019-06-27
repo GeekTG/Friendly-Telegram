@@ -1,6 +1,6 @@
 # -*- coding: future_fstrings -*-
 
-import locale, time, os, inspect
+import locale, time, os, inspect, ast
 
 from dialog import Dialog, ExecutableNotFound
 

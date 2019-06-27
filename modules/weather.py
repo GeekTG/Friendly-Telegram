@@ -31,8 +31,8 @@ class WeatherMod(loader.Module):
         args = utils.get_args_raw(message)
         func = None
         if not args:
-            func = self._owm.weather_at_coords
-            args = self.config["DEFAULT_LOCATION"]
+            func = self._owm.weather_at_id
+            args = [self.config["DEFAULT_LOCATION"]]
         else:
             try:
                 args = [int(args)]
@@ -41,7 +41,7 @@ class WeatherMod(loader.Module):
                 coords = utils.get_args_split_by(message, ",")
                 if len(coords) == 2:
                     try:
-                        args = [int(coord) for coord in coords]
+                        args = [int(coord.strip()) for coord in coords]
                         func = self._owm.weather_at_coords
                     except:
                         pass
@@ -51,6 +51,10 @@ class WeatherMod(loader.Module):
         logging.debug(func, *args)
         w = await asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args))
         logger.debug(f"Weather at {args} is {w}")
-        temp = w.get_weather().get_temperature(self.config["TEMP_UNITS"])
+        try:
+            temp = w.get_weather().get_temperature(self.config["TEMP_UNITS"])
+        except ValueError:
+            await message.edit("<code>Invalid temperature units provided. Please reconfigure the module.</code>")
+            return
         await message.edit(f"<code>Weather in {eh(w.get_location().get_name())} is {eh(w.get_weather().get_detailed_status().lower())} with a high of {eh(temp['temp_max'])} and a low of {eh(temp['temp_min'])}, averaging at {eh(temp['temp'])}.")
 

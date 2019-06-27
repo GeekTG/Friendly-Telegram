@@ -16,7 +16,7 @@ Step by step explanation:
 ` sudo apt update`
 
 2. Install required packages
-`sudo apt install python3 python3-pip git dialog`
+`sudo apt install python3 python3-pip git`
 
 3. Install optional modular dependencies (required for some modules)
 ```
@@ -24,6 +24,8 @@ Step by step explanation:
 sudo apt install python3-dev libwebp-dev libz-dev libjpeg-dev
 # Utilities
 sudo apt install neofetch
+# UI
+sudo apt install dialog
 ```
 
 ### Configuring the userbot

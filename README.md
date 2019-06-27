@@ -48,7 +48,7 @@ When prompted, enter your API key/hash and ID
 
 ### Launching the bot
 
-`python3 -m friendly-telegram`
+`python3 -m friendly-telegram.friendly-telegram`
 
 ## Usage
 
@@ -65,9 +65,9 @@ git clone https://github.com/penn5/friendly-telegram
 pip install cryptg
 pip install -r friendly-telegram/requirements.txt
 # For setup
-python -m friendly-telegram
+python -m friendly-telegram.friendly-telegram
 # And again for actual execution
-python -m friendly-telegram
+python -m friendly-telegram.friendly-telegram
 ```
 Make sure to enable the wakelock from Termux notification, especially on MIUI
 
@@ -81,4 +81,4 @@ Untested. No reason it shouldn't work.
 
 ### Web hosting services
 
-These are basically just Linux. They will work.
+These are basically just Linux. They will work with some effort to get the API token and session file over.

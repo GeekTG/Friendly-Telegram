@@ -38,6 +38,10 @@ class TDialog():
         if inp == "":
             return (self.NOT_OK, "Cancelled")
         return (self.OK, inp)
+    def msgbox(self, msg):
+        print()
+        print()
+        print(msg)
 
 TITLE = "Userbot Configuration"
 

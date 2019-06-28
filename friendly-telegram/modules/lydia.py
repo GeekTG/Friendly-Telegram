@@ -126,7 +126,7 @@ class LydiaMod(loader.Module):
                     if session is None or session["expires"]:
                         session = await self._lydia.create_session()
                         logger.debug(session)
-                        sessions[id] = session
+                        sessions[message.from_id] = session
                         logger.debug(sessions)
                         self._db.set(__name__, "sessions", sessions)
                     logger.debug(session)

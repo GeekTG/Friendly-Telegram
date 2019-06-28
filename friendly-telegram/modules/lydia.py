@@ -127,6 +127,7 @@ class LydiaMod(loader.Module):
                         session = await self._lydia.create_session()
                         logger.debug(session)
                         sessions[id] = session
+                        logger.debug(sessions)
                         self._db.set(__name__, "sessions", sessions)
                     logger.debug(session)
                     # AI Response method

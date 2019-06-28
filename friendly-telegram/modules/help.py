@@ -29,13 +29,13 @@ class HelpMod(loader.Module):
             for name, fun in module.commands.items():
                 reply += f"\n  {name}\n"
                 if fun.__doc__:
-                    reply += "\n".join(["    "+x for x in inspect.cleandoc(fun.__doc__).splitlines()])
+                    reply += utils.escape_html("\n".join(["    "+x for x in inspect.cleandoc(fun.__doc__).splitlines()]))
                 else:
                     reply += "There is no documentation for this command"
         else:
             reply = "<code>Available Modules:\n"
             for mod in loader.Modules.modules:
-                reply += f"\n  {mod.name} has {len(mod.commands)} {'command' if len(mod.commands) == 1 else 'commands'} available\n"
+                reply += f"\n  {utils.escape_html(mod.name)} has {len(mod.commands)} {'command' if len(mod.commands) == 1 else 'commands'} available\n"
                 for cmd in mod.commands:
                     reply += f"    {cmd}\n"
         reply += "</code>"

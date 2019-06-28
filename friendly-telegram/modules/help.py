@@ -3,6 +3,8 @@
 from .. import loader, utils
 import logging, inspect
 
+from telethon.tl.functions.channels import JoinChannelRequest
+
 logger = logging.getLogger(__name__)
 
 def register(cb):
@@ -11,7 +13,7 @@ def register(cb):
 class HelpMod(loader.Module):
     """Provides this help message"""
     def __init__(self):
-        self.commands = {'help':self.helpcmd}
+        self.commands = {'help':self.helpcmd, "support":self.supportcmd}
         self.config = {}
         self.name = "Help"
     async def helpcmd(self, message):
@@ -41,3 +43,6 @@ class HelpMod(loader.Module):
         reply += "</code>"
         await message.edit(reply)
 
+    async def supportcmd(self, message):
+        await message.client(JoinChannelRequest("https://t.me/friendlytgbot"))
+        await message.edit('<code>Joined to </code><a href="https://t.me/friendlytgbot">support channel</a><code>.</code>')

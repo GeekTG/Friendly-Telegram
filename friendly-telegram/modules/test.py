@@ -42,7 +42,11 @@ class TestMod(loader.Module):
             return
         await message.edit("<code>Uploading logs...</code>")
         [handler] = logging.getLogger().handlers
-        logs = BytesIO(("\n".join(handler.dumps(lvl))).encode("utf-8"))
+        logs = ("\n".join(handler.dumps(lvl))).encode("utf-8")
+        if not len(logs) > 0:
+            await message.edit(f"<code>You don't have any logs at verbosity {lvl}.</code>")
+            return
+        logs = BytesIO(logs)
         logs.name = "ftg-logs.txt"
         await message.client.send_file(message.to_id, logs, caption=f"<code>friendly-telegram logs with verbosity {lvl}")
         await message.delete()

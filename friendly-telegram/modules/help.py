@@ -18,10 +18,10 @@ class HelpMod(loader.Module):
         self.name = "Help"
     async def helpcmd(self, message):
         """.help [module]"""
-        args = utils.get_args(message)
-        if len(args) == 1:
+        args = utils.get_args_raw(message)
+        if len(args) > 0:
             for mod in loader.Modules.modules:
-                if mod.name == args[0]:
+                if mod.name == args:
                     module = mod
             reply = f"<code>Help for {utils.escape_html(module.name)}:\n  "
             if module.__doc__:

@@ -15,8 +15,8 @@ class MemoryHandler(logging.Handler):
         self.lvl = level
     def dump(self):
         return self.handledbuffer + self.buffer
-    def dumps(self):
-        return [self.target.format(record) for record in (self.buffer+self.handledbuffer)]
+    def dumps(self, lvl=0):
+        return [self.target.format(record) for record in (self.buffer+self.handledbuffer) if record.levelno >= lvl]
     def emit(self, record):
         if len(self.buffer) + len(self.handledbuffer) >= self.capacity:
             if len(self.handledbuffer):
@@ -81,8 +81,11 @@ async def handle_command(event):
     logging.debug(command)
     coro = modules.dispatch(command, message) # modules.dispatch is not a coro, but returns one
     if not coro is None:
-        await coro
-
+        try:
+            await coro
+        except:
+            await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
+            raise
 async def handle_incoming(event):
     logging.debug("Incoming message!")
     global _waiting, _ready, db

@@ -132,7 +132,7 @@ class LydiaMod(loader.Module):
                     logger.debug(session)
                     # AI Response method
                     msg = message.message if isinstance(message.message, str) else " "
-                    airesp = await self._lydia.think(message.from_id, str(msg))
+                    airesp = await self._lydia.think(session["session_id"], str(msg))
                     logger.debug("AI says %s", airesp)
                     await message.respond(airesp)
                 finally:

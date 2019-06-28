@@ -134,7 +134,7 @@ class LydiaMod(loader.Module):
                     msg = message.message if isinstance(message.message, str) else " "
                     airesp = await self._lydia.think(session["session_id"], str(msg))
                     logger.debug("AI says %s", airesp)
-                    await message.respond(airesp)
+                    await message.respond(airesp["output"])
                 finally:
                     await message.client(functions.messages.SetTypingRequest(
                         peer=await utils.get_user(message),

@@ -4,7 +4,7 @@
 # The API is not yet public. To get a key, go to https://t.me/Intellivoid then ask Qián Zhào.
 
 from .. import loader, utils
-import logging, asyncio, requests, hashlib
+import logging, asyncio, requests, time
 from telethon import functions, types
 
 logger = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ class LydiaMod(loader.Module):
                     # Get a session
                     sessions = self._db.get(__name__, "sessions", {})
                     session = sessions.get(message.from_id, None)
-                    if session is None or session["expires"]:
+                    if session is None or session["expires"] > time.time():
                         session = await self._lydia.create_session()
                         logger.debug(session)
                         sessions[message.from_id] = session

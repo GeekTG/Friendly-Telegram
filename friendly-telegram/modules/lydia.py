@@ -4,7 +4,7 @@
 # The API is not yet public. To get a key, go to https://t.me/Intellivoid then ask Qián Zhào.
 
 from .. import loader, utils
-import logging, asyncio, requests, asyncio, functools, hashlib
+import logging, asyncio, requests, hashlib
 from telethon import functions, types
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class LydiaAPI():
             "user_id": sha1.hexdigest(),
             "input": data
         }
-        response = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, self.endpoint + "/ThinkTelegramThought", payload))
+        response = await utils.run_sync(requests.post, self.endpoint + "/ThinkTelegramThought", payload)
 
         return response.json()["payload"]["output"]
 

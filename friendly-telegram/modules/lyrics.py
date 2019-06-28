@@ -1,5 +1,5 @@
 from .. import loader, utils
-import logging, lyricsgenius, asyncio, functools
+import logging, lyricsgenius
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class LyricsMod(loader.Module):
         """.lyrics Song, Artist"""
         args = utils.get_args_split_by(message, ",")
         logger.debug("getting song lyrics for "+args[0]+", "+args[1])
-        song = await asyncio.get_event_loop().run_in_executor(None, functools.partial(self.genius.search_song, args[0], args[1]))
+        song = await utils.run_sync(self.genius.search_song, args[0], args[1])
         logger.debug(song)
         logger.debug(song.lyrics)
         #song = self.genius.search_song(args[1], args[0])

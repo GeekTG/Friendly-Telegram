@@ -1,7 +1,7 @@
 # -*- coding: future_fstrings -*-
 
 from .. import loader, utils
-import logging, warnings, functools, asyncio, itertools, re
+import logging, warnings, itertools
 from io import BytesIO
 from PIL import Image
 
@@ -50,7 +50,7 @@ class StickersMod(loader.Module):
             logger.debug(img)
             try:
                 thumb = BytesIO()
-                await asyncio.get_event_loop().run_in_executor(None, functools.partial(resize_image, img, self.config["STICKER_SIZE"], thumb))
+                await utils.run_sync(resize_image, img, self.config["STICKER_SIZE"], thumb)
                 img.close()
                 thumb.name = "sticker.png"
                 thumb.seek(0)

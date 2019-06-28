@@ -1,4 +1,4 @@
-import os, logging
+import os, logging, asyncio, functools
 from . import __main__
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
 def get_args(message):
@@ -59,3 +59,6 @@ async def get_user(message):
     else:
         logging.error("WTF! to_id is not a user, chat or channel")
         return None
+
+def run_sync(func, *args):
+    return asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args))

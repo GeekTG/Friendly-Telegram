@@ -1,6 +1,6 @@
 # -*- coding: future_fstrings -*-
 
-import logging, pyowm, asyncio, functools
+import logging, pyowm
 
 from .. import loader, utils
 
@@ -49,7 +49,7 @@ class WeatherMod(loader.Module):
             func = self._owm.weather_at_place
             args = [args]
         logging.debug(func, *args)
-        w = await asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args))
+        w = await utils.run_sync(func, *args)
         logger.debug(f"Weather at {args} is {w}")
         try:
             temp = w.get_weather().get_temperature(self.config["TEMP_UNITS"])

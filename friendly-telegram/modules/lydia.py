@@ -13,55 +13,22 @@ def register(cb):
     cb(LydiaMod())
 
 class LydiaAPI():
-    endpoint = "https://api.intellivoid.info/coffeehouse/v2"
 
-    class APIError(ValueError):
-        pass
-    class ApiSuspendedError(APIError):
-        pass
-    class InvalidApiKeyError(APIError):
-        pass
-    class AIError(APIError):
-        pass
-    class SessionInvalidError(APIError):
-        pass
-    class SessionNotFoundError(APIError):
-        pass
+    def __init__(self, client_key):
+        self.endpoint = "https://api.intellivoid.info/coffeehouse/v1"
+        self.client_key = client_key
 
-    def __init__(self, api_key):
-        self.api_key = api_key
-
-    async def create_session(self, language=None):
+    async def think(self, user_id, data):
+        sha1 = hashlib.sha1()
+        sha1.update(user_id.to_bytes((user_id.bit_length() + 7) // 8, "big"))
         payload = {
-            "api_key": self.api_key,
-        }
-        if not language is None:
-            payload["language"] = language
-        response = (await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, self.endpoint + "/createSession", payload))).json()
-        if response["code"] != 200:
-            if response["code"] == 403:
-                raise self.ApiSuspendedError(response["message"])
-            if response["code"] == 401:
-                raise self.InvalidApiKeyError(response["message"])
-            raise self.APIError(response["message"])
-        return response["payload"]
-
-    async def think(self, session_id, data):
-        payload = {
-            "api_key": self.api_key,
-            "session_id": session_id,
+            "client_key": self.client_key,
+            "user_id": sha1.hexdigest(),
             "input": data
         }
-        response = (await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, self.endpoint + "/thinkThought", payload))).json()
-        if response["code"] != 200:
-            if response["code"] == 503:
-                raise self.AIError(response["message"])
-            if response["code"] == 400:
-                raise self.SessionInvalidError(response["message"])
-            if response["code"] == 404:
-                raise self.SessionNotFoundError(response["message"])
-            raise self.APIError(response["message"])
-        return response["payload"]
+        response = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, self.endpoint + "/ThinkTelegramThought", payload))
+
+        return response.json()["payload"]["output"]
 
 class LydiaMod(loader.Module):
     """Talks to a robot instead of a human"""
@@ -108,10 +75,14 @@ class LydiaMod(loader.Module):
 
     async def watcher(self, message):
         if self.config["CLIENT_KEY"] == "":
-            logger.debug("no key set for lydia, returning")
+            logging.debug("no key set for lydia, returning")
             return
         if getattr(message.to_id, 'user_id', None) == self._me.id:
             logger.debug("pm'd!")
+            if message.from_id in self._ratelimit:
+                self._ratelimit.remove(message.from_id)
+            else:
+                self._ratelimit += [message.from_id]
             if self.get_allowed(message.from_id):
                 logger.debug("PM received from user who is not using AI service")
             else:
@@ -120,19 +91,9 @@ class LydiaMod(loader.Module):
                     action=types.SendMessageTypingAction()
                 ))
                 try:
-                    # Get a session
-                    sessions = self._db.get(__name__, "sessions", {})
-                    session = sessions.get(message.from_id, None)
-                    if session is None or session["expires"]:
-                        session = await self._lydia.create_session()
-                        sessions[id] = session
-                        self._db.set(__name__, "sessions", sessions)
-                    logger.debug(session)
                     # AI Response method
-                    msg = message.message if isinstance(message.message, str) else " "
-                    airesp = await self._lydia.think(message.from_id, str(msg))
-                    logger.debug("AI says %s", airesp)
-                    await message.respond(airesp)
+                    msg = message.message if isinstance(message.message, str) else ""
+                    await message.respond(await self._lydia.think(message.from_id, str(msg)))
                 finally:
                     await message.client(functions.messages.SetTypingRequest(
                         peer=await utils.get_user(message),

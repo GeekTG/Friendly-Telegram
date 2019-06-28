@@ -72,7 +72,7 @@ pkg install git python-dev libjpeg-turbo-dev zlib-dev libwebp-dev libffi-dev bui
 git clone https://github.com/penn5/friendly-telegram
 cd friendly-telegram
 pip install cryptg
-pip install -r friendly-telegram/requirements.txt
+pip install -r requirements.txt
 # For setup
 python -m friendly-telegram --setup
 # And again for actual execution

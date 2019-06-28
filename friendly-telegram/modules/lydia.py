@@ -123,7 +123,7 @@ class LydiaMod(loader.Module):
                     # Get a session
                     sessions = self._db.get(__name__, "sessions", {})
                     session = sessions.get(message.from_id, None)
-                    if session is None or session["expires"] > time.time():
+                    if session is None or session["expires"] < time.time():
                         session = await self._lydia.create_session()
                         logger.debug(session)
                         sessions[message.from_id] = session

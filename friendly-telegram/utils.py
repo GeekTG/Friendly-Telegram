@@ -20,6 +20,8 @@ def get_args_raw(message):
     args = message.split(' ', 1)
     if len(args) > 1:
         return args[1]
+    else:
+        return ""
 
 def get_args_split_by(message, s):
     m = get_args_raw(message)
@@ -60,5 +62,5 @@ async def get_user(message):
         logging.error("WTF! to_id is not a user, chat or channel")
         return None
 
-def run_sync(func, *args):
-    return asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args))
+def run_sync(func, *args, **kwargs):
+    return asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args, **kwargs))

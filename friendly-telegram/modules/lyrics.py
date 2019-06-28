@@ -20,9 +20,17 @@ class LyricsMod(loader.Module):
     async def lyricscmd(self, message):
         """.lyrics Song, Artist"""
         args = utils.get_args_split_by(message, ",")
+        if len(args) != 2:
+            logger.debug(args)
+            await message.edit("Please specify song and artist")
+            return
         logger.debug("getting song lyrics for "+args[0]+", "+args[1])
-        song = await utils.run_sync(self.genius.search_song, args[0], args[1])
+        try:
+            song = await utils.run_sync(self.genius.search_song, args[0], args[1])
+        except TypeError:
+            # Song not found causes internal library error
+            await message.edit("Song not found.")
+            return
         logger.debug(song)
         logger.debug(song.lyrics)
-        #song = self.genius.search_song(args[1], args[0])
         await message.edit(utils.escape_html(song.lyrics))

@@ -56,6 +56,5 @@ class PythonMod(loader.Module):
     async def aexeccmd(self, message):
         """.aexec <expression>
            Executes asyncronous python code"""
-        logging.debug(utils.get_args_raw(message))
 #                  So we don't modify locals      VVVVV
         await aexec(utils.get_args_raw(message), message)

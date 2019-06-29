@@ -56,7 +56,7 @@ class AntiPMMod(loader.Module):
                 self._ratelimit += [message.from_id]
             user = await utils.get_user(message)
             if user.is_self or user.bot or user.verified:
-                logging.debug("User is self, bot or verified.")
+                logger.debug("User is self, bot or verified.")
                 return
             if self.get_allowed(message.from_id):
                 logger.debug("Authorised pm detected")

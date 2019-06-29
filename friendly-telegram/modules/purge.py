@@ -38,4 +38,5 @@ class PurgeMod(loader.Module):
             msgs +=  [await iter.__anext__()]
         else:
             msgs += [await message.get_reply_message()]
+        logger.debug(msgs)
         await message.client.delete_messages(message.to_id, msgs)

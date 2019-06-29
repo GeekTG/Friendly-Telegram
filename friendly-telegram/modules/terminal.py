@@ -160,7 +160,7 @@ class SudoMessageEditor(MessageEditor):
         self.state = 0
         self.authmsg = None
     def update_process(self, process):
-        logging.debug("got sproc obj %s", process)
+        logger.debug("got sproc obj %s", process)
         self.process = process
     async def update_stderr(self, stderr):
         logger.debug("stderr update "+stderr)

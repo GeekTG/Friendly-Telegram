@@ -48,7 +48,7 @@ class WeatherMod(loader.Module):
         if func is None:
             func = self._owm.weather_at_place
             args = [args]
-        logging.debug(func, *args)
+        logger.debug(func, *args)
         w = await utils.run_sync(func, *args)
         logger.debug(f"Weather at {args} is {w}")
         try:

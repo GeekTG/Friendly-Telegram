@@ -30,13 +30,13 @@ class PurgeMod(loader.Module):
 
     async def delcmd(self, message):
         """Delete the replied message"""
-        msgs = [message]
+        msgs = [message.id]
         if not message.is_reply:
             iter = message.client.iter_messages(
                 entity=message.to_id
             )
-            msgs +=  [await iter.__anext__()]
+            msgs += [(await iter.__anext__()).id]
         else:
-            msgs += [await message.get_reply_message()]
+            msgs += [(await message.get_reply_message()).id]
         logger.debug(msgs)
         await message.client.delete_messages(message.to_id, msgs)

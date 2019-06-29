@@ -35,7 +35,7 @@ class PythonMod(loader.Module):
         ret = "Evaluated expression <code>"
         ret += utils.escape_html(message.message)
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await utils.run_sync(eval, utils.get_args_raw(message), globals=globals(), locals=locals()))
+        ret += utils.escape_html(await utils.run_sync(eval, utils.get_args_raw(message), globals(), locals()))
         ret += "</code>"
         await message.edit(ret)
     async def aevalcmd(self, message):

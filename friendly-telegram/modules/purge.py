@@ -35,6 +35,7 @@ class PurgeMod(loader.Module):
             iter = message.client.iter_messages(
                 entity=message.to_id
             )
+            await iter.__anext__()
             msgs += [(await iter.__anext__()).id]
         else:
             msgs += [(await message.get_reply_message()).id]

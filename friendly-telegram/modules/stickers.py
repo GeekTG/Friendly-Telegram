@@ -1,7 +1,7 @@
 # -*- coding: future_fstrings -*-
 
 from .. import loader, utils
-import logging, warnings, itertools
+import logging, warnings, itertools, asyncio
 from io import BytesIO
 from PIL import Image
 
@@ -18,6 +18,7 @@ class StickersMod(loader.Module):
         self.commands = {'kang':self.kangcmd}
         self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
         self.name = "Stickers"
+        self._lock = asyncio.Lock()
 
     async def kangcmd(self, message):
         """Use in reply or with an attached media:
@@ -62,53 +63,55 @@ class StickersMod(loader.Module):
                 else:
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]
                 logger.debug(emojis)
-                # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
-                conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
-                async with conv:
-                    first = await conv.send_message("/cancel")
-                    await conv.send_message("/addsticker")
-                    buttons = (await conv.get_response()).buttons
-                    if buttons != None:
-                        logger.debug("there are buttons, good")
-                        button = click_buttons(buttons, args[0])
-                        await button.click()
-                    else:
-                        logger.warning("there's no buttons!")
-                        await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
-                        await message.edit("Something went wrong")
+                # Lock access to @Stickers
+                with self._lock:
+                    # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
+                    conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
+                    async with conv:
+                        first = await conv.send_message("/cancel")
+                        await conv.send_message("/addsticker")
+                        buttons = (await conv.get_response()).buttons
+                        if buttons != None:
+                            logger.debug("there are buttons, good")
+                            button = click_buttons(buttons, args[0])
+                            await button.click()
+                        else:
+                            logger.warning("there's no buttons!")
+                            await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
+                            await message.edit("Something went wrong")
+                            return
+                        # We have sent the pack we wish to modify.
+                        # Upload sticker
+                        # No need to wait for response, the bot doesn't care.
+                        m1 = await conv.send_file(thumb, force_document=True)
+                        m2 = await conv.send_message(emojis)
+                        await conv.send_message("/done")
+                        # Block now so that we mark it all as read
+                        await conv.get_response()
+                        await message.client.send_read_acknowledge(conv.chat_id)
+                        r1 = await conv.get_response(m1)
+                        if "512" in r1.message:
+                            # That's an error:
+                            # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
+                            logger.error("Bad response from StickerBot 1")
+                            logger.error(r1)
+                            await message.edit("<code>Something went wrong internally!</code>")
+                            return
+                        r2 = await conv.get_response(m2)
+                        msgs = []
+                        async for msg in message.client.iter_messages(
+                            entity="t.me/"+self.config["STICKERS_USERNAME"],
+                            min_id=first.id,
+                            reverse=True):
+                            msgs += [msg.id]
+                    logger.debug(msgs)
+                    await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
+                    if "emoji" in r2.message:
+                        # The emoji(s) are invalid.
+                        logger.error("Bad response from StickerBot 2")
+                        logger.error(r2)
+                        await message.edit("<code>Please provide valid emoji(s).</code>")
                         return
-                    # We have sent the pack we wish to modify.
-                    # Upload sticker
-                    # No need to wait for response, the bot doesn't care.
-                    m1 = await conv.send_file(thumb, force_document=True)
-                    m2 = await conv.send_message(emojis)
-                    await conv.send_message("/done")
-                    # Block now so that we mark it all as read
-                    await conv.get_response()
-                    await message.client.send_read_acknowledge(conv.chat_id)
-                    r1 = await conv.get_response(m1)
-                    if "512" in r1.message:
-                        # That's an error:
-                        # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
-                        logger.error("Bad response from StickerBot 1")
-                        logger.error(r1)
-                        await message.edit("<code>Something went wrong internally!</code>")
-                        return
-                    r2 = await conv.get_response(m2)
-                msgs = []
-                async for msg in message.client.iter_messages(
-                        entity="t.me/"+self.config["STICKERS_USERNAME"],
-                        min_id=first.id,
-                        reverse=True):
-                    msgs += [msg.id]
-                logger.debug(msgs)
-                await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
-                if "emoji" in r2.message:
-                    # The emoji(s) are invalid.
-                    logger.error("Bad response from StickerBot 2")
-                    logger.error(r2)
-                    await message.edit("<code>Please provide valid emoji(s).</code>")
-                    return
             finally:
                 thumb.close()
         finally:

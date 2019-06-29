@@ -64,7 +64,7 @@ class StickersMod(loader.Module):
                     emojis = self.config["DEFAULT_STICKER_EMOJI"]
                 logger.debug(emojis)
                 # Lock access to @Stickers
-                with self._lock:
+                async with self._lock:
                     # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
                     conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
                     async with conv:

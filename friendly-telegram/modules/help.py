@@ -22,7 +22,7 @@ class HelpMod(loader.Module):
         if args:
             module = None
             for mod in loader.Modules.modules:
-                if lower(mod.name) == lower(args):
+                if mod.name.lower() == args.lower():
                     module = mod
             if module is None:
                 await message.edit("<code>Invalid module name specified</code>")

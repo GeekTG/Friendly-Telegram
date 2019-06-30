@@ -1,9 +1,11 @@
 # -*- coding: future_fstrings -*-
 
-import logging
+import logging, time
 from io import BytesIO
 
 from .. import loader, utils
+
+logger = logging.getLogger(__name__)
 
 def register(cb):
     cb(TestMod())
@@ -11,7 +13,7 @@ def register(cb):
 class TestMod(loader.Module):
     """Self-tests"""
     def __init__(self):
-        self.commands = {'ping':self.pingcmd, 'dump':self.dumpcmd, 'logs':self.logcmd}
+        self.commands = {'ping':self.pingcmd, 'dump':self.dumpcmd, 'logs':self.logcmd, 'suspend':self.suspendcmd}
         self.config = {}
         self.name = "Tester"
 
@@ -50,3 +52,14 @@ class TestMod(loader.Module):
         logs.name = "ftg-logs.txt"
         await message.client.send_file(message.to_id, logs, caption=f"<code>friendly-telegram logs with verbosity {lvl}")
         await message.delete()
+
+    async def suspendcmd(self, message):
+        """.suspend <time>
+           Suspends the bot for N seconds"""
+        # Blocks asyncio event loop, preventing ANYTHING happening (except multithread ops, but they will be blocked on return).
+        try:
+            logger.info("Good Night.")
+            time.sleep(int(utils.get_args_raw(message)))
+            logger.info("Good Morning.")
+        except ValueError:
+            await message.edit("<code>Invalid time to suspend</code>")

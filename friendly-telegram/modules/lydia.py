@@ -70,11 +70,34 @@ class LydiaMod(loader.Module):
         self.config = {"CLIENT_KEY":""}
         self.name = "Lydia anti-PM"
         self._ratelimit = []
+        self._cleanup = None
 
     async def client_ready(self, client, db):
         self._db = db
         self._lydia = LydiaAPI(self.config["CLIENT_KEY"])
         self._me = await client.get_me()
+        # Schedule cleanups
+        self._cleanup = asyncio.ensure_future(self.schedule_cleanups())
+
+    async def schedule_cleanups(self):
+        """Cleans up dead sessions and reschedules itself to run when the next session expiry takes place"""
+        if not self._cleanup is None:
+            self._cleanup.cancel()
+        sessions = self._db.get(__name__, "sessions", {})
+        if len(sessions) == 0:
+            return
+        nsessions = {}
+        t = time.time()
+        for ident, session in sessions.items():
+            if not session["expires"] < t:
+                nsessions.update({ident:session})
+        next = min(*[v["expires"] for k,v in nsessions.items()])
+        if nsessions != sessions:
+            self._db.set(__name__, "sessions", nsessions)
+        # Don't worry about the 1 day limit below 3.7.1, if it isn't expired we will just reschedule, as nothing will be matched for deletion.
+        await asyncio.sleep(min(next - t, 86399))
+
+        await self.schedule_cleanups()
 
     async def enablelydiacmd(self, message):
         """Enables Lydia for target user"""
@@ -129,6 +152,9 @@ class LydiaMod(loader.Module):
                         sessions[message.from_id] = session
                         logger.debug(sessions)
                         self._db.set(__name__, "sessions", sessions)
+                        if not self._cleanup is None:
+                            self._cleanup.cancel()
+                        self._cleanup = asyncio.ensure_future(self.schedule_cleanups())
                     logger.debug(session)
                     # AI Response method
                     msg = message.message if isinstance(message.message, str) else " "

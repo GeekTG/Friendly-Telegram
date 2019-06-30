@@ -23,6 +23,9 @@ class HelpMod(loader.Module):
             for mod in loader.Modules.modules:
                 if mod.name == args:
                     module = mod
+            if module is None:
+                await message.edit("<code>Invalid module name specified</code>")
+                return
             reply = f"<code>Help for {utils.escape_html(module.name)}:\n  "
             if module.__doc__:
                 reply += utils.escape_html(inspect.cleandoc(module.__doc__))

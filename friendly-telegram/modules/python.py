@@ -8,19 +8,21 @@ logger = logging.getLogger(__name__)
 
 def register(cb):
     cb(PythonMod())
-# We dont modify locals VVVV
-async def aexec(code, message):
+# We dont modify locals VVVV ; this lets us keep the message available to the user-provided function
+async def aexec(code, **kwargs):
     # Note to self: please don't set globals here as they will be lost.
-    l = {}
-    g = globals().copy()
-    exec("async def tmp(message):\n    " + code.replace("\n", "\n    "), {}, l)
-    # Don't expect it to return from the coro.
-    r = await l["tmp"](message)
+    # Don't clutter locals
+    locs = {}
+    # Restore globals later
+    globs = globals().copy()
+    args = ", ".join(list(kwargs.keys()))
+    exec(f"async def tmp({args}):\n    " + code.replace("\n", "\n    "), {}, locs)
+    r = await locs["tmp"](**kwargs)
     try:
         globals().clear()
         # Inconsistent state
     finally:
-        globals().update(**g)
+        globals().update(**globs)
     return r
 class PythonMod(loader.Module):
     """Python stuff"""
@@ -33,18 +35,18 @@ class PythonMod(loader.Module):
         """.eval <expression>
            Evaluates non-asyncronous python code"""
         ret = "Evaluated expression <code>"
-        ret += utils.escape_html(message.message)
+        ret += utils.escape_html(utils.get_args_raw(message))
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await utils.run_sync(eval, utils.get_args_raw(message), globals(), locals()))
+        ret += utils.escape_html(await utils.run_sync(eval, utils.get_args_raw(message), {}, {"message":message}))
         ret += "</code>"
         await message.edit(ret)
     async def aevalcmd(self, message):
         """.aeval <expression>
            Evaluates asyncronous python code"""
         ret = "Evaluated expression <code>"
-        ret += utils.escape_html(message.message)
+        ret += utils.escape_html(utils.get_args_raw(message))
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await aexec(utils.get_args_raw(message), message))
+        ret += utils.escape_html(await aexec(utils.get_args_raw(message), message=message))
         ret += "</code>"
         await message.edit(ret)
     async def execcmd(self, message):
@@ -57,4 +59,4 @@ class PythonMod(loader.Module):
         """.aexec <expression>
            Executes asyncronous python code"""
 #                  So we don't modify locals      VVVVV
-        await aexec(utils.get_args_raw(message), message)
+        await aexec(utils.get_args_raw(message), message=message)

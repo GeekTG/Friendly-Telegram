@@ -27,36 +27,21 @@ async def aexec(code, **kwargs):
 class PythonMod(loader.Module):
     """Python stuff"""
     def __init__(self):
-        self.commands = {"eval":self.evalcmd, "aeval":self.aevalcmd, "exec":self.execcmd, "aexec":self.aexeccmd}
+        self.commands = {"eval":self.aevalcmd, "exec":self.aexeccmd}
         self.config = {}
         self.name = "Python"
 
-    async def evalcmd(self, message):
-        """.eval <expression>
-           Evaluates non-asyncronous python code"""
-        ret = "Evaluated expression <code>"
-        ret += utils.escape_html(utils.get_args_raw(message))
-        ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await utils.run_sync(eval, utils.get_args_raw(message), {}, {"message":message}))
-        ret += "</code>"
-        await message.edit(ret)
     async def aevalcmd(self, message):
-        """.aeval <expression>
-           Evaluates asyncronous python code"""
+        """.eval <expression>
+           Evaluates python code"""
         ret = "Evaluated expression <code>"
         ret += utils.escape_html(utils.get_args_raw(message))
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await aexec(utils.get_args_raw(message), message=message))
+        ret += utils.escape_html(await aexec(utils.get_args_raw(message), message=message, client=message.client))
         ret += "</code>"
         await message.edit(ret)
-    async def execcmd(self, message):
-        """.exec <expression>
-           Executes non-asyncronous python code"""
-        # Do NOT edit the message, as thats one of few ways to get the message out
-        exec(utils.get_args_raw(message), globals(), locals())
 
     async def aexeccmd(self, message):
         """.aexec <expression>
-           Executes asyncronous python code"""
-#                  So we don't modify locals      VVVVV
-        await aexec(utils.get_args_raw(message), message=message)
+           Executes python code"""
+        await aexec(utils.get_args_raw(message), message=message, client=message.client)

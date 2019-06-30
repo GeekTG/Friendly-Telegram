@@ -117,6 +117,10 @@ def main():
     arguments = parser.parse_args()
     logging.debug(arguments)
 
+    if sys.platform == 'win32':
+        # Subprocess support
+        asyncio.set_event_loop(asyncio.ProactorEventLoop())
+
     try:
         from . import api_token
         # Do this early on so we can register listeners

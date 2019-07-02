@@ -1,6 +1,6 @@
 from .. import loader, utils
 import logging, random
-from pyfiglet import Figlet, FontNotFound
+from pyfiglet import Figlet, FigletFont, FontNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,8 @@ class MockMod(loader.Module):
         args = utils.get_args(message)
         text = " ".join(args[1:])
         mode = args[0]
+        if mode == "random":
+            mode = random.choice(FigletFont.getFonts())
         try:
             fig = Figlet(font=mode, width=50)
         except FontNotFound:

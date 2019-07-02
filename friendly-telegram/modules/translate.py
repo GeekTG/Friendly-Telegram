@@ -23,16 +23,24 @@ class TranslateMod(loader.Module):
     async def translatecmd(self, message):
         """.translate [from_lang->][->to_lang] <text>"""
         args = utils.get_args(message)
-        if not "->" in args[0]:
+
+        if len(args) == 0 or not "->" in args[0]:
             text = " ".join(args)
             args = ["", self.config["DEFAULT_LANG"]]
         else:
             text = " ".join(args[1:])
             args = args[0].split("->")
+
+        if len(text) == 0 and message.is_reply:
+            text = utils.get_args_raw(await message.get_reply_message())
+        if len(text) == 0:
+            await message.edit("Invalid text to translate")
+            return
+
+
+
         if args[0] == "":
-            print(args[0])
             args[0] = self.tr.detect(text)
-            print(args[0])
         if len(args) == 3:
             del args[1]
         if len(args) == 1:

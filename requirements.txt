@@ -15,3 +15,5 @@ Pillow
 speedtest-cli
 # Weather
 pyowm
+# Translation
+pyyandextranslateapi

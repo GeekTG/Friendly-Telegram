@@ -1,5 +1,6 @@
 from .. import loader, utils
 import logging, random
+from pyfiglet import Figlet
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +10,7 @@ def register(cb):
 class MockMod(loader.Module):
     """mOcKs PeOpLe"""
     def __init__(self):
-        self.commands = {'mock':self.mockcmd}
+        self.commands = {'mock':self.mockcmd, "figlet":self.figcmd}
         self.config = {}
         self.name = "Mocker"
 
@@ -37,4 +38,10 @@ class MockMod(loader.Module):
         logger.debug(text)
         await message.edit(text)
 
-
+    async def figcmd(self, message):
+        """.figlet <font> <text>"""
+        args = utils.get_args(message)
+        text = " ".join(args[1:])
+        mode = args[0]
+        fig = Figlet(font=mode)
+        await message.edit("<code>"+utils.escape_html(fig.renderText(text))+"</code>")

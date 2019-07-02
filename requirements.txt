@@ -17,3 +17,5 @@ speedtest-cli
 pyowm
 # Translation
 pyyandextranslateapi
+# Figlet rendering (mock)
+pyfiglet

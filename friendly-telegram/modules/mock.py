@@ -46,7 +46,7 @@ class MockMod(loader.Module):
         if mode == "random":
             mode = random.choice(FigletFont.getFonts())
         try:
-            fig = Figlet(font=mode, width=36)
+            fig = Figlet(font=mode, width=30)
         except FontNotFound:
             await message.edit("<code>Font not found</code>")
             return

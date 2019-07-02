@@ -32,7 +32,7 @@ class TranslateMod(loader.Module):
             args = args[0].split("->")
 
         if len(text) == 0 and message.is_reply:
-            text = utils.get_args_raw(await message.get_reply_message())
+            text = await message.get_reply_message().message
         if len(text) == 0:
             await message.edit("Invalid text to translate")
             return

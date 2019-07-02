@@ -1,6 +1,6 @@
 from .. import loader, utils
 import logging, random
-from pyfiglet import Figlet
+from pyfiglet import Figlet, FontNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -44,4 +44,7 @@ class MockMod(loader.Module):
         text = " ".join(args[1:])
         mode = args[0]
         fig = Figlet(font=mode)
-        await message.edit("<code>"+utils.escape_html(fig.renderText(text))+"</code>")
+        try:
+            await message.edit("<code>"+utils.escape_html(fig.renderText(text))+"</code>")
+        except FontNotFound:
+            await message.edit("<code>Font not found</code>")

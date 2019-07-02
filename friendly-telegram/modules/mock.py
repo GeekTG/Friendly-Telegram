@@ -44,7 +44,7 @@ class MockMod(loader.Module):
         text = " ".join(args[1:])
         mode = args[0]
         try:
-            fig = Figlet(font=mode)
+            fig = Figlet(font=mode, width=50)
         except FontNotFound:
             await message.edit("<code>Font not found</code>")
             return

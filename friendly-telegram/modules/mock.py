@@ -43,8 +43,9 @@ class MockMod(loader.Module):
         args = utils.get_args(message)
         text = " ".join(args[1:])
         mode = args[0]
-        fig = Figlet(font=mode)
         try:
-            await message.edit("<code>"+utils.escape_html(fig.renderText(text))+"</code>")
+            fig = Figlet(font=mode)
         except FontNotFound:
             await message.edit("<code>Font not found</code>")
+            return
+        await message.edit("<code>"+utils.escape_html(fig.renderText(text))+"</code>")

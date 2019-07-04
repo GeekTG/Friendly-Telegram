@@ -15,8 +15,23 @@ async def aexec(code, **kwargs):
     locs = {}
     # Restore globals later
     globs = globals().copy()
+    # This code saves __name__ and __package into a kwarg passed to the function. It is set before the users code runs to make sure relative imports work
+    global_args = "_globs"
+    while global_args in globs.keys():
+        # Make sure there's no name collision, just keep prepending _s
+        global_args = "_"+global_args
+    kwargs[global_args] = {}
+    for glob in ["__name__", "__package__"]:
+        # Copy data to args we are sending
+        kwargs[global_args][glob] = globs[glob]
     args = ", ".join(list(kwargs.keys()))
-    exec(f"async def tmp({args}):\n    " + code.replace("\n", "\n    "), {}, locs)
+    exec(f"""
+# Make a fake function to help us out
+async def tmp({args}):
+    # Import the globals back in
+    globals().update(**{global_args})
+    # User code starts here
+    """ + code.replace("\n", "\n    "), {}, locs)
     r = await locs["tmp"](**kwargs)
     try:
         globals().clear()

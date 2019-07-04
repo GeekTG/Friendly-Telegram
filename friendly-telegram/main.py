@@ -132,9 +132,6 @@ def main():
         run_config({}, True)
         return
 
-    # Load config first, as logger can only be set up once
-#    logging.basicConfig(level=logging.WARNING, datefmt='')
-
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []
 

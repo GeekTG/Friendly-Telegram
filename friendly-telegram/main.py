@@ -42,6 +42,7 @@ logging.getLogger().setLevel(0)
 import os, sys, argparse, asyncio, json
 
 from telethon import TelegramClient, sync, events
+from telethon.errors.rpcerrorlist import PhoneNumberInvalidError
 
 from . import loader, __main__
 
@@ -128,7 +129,10 @@ def main():
         # Stop modules taking personal data so easily, or by accident
         del api_token.ID
         del api_token.HASH
-    except:
+    except PhoneNumberInvalidError:
+        print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
+        return
+    except ImportError:
         run_config({}, True)
         return
 

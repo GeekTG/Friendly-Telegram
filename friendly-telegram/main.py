@@ -68,7 +68,7 @@ async def handle_command(event):
     if event.via_bot_id:
         logging.debug("Ignoring inline bot.")
         return
-    message = event.message
+    message = utils.censor(event.message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
     whitelist_chats = db.get(__name__, "whitelist_chats", [])
     if (utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and not utils.get_chat_id(message) in whitelist_chats)) and not utils.get_chat_id(message) == message.from_id:
@@ -93,7 +93,7 @@ async def handle_incoming(event):
     if not _ready:
        _waiting += [handle_incoming(event)]
        return
-    message = event.message
+    message = utils.censor(event.message)
     logging.debug(message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
     whitelist_chats = db.get(__name__, "whitelist_chats", [])

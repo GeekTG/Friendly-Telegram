@@ -64,3 +64,12 @@ async def get_user(message):
 
 def run_sync(func, *args, **kwargs):
     return asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args, **kwargs))
+
+def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
+    """May modify the original object, but don't rely on it"""
+    for k,v in obj.__dict__.items():
+        if k in to_censor:
+            setattr(obj, k, replace_with.format(count=len(v)))
+        elif k[0] != "_" and hasattr(v, "__dict__"):
+            setattr(obj, k, censor(v, to_censor, replace_with))
+    return obj

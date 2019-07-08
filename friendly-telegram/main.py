@@ -74,7 +74,7 @@ async def handle_command(event):
     if (utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and not utils.get_chat_id(message) in whitelist_chats)) and not utils.get_chat_id(message) == message.from_id:
         logging.debug("Message is blacklisted or not in whitelist")
         return
-    if len(message.message) > 1 and message.message[:2] == "..":
+    if len(message.message) > 1 and message.message[:2] == ".." and message.message != len(message.message) * ".":
         # Allow escaping commands using .'s
         await message.edit(message.message[1:])
     logging.debug(message)
@@ -84,7 +84,7 @@ async def handle_command(event):
     if not coro is None:
         try:
             await coro
-        except:
+        except Exception:
             await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
             raise
 async def handle_incoming(event):

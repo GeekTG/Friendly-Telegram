@@ -138,9 +138,9 @@ def main():
 
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []
-
-    client.on(events.NewMessage(incoming=True, forwards=False))(handle_incoming)
-    client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))(handle_command)
+    if not arguments.setup:
+        client.on(events.NewMessage(incoming=True, forwards=False))(handle_incoming)
+        client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))(handle_command)
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
     asyncio.get_event_loop().run_until_complete(amain(client, dict(zip(cfg, vlu)), arguments.setup))

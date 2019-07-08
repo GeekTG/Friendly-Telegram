@@ -102,7 +102,6 @@ def run(database, init):
     db = database
     while main_config(init):
         pass
-    print(db)
     return db
 
 def api_config():

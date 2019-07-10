@@ -57,6 +57,8 @@ class Modules():
             if command.lower() in self.commands.keys():
                 logging.error("Duplicate command %s", command)
                 continue
+            if not instance.commands[command].__doc__:
+                logging.warning("Missing docs for %s", command)
             self.commands.update({command.lower(): instance.commands[command]})
         try:
             if instance.watcher:

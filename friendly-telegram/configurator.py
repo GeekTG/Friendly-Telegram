@@ -105,7 +105,7 @@ def run(database, init):
     return db
 
 def api_config():
-    code, string = d.inputbox("Enter your API Token")
+    code, string = d.inputbox("Enter your API Hash")
     if code == d.OK:
         string1 = 'HASH="' + string + '"'
         code, string = d.inputbox("Enter your API ID")

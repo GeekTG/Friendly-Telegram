@@ -42,7 +42,11 @@ class AntiPMMod(loader.Module):
             self._db.set(__name__, "allow", old)
         except ValueError:
             pass
-        await self._client(functions.account.ReportPeerRequest(peer=message.to_id, reason=types.InputReportReasonSpam()))
+        if message.is_reply:
+            # Report the message
+            await message.client(functions.messages.ReportRequest(peer=await message.client.get_input_entity(message.to_id), ids=[message.reply_to_msg_id], reason=types.InputReportReasonSpam()))
+        else:
+            await message.client(functions.account.ReportPeerRequest(peer=await message.client.get_input_entity(message.to_id), reason=types.InputReportReasonSpam()))
         msg = await message.edit("<code>You just got reported spam!</code>")
 #        await msg.delete(revoke=False)
 

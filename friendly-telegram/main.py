@@ -76,7 +76,7 @@ async def handle_command(event):
         return
     if len(message.message) > 1 and message.message[:2] == ".." and message.message != len(message.message) * ".":
         # Allow escaping commands using .'s
-        await message.edit(message.message[1:])
+        await message.edit(utils.escape_html(message.message[1:]))
     logging.debug(message)
     command = message.message.split(' ',1)[0]
     logging.debug(command)

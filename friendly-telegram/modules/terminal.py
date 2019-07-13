@@ -107,11 +107,11 @@ async def read_stream(func, stream, delay):
         data += dat
         if last_task:
             last_task.cancel()
-        last_task = asyncio.ensure_future(sleep_for_task(func, data.decode("utf-8"), delay))
+        last_task = asyncio.ensure_future(sleep_for_task(func, data, delay))
 
 async def sleep_for_task(func, data, delay):
     await asyncio.sleep(delay)
-    await func(data)
+    await func(data.decode("utf-8"))
 
 class MessageEditor():
     def __init__(self, message, command, config):

@@ -29,6 +29,8 @@ class LyricsMod(loader.Module):
             song = await utils.run_sync(self.genius.search_song, args[0], args[1])
         except TypeError:
             # Song not found causes internal library error
+            song = None
+        if song is None:
             await message.edit("Song not found.")
             return
         logger.debug(song)

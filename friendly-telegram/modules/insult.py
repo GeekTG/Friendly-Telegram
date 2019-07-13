@@ -15,6 +15,7 @@ class InsultMod(loader.Module):
         self.name = "Insulter"
 
     async def insultcmd(self, message):
+        """Use when angry"""
         adjectives_start = ["salty", "fat", "fucking", "shitty", "stupid", "retarded", "self conscious", "tiny"]
         adjectives_mid = ["little", "vitamin D deficient", "idiotic", "incredibly stupid"]
         nouns = ["cunt", "pig", "pedophile", "beta male","bottom" "retard", "ass licker", "cunt nugget", "PENIS", "dickhead", "flute","idiot","motherfucker",

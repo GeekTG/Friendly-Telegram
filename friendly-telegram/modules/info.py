@@ -15,6 +15,7 @@ class InfoMod(loader.Module):
         self.name = "Info"
 
     async def infocmd(self, message):
+        """Shows system information"""
         reply = "<code>System Info\nKernel: " + utils.escape_html(platform.release())
         reply += "\nArch: " + utils.escape_html(platform.architecture()[0])
         reply += "\nOS: " + utils.escape_html(platform.system())

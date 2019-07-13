@@ -11,6 +11,7 @@ class MiscMod(loader.Module):
         self.name = "Miscellaneous"
 
     async def voltecmd(self, message):
+        """Use when the bholit just won't work"""
         await message.edit(self.config["VOLTE_TEXT"])
 
     async def fcmd(self, message):

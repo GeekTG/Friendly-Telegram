@@ -94,20 +94,20 @@ def hash_msg(message):
 
 async def read_stream(func, stream, delay):
     last_task = None
-    data = ""
+    data = b""
     while True:
-        dat = (await stream.read(1)).decode("utf-8")
+        dat = (await stream.read(1))
         if not dat:
             # EOF
             if last_task:
                 # Send all pending data
                 last_task.cancel()
-                await func(data) # If there is no last task there is inherantly no data, so theres no point sending a blank string
+                await func(data.decode("utf-8")) # If there is no last task there is inherantly no data, so theres no point sending a blank string
             break
         data += dat
         if last_task:
             last_task.cancel()
-        last_task = asyncio.ensure_future(sleep_for_task(func, data, delay))
+        last_task = asyncio.ensure_future(sleep_for_task(func, data.decode("utf-8"), delay))
 
 async def sleep_for_task(func, data, delay):
     await asyncio.sleep(delay)

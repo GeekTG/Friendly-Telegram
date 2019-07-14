@@ -31,6 +31,6 @@ class QuickTypeMod(loader.Module):
             await message.edit("Nice number bro")
             return
         await message.delete()
-        m = await message.client.send_message(message.to_id, str(mess))
+        m = await message.client.send_message(message.to_id, utils.escape_html(mess))
         await asyncio.sleep(t)
         await m.delete()

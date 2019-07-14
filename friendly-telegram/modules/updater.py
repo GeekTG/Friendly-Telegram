@@ -33,8 +33,9 @@ class UpdaterMod(loader.Module):
             await message.edit("Downloaded! Use <code>.restart</code> to restart.")
     async def client_ready(self, client, db):
         if self.config["selfupdatemsg"] >= 0:
+            msg = "Restart successful!" if random.randint(10) == 0 else "Restart failed successfully!"
             logger.debug("Self update successful! Edit message: "+str(self.config))
-            await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], "Restart successful!")
+            await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], msg)
 
 def restart(*args):
     os.execl(sys.executable, sys.executable, "-m", utils.get_base_dir(), *args)

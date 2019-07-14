@@ -1,7 +1,7 @@
 # -*- coding: future_fstrings -*-
 
 from .. import loader, utils, __main__
-import logging, os, sys, atexit, asyncio, functools
+import logging, os, sys, atexit, asyncio, functools, random
 
 logger = logging.getLogger(__name__)
 

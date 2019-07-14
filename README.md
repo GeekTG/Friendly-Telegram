@@ -86,7 +86,49 @@ Make sure to enable the wakelock from Termux notification, especially on MIUI
 
 ### Mac OS X
 
-Untested. No reason it shouldn't work.
+### Installing python 3 and other dependencies 
+
+1. Setup homebrew
+`ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+2. Install required packages
+`brew install python3  git`
+
+3. Install optional modular dependencies (required for some modules)
+```
+# Utilities
+brew install neofetch
+# UI
+brew install dialog
+```
+##### Pillow for stickers/kang (You'll need to manually build these)
+ - libwebp -> https://github.com/webmproject/libwebp
+ - libjpeg -> https://github.com/LuaDist/libjpeg
+ 
+### Configuring the Userbot
+
+1. Clone the source and install requirements
+
+```
+# Clone the source
+git clone https://github.com/penn5/friendly-telegram
+cd friendly-telegram
+# Install the requirements 
+pip3 install cryptg
+pip3 install -r requirements.txt
+```
+2.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
+
+3. Run the configuration script
+`python3 -m friendly-telegram --setup`
+
+ ##### On the newly opened menu, select "API Key/hash and ID". When prompted, enter your API key/hash and ID
+
+4. Launching the bot 
+```
+cd ~/friendly-telegram
+python3 -m friendly-telegram
+```
 
 ### Web hosting services
 

@@ -86,7 +86,26 @@ Make sure to enable the wakelock from Termux notification, especially on MIUI
 
 ### Mac OS X
 
-Untested. No reason it shouldn't work.
+#### Installing python 3 and other dependencies 
+
+1. Setup homebrew
+`ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+2. Install required packages
+`brew install python3  git`
+
+3. Install optional modular dependencies (required for some modules)
+```
+# Utilities
+brew install neofetch
+# UI
+brew install dialog
+```
+##### Pillow for stickers/kang (You'll need to manually build these)
+ - libwebp -> https://github.com/webmproject/libwebp
+ - libjpeg -> https://github.com/LuaDist/libjpeg
+ 
+##### Refer above (to the Linux section) for configuring and launching the userbot.
 
 ### Web hosting services
 

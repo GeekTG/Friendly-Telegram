@@ -59,4 +59,4 @@ class UserInfoMod(loader.Module):
                 except:
                     await message.edit("Unable to get permalink!")
                     return
-        await message.edit(f"<a href='tg://user?id={user.id}'>Permalink to {user.id}</a>")
+        await message.edit(f"<a href='tg://user?id={user.user_id}'>Permalink to {user.user_id}</a>")

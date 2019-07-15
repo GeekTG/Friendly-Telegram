@@ -11,7 +11,7 @@ def register(cb):
 class UserInfoMod(loader.Module):
     """Tells you about people"""
     def __init__(self):
-        self.commands = {'uinfo': self.userinfocmd}
+        self.commands = {'uinfo': self.userinfocmd, "permalink":self.getusercmd}
         self.config = {}
         self.name = "User Info"
 
@@ -29,3 +29,32 @@ class UserInfoMod(loader.Module):
         reply += "</code>\nRestricted: <code>" + utils.escape_html(str(full.user.restricted))
         reply += "</code>"
         await message.edit(reply)
+
+    async def getusercmd(self, message):
+        """Get permalink to user based on ID or username"""
+        args = utils.get_args(message)
+        if len(args) != 1:
+            await message.edit("Provide a user to locate")
+            return
+        try:
+            user = int(args[0])
+        except ValueError:
+            user = args[0]
+        try:
+            user = await message.client.get_input_entity(user)
+        except ValueError:
+            # look for the user
+            await message.edit("Searching for user...")
+            await message.client.get_dialogs()
+            try:
+                user = await message.client.get_input_entity(user)
+            except ValueError:
+                # look harder for the user
+                await message.edit("Searching harder for user... May take several minutes, or even hours.")
+                # Todo look in every group the user is in, in batches. After each batch, attempt to get the input entity again
+                try:
+                    user = await message.client.get_input_entity(user)
+                except:
+                    await message.edit("Unable to get permalink!")
+                    return
+        await message.edit("<a href='tg://user?id={user.id}'>Permalink to {user.id}</a>")

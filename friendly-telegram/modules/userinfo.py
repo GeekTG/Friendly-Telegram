@@ -42,13 +42,15 @@ class UserInfoMod(loader.Module):
             user = args[0]
         try:
             user = await message.client.get_input_entity(user)
-        except ValueError:
+        except ValueError as e:
+            logger.debug(e)
             # look for the user
             await message.edit("Searching for user...")
             await message.client.get_dialogs()
             try:
                 user = await message.client.get_input_entity(user)
             except ValueError:
+                logger.debug(e)
                 # look harder for the user
                 await message.edit("Searching harder for user... May take several minutes, or even hours.")
                 # Todo look in every group the user is in, in batches. After each batch, attempt to get the input entity again
@@ -57,4 +59,4 @@ class UserInfoMod(loader.Module):
                 except:
                     await message.edit("Unable to get permalink!")
                     return
-        await message.edit("<a href='tg://user?id={user.id}'>Permalink to {user.id}</a>")
+        await message.edit(f"<a href='tg://user?id={user.id}'>Permalink to {user.id}</a>")

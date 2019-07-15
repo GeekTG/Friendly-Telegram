@@ -15,7 +15,7 @@ class TDialog():
         print()
         print(title)
         print()
-        biggest = max(*[len(k) for k,d in choices])
+        biggest = max([len(k) for k,d in choices])
         i = 1
         for k, d in choices:
             print(" "+str(i)+". "+k+(" "*(biggest+2-len(k)))+(d.replace("\n", "...\n      ")))

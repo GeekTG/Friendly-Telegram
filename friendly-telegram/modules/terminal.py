@@ -46,6 +46,8 @@ class TerminalMod(loader.Module):
 
     async def terminatecmd(self, message):
         """Use in reply to send SIGTERM to a process"""
+        if not message.is_reply:
+            await message.edit("Reply to a terminal command to terminate it.")
         if hash_msg(await message.get_reply_message()) in self.activecmds:
             try:
                 self.activecmds[hash_msg(await message.get_reply_message())].terminate()
@@ -58,6 +60,8 @@ class TerminalMod(loader.Module):
 
     async def killcmd(self, message):
         """Use in reply to send SIGKILL to a process"""
+        if not message.is_reply:
+            await message.edit("Reply to a terminal command to kill it.")
         if hash_msg(await message.get_reply_message()) in self.activecmds:
             try:
                 self.activecmds[hash_msg(await message.get_reply_message())].kill()

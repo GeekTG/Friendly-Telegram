@@ -4,7 +4,7 @@
 # The API is not yet public. To get a key, go to https://t.me/Intellivoid then ask Qián Zhào.
 
 from .. import loader, utils
-import logging, asyncio, requests, time
+import logging, asyncio, requests, time, random
 from telethon import functions, types
 
 logger = logging.getLogger(__name__)
@@ -160,7 +160,10 @@ class LydiaMod(loader.Module):
                     msg = message.message if isinstance(message.message, str) else " "
                     airesp = await self._lydia.think(session["session_id"], str(msg))
                     logger.debug("AI says %s", airesp)
-                    await message.respond(airesp["output"])
+                    if random.randint(0, 1):
+                        await message.respond(airesp["output"])
+                    else:
+                        await message.reply(airesp["output"])
                 finally:
                     await message.client(functions.messages.SetTypingRequest(
                         peer=await utils.get_user(message),

@@ -1,6 +1,9 @@
 from .. import loader, utils
-import logging
+
+import logging, asyncio
+
 from telethon.tl.functions.users import GetFullUserRequest
+from telethon.tl.types import Channel, Chat
 
 logger = logging.getLogger(__name__)
 
@@ -46,17 +49,45 @@ class UserInfoMod(loader.Module):
             logger.debug(e)
             # look for the user
             await message.edit("Searching for user...")
-            await message.client.get_dialogs()
+            dialogs = await message.client.get_dialogs()
             try:
                 user = await message.client.get_input_entity(user)
             except ValueError:
                 logger.debug(e)
                 # look harder for the user
-                await message.edit("Searching harder for user... May take several minutes, or even hours.")
-                # Todo look in every group the user is in, in batches. After each batch, attempt to get the input entity again
-                try:
-                    user = await message.client.get_input_entity(user)
-                except:
+                basemsg = "Searching harder for user... May take several minutes, or even hours. Current progress: {}/{}"
+                await message.edit(basemsg.format(0, len(dialogs)))
+                # Look in every group the user is in, in batches. After each batch, attempt to get the input entity again
+                ops = []
+                c=0
+                fulluser = None
+                for dialog in dialogs:
+                    if len(ops) >= 50:
+                        logger.debug(str(c)+"/"+str(len(dialogs)))
+                        c += 1
+                        await asyncio.gather(*ops, message.edit(basemsg.format(c, len(dialogs))), return_exceptions=True)
+                        ops = []
+                        try:
+                            fulluser = await message.client.get_input_entity(user)
+                        except ValueError as e:
+                            logger.debug(e)
+                    if isinstance(dialog.entity, Chat) or isinstance(dialog.entity, Channel): # Channels usually fail because we can't list members.
+                        logger.debug(dialog)
+                        ops += [message.client.get_participants(dialog.entity, aggressive=True)]
+
+                # Check once more, in case the entity is in the last 50 peers
+                if len(ops):
+                    await asyncio.gather(*ops, return_exceptions=True)
+                    ops = []
+                if fulluser is None:
+                    try:
+                        fulluser = await message.client.get_input_entity(user)
+                    except ValueError as e:
+                        logger.error(e)
+
+                if fulluser is None:
                     await message.edit("Unable to get permalink!")
                     return
+                else:
+                    user = fulluser
         await message.edit(f"<a href='tg://user?id={user.user_id}'>Permalink to {user.user_id}</a>")

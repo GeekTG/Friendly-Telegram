@@ -1,5 +1,4 @@
 import logging
-from . import utils
 
 class MemoryHandler(logging.Handler):
     """Keeps 2 buffers. One for dispatched messages. One for unused messages.
@@ -39,29 +38,20 @@ handler.setFormatter(formatter)
 logging.getLogger().addHandler(MemoryHandler(handler, 500))
 logging.getLogger().setLevel(0)
 
-import os, sys, argparse, asyncio, json
+import os, sys, argparse, asyncio, json, functools
 
 from telethon import TelegramClient, sync, events
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError
 
-from . import loader, __main__
+from . import utils, loader, __main__
 
 from .database import backend, frontend
 
 # Not public.
 modules = loader.Modules.get()
 
-global _waiting, _ready, db
-_ready = False
-_waiting = []
-db = None
-
-async def handle_command(event):
+async def handle_command(db, event):
     logging.debug("Incoming command!")
-    global _waiting, _ready, db
-    if not _ready:
-        _waiting += [handle_command(event)]
-        return
     if not event.message:
         logging.debug("Ignoring command with no text.")
         return
@@ -87,12 +77,8 @@ async def handle_command(event):
         except Exception:
             await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
             raise
-async def handle_incoming(event):
+async def handle_incoming(db, event):
     logging.debug("Incoming message!")
-    global _waiting, _ready, db
-    if not _ready:
-       _waiting += [handle_incoming(event)]
-       return
     message = utils.censor(event.message)
     logging.debug(message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
@@ -124,7 +110,7 @@ def main():
 
     try:
         from . import api_token
-        # Do this early on so we can register listeners
+        # Do this early on because async doesn't make sense early on
         client = TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()
         # Stop modules taking personal data so easily, or by accident
         del api_token.ID
@@ -138,17 +124,14 @@ def main():
 
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []
-    if not arguments.setup:
-        client.on(events.NewMessage(incoming=True, forwards=False))(handle_incoming)
-        client.on(events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))(handle_command)
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
     asyncio.get_event_loop().run_until_complete(amain(client, dict(zip(cfg, vlu)), arguments.setup))
 
 async def amain(client, cfg, setup=False):
-    global _ready, _waiting, db
     async with client as c:
         await c.start()
+        await client.catch_up()
         c.parse_mode = "HTML"
         if setup:
             db = backend.CloudBackend(c)
@@ -174,8 +157,8 @@ async def amain(client, cfg, setup=False):
         whitelist_chats = db.get(__name__, "whitelist_chats", [])
         modules.send_config(db, cfg)
         await modules.send_ready(client, db)
-        _ready = True
-        await asyncio.gather(*_waiting, return_exceptions=True)
-        _waiting.clear()
+        client.add_event_handler(functools.partial(handle_incoming, db), events.NewMessage(incoming=True, forwards=False))
+        client.add_event_handler(functools.partial(handle_command, db), events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
+        await client.catch_up()
         print("Started")
         await c.run_until_disconnected()

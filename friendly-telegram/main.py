@@ -177,6 +177,5 @@ async def amain(client, cfg, setup=False):
         await modules.send_ready(client, db)
         client.add_event_handler(functools.partial(handle_incoming, modules, db), events.NewMessage(incoming=True, forwards=False))
         client.add_event_handler(functools.partial(handle_command, modules, db), events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
-        await client.catch_up()
         print("Started")
         await c.run_until_disconnected()

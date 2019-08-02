@@ -38,4 +38,4 @@ class UpdaterMod(loader.Module):
             await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], msg)
 
 def restart(*args):
-    os.execl(sys.executable, sys.executable, "-m", utils.get_base_dir(), *args)
+    os.execl(sys.executable, sys.executable, "-m", os.path.relpath(utils.get_base_dir()), *args)

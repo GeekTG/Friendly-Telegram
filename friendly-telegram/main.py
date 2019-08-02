@@ -113,6 +113,8 @@ def main():
 
     try:
         from . import api_token
+        if len(phones) == 0 and os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
+            clients += [TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()]
         for phone in phones:
             try:
                 #phone = arguments.phone or input("Please enter your phone: ")

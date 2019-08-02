@@ -53,7 +53,7 @@ except ExecutableNotFound:
 
 locale.setlocale(locale.LC_ALL, '')
 
-modules = loader.Modules.get()
+modules = loader.Modules()
 modules.register_all([])
 
 global db

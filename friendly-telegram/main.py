@@ -89,15 +89,16 @@ async def handle_incoming(modules, db, event):
         except:
             logging.exception("Error running watcher")
 
-def run_config(db, init=False):
+def run_config(db, phone=None):
     from . import configurator
-    return configurator.run(db, init)
+    return configurator.run(db, phone, phone == None)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--setup", "-s", action="store_true")
     parser.add_argument("--config", "-c", action="append")
     parser.add_argument("--value", "-v", action="append")
+    parser.add_argument("--phone", "-p", action="append")
     arguments = parser.parse_args()
     logging.debug(arguments)
 
@@ -105,25 +106,42 @@ def main():
         # Subprocess support
         asyncio.set_event_loop(asyncio.ProactorEventLoop())
 
+    clients = []
+
+    phones = arguments.phone if arguments.phone else []
+    phones += list(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session", os.listdir(os.path.dirname(utils.get_base_dir())))))
+
     try:
         from . import api_token
-        # Do this early on because async doesn't make sense early on
-        client = TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()
-        # Stop modules taking personal data so easily, or by accident
-        del api_token.ID
-        del api_token.HASH
-    except PhoneNumberInvalidError:
-        print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
-        return
+        for phone in phones:
+            try:
+                #phone = arguments.phone or input("Please enter your phone: ")
+                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram-'+phone), api_token.ID, api_token.HASH).start(phone)]
+                clients[-1].phone = phone # so we can format stuff nicer in configurator
+            except PhoneNumberInvalidError:
+                print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
+                return
     except ImportError:
-        run_config({}, True)
+        run_config({})
         return
+    finally:
+        # Stop modules taking personal data so easily, or by accident
+        try:
+            del api_token.ID
+            del api_token.HASH
+        except UnboundLocalError:
+            pass
 
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []
 
+    loops = []
+    for client in clients:
+        loops += [amain(client, dict(zip(cfg, vlu)), arguments.setup)]
+
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
-    asyncio.get_event_loop().run_until_complete(amain(client, dict(zip(cfg, vlu)), arguments.setup))
+
+    asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
 async def amain(client, cfg, setup=False):
     async with client as c:
@@ -138,7 +156,7 @@ async def amain(client, cfg, setup=False):
                 pdb = json.loads(jdb)
             except:
                 pdb = {}
-            pdb = run_config(pdb)
+            pdb = run_config(pdb, c.phone)
             await db.do_upload(json.dumps(pdb))
             return
         db = frontend.Database(backend.CloudBackend(c))

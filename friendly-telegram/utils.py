@@ -42,7 +42,7 @@ def escape_quotes(text):
     return str(text).replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;").replace('"', "&quot;")
 
 def get_base_dir():
-    return os.path.relpath(os.path.dirname(__main__.__file__))
+    return os.path.abspath(os.path.dirname(os.path.abspath(__main__.__file__)))
 
 async def get_user(message):
     try:

@@ -43,7 +43,7 @@ class TDialog():
         print()
         print(msg)
 
-TITLE = "Userbot Configuration"
+TITLE = "Userbot Configuration for {}"
 
 try:
     d = Dialog(dialog="dialog")
@@ -97,9 +97,10 @@ def modules_config():
     else:
         return
 
-def run(database, init):
-    global db
+def run(database, phone, init):
+    global db, TITLE
     db = database
+    TITLE = TITLE.format(phone)
     while main_config(init):
         pass
     return db
@@ -122,7 +123,10 @@ def logging_config():
         db.setdefault(main.__name__, {})["loglevel"] = int(tag)
 
 def main_config(init):
-    code, tag = d.menu(TITLE, choices=[("API Token and ID", "Configure API Token and ID"), ("Modules", "Modules"), ("Logging", "Configure debug output")])
+    choices = [("API Token and ID", "Configure API Token and ID")]
+    if not init:
+        choices += [("Modules", "Modular configuration"), ("Logging", "Configure debug output")]
+    code, tag = d.menu(TITLE, choices=choices)
     if code == d.OK:
         if tag == "Modules":
             modules_config()

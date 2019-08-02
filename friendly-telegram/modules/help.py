@@ -16,12 +16,14 @@ class HelpMod(loader.Module):
         self.commands = {'help':self.helpcmd, "support":self.supportcmd}
         self.config = {}
         self.name = "Help"
+        self.allmodules = None
+
     async def helpcmd(self, message):
         """.help [module]"""
         args = utils.get_args_raw(message)
         if args:
             module = None
-            for mod in loader.Modules.modules:
+            for mod in self.allmodules.modules:
                 if mod.name.lower() == args.lower():
                     module = mod
             if module is None:
@@ -40,7 +42,7 @@ class HelpMod(loader.Module):
                     reply += "There is no documentation for this command"
         else:
             reply = "<code>Available Modules:\n"
-            for mod in loader.Modules.modules:
+            for mod in self.allmodules.modules:
                 reply += f"\n  {utils.escape_html(mod.name)} has {len(mod.commands)} {'command' if len(mod.commands) == 1 else 'commands'} available\n"
                 for cmd in mod.commands:
                     reply += f"    {cmd}\n"

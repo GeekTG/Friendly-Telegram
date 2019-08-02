@@ -18,12 +18,6 @@ class Module():
         logging.error("NI! handle_command")
 
 class Modules():
-    instance = None
-    @classmethod
-    def get(clas):
-        if not clas.instance:
-            clas.instance = clas()
-        return clas.instance
     commands = {}
     modules = []
     watchers = []
@@ -65,6 +59,9 @@ class Modules():
                 self.watchers += [instance.watcher]
         except AttributeError:
             pass
+        if hasattr(instance, "allmodules"):
+            # Mainly for the Help module
+            instance.allmodules = self
         self.modules += [instance]
 
 

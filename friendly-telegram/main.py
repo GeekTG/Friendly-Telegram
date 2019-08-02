@@ -47,10 +47,7 @@ from . import utils, loader, __main__
 
 from .database import backend, frontend
 
-# Not public.
-modules = loader.Modules.get()
-
-async def handle_command(db, event):
+async def handle_command(modules, db, event):
     logging.debug("Incoming command!")
     if not event.message:
         logging.debug("Ignoring command with no text.")
@@ -77,7 +74,7 @@ async def handle_command(db, event):
         except Exception:
             await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
             raise
-async def handle_incoming(db, event):
+async def handle_incoming(modules, db, event):
     logging.debug("Incoming message!")
     message = utils.censor(event.message)
     logging.debug(message)
@@ -151,14 +148,15 @@ async def amain(client, cfg, setup=False):
         [handler] = logging.getLogger().handlers
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
+        modules = loader.Modules()
         modules.register_all(db.get(__name__, "disable_modules", []))
 
         blacklist_chats = db.get(__name__, "blacklist_chats", [])
         whitelist_chats = db.get(__name__, "whitelist_chats", [])
         modules.send_config(db, cfg)
         await modules.send_ready(client, db)
-        client.add_event_handler(functools.partial(handle_incoming, db), events.NewMessage(incoming=True, forwards=False))
-        client.add_event_handler(functools.partial(handle_command, db), events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
+        client.add_event_handler(functools.partial(handle_incoming, modules, db), events.NewMessage(incoming=True, forwards=False))
+        client.add_event_handler(functools.partial(handle_command, modules, db), events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
         await client.catch_up()
         print("Started")
         await c.run_until_disconnected()

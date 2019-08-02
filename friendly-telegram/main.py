@@ -118,7 +118,7 @@ def main():
         for phone in phones:
             try:
                 #phone = arguments.phone or input("Please enter your phone: ")
-                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram-'+phone), api_token.ID, api_token.HASH).start(phone)]
+                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram-'+phone), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]
                 clients[-1].phone = phone # so we can format stuff nicer in configurator
             except PhoneNumberInvalidError:
                 print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")

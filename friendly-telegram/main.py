@@ -38,7 +38,7 @@ handler.setFormatter(formatter)
 logging.getLogger().addHandler(MemoryHandler(handler, 500))
 logging.getLogger().setLevel(0)
 
-import os, sys, argparse, asyncio, json, functools
+import os, sys, argparse, asyncio, json, functools, atexit
 
 from telethon import TelegramClient, sync, events
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError
@@ -139,6 +139,7 @@ def main():
 
     loops = []
     for client in clients:
+        atexit.register(client.disconnect)
         loops += [amain(client, dict(zip(cfg, vlu)), arguments.setup)]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))

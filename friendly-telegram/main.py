@@ -109,11 +109,11 @@ def main():
     clients = []
 
     phones = arguments.phone if arguments.phone else []
-    phones += list(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session", os.listdir(os.path.dirname(utils.get_base_dir())))))
+    phones += set(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session", os.listdir(os.path.dirname(utils.get_base_dir())))))
 
     try:
         from . import api_token
-        if len(phones) == 0 and os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
+        if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
             clients += [TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()]
         for phone in phones:
             try:

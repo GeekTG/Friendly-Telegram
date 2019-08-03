@@ -18,9 +18,10 @@ class Module():
         logging.error("NI! handle_command")
 
 class Modules():
-    commands = {}
-    modules = []
-    watchers = []
+    def __init__(self):
+        self.commands = {}
+        self.modules = []
+        self.watchers = []
 
     def register_all(self, skip):
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))

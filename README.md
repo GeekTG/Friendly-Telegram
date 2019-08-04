@@ -40,7 +40,7 @@ cd friendly-telegram
 2. Install requirements
 ```
 python3 -m pip install cryptg
-python3 -m pip install -r friendly-telegram/requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 3.  Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID

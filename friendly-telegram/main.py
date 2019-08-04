@@ -115,9 +115,10 @@ def main():
         from . import api_token
         if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
             clients += [TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()]
+        if len(clients) == 0 and len(phones) == 0:
+            phones += input("Please enter your phone: ")
         for phone in phones:
             try:
-                #phone = arguments.phone or input("Please enter your phone: ")
                 clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram-'+phone), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]
                 clients[-1].phone = phone # so we can format stuff nicer in configurator
             except PhoneNumberInvalidError:

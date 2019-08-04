@@ -10,6 +10,8 @@ def register(cb):
 
 class UpdaterMod(loader.Module):
     """Updates itself"""
+    allclients = []
+
     def __init__(self):
         self.commands = {'restart': self.restartcmd, "download": self.downloadcmd}
         self.config = {"selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
@@ -20,7 +22,11 @@ class UpdaterMod(loader.Module):
         await message.edit('Restarting...')
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
         atexit.register(functools.partial(restart, "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
-        await message.client.disconnect()
+        for client in self.allclients:
+            # Terminate main loop of all running clients
+            # Won't work if not all clients are ready
+            # TODO: Make an api to access all clients and use that
+            await message.client.disconnect()
 
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
@@ -32,6 +38,7 @@ class UpdaterMod(loader.Module):
         else:
             await message.edit("Downloaded! Use <code>.restart</code> to restart.")
     async def client_ready(self, client, db):
+        self.allclients += [client]
         if self.config["selfupdatemsg"] >= 0:
             msg = "Restart successful!" if random.randint(0, 10) != 0 else "Restart failed successfully!"
             logger.debug("Self update successful! Edit message: "+str(self.config))

@@ -160,7 +160,7 @@ async def amain(client, cfg, setup=False):
                 pdb = json.loads(jdb)
             except:
                 pdb = {}
-            pdb = run_config(pdb, c.phone)
+            pdb = run_config(pdb, getattr(c, 'phone', "Unknown Number"))
             await db.do_upload(json.dumps(pdb))
             return
         db = frontend.Database(backend.CloudBackend(c))

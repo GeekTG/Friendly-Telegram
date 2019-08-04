@@ -68,7 +68,7 @@ Try typing .help in any Telegram chat while the bot is running
 
 Use Termux
 ```
-pkg install git python-dev libjpeg-turbo-dev zlib-dev libwebp-dev libffi-dev build-essential dialog neofetch
+pkg install git python libjpeg-turbo zlib libwebp libffi build-essential dialog neofetch
 git clone https://github.com/penn5/friendly-telegram
 cd friendly-telegram
 pip install cryptg

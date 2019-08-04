@@ -26,7 +26,7 @@ class UpdaterMod(loader.Module):
             # Terminate main loop of all running clients
             # Won't work if not all clients are ready
             # TODO: Make an api to access all clients and use that
-            await message.client.disconnect()
+            await client.disconnect()
 
     async def downloadcmd(self, message):
         """Downloads userbot updates"""

@@ -4,12 +4,14 @@ import logging
 
 from .. import loader, utils
 
+from ast import *
+
 logger = logging.getLogger(__name__)
 
 def register(cb):
     cb(PythonMod())
 # We dont modify locals VVVV ; this lets us keep the message available to the user-provided function
-async def aexec(code, **kwargs):
+async def meval(code, **kwargs):
     # Note to self: please don't set globals here as they will be lost.
     # Don't clutter locals
     locs = {}
@@ -24,14 +26,24 @@ async def aexec(code, **kwargs):
     for glob in ["__name__", "__package__"]:
         # Copy data to args we are sending
         kwargs[global_args][glob] = globs[glob]
-    args = ", ".join(list(kwargs.keys()))
-    exec(f"""
-# Make a fake function to help us out
-async def tmp({args}):
-    # Import the globals back in
-    globals().update(**{global_args})
-    # User code starts here
-    """ + code.replace("\n", "\n    "), {}, locs)
+
+    root = parse(code, 'exec')
+    code = root.body
+    if isinstance(code[-1], Expr): # If we can use it as a lambda return (but multiline)
+        code[-1] = copy_location(Return(code[-1].value), code[-1]) # Change it to a return statement
+    args = []
+    for a in list(map(lambda x: arg(x, None), kwargs.keys())):
+        a.lineno = 0
+        a.col_offset = 0
+        args += [a]
+    fun = AsyncFunctionDef('tmp', arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[], kw_defaults=[None for i in range(len(args))]), code, [], None)
+    fun.lineno = 0
+    fun.col_offset = 0
+    mod = Module([fun])
+    comp = compile(mod, '<string>', 'exec')
+
+    exec(comp, {}, locs)
+
     r = await locs["tmp"](**kwargs)
     try:
         globals().clear()
@@ -39,6 +51,9 @@ async def tmp({args}):
     finally:
         globals().update(**globs)
     return r
+
+
+
 class PythonMod(loader.Module):
     """Python stuff"""
     def __init__(self):
@@ -52,11 +67,11 @@ class PythonMod(loader.Module):
         ret = "Evaluated expression <code>"
         ret += utils.escape_html(utils.get_args_raw(message))
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await aexec(utils.get_args_raw(message), message=message, client=message.client))
+        ret += utils.escape_html(await meval(utils.get_args_raw(message), message=message, client=message.client))
         ret += "</code>"
         await message.edit(ret)
 
     async def aexeccmd(self, message):
         """.aexec <expression>
            Executes python code"""
-        await aexec(utils.get_args_raw(message), message=message, client=message.client)
+        await meval(utils.get_args_raw(message), message=message, client=message.client)

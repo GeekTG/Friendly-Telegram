@@ -41,7 +41,7 @@ logging.getLogger().setLevel(0)
 import os, sys, argparse, asyncio, json, functools, atexit
 
 from telethon import TelegramClient, sync, events
-from telethon.errors.rpcerrorlist import PhoneNumberInvalidError
+from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError
 
 from . import utils, loader, __main__
 
@@ -71,9 +71,12 @@ async def handle_command(modules, db, event):
     if not coro is None:
         try:
             await coro
-        except Exception:
-            await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
-            raise
+        except Exception as e:
+            try:
+                await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
+            finally:
+                raise e
+
 async def handle_incoming(modules, db, event):
     logging.debug("Incoming message!")
     message = utils.censor(event.message)
@@ -161,7 +164,10 @@ async def amain(client, cfg, setup=False):
             except:
                 pdb = {}
             pdb = run_config(pdb, getattr(c, 'phone', "Unknown Number"))
-            await db.do_upload(json.dumps(pdb))
+            try:
+                await db.do_upload(json.dumps(pdb))
+            except MessageNotModifiedError:
+                pass
             return
         db = frontend.Database(backend.CloudBackend(c))
         await db.init()

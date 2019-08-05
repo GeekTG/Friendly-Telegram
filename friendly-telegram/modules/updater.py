@@ -8,24 +8,25 @@ logger = logging.getLogger(__name__)
 def register(cb):
     cb(UpdaterMod())
 
+
 class UpdaterMod(loader.Module):
     """Updates itself"""
-    allclients = []
-
     def __init__(self):
         self.commands = {'restart': self.restartcmd, "download": self.downloadcmd}
-        self.config = {"selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
+        self.config = {"selfupdateid": -1, "selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
         self.name = "Updater"
 
     async def restartcmd(self, message):
         """Restarts the userbot"""
+        logger.debug(message.client.phone)
+        logger.debug(self._me)
+        logger.debug(self.allclients)
         await message.edit('Restarting...')
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        atexit.register(functools.partial(restart, "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
+        atexit.register(functools.partial(restart, "--config", "selfupdatechatid", "--value", str(self._me.id), "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
         for client in self.allclients:
             # Terminate main loop of all running clients
             # Won't work if not all clients are ready
-            # TODO: Make an api to access all clients and use that
             await client.disconnect()
 
     async def downloadcmd(self, message):
@@ -38,8 +39,8 @@ class UpdaterMod(loader.Module):
         else:
             await message.edit("Downloaded! Use <code>.restart</code> to restart.")
     async def client_ready(self, client, db):
-        self.allclients += [client]
-        if self.config["selfupdatemsg"] >= 0:
+        self._me = await client.get_me()
+        if self.config["selfupdateid"] == self._me.id:
             msg = "Restart successful!" if random.randint(0, 10) != 0 else "Restart failed successfully!"
             logger.debug("Self update successful! Edit message: "+str(self.config))
             await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], msg)

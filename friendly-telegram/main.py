@@ -144,13 +144,13 @@ def main():
     loops = []
     for client in clients:
         atexit.register(client.disconnect)
-        loops += [amain(client, dict(zip(cfg, vlu)), arguments.setup)]
+        loops += [amain(client, dict(zip(cfg, vlu)), clients, arguments.setup)]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x: logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
 
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
-async def amain(client, cfg, setup=False):
+async def amain(client, cfg, allclients, setup=False):
     async with client as c:
         await c.start()
         await client.catch_up()
@@ -182,7 +182,7 @@ async def amain(client, cfg, setup=False):
         blacklist_chats = db.get(__name__, "blacklist_chats", [])
         whitelist_chats = db.get(__name__, "whitelist_chats", [])
         modules.send_config(db, cfg)
-        await modules.send_ready(client, db)
+        await modules.send_ready(client, db, allclients)
         client.add_event_handler(functools.partial(handle_incoming, modules, db), events.NewMessage(incoming=True, forwards=False))
         client.add_event_handler(functools.partial(handle_command, modules, db), events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
         print("Started")

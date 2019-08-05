@@ -93,8 +93,10 @@ class Modules():
             except:
                 logging.exception("Failed to send mod config complete signal")
 
-    async def send_ready(self, client, db):
+    async def send_ready(self, client, db, allclients):
         try:
+            for m in self.modules:
+                m.allclients = allclients
             await asyncio.gather(*[m.client_ready(client, db) for m in self.modules])
         except:
             logging.exception("Failed to send mod init complete signal")

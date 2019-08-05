@@ -24,6 +24,7 @@ class AntiPMMod(loader.Module):
         self._me = await client.get_me()
 
     async def allowcmd(self, message):
+        """Allow this user to PM without being warned"""
         if message.is_reply:
             user = (await message.get_reply_message()).from_id
         else:

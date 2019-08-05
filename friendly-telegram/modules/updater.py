@@ -23,11 +23,13 @@ class UpdaterMod(loader.Module):
         logger.debug(self.allclients)
         await message.edit('Restarting...')
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        atexit.register(functools.partial(restart, "--config", "selfupdatechatid", "--value", str(self._me.id), "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
+        atexit.register(functools.partial(restart, "--config", "selfupdateid", "--value", str(self._me.id), "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
         for client in self.allclients:
             # Terminate main loop of all running clients
             # Won't work if not all clients are ready
-            await client.disconnect()
+            if not client is message.client:
+                await client.disconnect()
+        await message.client.disconnect()
 
     async def downloadcmd(self, message):
         """Downloads userbot updates"""

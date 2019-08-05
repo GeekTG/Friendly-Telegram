@@ -43,7 +43,7 @@ class TDialog():
         print()
         print(msg)
 
-TITLE = "Userbot Configuration for {}"
+TITLE = ""
 
 try:
     d = Dialog(dialog="dialog")
@@ -100,6 +100,7 @@ def modules_config():
 def run(database, phone, init):
     global db, TITLE
     db = database
+    TITLE = "Userbot Configuration for {}"
     TITLE = TITLE.format(phone)
     while main_config(init):
         pass

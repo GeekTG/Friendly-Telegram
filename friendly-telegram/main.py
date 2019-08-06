@@ -119,7 +119,7 @@ def main():
         if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
             clients += [TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()]
         if len(clients) == 0 and len(phones) == 0:
-            phones += input("Please enter your phone: ")
+            phones += [input("Please enter your phone: ")]
         for phone in phones:
             try:
                 clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram-'+phone), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]

@@ -18,7 +18,6 @@ class UpdaterMod(loader.Module):
 
     async def restartcmd(self, message):
         """Restarts the userbot"""
-        logger.debug(message.client.phone)
         logger.debug(self._me)
         logger.debug(self.allclients)
         await message.edit('Restarting...')

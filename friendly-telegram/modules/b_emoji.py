@@ -10,7 +10,7 @@ class BEmojiMod(loader.Module):
     """🅱️-ifies things"""
     def __init__(self):
         self.commands = {'b':self.bcmd}
-        self.config = {}
+        self.config = {"REPLACABLE_CHARS": "bdfgpv"}
         self.name = "🅱️"
 
     async def bcmd(self, message):
@@ -28,10 +28,16 @@ class BEmojiMod(loader.Module):
             if c.lower() == c.upper():
                 n += 1
                 continue
-            if n % 2 == random.randint(0, 1):
-                text[n] = "🅱️"
+            if len(self.config["REPLACABLE_CHARS"]) == 0:
+                if n % 2 == random.randint(0, 1):
+                    text[n] = "🅱️"
+                else:
+                    text[n] = c
             else:
-                text[n] = c
+                if c.lower() in self.config["REPLACABLE_CHARS"]:
+                    text[n] = "🅱️"
+                else:
+                    text[n] = c
             n += 1
         text = "".join(text)
         logger.debug(text)

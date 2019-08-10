@@ -22,7 +22,7 @@ class LyricsMod(loader.Module):
         args = utils.get_args_split_by(message, ",")
         if len(args) != 2:
             logger.debug(args)
-            await message.edit("Please specify song and artist")
+            await message.edit("<code>Please specify song and artist.</code>")
             return
         logger.debug("getting song lyrics for "+args[0]+", "+args[1])
         try:
@@ -31,8 +31,8 @@ class LyricsMod(loader.Module):
             # Song not found causes internal library error
             song = None
         if song is None:
-            await message.edit("Song not found.")
+            await message.edit("<code>Song not found.</code>")
             return
         logger.debug(song)
         logger.debug(song.lyrics)
-        await message.edit(utils.escape_html(song.lyrics))
+        await utils.answer(message, utils.escape_html(song.lyrics))

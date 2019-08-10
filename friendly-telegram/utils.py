@@ -73,3 +73,23 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
         elif k[0] != "_" and hasattr(v, "__dict__"):
             setattr(obj, k, censor(v, to_censor, replace_with))
     return obj
+
+async def answer(message, answer):
+    CONT_MSG = "[continued]\n"
+    ret = [message]
+    if isinstance(answer, str):
+        await message.edit(answer)
+        answer = answer[4096:]
+        while len(answer) > 0:
+            answer = CONT_MSG + answer
+            message.message = answer[:4096]
+            answer = answer[4096:]
+            ret.append(await message.respond(message))
+    elif isinstance(answer, file):
+        if not message.media == None:
+            await message.edit(file=answer)
+        else:
+            await message.edit("<code>Loading media...</code>")
+            message.media = answer
+            ret = [await message.respond(message)]
+            await message.delete()

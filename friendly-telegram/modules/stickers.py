@@ -131,8 +131,9 @@ class StickersMod(loader.Module):
             anim = await utils.run_sync(tgs.parsers.tgs.parse_tgs, file)
             file.close()
             result = BytesIO()
-            result.name = "sticker.gif"
-            tgs.exporters.gif.export_gif(anim, result)
+            result.name = "animation.gif"
+            tgs.exporters.gif.export_gif(anim, result, 256, 5)
+            result.seek(0)
             await target.reply(file=result)
         finally:
             try:

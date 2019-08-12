@@ -4,6 +4,7 @@ from .. import loader, utils
 import logging, warnings, itertools, asyncio
 from io import BytesIO
 from PIL import Image
+import tgs
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +119,28 @@ class StickersMod(loader.Module):
             img.close()
         packurl = utils.escape_quotes(f"https://t.me/addstickers/{button.text}")
         await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>')
+
+    async def convert_gif(self, message):
+        target = await message.get_reply_message()
+        if target is None or target.file is None or target.file.mime_type != 'application/x-tgsticker':
+            await message.edit("<code>Please provide an animated sticker to convert to a GIF</code>")
+        try:
+            image = BytesIO()
+            target.download_media(image)
+            image = tgs.parsers.tgs.parse_tgs(image)
+            image.close()
+            result = BytesIO()
+            tgs.exporters.gif.export_gif(image, result)
+            await target.reply(file=result)
+        finally:
+            try:
+                image.close()
+            except:
+                pass
+            try:
+                result.close()
+            except:
+                pass
 
 def click_buttons(buttons, target_pack):
     buttons = list(itertools.chain.from_iterable(buttons))

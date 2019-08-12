@@ -14,9 +14,8 @@ def register(cb):
 class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
-        logger.debug('%s started', __file__)
         warnings.simplefilter('error', Image.DecompressionBombWarning)
-        self.commands = {'kang':self.kangcmd}
+        self.commands = {'kang':self.kangcmd, 'gifify': self.convert_gif}
         self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
         self.name = "Stickers"
         self._lock = asyncio.Lock()
@@ -121,6 +120,7 @@ class StickersMod(loader.Module):
         await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>')
 
     async def convert_gif(self, message):
+        """Convert the replied animated sticker to a GIF"""
         target = await message.get_reply_message()
         if target is None or target.file is None or target.file.mime_type != 'application/x-tgsticker':
             await message.edit("<code>Please provide an animated sticker to convert to a GIF</code>")
@@ -130,6 +130,7 @@ class StickersMod(loader.Module):
             image = tgs.parsers.tgs.parse_tgs(image)
             image.close()
             result = BytesIO()
+            result.name = "sticker.gif"
             tgs.exporters.gif.export_gif(image, result)
             await target.reply(file=result)
         finally:

@@ -1,5 +1,5 @@
 # Core
-telethon
+telethon >= 1.9.0
 # Compatibility for 3.5
 future-fstrings
 # Config
@@ -19,3 +19,5 @@ pyowm
 pyyandextranslateapi
 # Figlet rendering (mock)
 pyfiglet
+# Animated stickers
+tgs

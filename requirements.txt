@@ -20,4 +20,5 @@ pyyandextranslateapi
 # Figlet rendering (mock)
 pyfiglet
 # Animated stickers
-tgs
+cairosvg
+tgs >= 0.3.4

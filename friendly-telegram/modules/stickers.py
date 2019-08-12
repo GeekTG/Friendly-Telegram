@@ -125,17 +125,18 @@ class StickersMod(loader.Module):
         if target is None or target.file is None or target.file.mime_type != 'application/x-tgsticker':
             await message.edit("<code>Please provide an animated sticker to convert to a GIF</code>")
         try:
-            image = BytesIO()
-            target.download_media(image)
-            image = tgs.parsers.tgs.parse_tgs(image)
-            image.close()
+            file = BytesIO()
+            await target.download_media(file)
+            file.seek(0)
+            anim = await utils.run_sync(tgs.parsers.tgs.parse_tgs, file)
+            file.close()
             result = BytesIO()
             result.name = "sticker.gif"
-            tgs.exporters.gif.export_gif(image, result)
+            tgs.exporters.gif.export_gif(anim, result)
             await target.reply(file=result)
         finally:
             try:
-                image.close()
+                file.close()
             except:
                 pass
             try:

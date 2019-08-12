@@ -48,6 +48,7 @@ class TranslateMod(loader.Module):
             raise RuntimeException()
         if args[1] == "":
             args[1] = self.config["DEFAULT_LANG"]
+        args[0] = args[0].lower()
         logger.debug(args)
         translated = self.tr.translate(text, args[1], args[0])
         ret = "<b>Translated </b><code>"

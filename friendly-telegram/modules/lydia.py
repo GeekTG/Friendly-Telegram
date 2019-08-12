@@ -13,7 +13,7 @@ def register(cb):
     cb(LydiaMod())
 
 class LydiaAPI():
-    endpoint = "http://enterprise-sla2.api.intellivoid.info/coffeehouse/v2"
+    endpoint = "https://api.intellivoid.info/coffeehouse/v2"
 
     class APIError(ValueError):
         pass

@@ -123,7 +123,7 @@ class StickersMod(loader.Module):
         """Convert the replied animated sticker to a GIF"""
         target = await message.get_reply_message()
         if target is None or target.file is None or target.file.mime_type != 'application/x-tgsticker':
-            await message.edit("<code>Please provide an animated sticker to convert to a GIF</code>")
+            await utils.answer(message, "<code>Please provide an animated sticker to convert to a GIF</code>")
         try:
             file = BytesIO()
             await target.download_media(file)
@@ -134,7 +134,7 @@ class StickersMod(loader.Module):
             result.name = "animation.gif"
             tgs.exporters.gif.export_gif(anim, result, 256, 5)
             result.seek(0)
-            await target.reply(file=result)
+            await utils.answer(message, result)
         finally:
             try:
                 file.close()

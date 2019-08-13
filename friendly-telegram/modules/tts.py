@@ -16,6 +16,7 @@ class TTSMod(loader.Module):
         self.name = "Text to speech"
 
     async def ttscmd(self, message):
+        """Convert text to speech with Google APIs"""
         args = utils.get_args_raw(message)
         if not args:
             args = (await message.get_reply_message()).message

@@ -107,5 +107,5 @@ async def answer(message, answer, **kwargs):
             await message.edit(file=answer, **kwargs)
         else:
             await message.edit("<code>Loading media...</code>")
-            ret = [await message.client.send_file(message.to_id, answer, **kwargs)]
+            ret = [await message.client.send_file(message.to_id, answer, reply_to=message.reply_to_msg_id, **kwargs)]
             await message.delete()

@@ -113,6 +113,7 @@ async def answer(message, answer):
             await message.edit(file=answer)
         else:
             await message.edit("<code>Loading media...</code>")
+            message.message = ""
             message.media = answer
             ret = [await message.respond(message)]
             await message.delete()

@@ -91,7 +91,7 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
             setattr(obj, k, censor(v, to_censor, replace_with))
     return obj
 
-async def answer(message, answer):
+async def answer(message, answer, **kwargs):
     CONT_MSG = "[continued]\n"
     ret = [message]
     if isinstance(answer, str):

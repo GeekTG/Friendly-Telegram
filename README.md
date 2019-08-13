@@ -1,3 +1,11 @@
+# ⚠️⚠️⚠️ Warning ⚠️⚠️⚠️
+
+## This code as been relicensed to AGPL v3
+
+This has been authorised by all copyright holders. All previous licenses have been revoked! Nobody may copy or use this project without following the terms of the AGPLv3, as set out in the LICENSE file.
+
+# ANYONE STEALING MY CODE WILL BE DCMA'd!!!
+
 # friendly-telegram userbot
 
 Hey, welcome to our userbot!

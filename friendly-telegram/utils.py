@@ -94,12 +94,6 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
 async def answer(message, answer):
     CONT_MSG = "[continued]\n"
     ret = [message]
-    if isinstance(answer, bytes):
-        a = BytesIO()
-        a.write(answer)
-        a.seek(0)
-        answer = a
-        del a
     if isinstance(answer, str):
         await message.edit(answer)
         answer = answer[4096:]
@@ -107,13 +101,11 @@ async def answer(message, answer):
             answer = CONT_MSG + answer
             message.message = answer[:4096]
             answer = answer[4096:]
-            ret.append(await message.respond(message))
+            ret.append(await message.respond(message, **kwargs))
     else:
         if not message.media == None:
-            await message.edit(file=answer)
+            await message.edit(file=answer, **kwargs)
         else:
             await message.edit("<code>Loading media...</code>")
-            message.message = ""
-            message.media = answer
-            ret = [await message.respond(message)]
+            ret = [await message.client.send_file(message.to_id, answer, **kwargs)]
             await message.delete()

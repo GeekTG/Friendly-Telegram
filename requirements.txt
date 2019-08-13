@@ -22,3 +22,6 @@ pyfiglet
 # Animated stickers
 cairosvg
 tgs >= 0.3.4
+# TTS
+gtts
+hachoir

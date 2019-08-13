@@ -108,7 +108,7 @@ async def answer(message, answer):
             message.message = answer[:4096]
             answer = answer[4096:]
             ret.append(await message.respond(message))
-    elif isinstance(answer, file):
+    else:
         if not message.media == None:
             await message.edit(file=answer)
         else:

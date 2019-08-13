@@ -21,7 +21,7 @@ pyyandextranslateapi
 pyfiglet
 # Animated stickers
 cairosvg
-tgs >= 0.3.4
+tgs
 # TTS
 gtts
 hachoir

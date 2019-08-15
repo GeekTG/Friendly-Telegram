@@ -18,6 +18,8 @@ class RecentActionsMod(loader.Module):
         """Restores deleted messages sent after replied message"""
         msgs = message.client.iter_admin_log(message.to_id, delete=True)
         print(msgs)
+        if not message.is_reply:
+            await utils.answer(message, "<code>Reply to a message to specify where to start</code>")
         target = (await message.get_reply_message()).date
         ret = []
         try:

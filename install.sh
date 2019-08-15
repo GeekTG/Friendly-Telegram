@@ -1,9 +1,8 @@
-if [ ! "$(whoami)" = "root" ]; then
-  echo "Please run as root."
-  exit 1
-fi
-
 if [ "$OSTYPE" = "linux-gnu" ]; then
+  if [ ! "$(whoami)" = "root" ]; then
+    echo "Please run as root."
+    exit 1
+  fi
   PKGMGR="apt"
   apt update
   PYVER="3"
@@ -32,6 +31,11 @@ fi
 
 git clone https://github.com/penn5/friendly-telegram || { echo "Clone failed."; exit 3; }
 cd friendly-telegram
-"python$PYVER" -m pip install cryptg || echo "Cryptg failed"
-"python$PYVER" -m pip install -r requirements.txt || { echo "Requirements failed!"; exit 4; }
-"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram || { echo "Python scripts failed"; return 5; }
+if [ ! x"$SUDO_USER" = x"" ]; then
+  SUDO_CMD="sudo -u $SUDO_USER "
+else
+  SUDO_CMD=""
+fi
+${SUDO_CMD}"python$PYVER" -m pip install cryptg || echo "Cryptg failed"
+${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt || { echo "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram || { echo "Python scripts failed"; return 5; }

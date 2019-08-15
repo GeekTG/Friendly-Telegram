@@ -54,7 +54,7 @@ handler.setFormatter(formatter)
 logging.getLogger().addHandler(MemoryHandler(handler, 500))
 logging.getLogger().setLevel(0)
 
-import os, sys, argparse, asyncio, json, functools, atexit
+import os, sys, argparse, asyncio, json, functools, atexit, collections
 
 from telethon import TelegramClient, sync, events
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError
@@ -118,6 +118,7 @@ def main():
     parser.add_argument("--config", "-c", action="append")
     parser.add_argument("--value", "-v", action="append")
     parser.add_argument("--phone", "-p", action="append")
+    parser.add_argument("--heroku", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
 
@@ -130,29 +131,66 @@ def main():
     phones = arguments.phone if arguments.phone else []
     phones += set(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session", os.listdir(os.path.dirname(utils.get_base_dir())))))
 
+    authtoken = os.environ.get("authorization_strings", False) # for heroku
+
+    if arguments.heroku:
+        from telethon.sessions import StringSession
+        session_name = lambda phone: StringSession(input("str: "))
+    else:
+        session_name = lambda phone: os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram" + (("-"+phone) if phone else ""))
+
     try:
         from . import api_token
-        if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
-            clients += [TelegramClient('friendly-telegram', api_token.ID, api_token.HASH).start()]
-        if len(clients) == 0 and len(phones) == 0:
-            phones += [input("Please enter your phone: ")]
-        for phone in phones:
-            try:
-                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram-'+phone), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]
-                clients[-1].phone = phone # so we can format stuff nicer in configurator
-            except PhoneNumberInvalidError:
-                print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
-                return
     except ImportError:
-        run_config({})
-        return
-    finally:
-        # Stop modules taking personal data so easily, or by accident
         try:
-            del api_token.ID
-            del api_token.HASH
-        except UnboundLocalError:
-            pass
+            api_token = collections.namedtuple("api_token", ["ID", "HASH"])(os.environ["api_id"], os.environ["api_hash"])
+        except KeyError:
+            run_config({})
+            return
+    if authtoken:
+        from telethon.sessions import StringSession
+        for phone, token in json.loads(authtoken).items():
+            clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]
+            clients[-1].phone = phone # for consistency
+    if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
+        clients += [TelegramClient(session_name(None), api_token.ID, api_token.HASH).start()]
+        print("You're using the legacy session format. Please contact support, this will break in a future update.")
+    if len(clients) == 0 and len(phones) == 0:
+        phones += [input("Please enter your phone: ")]
+    for phone in phones:
+        try:
+            clients += [TelegramClient(session_name(phone), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]
+            clients[-1].phone = phone # so we can format stuff nicer in configurator
+        except PhoneNumberInvalidError:
+            print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
+            return
+
+    if arguments.heroku:
+        key = input("Please enter your Heroku API key: ")
+        data = {getattr(client, "phone", ""): client.session.save() for client in clients}
+        print(data)
+        import heroku3
+        heroku = heroku3.from_key(key)
+        app = heroku.app("friendly-telegram")
+        if not app:
+            app = heroku.create_app(name="friendly-telegram", stack_id_or_name='heroku-18', region_id_or_name="us")
+        config = app.config()
+        config["authorization_strings"] = json.dumps(data)
+        from . import api_token
+        config["api_id"] = api_token.ID
+        config["api_hash"] = api_token.HASH
+        from git import Repo
+        repo = Repo(os.path.dirname(utils.get_base_dir()))
+        if "heroku" in repo.remotes:
+            remote = repo.remote("heroku")
+        else:
+            remote = repo.create_remote("heroku", app.git_url)
+        print("Pushing...")
+        remote.push(refspec='HEAD:refs/heads/master')
+        print("Pushed")
+        app.scale_formation_process("worker", 1)
+        print("Scaled! Test your bot with .ping")
+        return
 
     cfg = arguments.config if arguments.config else []
     vlu = arguments.value if arguments.value else []

@@ -12,6 +12,9 @@ Hey, welcome to our userbot!
 
 ## But how do I set it up?
 
+TL;DR run on a Linux PC or in Termux:
+`$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)`
+
 All of the setup instructions are in this README, read carefully!
 
 First of all, this bot requires Python 3 (minimum 3.5) and a modern-ish OS (preferably Linux-based)

@@ -29,8 +29,6 @@ def register(cb):
 class TestMod(loader.Module):
     """Self-tests"""
     def __init__(self):
-        self.commands = {'ping':self.pingcmd, 'dump':self.dumpcmd, 'logs':self.logcmd, 'suspend':self.suspendcmd}
-        self.config = {}
         self.name = "Tester"
 
     async def pingcmd(self, message):
@@ -43,7 +41,7 @@ class TestMod(loader.Module):
             return
         await message.edit("<code>"+utils.escape_html((await message.get_reply_message()).stringify())+"</code>")
 
-    async def logcmd(self, message):
+    async def logscmd(self, message):
         """.logs <level>
            Dumps logs. Loglevels below WARNING may contain personal info."""
         args = utils.get_args(message)

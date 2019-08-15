@@ -26,8 +26,6 @@ def register(cb):
 class InfoMod(loader.Module):
     """Provides system information about the computer hosting this bot"""
     def __init__(self):
-        self.commands = {'info': self.infocmd}
-        self.config = {}
         self.name = "Info"
 
     async def infocmd(self, message):

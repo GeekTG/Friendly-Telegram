@@ -11,8 +11,6 @@ def register(cb):
 
 class TTSMod(loader.Module):
     def __init__(self):
-        self.commands = {"tts":self.ttscmd}
-        self.config = {}
         self.name = "Text to speech"
 
     async def ttscmd(self, message):

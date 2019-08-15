@@ -82,7 +82,6 @@ class LydiaAPI():
 class LydiaMod(loader.Module):
     """Talks to a robot instead of a human"""
     def __init__(self):
-        self.commands = {"enlydia":self.enablelydiacmd, "dislydia":self.disablelydiacmd}
         self.config = {"CLIENT_KEY":""}
         self.name = "Lydia anti-PM"
         self._ratelimit = []
@@ -107,7 +106,10 @@ class LydiaMod(loader.Module):
         for ident, session in sessions.items():
             if not session["expires"] < t:
                 nsessions.update({ident:session})
-        next = min(*[v["expires"] for k,v in nsessions.items()])
+        if len(nsessions):
+            next = min(*[v["expires"] for k,v in nsessions.items()])
+        else:
+            next = 86399
         if nsessions != sessions:
             self._db.set(__name__, "sessions", nsessions)
         # Don't worry about the 1 day limit below 3.7.1, if it isn't expired we will just reschedule, as nothing will be matched for deletion.
@@ -115,7 +117,7 @@ class LydiaMod(loader.Module):
 
         await self.schedule_cleanups()
 
-    async def enablelydiacmd(self, message):
+    async def enlydiacmd(self, message):
         """Enables Lydia for target user"""
         old = self._db.get(__name__, "allow", [])
         if message.is_reply:
@@ -133,7 +135,7 @@ class LydiaMod(loader.Module):
             return
         await message.edit("<code>AI enabled for this user. </code>")
 
-    async def disablelydiacmd(self, message):
+    async def dislydiacmd(self, message):
         """Disables Lydia for the target user"""
         if message.is_reply:
             user = (await message.get_reply_message()).from_id

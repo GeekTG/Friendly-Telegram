@@ -25,8 +25,6 @@ def register(cb):
 class PurgeMod(loader.Module):
     """Deletes your messages"""
     def __init__(self):
-        self.commands = {'purge':self.purgecmd, "del":self.delcmd}
-        self.config = {}
         self.name = "Purge"
 
     async def purgecmd(self, message):

@@ -24,14 +24,15 @@ import tgs
 
 logger = logging.getLogger(__name__)
 
+warnings.simplefilter('error', Image.DecompressionBombWarning)
+
+
 def register(cb):
     cb(StickersMod())
 
 class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
-        warnings.simplefilter('error', Image.DecompressionBombWarning)
-        self.commands = {'kang':self.kangcmd, 'gifify': self.convert_gif}
         self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
         self.name = "Stickers"
         self._lock = asyncio.Lock()
@@ -39,7 +40,7 @@ class StickersMod(loader.Module):
     async def kangcmd(self, message):
         """Use in reply or with an attached media:
            .kang <pack name> [emojis]
-           If pack is not matched the most recent will be used instead"""
+           If pack is not matched the most recently created will be used instead"""
         args = utils.get_args(message)
         if len(args) != 1 and len(args) != 2:
             logger.debug("wrong args len(%s) or bad args(%s)", len(args), args)
@@ -135,7 +136,7 @@ class StickersMod(loader.Module):
         packurl = utils.escape_quotes(f"https://t.me/addstickers/{button.text}")
         await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>')
 
-    async def convert_gif(self, message):
+    async def gififycmd(self, message):
         """Convert the replied animated sticker to a GIF"""
         target = await message.get_reply_message()
         if target is None or target.file is None or target.file.mime_type != 'application/x-tgsticker':

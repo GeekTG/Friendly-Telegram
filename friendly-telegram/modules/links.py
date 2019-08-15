@@ -32,8 +32,6 @@ def register(cb):
 class LinksMod(loader.Module):
     """Invite link operations"""
     def __init__(self):
-        self.commands = {"findlinks":self.linkscmd}
-        self.config = {}
         self.name = "Invite Links"
 
     async def filterlinks(self, links, client, skip):
@@ -72,7 +70,7 @@ class LinksMod(loader.Module):
         except MessageNotModifiedError:
             pass
 
-    async def linkscmd(self, message):
+    async def findlinkscmd(self, message):
         """Find all telegram groups through non-recursive listing"""
         await message.edit(self.formatlinks([]))
         await self.searchgroup(message.to_id, message, self.flatcb)

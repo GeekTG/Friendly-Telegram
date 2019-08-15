@@ -26,8 +26,6 @@ def register(cb):
 class MockMod(loader.Module):
     """mOcKs PeOpLe"""
     def __init__(self):
-        self.commands = {'mock':self.mockcmd, "figlet":self.figcmd}
-        self.config = {}
         self.name = "Mocker"
 
     async def mockcmd(self, message):
@@ -54,7 +52,7 @@ class MockMod(loader.Module):
         logger.debug(text)
         await message.edit(text)
 
-    async def figcmd(self, message):
+    async def figletcmd(self, message):
         """.figlet <font> <text>"""
         args = utils.get_args(message)
         text = " ".join(args[1:])

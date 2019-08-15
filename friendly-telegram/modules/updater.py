@@ -28,7 +28,6 @@ def register(cb):
 class UpdaterMod(loader.Module):
     """Updates itself"""
     def __init__(self):
-        self.commands = {'restart': self.restartcmd, "download": self.downloadcmd}
         self.config = {"selfupdateid": -1, "selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
         self.name = "Updater"
 

@@ -21,7 +21,6 @@ class Module():
     """There is no help for this module"""
     def __init__(self):
         self.name = "Unknown"
-        self.config = {}
 
     def config_complete(self):
         pass
@@ -64,6 +63,11 @@ class Modules():
     def register_module(self, instance):
         if not issubclass(instance.__class__, Module):
             logging.error("Not a subclass %s", repr(instance.__class__))
+        if not hasattr(instance, "commands"):
+            # https://stackoverflow.com/a/34452/5509575
+            instance.commands = {method_name[:-3]: getattr(instance, method_name) for method_name in dir(instance)
+                                if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
+
         for command in instance.commands:
             if command.lower() in self.commands.keys():
                 logging.error("Duplicate command %s", command)
@@ -103,7 +107,7 @@ class Modules():
                         mod.config[conf] = modcfg[conf]
                     else:
                         logging.debug("No config value for "+conf)
-            logging.debug(mod.config)
+                logging.debug(mod.config)
             try:
                 mod.config_complete()
             except:

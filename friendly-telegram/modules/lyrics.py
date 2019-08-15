@@ -26,7 +26,6 @@ def register(cb):
 class LyricsMod(loader.Module):
     """Sings songs"""
     def __init__(self):
-        self.commands = {'lyrics': self.lyricscmd}
         self.config = {"GENIUS_API_TOKEN": ""}
         self.name = "Lyrics"
 

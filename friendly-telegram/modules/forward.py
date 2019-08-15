@@ -28,8 +28,6 @@ def register(cb):
 class ForwardMod(loader.Module):
     """Forwards messages"""
     def __init__(self):
-        self.commands = {"fwdall":self.fwdallcmd}
-        self.config = {}
         self.name = "Forwarding"
 
     async def fwdallcmd(self, message):

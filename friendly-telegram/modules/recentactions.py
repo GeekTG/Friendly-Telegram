@@ -10,11 +10,9 @@ def register(cb):
 class RecentActionsMod(loader.Module):
     """Reads recent actions"""
     def __init__(self):
-        self.commands = {"recoverdeleted":self.yourcmd}
-        self.config = {}
         self.name = "Recent Actions"
 
-    async def yourcmd(self, message):
+    async def recoverdeletedcmd(self, message):
         """Restores deleted messages sent after replied message (optionally specify how many to recover)"""
         msgs = message.client.iter_admin_log(message.to_id, delete=True)
         if not message.is_reply:

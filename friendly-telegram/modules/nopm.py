@@ -28,8 +28,6 @@ def register(cb):
 class AntiPMMod(loader.Module):
     """Provides a message saying that you are unavailable (out of office)"""
     def __init__(self):
-        self.commands = {"allow":self.allowcmd, "report":self.reportcmd}
-        self.config = {}
         self.name = "Anti PM"
         self._me = None
         self._ratelimit = []

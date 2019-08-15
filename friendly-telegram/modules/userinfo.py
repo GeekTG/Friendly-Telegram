@@ -29,8 +29,6 @@ def register(cb):
 class UserInfoMod(loader.Module):
     """Tells you about people"""
     def __init__(self):
-        self.commands = {'uinfo': self.userinfocmd, "permalink":self.getusercmd}
-        self.config = {}
         self.name = "User Info"
 
     async def userinfocmd(self, message):
@@ -48,7 +46,7 @@ class UserInfoMod(loader.Module):
         reply += "</code>"
         await message.edit(reply)
 
-    async def getusercmd(self, message):
+    async def permalinkcmd(self, message):
         """Get permalink to user based on ID or username"""
         args = utils.get_args(message)
         if len(args) != 1:

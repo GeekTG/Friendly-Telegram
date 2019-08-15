@@ -26,8 +26,6 @@ def register(cb):
 class CoreMod(loader.Module):
     """Control core userbot settings"""
     def __init__(self):
-        self.commands = {'blacklist':self.blacklistcmd, "unblacklist":self.unblacklistcmd, "whitelist":self.whitelistcmd, "unwhitelist":self.unwhitelistcmd}
-        self.config = {}
         self.name = "Settings"
 
     async def client_ready(self, client, db):

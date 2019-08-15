@@ -25,8 +25,6 @@ def register(cb):
 class SpamMod(loader.Module):
     """Annoys people really effectively"""
     def __init__(self):
-        self.commands = {'spam':self.spamcmd}
-        self.config = {}
         self.name = "Spammer"
 
     async def spamcmd(self, message):

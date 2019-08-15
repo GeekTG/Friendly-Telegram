@@ -73,11 +73,9 @@ async def meval(code, **kwargs):
 class PythonMod(loader.Module):
     """Python stuff"""
     def __init__(self):
-        self.commands = {"eval":self.aevalcmd, "exec":self.aexeccmd}
-        self.config = {}
         self.name = "Python"
 
-    async def aevalcmd(self, message):
+    async def evalcmd(self, message):
         """.eval <expression>
            Evaluates python code"""
         ret = "Evaluated expression <code>"
@@ -87,7 +85,7 @@ class PythonMod(loader.Module):
         ret += "</code>"
         await message.edit(ret)
 
-    async def aexeccmd(self, message):
+    async def execcmd(self, message):
         """.aexec <expression>
            Executes python code"""
         await meval(utils.get_args_raw(message), message=message, client=message.client)

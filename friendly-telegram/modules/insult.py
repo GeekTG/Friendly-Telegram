@@ -26,8 +26,6 @@ def register(cb):
 class InsultMod(loader.Module):
     """Shouts at people"""
     def __init__(self):
-        self.commands = {'insult':self.insultcmd}
-        self.config = {}
         self.name = "Insulter"
 
     async def insultcmd(self, message):

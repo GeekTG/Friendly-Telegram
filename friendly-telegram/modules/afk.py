@@ -27,8 +27,6 @@ def register(cb):
 class AFKMod(loader.Module):
     """Provides a message saying that you are unavailable (out of office)"""
     def __init__(self):
-        self.commands = {"afk":self.afkcmd, "unafk":self.unafkcmd}
-        self.config = {}
         self.name = "AFK"
         self._me = None
         self._ratelimit = []

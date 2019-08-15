@@ -24,8 +24,6 @@ def register(cb):
 class YesNoMod(loader.Module):
     """Helps you make important life choices"""
     def __init__(self):
-        self.commands = {'yesno': self.yesnocmd}
-        self.config = {}
         self.name = "YesNo"
 
     async def yesnocmd(self, message):

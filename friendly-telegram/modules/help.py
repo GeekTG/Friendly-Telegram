@@ -29,8 +29,6 @@ def register(cb):
 class HelpMod(loader.Module):
     """Provides this help message"""
     def __init__(self):
-        self.commands = {'help':self.helpcmd, "support":self.supportcmd}
-        self.config = {}
         self.name = "Help"
         self.allmodules = None
 

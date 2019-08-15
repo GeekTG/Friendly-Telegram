@@ -10,12 +10,10 @@ def register(cb):
 class YourMod(loader.Module):
     """Description for module"""
     def __init__(self):
-        self.commands = {"command":self.yourcmd}
         self.config = {"CONFIG_STRING":"hello"}
         self.name = "A Name"
 
-    async def yourcmd(self, message):
-        """.command
-           Does something"""
+    async def examplecmd(self, message):
+        """Does something when you type .example"""
         await message.edit(self.config["CONFIG_STRING"])
 

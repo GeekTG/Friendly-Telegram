@@ -1,7 +1,8 @@
 if [ "$OSTYPE" = "linux-gnu" ]; then
   if [ ! "$(whoami)" = "root" ]; then
-    echo "Please run as root."
-    exit 1
+    # Relaunch as root
+    sudo "$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)'
+    exit $?
   fi
   PKGMGR="apt"
   apt update

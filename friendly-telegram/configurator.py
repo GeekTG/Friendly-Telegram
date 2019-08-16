@@ -82,7 +82,7 @@ def validate_value(string):
 
 def modules_config():
     global db
-    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(module.__doc__)) for module in modules.modules])
+    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", ""))) for module in modules.modules])
     if code == d.OK:
         for mod in modules.modules:
             if mod.name == tag:

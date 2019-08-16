@@ -32,7 +32,7 @@ Step by step explanation:
 3. Install optional modular dependencies (required for some modules)
 ```
 # Pillow for stickers/kang
-sudo apt install python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 libcairo
+sudo apt install python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 libcairo2
 # Utilities
 sudo apt install neofetch
 # UI

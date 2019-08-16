@@ -30,13 +30,14 @@ else
   "$PKGMGR" install libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
 fi
 
-git clone https://github.com/penn5/friendly-telegram || { echo "Clone failed."; exit 3; }
-cd friendly-telegram
 if [ ! x"$SUDO_USER" = x"" ]; then
   SUDO_CMD="sudo -u $SUDO_USER "
 else
   SUDO_CMD=""
 fi
+
+${SUDO_CMD}git clone https://github.com/penn5/friendly-telegram || { echo "Clone failed."; exit 3; }
+cd friendly-telegram
 ${SUDO_CMD}"python$PYVER" -m pip install cryptg || echo "Cryptg failed"
 ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt || { echo "Requirements failed!"; exit 4; }
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram || { echo "Python scripts failed"; return 5; }

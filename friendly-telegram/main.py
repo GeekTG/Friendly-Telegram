@@ -168,9 +168,9 @@ def main():
     if arguments.heroku:
         key = input("Please enter your Heroku API key: ")
         data = {getattr(client, "phone", ""): client.session.save() for client in clients}
-        print(data)
         import heroku3
         heroku = heroku3.from_key(key)
+        print("Configuring...")
         app = heroku.app("friendly-telegram")
         if not app:
             app = heroku.create_app(name="friendly-telegram", stack_id_or_name='heroku-18', region_id_or_name="us")

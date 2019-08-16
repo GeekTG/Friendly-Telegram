@@ -88,7 +88,7 @@ def modules_config():
             if mod.name == tag:
                 # Match
                 choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
-                for key, value in mod.config.items():
+                for key, value in getattr(mod, "config", {}).items():
                     if key.upper() == key: # Constants only
                         choices += [(key, "")]
                 code, tag = d.menu(TITLE, choices=choices)

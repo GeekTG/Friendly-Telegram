@@ -4,7 +4,9 @@ telethon >= 1.9.0
 future-fstrings
 # Config
 pythondialog
-
+# Heroku
+heroku3
+gitpython
 
 ## Modules
 # Lyrics
@@ -25,3 +27,5 @@ tgs
 # TTS
 gtts
 hachoir
+# Updater
+gitpython

@@ -39,5 +39,5 @@ class RecentActionsMod(loader.Module):
             orig = msg.original.action.message
             deldate = msg.original.date.isoformat()
             origdate = orig.date.isoformat()
-            await message.respond(f"=== Deleted message {orig.id} recovered. Originally sent at {origdate}, deleted at {deldate}. ===")
+            await message.respond(f"=== Deleted message {orig.id} recovered. Originally sent at {origdate} by {orig.from_id}, deleted at {deldate} by {msg.user_id}. ===")
             await message.respond(orig)

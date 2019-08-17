@@ -29,7 +29,7 @@ def register(cb):
 class UpdaterMod(loader.Module):
     """Updates itself"""
     def __init__(self):
-        self.config = {"selfupdateid": -1, "selfupdatechat": -1, "selfupdatemsg": -1, "GIT_ORIGIN_URL": "https://github.com/penn5/friendly-telegram"}
+        self.config = {"GIT_ORIGIN_URL": "https://github.com/penn5/friendly-telegram"}
         self.name = "Updater"
 
     async def restartcmd(self, message):
@@ -88,10 +88,10 @@ class UpdaterMod(loader.Module):
         self._db = db
         self._me = await client.get_me()
         if db.get(__name__, "selfupdateid") == self._me.id:
-            await self.update_complete()
+            await self.update_complete(client)
         self._db.set(__name__, "selfupdateid", None)
 
-    async def update_complete(self):
+    async def update_complete(self, client):
         logger.debug("Self update successful! Edit message")
         heroku_key = os.environ.get("heroku_api_token")
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)

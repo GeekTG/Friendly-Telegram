@@ -184,7 +184,7 @@ def main():
         if "heroku" in repo.remotes:
             remote = repo.remote("heroku")
         else:
-            remote = repo.create_remote("heroku", app.git_url)
+            remote = repo.create_remote("heroku", app.git_url.replace("https://", "https://api:" + key + "@"))
         print("Pushing...")
         remote.push(refspec='HEAD:refs/heads/master')
         print("Pushed")

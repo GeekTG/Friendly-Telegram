@@ -135,7 +135,7 @@ def main():
 
     if arguments.heroku:
         from telethon.sessions import StringSession
-        session_name = lambda phone: StringSession()
+        session_name = lambda phone: StringSession(input(phone))
     else:
         session_name = lambda phone: os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram" + (("-"+phone) if phone else ""))
 
@@ -167,37 +167,8 @@ def main():
 
     if arguments.heroku:
         key = input("Please enter your Heroku API key: ").strip()
-        data = {getattr(client, "phone", ""): client.session.save() for client in clients}
-        import heroku3
-        heroku = heroku3.from_key(key)
-        print("Configuring...")
-        app = None
-        for poss_app in heroku.apps():
-            config = poss_app.config()
-            if config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH:
-                app = poss_app
-                break
-        if not app:
-            app = heroku.create_app(stack_id_or_name='heroku-18', region_id_or_name="us")
-        config = app.config()
-        config["authorization_strings"] = json.dumps(data)
-        from . import api_token
-        config["api_id"] = api_token.ID
-        config["api_hash"] = api_token.HASH
-        config["heroku_api_token"] = key
-        from git import Repo
-        repo = Repo(os.path.dirname(utils.get_base_dir()))
-        url = app.git_url.replace("https://", "https://api:" + key + "@")
-        if "heroku" in repo.remotes:
-            remote = repo.remote("heroku")
-            remote.set_url(url)
-        else:
-            remote = repo.create_remote("heroku", url)
-        print("Pushing...")
-        remote.push(refspec='HEAD:refs/heads/master')
-        print("Pushed")
-        app.scale_formation_process("worker", 1)
-        print("Scaled! Test your bot with .ping")
+        from . import heroku
+        heroku.publish(clients, key, api_token)
         return
 
     cfg = arguments.config if arguments.config else []

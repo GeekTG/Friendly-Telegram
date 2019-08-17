@@ -64,9 +64,22 @@ class UpdaterMod(loader.Module):
     async def client_ready(self, client, db):
         self._me = await client.get_me()
         if self.config["selfupdateid"] == self._me.id:
-            msg = "Restart successful!" if random.randint(0, 10) != 0 else "Restart failed successfully!"
+            await self.update_complete()
+
+    async def update_complete(self):
+        logger.debug("Restarted into new version. Checking for heroku...")
+        heroku_key = os.environ.get("heroku_api_token")
+        herokufail = ("DYNO" in os.environ) and (heroku_key is None)
+        if heroku_key:
+            from .. import heroku
+            heroku.publish(self.allclients, heroku_key)
+        if herokufail:
+            logger.warning("heroku token not set")
+            msg = "Heroku API key is not set. Restart was successful but updates will reset every time the bot restarts."
+        else:
             logger.debug("Self update successful! Edit message: "+str(self.config))
-            await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], msg)
+            msg = "Restart successful!" if random.randint(0, 10) != 0 else "Restart failed successfully!"
+        await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], msg)
 
 def restart(*args):
     os.execl(sys.executable, sys.executable, "-m", os.path.relpath(utils.get_base_dir()), *args)

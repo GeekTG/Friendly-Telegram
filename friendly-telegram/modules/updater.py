@@ -52,24 +52,12 @@ class UpdaterMod(loader.Module):
                 await client.disconnect()
         await message.client.disconnect()
 
-    async def updatecmd(self, message):
-        """Downloads userbot updates"""
-        await message.edit("Downloading...")
-        await self.download_common()
-        await message.edit("Downloaded! Installation in progress.")
-        heroku_key = os.environ.get("heroku_api_token")
-        if heroku_key:
-            from .. import heroku
-            heroku.publish(self.allclients, heroku_key)
-            await message.edit("Already up-to-date!")
-        else:
-            await self.restart_common(message)
-
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
         await message.edit("Downloading...")
         await self.download_common()
         await message.edit("Downloaded! Use <code>.restart</code> to restart.")
+
     async def download_common(self):
         try:
             repo = Repo(os.path.dirname(utils.get_base_dir()))
@@ -82,6 +70,19 @@ class UpdaterMod(loader.Module):
             repo.create_head('master', origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
             repo.heads.master.checkout(True)
+
+    async def updatecmd(self, message):
+        """Downloads userbot updates"""
+        await message.edit("Downloading...")
+        await self.download_common()
+        await message.edit("Downloaded! Installation in progress.")
+        heroku_key = os.environ.get("heroku_api_token")
+        if heroku_key:
+            from .. import heroku
+            heroku.publish(self.allclients, heroku_key)
+            await message.edit("Already up-to-date!")
+        else:
+            await self.restart_common(message)
 
     async def client_ready(self, client, db):
         self._db = db

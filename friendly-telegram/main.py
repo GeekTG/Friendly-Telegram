@@ -166,7 +166,7 @@ def main():
             return
 
     if arguments.heroku:
-        key = input("Please enter your Heroku API key: ")
+        key = input("Please enter your Heroku API key: ").strip()
         data = {getattr(client, "phone", ""): client.session.save() for client in clients}
         import heroku3
         heroku = heroku3.from_key(key)

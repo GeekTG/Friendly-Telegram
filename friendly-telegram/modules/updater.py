@@ -45,7 +45,7 @@ class UpdaterMod(loader.Module):
         await self._db.set(__name__, "selfupdatemsg", message.id)
 
     async def restart_common(self, message):
-        await self.prerestart_common()
+        await self.prerestart_common(message)
         atexit.register(restart)
         for client in self.allclients:
             # Terminate main loop of all running clients

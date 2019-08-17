@@ -171,9 +171,7 @@ def main():
         import heroku3
         heroku = heroku3.from_key(key)
         print("Configuring...")
-        app = heroku.app("friendly-telegram")
-        if not app:
-            app = heroku.create_app(name="friendly-telegram", stack_id_or_name='heroku-18', region_id_or_name="us")
+        app = heroku.create_app(stack_id_or_name='heroku-18', region_id_or_name="us")
         config = app.config()
         config["authorization_strings"] = json.dumps(data)
         from . import api_token

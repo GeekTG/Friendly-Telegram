@@ -45,7 +45,9 @@ class Database():
             return
         self._db.setdefault(owner, {})[key] = value
         id = uuid.uuid4()
-        self._pending[id] = asyncio.ensure_future(self._set(self._db, id))
+        task = asyncio.ensure_future(self._set(self._db, id))
+        self._pending[id] = task
+        return task
 
     async def _set(self, db, id):
         await self._backend.do_upload(json.dumps(db))

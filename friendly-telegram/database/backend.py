@@ -92,7 +92,8 @@ class CloudBackend():
                     logging.debug("editing message "+msg.stringify()+" last is "+msgs[-1].stringify())
                     if msg.id == msgs[-1].id:
                         newmsg = True
-                    ops += [msg.edit(utils.escape_html(sdata[:4096]))]
+                    if sdata[:4096] != msg.message:
+                        ops += [msg.edit(utils.escape_html(sdata[:4096]))]
                     sdata = sdata[4096:]
                 else:
                     logging.debug("maybe deleting message")

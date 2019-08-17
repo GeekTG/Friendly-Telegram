@@ -41,7 +41,6 @@ class UpdaterMod(loader.Module):
 
     async def restart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        await self._db.set(__name__, "selfupdateid", self._me.id)
         await self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
         await self._db.set(__name__, "selfupdatemsg", message.id)
         atexit.register(restart)
@@ -87,9 +86,10 @@ class UpdaterMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._me = await client.get_me()
-        if db.get(__name__, "selfupdateid") == self._me.id:
+        if db.get(__name__, "selfupdatechat") != None and db.get(__name__, "selfupdatemsg") != None:
             await self.update_complete(client)
-        self._db.set(__name__, "selfupdateid", None)
+        self._db.set(__name__, "selfupdatechat", None)
+        self._db.set(__name__, "selfupdatemsg", None)
 
     async def update_complete(self, client):
         logger.debug("Self update successful! Edit message")

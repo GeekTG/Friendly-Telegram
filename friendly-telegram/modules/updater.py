@@ -56,6 +56,7 @@ class UpdaterMod(loader.Module):
         except git.exc.InvalidGitRepositoryError:
             repo = Repo.init(os.path.dirname(utils.get_base_dir()))
             origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
+            origin.fetch()
             repo.create_head('master', origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
             repo.heads.master.checkout()

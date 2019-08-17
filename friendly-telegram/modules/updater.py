@@ -16,8 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .. import loader, utils, __main__
-import logging, os, sys, atexit, asyncio, functools, random
+from .. import loader, utils
+import logging, os, sys, atexit, asyncio, functools, random, git
+from git import Repo
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ def register(cb):
 class UpdaterMod(loader.Module):
     """Updates itself"""
     def __init__(self):
-        self.config = {"selfupdateid": -1, "selfupdatechat": -1, "selfupdatemsg": -1, "GIT_PULL_COMMAND": ["git", "pull", "--ff-only"]}
+        self.config = {"selfupdateid": -1, "selfupdatechat": -1, "selfupdatemsg": -1, "GIT_ORIGIN_URL": "https://github.com/penn5/friendly-telegram"}
         self.name = "Updater"
 
     async def restartcmd(self, message):
@@ -48,12 +49,18 @@ class UpdaterMod(loader.Module):
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
         await message.edit("Downloading...")
-        gitproc = await asyncio.create_subprocess_exec(*self.config["GIT_PULL_COMMAND"], stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=utils.get_base_dir())
-        out, err = await gitproc.communicate()
-        if gitproc.returncode != 0:
-            await message.edit("Error!\nStdout:\n<code>"+utils.escape_html(out.decode("utf-8"))+"</code>\nStderr:\n<code>"+utils.escape_html(err.decode("utf-8"))+"</code>")
-        else:
-            await message.edit("Downloaded! Use <code>.restart</code> to restart.")
+        try:
+            repo = Repo(os.path.dirname(utils.get_base_dir()))
+            origin = repo.remote("origin")
+            origin.pull()
+        except git.exc.InvalidGitRepositoryError:
+            repo = Repo.init(os.path.dirname(utils.get_base_dir()))
+            origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
+            repo.create_head('master', origin.refs.master)
+            repo.heads.master.set_tracking_branch(origin.refs.master)
+            repo.heads.master.checkout()
+        await message.edit("Downloaded! Use <code>.restart</code> to restart.")
+
     async def client_ready(self, client, db):
         self._me = await client.get_me()
         if self.config["selfupdateid"] == self._me.id:

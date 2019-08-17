@@ -184,6 +184,7 @@ def main():
         from . import api_token
         config["api_id"] = api_token.ID
         config["api_hash"] = api_token.HASH
+        config["heroku_api_token"] = key
         from git import Repo
         repo = Repo(os.path.dirname(utils.get_base_dir()))
         url = app.git_url.replace("https://", "https://api:" + key + "@")

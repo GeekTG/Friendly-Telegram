@@ -171,7 +171,14 @@ def main():
         import heroku3
         heroku = heroku3.from_key(key)
         print("Configuring...")
-        app = heroku.create_app(stack_id_or_name='heroku-18', region_id_or_name="us")
+        app = None
+        for poss_app in heroku.apps():
+            config = poss_app.config()
+            if config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH:
+                app = poss_app
+                break
+        if not app:
+            app = heroku.create_app(stack_id_or_name='heroku-18', region_id_or_name="us")
         config = app.config()
         config["authorization_strings"] = json.dumps(data)
         from . import api_token
@@ -179,10 +186,12 @@ def main():
         config["api_hash"] = api_token.HASH
         from git import Repo
         repo = Repo(os.path.dirname(utils.get_base_dir()))
+        url = app.git_url.replace("https://", "https://api:" + key + "@")
         if "heroku" in repo.remotes:
             remote = repo.remote("heroku")
+            remote.set_url(url)
         else:
-            remote = repo.create_remote("heroku", app.git_url.replace("https://", "https://api:" + key + "@"))
+            remote = repo.create_remote("heroku", url)
         print("Pushing...")
         remote.push(refspec='HEAD:refs/heads/master')
         print("Pushed")

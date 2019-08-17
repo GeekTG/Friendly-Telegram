@@ -41,9 +41,9 @@ class UpdaterMod(loader.Module):
 
     async def restart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        self._db.set(__name__, "selfupdateid", str(self._me.id))
-        self._db.set(__name__, "selfupdatechat", str(utils.get_chat_id(message)))
-        self._db.set(__name__, "selfupdatemsg", str(message.id))
+        await self._db.set(__name__, "selfupdateid", self._me.id)
+        await self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
+        await self._db.set(__name__, "selfupdatemsg", message.id)
         atexit.register(restart)
         for client in self.allclients:
             # Terminate main loop of all running clients

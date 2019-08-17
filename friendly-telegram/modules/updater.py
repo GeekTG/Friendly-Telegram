@@ -39,10 +39,13 @@ class UpdaterMod(loader.Module):
         await message.edit('Restarting...')
         await self.restart_common(message)
 
-    async def restart_common(self, message):
+    async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
         await self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
         await self._db.set(__name__, "selfupdatemsg", message.id)
+
+    async def restart_common(self, message):
+        await self.prerestart_common()
         atexit.register(restart)
         for client in self.allclients:
             # Terminate main loop of all running clients
@@ -78,7 +81,10 @@ class UpdaterMod(loader.Module):
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
             from .. import heroku
+            await self.prerestart_common(message)
             heroku.publish(self.allclients, heroku_key)
+            self._db.set(__name__, "selfupdatechat", None)
+            self._db.set(__name__, "selfupdatemsg", None)
             await message.edit("Already up-to-date!")
         else:
             await self.restart_common(message)

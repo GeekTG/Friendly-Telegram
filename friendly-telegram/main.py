@@ -209,7 +209,7 @@ async def amain(client, cfg, allclients, setup=False):
         c.parse_mode = "HTML"
         if setup:
             db = backend.CloudBackend(c)
-            await db.init()
+            await db.init(lambda e: None)
             jdb = await db.do_download()
             try:
                 pdb = json.loads(jdb)

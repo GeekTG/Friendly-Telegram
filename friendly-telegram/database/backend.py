@@ -18,7 +18,7 @@
 
 from .. import utils
 
-import atexit, logging, asyncio
+import atexit, logging, asyncio, telethon
 
 from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
 from telethon.tl.types import Message
@@ -31,8 +31,9 @@ class CloudBackend():
         self._client = client
         self._me = None
         self._db = None
-    async def init(self):
+    async def init(self, trigger_refresh):
         self._me = await self._client.get_me()
+        self._callback = trigger_refresh
     async def _find_data_channel(self):
          async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
             if dialog.name == f"friendly-{self._me.id}-data" and dialog.is_channel:
@@ -48,9 +49,10 @@ class CloudBackend():
            Return the database (as unparsed JSON) or None"""
         if not self._db:
             self._db = await self._find_data_channel()
-        if not self._db:
-            logging.debug("No DB, returning")
-            return None
+            if not self._db:
+                logging.debug("No DB, returning")
+                return None
+            self._client.add_event_handler(self._callback, telethon.events.messageedited.MessageEdited(chats=[self._db]))
 
         msgs = self._client.iter_messages(
             entity=self._db,
@@ -73,8 +75,9 @@ class CloudBackend():
            Return True or throw"""
         if not self._db:
             self._db = await self._find_data_channel()
-        if not self._db:
-            self._db = await self._make_data_channel()
+            if not self._db:
+                self._db = await self._make_data_channel()
+            self._client.add_event_handler(self._callback, telethon.events.messageedited.MessageEdited(chats=[self._db]))
         msgs = await self._client.get_messages(
             entity=self._db,
             reverse=True

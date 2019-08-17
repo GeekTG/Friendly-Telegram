@@ -37,8 +37,14 @@ class UpdaterMod(loader.Module):
         logger.debug(self._me)
         logger.debug(self.allclients)
         await message.edit('Restarting...')
+        await self.restart_common(message)
+
+    async def restart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        atexit.register(functools.partial(restart, "--config", "selfupdateid", "--value", str(self._me.id), "--config", "selfupdatechat", "--value", str(utils.get_chat_id(message)), "--config", "selfupdatemsg", "--value", str(message.id)))
+        self._db.set(__name__, "selfupdateid", str(self._me.id))
+        self._db.set(__name__, "selfupdatechat", str(utils.get_chat_id(message)))
+        self._db.set(__name__, "selfupdatemsg", str(message.id))
+        atexit.register(restart)
         for client in self.allclients:
             # Terminate main loop of all running clients
             # Won't work if not all clients are ready
@@ -46,9 +52,25 @@ class UpdaterMod(loader.Module):
                 await client.disconnect()
         await message.client.disconnect()
 
+    async def updatecmd(self, message):
+        """Downloads userbot updates"""
+        await message.edit("Downloading...")
+        await self.download_common()
+        await message.edit("Downloaded! Installation in progress.")
+        heroku_key = os.environ.get("heroku_api_token")
+        if heroku_key:
+            from .. import heroku
+            heroku.publish(self.allclients, heroku_key)
+            await message.edit("Already up-to-date!")
+        else:
+            await self.restart_common(message)
+
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
         await message.edit("Downloading...")
+        await self.download_common()
+        await message.edit("Downloaded! Use <code>.restart</code> to restart.")
+    async def download_common(self):
         try:
             repo = Repo(os.path.dirname(utils.get_base_dir()))
             origin = repo.remote("origin")
@@ -59,28 +81,26 @@ class UpdaterMod(loader.Module):
             origin.fetch()
             repo.create_head('master', origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
-            repo.heads.master.checkout()
-        await message.edit("Downloaded! Use <code>.restart</code> to restart.")
+            repo.heads.master.checkout(True)
 
     async def client_ready(self, client, db):
+        self._db = db
         self._me = await client.get_me()
-        if self.config["selfupdateid"] == self._me.id:
+        if db.get(__name__, "selfupdateid") == self._me.id:
             await self.update_complete()
+        self._db.set(__name__, "selfupdateid", None)
 
     async def update_complete(self):
-        logger.debug("Restarted into new version. Checking for heroku...")
+        logger.debug("Self update successful! Edit message")
         heroku_key = os.environ.get("heroku_api_token")
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
-        if heroku_key:
-            from .. import heroku
-            heroku.publish(self.allclients, heroku_key)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = "Heroku API key is not set. Restart was successful but updates will reset every time the bot restarts."
+            msg = "Heroku API key is not set. Update was successful but updates will reset every time the bot restarts."
         else:
             logger.debug("Self update successful! Edit message: "+str(self.config))
             msg = "Restart successful!" if random.randint(0, 10) != 0 else "Restart failed successfully!"
-        await client.edit_message(self.config["selfupdatechat"], self.config["selfupdatemsg"], msg)
+        await client.edit_message(self._db.get(__name__, "selfupdatechat"), self._db.get(__name__, "selfupdatemsg"), msg)
 
 def restart(*args):
     os.execl(sys.executable, sys.executable, "-m", os.path.relpath(utils.get_base_dir()), *args)

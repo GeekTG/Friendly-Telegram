@@ -93,7 +93,7 @@ class CloudBackend():
                     if msg.id == msgs[-1].id:
                         newmsg = True
                     if sdata[:4096] != msg.message:
-                        ops += [msg.edit(utils.escape_html(sdata[:4096]))]
+                        ops += [msg.edit("<code>"+utils.escape_html(sdata[:4096])+"</code>")]
                     sdata = sdata[4096:]
                 else:
                     logging.debug("maybe deleting message")

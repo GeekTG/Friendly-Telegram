@@ -75,17 +75,24 @@ class PythonMod(loader.Module):
     def __init__(self):
         self.name = "Python"
 
+    async def client_ready(self, client, db):
+        self.client = client
+        self.db = db
+
     async def evalcmd(self, message):
         """.eval <expression>
            Evaluates python code"""
         ret = "Evaluated expression <code>"
         ret += utils.escape_html(utils.get_args_raw(message))
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await meval(utils.get_args_raw(message), self=self, message=message, client=message.client))
+        ret += utils.escape_html(await meval(utils.get_args_raw(message), **getattrs(message)))
         ret += "</code>"
         await message.edit(ret)
 
     async def execcmd(self, message):
         """.aexec <expression>
            Executes python code"""
-        await meval(utils.get_args_raw(message), message=message, client=message.client)
+        await meval(utils.get_args_raw(message), **getattrs(message))
+
+    def getattrs(self, message):
+        return {"message":message, "client":self.client, "self":self, "db":self.db}

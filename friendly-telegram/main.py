@@ -138,9 +138,10 @@ def main():
 
     if arguments.tokens and not authtoken:
         authtoken = {}
-    for token in arguments.tokens:
-        phone = phones.pop(0)
-        authtoken.update(**{phone:token})
+    if arguments.tokens:
+        for token in arguments.tokens:
+            phone = phones.pop(0)
+            authtoken.update(**{phone:token})
 
 
     if arguments.heroku:

@@ -65,5 +65,8 @@ class HelpMod(loader.Module):
 
     async def supportcmd(self, message):
         """Joins the support chat"""
-        await message.client(JoinChannelRequest("https://t.me/friendlytgbot"))
+        await client(JoinChannelRequest("https://t.me/friendlytgbot"))
         await message.edit('<code>Joined to </code><a href="https://t.me/friendlytgbot">support chat</a><code>.</code>')
+
+    async def client_ready(self, client, db):
+        self.client = client

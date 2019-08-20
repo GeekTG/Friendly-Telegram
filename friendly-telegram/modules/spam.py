@@ -42,7 +42,8 @@ class SpamMod(loader.Module):
                 await message.edit("Go spam urself m8")
                 return
         count = args[0]
-        spam = ' '.join(args[1:])
+        spam = (await message.get_reply_message()) if use_reply else message
+        spam.message = ' '.join(args[1:])
         try:
             count = int(count)
         except ValueError:
@@ -59,15 +60,7 @@ class SpamMod(loader.Module):
             sleepy = 0
         i = 0
         size = 1 if sleepy else 100
-        if use_reply:
-            reply = await message.get_reply_message()
-            logger.debug(reply)
-            while i < count:
-                await asyncio.gather(*[reply.forward_to(message.to_id) for x in range(min(count, size))])
-                await asyncio.sleep(sleepy)
-                i += size
-        else:
-            while i < count:
-                await asyncio.gather(*[message.client.send_message(message.to_id, str(spam)) for x in range(min(count, size))])
-                await asyncio.sleep(sleepy)
-                i += size
+        while i < count:
+            await asyncio.gather(*[message.respond(spam) for x in range(min(count, size))])
+            await asyncio.sleep(sleepy)
+            i += size

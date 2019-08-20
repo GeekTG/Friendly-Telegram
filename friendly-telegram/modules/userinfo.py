@@ -36,10 +36,10 @@ class UserInfoMod(loader.Module):
     async def userinfocmd(self, message):
         """Use in reply to get user info"""
         if message.is_reply:
-            full = await message.client(GetFullUserRequest((await message.get_reply_message()).from_id))
+            full = await client(GetFullUserRequest((await message.get_reply_message()).from_id))
         else:
             args = utils.get_args(message)
-            full = await message.client(GetFullUserRequest(args[0]))
+            full = await client(GetFullUserRequest(args[0]))
         logger.debug(full)
         reply = "First name: <code>" + utils.escape_html(full.user.first_name)
         reply += "</code>\nLast name: <code>" + utils.escape_html(str(full.user.last_name))
@@ -59,14 +59,14 @@ class UserInfoMod(loader.Module):
         except ValueError:
             user = args[0]
         try:
-            user = await message.client.get_input_entity(user)
+            user = await client.get_input_entity(user)
         except ValueError as e:
             logger.debug(e)
             # look for the user
             await message.edit("Searching for user...")
-            dialogs = await message.client.get_dialogs()
+            dialogs = await client.get_dialogs()
             try:
-                user = await message.client.get_input_entity(user)
+                user = await client.get_input_entity(user)
             except ValueError:
                 logger.debug(e)
                 # look harder for the user
@@ -83,12 +83,12 @@ class UserInfoMod(loader.Module):
                         await asyncio.gather(*ops, message.edit(basemsg.format(c, len(dialogs))), return_exceptions=True)
                         ops = []
                         try:
-                            fulluser = await message.client.get_input_entity(user)
+                            fulluser = await client.get_input_entity(user)
                         except ValueError as e:
                             logger.debug(e)
                     if isinstance(dialog.entity, Chat) or isinstance(dialog.entity, Channel): # Channels usually fail because we can't list members.
                         logger.debug(dialog)
-                        ops += [message.client.get_participants(dialog.entity, aggressive=True)]
+                        ops += [client.get_participants(dialog.entity, aggressive=True)]
 
                 # Check once more, in case the entity is in the last 50 peers
                 if len(ops):
@@ -96,7 +96,7 @@ class UserInfoMod(loader.Module):
                     ops = []
                 if fulluser is None:
                     try:
-                        fulluser = await message.client.get_input_entity(user)
+                        fulluser = await client.get_input_entity(user)
                     except ValueError as e:
                         logger.error(e)
 
@@ -106,3 +106,6 @@ class UserInfoMod(loader.Module):
                 else:
                     user = fulluser
         await message.edit(f"<a href='tg://user?id={user.user_id}'>Permalink to {user.user_id}</a>")
+
+    async def client_ready(self, client, db):
+        self.client = client

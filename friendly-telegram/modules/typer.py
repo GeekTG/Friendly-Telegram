@@ -53,5 +53,5 @@ async def update_message(message, m):
         except:
             logger.warning("message gone!") # WTF? It's really not here...
         message = await message.client.send_message(message.to_id, m) # Make a new one.
-
+        await asyncio.sleep(10)
     return message

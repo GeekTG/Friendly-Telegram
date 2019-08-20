@@ -118,6 +118,7 @@ def main():
     parser.add_argument("--config", "-c", action="append")
     parser.add_argument("--value", "-v", action="append")
     parser.add_argument("--phone", "-p", action="append")
+    parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
@@ -132,6 +133,15 @@ def main():
     phones += set(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session", os.listdir(os.path.dirname(utils.get_base_dir())))))
 
     authtoken = os.environ.get("authorization_strings", False) # for heroku
+    if authtoken:
+        authtoken = json.loads(authtoken)
+
+    if arguments.tokens and not authtoken:
+        authtoken = {}
+    for token in arguments.tokens:
+        phone = phones.pop(0)
+        authtoken.update(**{phone:token})
+
 
     if arguments.heroku:
         from telethon.sessions import StringSession
@@ -149,7 +159,7 @@ def main():
             return
     if authtoken:
         from telethon.sessions import StringSession
-        for phone, token in json.loads(authtoken).items():
+        for phone, token in authtoken.items():
             clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH, connection_retries=None).start(phone)]
             clients[-1].phone = phone # for consistency
     if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):

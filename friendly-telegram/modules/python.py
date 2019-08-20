@@ -81,7 +81,7 @@ class PythonMod(loader.Module):
         ret = "Evaluated expression <code>"
         ret += utils.escape_html(utils.get_args_raw(message))
         ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await meval(utils.get_args_raw(message), message=message, client=message.client))
+        ret += utils.escape_html(await meval(utils.get_args_raw(message), self=self, message=message, client=message.client))
         ret += "</code>"
         await message.edit(ret)
 

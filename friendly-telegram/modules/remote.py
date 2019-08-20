@@ -61,10 +61,7 @@ class RemoteMod(loader.Module):
             if client_me.first_name == account:
                 return client
         for client, client_me in clients:
-            if client_me.last_name == account:
-                return client
-        for client, client_me in clients:
-            if client_me.first_name + " " + client_me.last_name == account:
+            if client_me.last_name and client_me.last_name == account:
                 return client
 
     # Commands

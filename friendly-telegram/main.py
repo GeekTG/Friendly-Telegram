@@ -222,7 +222,7 @@ async def amain(client, cfg, allclients, setup=False):
         [handler] = logging.getLogger().handlers
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        babelfish = Translator(["fr"])
+        babelfish = Translator(["en"])
 
         modules = loader.Modules()
         modules.register_all(db.get(__name__, "disable_modules", []), babelfish)

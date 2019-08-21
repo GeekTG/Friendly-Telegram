@@ -21,6 +21,7 @@ import locale, time, os, inspect, ast
 from dialog import Dialog, ExecutableNotFound
 
 from . import loader, utils, main
+from .translate.core import Translator
 
 class TDialog():
     OK=0
@@ -70,7 +71,8 @@ except ExecutableNotFound:
 locale.setlocale(locale.LC_ALL, '')
 
 modules = loader.Modules()
-modules.register_all([])
+#TODO load the language settings from the same place as main does, when i implement that into main
+modules.register_all([], Translator())
 
 global db
 

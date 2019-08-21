@@ -120,4 +120,38 @@ brew install dialog
 
 ### Web hosting services
 
+#### Heroku
+
+Run as usual but with `--heroku` argument and it will guide you through upload. Note that if it seems to have hung, don't kill it. It's still running.
+
+#### Others
+
 These are basically just Linux. They will work with some effort to get the API token and session file over.
+
+### Windows
+
+#### Tested on Windows 10
+
+1. Install python3 from https://python.org
+
+2. Download this project
+
+3. Open a powershell window in the root of this project
+
+4. Run
+`python -m pip install -r requirements.txt`
+
+5. Run
+`python -m friendly-telegram`
+
+6. Enter your API hash & ID from my.telegram.org
+
+7. Rerun
+`python -m friendly-telegram`
+
+8. Enter you phone number
+
+9. (optionally) if you want to install to Heroku, download git-scm, selecting the recommended options in the installer
+
+10. (optionally) if you want to install to Heroku, run
+`python -m friendly-telegram --heroku`

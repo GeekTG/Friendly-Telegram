@@ -83,13 +83,13 @@ class PythonMod(loader.Module):
         """.eval <expression>
            Evaluates python code"""
         ret = _("Evaluated expression <code>{}</code> and it returned <code>{}</code>")
-        ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(await meval(utils.get_args_raw(message), **getattrs(message))))
+        ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(await meval(utils.get_args_raw(message), **self.getattrs(message))))
         await message.edit(ret)
 
     async def execcmd(self, message):
         """.aexec <expression>
            Executes python code"""
-        await meval(utils.get_args_raw(message), **getattrs(message))
+        await meval(utils.get_args_raw(message), **self.getattrs(message))
 
     def getattrs(self, message):
         return {"message":message, "client":self.client, "self":self, "db":self.db}

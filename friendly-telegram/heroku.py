@@ -45,4 +45,3 @@ def publish(clients, key, api_token=None):
     print("Pushing...")
     remote.push(refspec='HEAD:refs/heads/master')
     print("Pushed")
-    print("This process will die by now ig")

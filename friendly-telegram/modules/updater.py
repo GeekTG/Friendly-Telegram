@@ -47,6 +47,8 @@ class UpdaterMod(loader.Module):
     async def restart_common(self, message):
         await self.prerestart_common(message)
         atexit.register(restart)
+        [handler] = logging.getLogger().handlers
+        handler.setLevel(logging.CRITICAL)
         for client in self.allclients:
             # Terminate main loop of all running clients
             # Won't work if not all clients are ready

@@ -89,6 +89,7 @@ async def handle_command(modules, db, event):
         try:
             await coro
         except Exception as e:
+            logging.exception("Command failed")
             try:
                 await message.edit("<code>Request failed! Request was " + message.message + ". Please report it in the support group (`.support`) with the logs (`.logs error`)</code>")
             finally:

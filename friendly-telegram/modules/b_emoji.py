@@ -26,7 +26,7 @@ class BEmojiMod(loader.Module):
     """🅱️-ifies things"""
     def __init__(self):
         self.config = {"REPLACABLE_CHARS": "bdfgpv"}
-        self.name = "🅱️"
+        self.name = _("🅱️")
 
     async def bcmd(self, message):
         """Use in reply to another message or as .b <text>"""
@@ -35,7 +35,7 @@ class BEmojiMod(loader.Module):
         else:
             text = utils.get_args_raw(message.message)
         if text is None:
-            await message.edit("There's nothing to 🅱️-ify")
+            await message.edit(_("<code>There's nothing to 🅱️-ify</code>"))
             return
         text = list(text)
         n = 0

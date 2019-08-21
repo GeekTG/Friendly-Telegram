@@ -27,9 +27,9 @@ def register(cb):
 class TerminalMod(loader.Module):
     """Runs commands"""
     def __init__(self):
-        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd, "uptime":self.upcmd, "speedtest":self.speedcmd}
-        self.config = {"FLOOD_WAIT_PROTECT":2, "INTERACTIVE_AUTH_STRING":"Interactive authentication required.", "INTERACTIVE_PRIV_AUTH_STRING":"Please edit this message to the password for user {user} to run command {command}", "AUTHENTICATING_STRING":"Authenticating...", "AUTH_FAILED_STRING":"Authentication failed, please try again.", "AUTH_TOO_MANY_TRIES_STRING":"Authentication failed, please try again later."}
-        self.name = "Terminal"
+        self.commands = {"terminal":self.terminalcmd, "terminate":self.terminatecmd, "kill":self.killcmd, "apt":self.aptcmd, "neofetch":self.neocmd, "uptime":self.upcmd}
+        self.config = {"FLOOD_WAIT_PROTECT":2}
+        self.name = _("Terminal")
         self.activecmds = {}
 
     async def terminalcmd(self, message):
@@ -41,7 +41,7 @@ class TerminalMod(loader.Module):
         await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")+utils.get_args_raw(message) + ' -y', RawMessageEditor(message, "apt "+utils.get_args_raw(message), self.config, True))
 
     async def runcmd(self, message, cmd, editor=None):
-        if cmd.split(" ")[0] == "sudo":
+        if len(cmd.split(" ")) > 1 and cmd.split(" ")[0] == "sudo":
             needsswitch = True
             for word in cmd.split(" ", 1)[1].split(" "):
                 if word[0] != "-":
@@ -63,30 +63,30 @@ class TerminalMod(loader.Module):
     async def terminatecmd(self, message):
         """Use in reply to send SIGTERM to a process"""
         if not message.is_reply:
-            await message.edit("Reply to a terminal command to terminate it.")
+            await message.edit(_("Reply to a terminal command to terminate it."))
         if hash_msg(await message.get_reply_message()) in self.activecmds:
             try:
                 self.activecmds[hash_msg(await message.get_reply_message())].terminate()
             except:
-                await message.edit("Could not kill!")
+                await message.edit(_("Could not kill!"))
             else:
-                await message.edit("Killed!")
+                await message.edit(_("Killed!"))
         else:
-            await message.edit("No command is running in that message.")
+            await message.edit(_("No command is running in that message."))
 
     async def killcmd(self, message):
         """Use in reply to send SIGKILL to a process"""
         if not message.is_reply:
-            await message.edit("Reply to a terminal command to kill it.")
+            await message.edit(_("Reply to a terminal command to kill it."))
         if hash_msg(await message.get_reply_message()) in self.activecmds:
             try:
                 self.activecmds[hash_msg(await message.get_reply_message())].kill()
             except:
-                await message.edit("Could not kill!")
+                await message.edit(_("Could not kill!"))
             else:
-                await message.edit("Killed!")
+                await message.edit(_("Killed!"))
         else:
-            await message.edit("No command is running in that message.")
+            await message.edit(_("No command is running in that message."))
 
     async def neocmd(self, message):
         """Show system stats via neofetch"""
@@ -95,19 +95,6 @@ class TerminalMod(loader.Module):
     async def upcmd(self, message):
         """Show system uptime"""
         await self.runcmd(message, "uptime", RawMessageEditor(message, "uptime", self.config))
-
-    async def speedcmd(self, message):
-        """Make an internet speed test"""
-        await message.edit("<code>Running speedtest...</code>")
-        cmd = "speedtest --simple --secure"
-        args = utils.get_args(message)
-        for arg in args:
-            try:
-                int(arg)
-                cmd += " --server "+arg
-            except ValueError:
-                pass
-        await self.runcmd(message, cmd, RawMessageEditor(message, cmd, self.config))
 
 def hash_msg(message):
     return str(utils.get_chat_id(message))+"/"+str(message.id)
@@ -149,11 +136,11 @@ class MessageEditor():
         self.stderr = stderr
         await self.redraw()
     async def redraw(self, skip_wait=False):
-        text = "<code>Running command: "+utils.escape_html(self.command)+"\n"
+        text = _("<code>Running command: {}").format(utils.escape_html(self.command))+"\n"
         if self.rc != None:
-            text += "Process exited with code "+utils.escape_html(str(self.rc))
-        text += "\nStdout:\n"
-        text += utils.escape_html(self.stdout[max(len(self.stdout) - 2048, 0):])+"\n\nStderr:\n"
+            text += _("Process exited with code {}").format(utils.escape_html(str(self.rc)))
+        text += _("\nStdout:\n")
+        text += utils.escape_html(self.stdout[max(len(self.stdout) - 2048, 0):])+_("\n\nStderr:\n")
         text += utils.escape_html(self.stderr[max(len(self.stdout) - 1024, 0):])+"</code>"
         try:
             await self.message.edit(text)
@@ -191,7 +178,7 @@ class SudoMessageEditor(MessageEditor):
         handled = False
         if len(lines) > 1 and re.fullmatch(self.WRONG_PASS, lines[-2]) and lastlines[0] == self.PASS_REQ and self.state == 1:
             logger.debug("switching state to 0")
-            await self.authmsg.edit(self.config["AUTH_FAILED_STRING"])
+            await self.authmsg.edit(_("Authentication failed, please try again."))
             self.state = 0
             handled = True
             await asyncio.sleep(2)
@@ -202,14 +189,14 @@ class SudoMessageEditor(MessageEditor):
             text = r'<a href="tg://user?id='
             text += str((await self.message.client.get_me()).id)
             text += r'">'
-            text += utils.escape_html(self.config["INTERACTIVE_AUTH_STRING"])
+            text += _("Interactive authentication required.")
             text += r"</a>"
             try:
                 await self.message.edit(text)
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
                 logger.debug(e)
             logger.debug("edited message with link to self")
-            self.authmsg = await self.message.client.send_message('me', self.config["INTERACTIVE_PRIV_AUTH_STRING"].format(command="<code>"+utils.escape_html(self.command)+"</code>", user=utils.escape_html(lastlines[1][:-1])))
+            self.authmsg = await self.message.client.send_message('me', _("Please edit this message to the password for user {user} to run command {command}").format(command="<code>"+utils.escape_html(self.command)+"</code>", user=utils.escape_html(lastlines[1][:-1])))
             logger.debug("sent message to self")
             self.message.client.remove_event_handler(self.on_message_edited)
             self.message.client.add_event_handler(self.on_message_edited, telethon.events.messageedited.MessageEdited(chats=['me']))
@@ -217,7 +204,7 @@ class SudoMessageEditor(MessageEditor):
             handled = True
         if len(lines) > 1 and re.fullmatch(self.TOO_MANY_TRIES, lastline) and (self.state == 1 or self.state == 3 or self.state == 4):
             logger.debug("password wrong lots of times")
-            await self.message.edit(self.config["AUTH_TOO_MANY_TRIES_STRING"])
+            await self.message.edit(_("Authentication failed, please try again later."))
             await self.authmsg.delete()
             self.state = 2
             handled = True
@@ -245,7 +232,7 @@ class SudoMessageEditor(MessageEditor):
         if hash_msg(message) == hash_msg(self.authmsg):
             # The user has provided interactive authentication. Send password to stdin for sudo.
             try:
-                self.authmsg = await message.edit(self.config["AUTHENTICATING_STRING"])
+                self.authmsg = await message.edit(_("Authenticating..."))
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
                 # Try to clear personal info if the edit fails
                 await message.delete()
@@ -265,7 +252,7 @@ class RawMessageEditor(SudoMessageEditor):
         else:
             text = '<code>' + utils.escape_html(self.stderr[max(len(self.stderr) - 4095, 0):]) + '</code>'
         if self.rc != None and self.show_done:
-            text += "\nDone"
+            text += _("\nDone")
         logger.debug(text)
         try:
             await self.message.edit(text)

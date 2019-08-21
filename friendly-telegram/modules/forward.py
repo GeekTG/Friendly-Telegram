@@ -28,7 +28,7 @@ def register(cb):
 class ForwardMod(loader.Module):
     """Forwards messages"""
     def __init__(self):
-        self.name = "Forwarding"
+        self.name = _("Forwarding")
 
     async def fwdallcmd(self, message):
         """.fwdall <to_user>

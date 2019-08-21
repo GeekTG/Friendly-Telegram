@@ -18,7 +18,7 @@ class RemoteMod(loader.Module):
     instances = {}
     def __init__(self):
         self.config = {"ACCOUNT_NAME":None}
-        self.name = "Remote Control"
+        self.name = _("Remote Control")
         self.commands = {"remote":self.remote_command}
         self.allmodules = None
 
@@ -47,6 +47,8 @@ class RemoteMod(loader.Module):
         # phone, id, username, first name, last name, full name
         clients = []
         for client in self.allclients:
+            if self.instances[client].config["ACCOUNT_NAME"] == account:
+                return client
             clients += [[client, await client.get_me()]]
         for client, client_me in clients:
             if client_me.phone == account:

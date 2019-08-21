@@ -31,7 +31,7 @@ class TranslateMod(loader.Module):
     def __init__(self):
         self.commands = {"translate":self.translatecmd}
         self.config = {"DEFAULT_LANG":"en", "API_KEY":""}
-        self.name = "Translator"
+        self.name = _("Translator")
 
     def config_complete(self):
         self.tr = Translate(self.config["API_KEY"])
@@ -50,7 +50,7 @@ class TranslateMod(loader.Module):
         if len(text) == 0 and message.is_reply:
             text = (await message.get_reply_message()).message
         if len(text) == 0:
-            await message.edit("Invalid text to translate")
+            await message.edit(_("Invalid text to translate"))
             return
 
 
@@ -67,13 +67,6 @@ class TranslateMod(loader.Module):
         args[0] = args[0].lower()
         logger.debug(args)
         translated = self.tr.translate(text, args[1], args[0])
-        ret = "<b>Translated </b><code>"
-        ret += utils.escape_html(text)
-        ret += "</code><b> from </b><code>"
-        ret += utils.escape_html(args[0])
-        ret += "</code><b> to </b><code>"
-        ret += utils.escape_html(args[1])
-        ret += "</code><b> and it reads </b><code>"
-        ret += utils.escape_html(translated)
-        ret += "</code>"
+        ret = _("<b>Translated</b>\n<code>{text}</code>\n<b>from </b><code>{frlang}</code><b> to </b><code>{to}</code><b> and it reads </b>\n<code>{output}</code>")
+        ret.format(text=utils.escape_html(text), frlang=utils.escape_html(args[0]), to=utils.escape_html(args[1]), output=utils.escape_html(translated))
         await message.edit(ret)

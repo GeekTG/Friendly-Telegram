@@ -26,10 +26,11 @@ def register(cb):
 class InsultMod(loader.Module):
     """Shouts at people"""
     def __init__(self):
-        self.name = "Insulter"
+        self.name = _("Insulter")
 
     async def insultcmd(self, message):
         """Use when angry"""
+        #TODO localisation
         adjectives_start = ["salty", "fat", "fucking", "shitty", "stupid", "retarded", "self conscious", "tiny"]
         adjectives_mid = ["little", "vitamin D deficient", "idiotic", "incredibly stupid"]
         nouns = ["cunt", "pig", "pedophile", "beta male","bottom" "retard", "ass licker", "cunt nugget", "PENIS", "dickhead", "flute","idiot","motherfucker",

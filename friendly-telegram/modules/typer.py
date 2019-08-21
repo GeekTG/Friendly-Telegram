@@ -27,7 +27,7 @@ class TyperMod(loader.Module):
     """Makes your messages type slower"""
     def __init__(self):
         self.config = {"TYPE_CHAR":"▒"}
-        self.name = "Typewriter"
+        self.name = _("Typewriter")
 
     async def typecmd(self, message):
         """.type <message>"""

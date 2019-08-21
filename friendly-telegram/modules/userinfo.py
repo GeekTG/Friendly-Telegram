@@ -31,7 +31,7 @@ def register(cb):
 class UserInfoMod(loader.Module):
     """Tells you about people"""
     def __init__(self):
-        self.name = "User Info"
+        self.name = _("User Info")
 
     async def userinfocmd(self, message):
         """Use in reply to get user info"""
@@ -41,18 +41,18 @@ class UserInfoMod(loader.Module):
             args = utils.get_args(message)
             full = await self.client(GetFullUserRequest(args[0]))
         logger.debug(full)
-        reply = "First name: <code>" + utils.escape_html(full.user.first_name)
-        reply += "</code>\nLast name: <code>" + utils.escape_html(str(full.user.last_name))
-        reply += "</code>\nBio: <code>" + utils.escape_html(full.about)
-        reply += "</code>\nRestricted: <code>" + utils.escape_html(str(full.user.restricted))
-        reply += "</code>"
+        reply = _("First name: <code>{}</code>").format(utils.escape_html(full.user.first_name))
+        reply += _("\nLast name: <code>{}</code>").format(utils.escape_html(str(full.user.last_name)))
+        reply += _("\nBio: <code>{}</code>").format(utils.escape_html(full.about))
+        reply += _("\nRestricted: <code>{}</code>").format(utils.escape_html(str(full.user.restricted)))
         await message.edit(reply)
 
     async def permalinkcmd(self, message):
         """Get permalink to user based on ID or username"""
+        # Recent server changes make this almost useless. Remove to cleanup code? TODO consider this
         args = utils.get_args(message)
         if len(args) != 1:
-            await message.edit("Provide a user to locate")
+            await message.edit(_("Provide a user to locate"))
             return
         try:
             user = int(args[0])
@@ -63,14 +63,14 @@ class UserInfoMod(loader.Module):
         except ValueError as e:
             logger.debug(e)
             # look for the user
-            await message.edit("Searching for user...")
+            await message.edit(_("Searching for user..."))
             dialogs = await self.client.get_dialogs()
             try:
                 user = await self.client.get_input_entity(user)
             except ValueError:
                 logger.debug(e)
                 # look harder for the user
-                basemsg = "Searching harder for user... May take several minutes, or even hours. Current progress: {}/{}"
+                basemsg = _("Searching harder for user... May take several minutes, or even hours. Current progress: {}/{}")
                 await message.edit(basemsg.format(0, len(dialogs)))
                 # Look in every group the user is in, in batches. After each batch, attempt to get the input entity again
                 ops = []
@@ -101,11 +101,11 @@ class UserInfoMod(loader.Module):
                         logger.error(e)
 
                 if fulluser is None:
-                    await message.edit("Unable to get permalink!")
+                    await message.edit(_("Unable to get permalink!"))
                     return
                 else:
                     user = fulluser
-        await message.edit(f"<a href='tg://user?id={user.user_id}'>Permalink to {user.user_id}</a>")
+        await message.edit(_("<a href='tg://user?id={uid}'>Permalink to {uid}</a>").format(uid=user.user_id))
 
     async def client_ready(self, client, db):
         self.client = client

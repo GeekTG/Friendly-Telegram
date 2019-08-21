@@ -32,7 +32,7 @@ class WeatherMod(loader.Module):
        Get an API key at https://openweathermap.org/appid"""
     def __init__(self):
         self.config = {"DEFAULT_LOCATION":None, "API_KEY":None, "TEMP_UNITS":"celsius"}
-        self.name = "Weather"
+        self.name = _("Weather")
         self._owm = None
 
     def config_complete(self):
@@ -41,7 +41,7 @@ class WeatherMod(loader.Module):
     async def weathercmd(self, message):
         """.weather [location]"""
         if self.config["API_KEY"] == None:
-            await message.edit("<code>Please provide an API key via the configuration mode.</code>")
+            await message.edit(_("<code>Please provide an API key via the configuration mode.</code>"))
             return
         args = utils.get_args_raw(message)
         func = None
@@ -65,11 +65,12 @@ class WeatherMod(loader.Module):
             args = [args]
         logger.debug(func, *args)
         w = await utils.run_sync(func, *args)
-        logger.debug(f"Weather at {args} is {w}")
+        logger.debug(_("Weather at {args} is {w}").format(args=args, w=w))
         try:
             temp = w.get_weather().get_temperature(self.config["TEMP_UNITS"])
         except ValueError:
-            await message.edit("<code>Invalid temperature units provided. Please reconfigure the module.</code>")
+            await message.edit(_("<code>Invalid temperature units provided. Please reconfigure the module.</code>"))
             return
-        await message.edit(f"<code>Weather in {eh(w.get_location().get_name())} is {eh(w.get_weather().get_detailed_status().lower())} with a high of {eh(temp['temp_max'])} and a low of {eh(temp['temp_min'])}, averaging at {eh(temp['temp'])}.")
-
+        ret = _("<code>Weather in {loc} is {w} with a high of {high} and a low of {}, averaging at {avg}.")
+        ret = ret.format(loc=eh(w.get_location().get_name()), w=eh(w.get_weather().get_detailed_status().lower()), high=eh(temp['temp_max']), low=eh(temp['temp_min']), avg=eh(temp['temp']))
+        await message.edit(ret)

@@ -62,6 +62,7 @@ from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModi
 from . import utils, loader, __main__
 
 from .database import backend, frontend
+from .translations.core import Translator
 
 async def handle_command(modules, db, event):
     logging.debug("Incoming command!")
@@ -220,8 +221,10 @@ async def amain(client, cfg, allclients, setup=False):
         [handler] = logging.getLogger().handlers
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
+        babelfish = Translator(["fr"])
+
         modules = loader.Modules()
-        modules.register_all(db.get(__name__, "disable_modules", []))
+        modules.register_all(db.get(__name__, "disable_modules", []), babelfish)
 
         blacklist_chats = db.get(__name__, "blacklist_chats", [])
         whitelist_chats = db.get(__name__, "whitelist_chats", [])

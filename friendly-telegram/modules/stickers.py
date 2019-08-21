@@ -34,7 +34,7 @@ class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
         self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
-        self.name = "Stickers"
+        self.name = _("Stickers")
         self._lock = asyncio.Lock()
 
     async def kangcmd(self, message):
@@ -44,7 +44,7 @@ class StickersMod(loader.Module):
         args = utils.get_args(message)
         if len(args) != 1 and len(args) != 2:
             logger.debug("wrong args len(%s) or bad args(%s)", len(args), args)
-            await message.edit("Provide a pack name and optionally emojis too")
+            await message.edit(_("Provide a pack name and optionally emojis too"))
             return
 
         if not message.is_reply:
@@ -53,12 +53,12 @@ class StickersMod(loader.Module):
                 sticker = message
             else:
                 logger.debug("user didnt send any sticker/photo or reply")
-                await message.edit("Reply to a sticker or photo to nick it")
+                await message.edit(_("Reply to a sticker or photo to nick it"))
                 return
         else:
             sticker = await message.get_reply_message()
         if not (sticker.sticker or sticker.photo):
-            await message.edit("That ain't no photo")
+            await message.edit(_("That ain't no photo"))
             return
         logger.debug("user did send photo/sticker")
         try:
@@ -83,6 +83,7 @@ class StickersMod(loader.Module):
                 # Lock access to @Stickers
                 async with self._lock:
                     # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
+                    #TODO should this be translated?
                     conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
                     async with conv:
                         first = await conv.send_message("/cancel")
@@ -112,7 +113,7 @@ class StickersMod(loader.Module):
                             # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
                             logger.error("Bad response from StickerBot 1")
                             logger.error(r1)
-                            await message.edit("<code>Something went wrong internally!</code>")
+                            await message.edit(_("<code>Something went wrong internally!</code>"))
                             return
                         r2 = await conv.get_response(m2)
                         msgs = []
@@ -127,20 +128,20 @@ class StickersMod(loader.Module):
                         # The emoji(s) are invalid.
                         logger.error("Bad response from StickerBot 2")
                         logger.error(r2)
-                        await message.edit("<code>Please provide valid emoji(s).</code>")
+                        await message.edit(_("<code>Please provide valid emoji(s).</code>"))
                         return
             finally:
                 thumb.close()
         finally:
             img.close()
         packurl = utils.escape_quotes(f"https://t.me/addstickers/{button.text}")
-        await message.edit(f'<code>Sticker added to</code> <a href="{packurl}">pack</a><code>!</code>')
+        await message.edit(_('<code>Sticker added to</code> <a href="{}">pack</a><code>!</code>').format(packurl))
 
     async def gififycmd(self, message):
         """Convert the replied animated sticker to a GIF"""
         target = await message.get_reply_message()
         if target is None or target.file is None or target.file.mime_type != 'application/x-tgsticker':
-            await utils.answer(message, "<code>Please provide an animated sticker to convert to a GIF</code>")
+            await utils.answer(message, _("<code>Please provide an animated sticker to convert to a GIF</code>"))
         try:
             file = BytesIO()
             await target.download_media(file)

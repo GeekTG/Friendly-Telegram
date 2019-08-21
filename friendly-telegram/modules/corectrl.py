@@ -26,7 +26,7 @@ def register(cb):
 class CoreMod(loader.Module):
     """Control core userbot settings"""
     def __init__(self):
-        self.name = "Settings"
+        self.name = _("Settings")
 
     async def client_ready(self, client, db):
         self._db = db
@@ -34,7 +34,7 @@ class CoreMod(loader.Module):
     async def blacklistcommon(self, message):
         args = utils.get_args(message)
         if len(args) > 1:
-            await message.edit("<code>Too many args</code>")
+            await message.edit(_("<code>Too many args</code>"))
             return
         id = None
         if len(args) == 1:
@@ -51,26 +51,26 @@ class CoreMod(loader.Module):
            Blacklist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", [])+[id])
-        await message.edit(f"<code>Chat {id} blacklisted from userbot</code>")
+        await message.edit(_("<code>Chat {} blacklisted from userbot</code>").format(id))
 
     async def unblacklistcmd(self, message):
         """.unblacklist [id]
            Unblacklist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats", list(set(self._db.get(main.__name__, "blacklist_chats", []))-set([id])))
-        await message.edit(f"<code>Chat {id} unblacklisted from userbot</code>")
+        await message.edit(_("<code>Chat {} unblacklisted from userbot</code>").format(id))
 
     async def whitelistcmd(self, message):
         """.whitelist [id]
            Whitelist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "whitelist_chats", self._db.get(main.__name__, "whitelist_chats", [])+[id])
-        await message.edit(f"<code>Chat {id} whitelisted from userbot</code>")
+        await message.edit(_("<code>Chat {} whitelisted from userbot</code>").format(id))
 
     async def unwhitelistcmd(self, message):
         """.unwhitelist [id]
            Unwhitelist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "whitelist_chats", list(set(self._db.get(main.__name__, "whitelist_chats", []))-set([id])))
-        await message.edit(f"<code>Chat {id} unwhitelisted from userbot</code>")
+        await message.edit(_("<code>Chat {id} unwhitelisted from userbot</code>").format(id))
 

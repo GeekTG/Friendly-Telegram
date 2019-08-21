@@ -73,7 +73,7 @@ async def meval(code, **kwargs):
 class PythonMod(loader.Module):
     """Python stuff"""
     def __init__(self):
-        self.name = "Python"
+        self.name = _("Python")
 
     async def client_ready(self, client, db):
         self.client = client
@@ -82,11 +82,8 @@ class PythonMod(loader.Module):
     async def evalcmd(self, message):
         """.eval <expression>
            Evaluates python code"""
-        ret = "Evaluated expression <code>"
-        ret += utils.escape_html(utils.get_args_raw(message))
-        ret += "</code> and it returned <code>"
-        ret += utils.escape_html(await meval(utils.get_args_raw(message), **getattrs(message)))
-        ret += "</code>"
+        ret = _("Evaluated expression <code>{}</code> and it returned <code>{}</code>")
+        ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(await meval(utils.get_args_raw(message), **getattrs(message))))
         await message.edit(ret)
 
     async def execcmd(self, message):

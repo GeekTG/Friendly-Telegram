@@ -25,7 +25,7 @@ def register(cb):
 class SpamMod(loader.Module):
     """Annoys people really effectively"""
     def __init__(self):
-        self.name = "Spammer"
+        self.name = _("Spammer")
 
     async def spamcmd(self, message):
         """.spam <count> <message>"""
@@ -33,13 +33,13 @@ class SpamMod(loader.Module):
         args = utils.get_args(message)
         logger.debug(args)
         if len(args) == 0:
-            await message.edit("U wot? I need something to spam")
+            await message.edit(_("U wot? I need something to spam"))
             return
         if len(args) == 1:
             if message.is_reply:
                 use_reply = True
             else:
-                await message.edit("Go spam urself m8")
+                await message.edit(_("Go spam urself m8"))
                 return
         count = args[0]
         spam = (await message.get_reply_message()) if use_reply else message
@@ -47,10 +47,10 @@ class SpamMod(loader.Module):
         try:
             count = int(count)
         except ValueError:
-            await message.edit("Nice number bro")
+            await message.edit(_("Nice number bro"))
             return
         if count < 1:
-            await message.edit("Haha much spam")
+            await message.edit(_("Haha much spam"))
             return
         await message.delete()
         if count > 20:

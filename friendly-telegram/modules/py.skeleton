@@ -10,8 +10,8 @@ def register(cb):
 class YourMod(loader.Module):
     """Description for module"""
     def __init__(self):
-        self.config = {"CONFIG_STRING":"hello"}
-        self.name = "A Name"
+        self.config = {"CONFIG_STRING":_("hello")}
+        self.name = _("A Name")
 
     async def examplecmd(self, message):
         """Does something when you type .example"""

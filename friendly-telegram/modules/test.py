@@ -29,11 +29,11 @@ def register(cb):
 class TestMod(loader.Module):
     """Self-tests"""
     def __init__(self):
-        self.name = "Tester"
+        self.name = _("Tester")
 
     async def pingcmd(self, message):
         """Does nothing"""
-        await message.edit('Pong')
+        await message.edit(_('Pong'))
 
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""
@@ -54,17 +54,17 @@ class TestMod(loader.Module):
             # It's not an int. Maybe it's a loglevel
             lvl = getattr(logging, args[0].upper(), None)
         if lvl is None:
-            await message.edit('<code>Invalid loglevel. Please refer to </code><a href="https://docs.python.org/3/library/logging.html#logging-levels">the docs</a><code>.</code>')
+            await message.edit(_('<code>Invalid loglevel. Please refer to </code><a href="https://docs.python.org/3/library/logging.html#logging-levels">the docs</a><code>.</code>'))
             return
-        await message.edit("<code>Uploading logs...</code>")
+        await message.edit(_("<code>Uploading logs...</code>"))
         [handler] = logging.getLogger().handlers
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-8")
         if not len(logs) > 0:
-            await message.edit(f"<code>You don't have any logs at verbosity {lvl}.</code>")
+            await message.edit(_("<code>You don't have any logs at verbosity {}.</code>").format(lvl))
             return
         logs = BytesIO(logs)
-        logs.name = "ftg-logs.txt"
-        await message.client.send_file(message.to_id, logs, caption=f"<code>friendly-telegram logs with verbosity {lvl}")
+        logs.name = _("ftg-logs.txt")
+        await message.client.send_file(message.to_id, logs, caption=_("<code>friendly-telegram logs with verbosity {}").format(lvl))
         await message.delete()
 
     async def suspendcmd(self, message):
@@ -72,8 +72,8 @@ class TestMod(loader.Module):
            Suspends the bot for N seconds"""
         # Blocks asyncio event loop, preventing ANYTHING happening (except multithread ops, but they will be blocked on return).
         try:
-            logger.info("Good Night.")
+            logger.info("Good Night")
             time.sleep(int(utils.get_args_raw(message)))
-            logger.info("Good Morning.")
+            logger.info("Good Morning")
         except ValueError:
-            await message.edit("<code>Invalid time to suspend</code>")
+            await message.edit(_("<code>Invalid time to suspend</code>"))

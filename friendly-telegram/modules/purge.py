@@ -25,12 +25,12 @@ def register(cb):
 class PurgeMod(loader.Module):
     """Deletes your messages"""
     def __init__(self):
-        self.name = "Purge"
+        self.name = _("Purge")
 
     async def purgecmd(self, message):
         """Purge from the replied message"""
         if not message.is_reply:
-            await message.edit("From where shall I purge?")
+            await message.edit(_("From where shall I purge?"))
             return
         msgs = []
         async for msg in message.client.iter_messages(

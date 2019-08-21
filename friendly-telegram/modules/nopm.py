@@ -28,7 +28,7 @@ def register(cb):
 class AntiPMMod(loader.Module):
     """Provides a message saying that you are unavailable (out of office)"""
     def __init__(self):
-        self.name = "Anti PM"
+        self.name = _("Anti PM")
         self._me = None
         self._ratelimit = []
 
@@ -44,10 +44,10 @@ class AntiPMMod(loader.Module):
         else:
             user = getattr(message.to_id, "user_id", None)
         if not user:
-            await message.edit("<code>Who shall I allow to PM?</code>")
+            await message.edit(_("<code>Who shall I allow to PM?</code>"))
             return
         self._db.set(__name__, "allow", self._db.get(__name__, "allow", [])+[user])
-        await message.edit("<code>PM Authorised</code>")
+        await message.edit(_("<code>PM Authorised</code>"))
 
     async def reportcmd(self, message):
         """Report the user spam. Use only in PM"""
@@ -80,7 +80,7 @@ class AntiPMMod(loader.Module):
             if self.get_allowed(message.from_id):
                 logger.debug("Authorised pm detected")
             else:
-                await message.respond(f"<code>Please do not PM me. You will get reported spam.</code>")
+                await message.respond(_("<code>Please do not PM me. You will get reported spam.</code>"))
 
     def get_allowed(self, id):
         return id in self._db.get(__name__, "allow", [])

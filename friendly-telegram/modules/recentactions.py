@@ -10,13 +10,13 @@ def register(cb):
 class RecentActionsMod(loader.Module):
     """Reads recent actions"""
     def __init__(self):
-        self.name = "Recent Actions"
+        self.name = _("Recent Actions")
 
     async def recoverdeletedcmd(self, message):
         """Restores deleted messages sent after replied message (optionally specify how many to recover)"""
         msgs = message.client.iter_admin_log(message.to_id, delete=True)
         if not message.is_reply:
-            await utils.answer(message, "<code>Reply to a message to specify where to start</code>")
+            await utils.answer(message, _("<code>Reply to a message to specify where to start</code>"))
         target = (await message.get_reply_message()).date
         ret = []
         try:
@@ -27,7 +27,7 @@ class RecentActionsMod(loader.Module):
                     continue
                 ret += [msg]
         except telethon.errors.rpcerrorlist.ChatAdminRequiredError:
-            await utils.answer(message, "<code>Admin is required to read deleted messages</code>")
+            await utils.answer(message, _("<code>Admin is required to read deleted messages</code>"))
         args = utils.get_args(message)
         if len(args) > 0:
             try:
@@ -39,5 +39,5 @@ class RecentActionsMod(loader.Module):
             orig = msg.original.action.message
             deldate = msg.original.date.isoformat()
             origdate = orig.date.isoformat()
-            await message.respond(f"=== Deleted message {orig.id} recovered. Originally sent at {origdate} by {orig.from_id}, deleted at {deldate} by {msg.user_id}. ===")
+            await message.respond(_("=== Deleted message {} recovered. Originally sent at {} by {}, deleted at {} by {}. ===").format(msg.id, origdate, orig.from_id, deldate, msg.user_id))
             await message.respond(orig)

@@ -26,7 +26,7 @@ def register(cb):
 class MockMod(loader.Module):
     """mOcKs PeOpLe"""
     def __init__(self):
-        self.name = "Mocker"
+        self.name = _("Mocker")
 
     async def mockcmd(self, message):
         """Use in reply to another message or as .mock <text>"""
@@ -35,7 +35,7 @@ class MockMod(loader.Module):
         else:
             text = utils.get_args_raw(message.message)
         if text is None:
-            await message.edit("rEpLy To A mEsSaGe To MoCk It (Or TyPe ThE mEsSaGe AfTeR tHe CoMmAnD)")
+            await message.edit(_("rEpLy To A mEsSaGe To MoCk It (Or TyPe ThE mEsSaGe AfTeR tHe CoMmAnD)"))
             return
         text = list(text)
         n = 0
@@ -54,6 +54,7 @@ class MockMod(loader.Module):
 
     async def figletcmd(self, message):
         """.figlet <font> <text>"""
+        # We can't localise figlet due to a lack of fonts
         args = utils.get_args(message)
         text = " ".join(args[1:])
         mode = args[0]
@@ -62,6 +63,6 @@ class MockMod(loader.Module):
         try:
             fig = Figlet(font=mode, width=30)
         except FontNotFound:
-            await message.edit("<code>Font not found</code>")
+            await message.edit(_("<code>Font not found</code>"))
             return
         await message.edit("<code>\u206a"+utils.escape_html(fig.renderText(text))+"</code>")

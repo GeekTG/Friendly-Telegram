@@ -30,13 +30,13 @@ class UpdaterMod(loader.Module):
     """Updates itself"""
     def __init__(self):
         self.config = {"GIT_ORIGIN_URL": "https://github.com/penn5/friendly-telegram"}
-        self.name = "Updater"
+        self.name = _("Updater")
 
     async def restartcmd(self, message):
         """Restarts the userbot"""
         logger.debug(self._me)
         logger.debug(self.allclients)
-        await message.edit('Restarting...')
+        await message.edit(_('Restarting...'))
         await self.restart_common(message)
 
     async def prerestart_common(self, message):
@@ -58,7 +58,7 @@ class UpdaterMod(loader.Module):
         """Downloads userbot updates"""
         await message.edit("Downloading...")
         await self.download_common()
-        await message.edit("Downloaded! Use <code>.restart</code> to restart.")
+        await message.edit(_("Downloaded! Use <code>.restart</code> to restart."))
 
     async def download_common(self):
         try:
@@ -75,17 +75,18 @@ class UpdaterMod(loader.Module):
 
     async def updatecmd(self, message):
         """Downloads userbot updates"""
-        await message.edit("Downloading...")
+        await message.edit(_("Downloading..."))
         await self.download_common()
-        await message.edit("Downloaded! Installation in progress.")
+        await message.edit(_("Downloaded! Installation in progress."))
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
             from .. import heroku
             await self.prerestart_common(message)
             heroku.publish(self.allclients, heroku_key)
+            # If we pushed, this won't return. If the push failed, we will get thrown at. So this only happens when remote is already up to date (remote is heroku, where we are running)
             self._db.set(__name__, "selfupdatechat", None)
             self._db.set(__name__, "selfupdatemsg", None)
-            await message.edit("Already up-to-date!")
+            await message.edit(_("Already up-to-date!"))
         else:
             await self.restart_common(message)
 
@@ -103,10 +104,10 @@ class UpdaterMod(loader.Module):
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = "Heroku API key is not set. Update was successful but updates will reset every time the bot restarts."
+            msg = _("Heroku API key is not set. Update was successful but updates will reset every time the bot restarts.")
         else:
             logger.debug("Self update successful! Edit message: "+str(self.config))
-            msg = "Restart successful!" if random.randint(0, 10) != 0 else "Restart failed successfully!"
+            msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully!")
         await client.edit_message(self._db.get(__name__, "selfupdatechat"), self._db.get(__name__, "selfupdatemsg"), msg)
 
 def restart(*args):

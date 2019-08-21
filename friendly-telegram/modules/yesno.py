@@ -24,10 +24,11 @@ def register(cb):
 class YesNoMod(loader.Module):
     """Helps you make important life choices"""
     def __init__(self):
-        self.name = "YesNo"
+        self.name = _("YesNo")
 
     async def yesnocmd(self, message):
         """Make a life choice"""
+        #TODO translate
         yes = ["Yes", "Yup", "Absolutely", "Non't"]
         no = ["No", "Nope", "Nah", "Yesn't"]
         if random.getrandbits(1):

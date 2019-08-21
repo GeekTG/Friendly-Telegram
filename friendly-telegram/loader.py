@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import importlib, os, logging, sys, ast, asyncio
+from . import utils
 MODULES_NAME="modules"
 
 class Module():
@@ -38,9 +39,9 @@ class Modules():
         self.modules = []
         self.watchers = []
 
-    def register_all(self, skip):
+    def register_all(self, skip, babelfish):
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
-        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
+        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
         logging.debug(mods)
         for mod in mods:
             mod = mod[:-3] # Cut .py
@@ -50,6 +51,7 @@ class Modules():
                 if mod in skip:
                     logging.debug("Not loading module %s because it is blacklisted", mod)
                     continue
+                sys.modules[mod]._ = babelfish.gettext
                 sys.modules[mod].register(self.register_module)
             except BaseException as e:
                 logging.exception("Failed to load module %s due to:", mod)

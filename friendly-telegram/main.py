@@ -148,7 +148,7 @@ def main():
 
     if arguments.heroku:
         from telethon.sessions import StringSession
-        session_name = lambda phone: StringSession(input(phone))
+        session_name = lambda phone: StringSession()
     else:
         session_name = lambda phone: os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram" + (("-"+phone) if phone else ""))
 

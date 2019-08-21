@@ -21,7 +21,7 @@ import locale, time, os, inspect, ast
 from dialog import Dialog, ExecutableNotFound
 
 from . import loader, utils, main
-from .translate.core import Translator
+from .translations.core import Translator
 
 class TDialog():
     OK=0

@@ -142,9 +142,9 @@ def logging_config():
         db.setdefault(main.__name__, {})["loglevel"] = int(tag)
 
 def main_config(init):
-    choices = [("API Token and ID", "Configure API Token and ID")]
-    if not init:
-        choices += [("Modules", "Modular configuration"), ("Logging", "Configure debug output")]
+    if init:
+        return api_config()
+    choices = [("API Token and ID", "Configure API Token and ID"), ("Modules", "Modular configuration"), ("Logging", "Configure debug output")]
     code, tag = d.menu(TITLE, choices=choices)
     if code == d.OK:
         if tag == "Modules":

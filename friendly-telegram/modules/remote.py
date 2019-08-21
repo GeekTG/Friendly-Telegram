@@ -47,8 +47,8 @@ class RemoteMod(loader.Module):
         # phone, id, username, first name, last name, full name
         clients = []
         for client in self.allclients:
-            if self.instances[client].config["ACCOUNT_NAME"] == account:
-                return client
+#            if self.instances[client].config["ACCOUNT_NAME"] == account:
+#                return client
             clients += [[client, await client.get_me()]]
         for client, client_me in clients:
             if client_me.phone == account:

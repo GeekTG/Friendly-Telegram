@@ -68,5 +68,5 @@ class TranslateMod(loader.Module):
         logger.debug(args)
         translated = self.tr.translate(text, args[1], args[0])
         ret = _("<b>Translated</b>\n<code>{text}</code>\n<b>from </b><code>{frlang}</code><b> to </b><code>{to}</code><b> and it reads </b>\n<code>{output}</code>")
-        ret.format(text=utils.escape_html(text), frlang=utils.escape_html(args[0]), to=utils.escape_html(args[1]), output=utils.escape_html(translated))
+        ret = ret.format(text=utils.escape_html(text), frlang=utils.escape_html(args[0]), to=utils.escape_html(args[1]), output=utils.escape_html(translated))
         await message.edit(ret)

@@ -83,7 +83,7 @@ class PythonMod(loader.Module):
         """.eval <expression>
            Evaluates python code"""
         ret = _("Evaluated expression <code>{}</code> and it returned <code>{}</code>")
-        ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(await meval(utils.get_args_raw(message), **self.getattrs(message))))
+        ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(await meval(utils.get_args_raw(message), **self.getattrs(message))))
         await message.edit(ret)
 
     async def execcmd(self, message):

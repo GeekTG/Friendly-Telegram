@@ -174,7 +174,7 @@ def main():
         for token in arguments.tokens:
             phone = phones.pop(0)
             authtoken.update(**{phone: token})
-    if arguments.heroku or arguments.tokens:
+    if authtoken or arguments.heroku:
         from telethon.sessions import StringSession
     if arguments.heroku:
         def session_name(phone): return StringSession()

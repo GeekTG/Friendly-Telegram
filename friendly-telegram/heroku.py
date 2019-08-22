@@ -14,7 +14,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from . import utils
-import heroku3, logging, json, os
+import heroku3, logging, json, os, git
 from git import Repo
 
 def publish(clients, key, api_token=None):

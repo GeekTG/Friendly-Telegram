@@ -25,7 +25,6 @@ def ui():
         with open(os.path.join(utils.get_base_dir(), loader.MODULES_NAME, mod), "r") as f:
             finder.visit(ast.parse(f.read()))
     output = finder.get_output()
-    print(output)
     lang = input("Enter language code (two-character or underscore-seperated): ")
     filename = os.path.join(os.path.dirname(utils.get_base_dir()), "translations", input("Enter translation pack name: "))
     translated = {}

@@ -35,7 +35,7 @@ def publish(clients, key, api_token=None):
     if api_token is not None:
         config["api_id"] = api_token.ID
         config["api_hash"] = api_token.HASH
-    repo = Repo(os.path.dirname(utils.get_base_dir()))
+    repo = get_repo()
     url = app.git_url.replace("https://", "https://api:" + key + "@")
     if "heroku" in repo.remotes:
         remote = repo.remote("heroku")
@@ -45,3 +45,15 @@ def publish(clients, key, api_token=None):
     print("Pushing...")
     remote.push(refspec='HEAD:refs/heads/master')
     print("Pushed")
+
+def get_repo():
+    try:
+        repo = Repo(os.path.dirname(utils.get_base_dir()))
+    except git.exc.InvalidGitRepositoryError:
+        repo = Repo.init(os.path.dirname(utils.get_base_dir()))
+        origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
+        origin.fetch()
+        repo.create_head('master', origin.refs.master)
+        repo.heads.master.set_tracking_branch(origin.refs.master)
+        repo.heads.master.checkout(True)
+    return repo

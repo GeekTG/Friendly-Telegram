@@ -58,7 +58,7 @@ class HelpMod(loader.Module):
         else:
             reply = "<code>" + _("Available Modules:")
             for mod in self.allmodules.modules:
-                reply += "\n  " + (_("{} has 1 command available").format(mod.name) if len(mod.commands) == 1 else _("{} has {} commands available").format(mod.name))
+                reply += "\n  " + (_("{} has 1 command available").format(mod.name) if len(mod.commands) == 1 else _("{} has {} commands available").format(mod.name, len(mod.commands)))
                 for cmd in mod.commands:
                     reply += f"\n    {cmd}"
         reply += "</code>"

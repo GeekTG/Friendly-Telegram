@@ -58,3 +58,4 @@ class Database():
         for task in self._pending:
             task.cancel()
         db = await self._backend.do_download()
+        self._loading = False

@@ -32,9 +32,10 @@ class InfoMod(loader.Module):
 
     async def infocmd(self, message):
         """Shows system information"""
-        reply = _("<code>System Info\nKernel: {}").format(utils.escape_html(platform.release()))
-        reply += _("\nArch: {}").format(utils.escape_html(platform.architecture()[0]))
-        reply += _("\nOS: {}").format(utils.escape_html(platform.system()))
+        reply = "<code>" + _("System Info")
+        reply += "\n" + _("Kernel: {}").format(utils.escape_html(platform.release()))
+        reply += "\n" + _("Arch: {}").format(utils.escape_html(platform.architecture()[0]))
+        reply += "\n" + _("OS: {}").format(utils.escape_html(platform.system()))
 
         if platform.system() == 'Linux':
             done = False
@@ -43,7 +44,7 @@ class InfoMod(loader.Module):
                 b = {}
                 for line in a:
                     b[line.split('=')[0]] = line.split('=')[1].strip().strip('"')
-                reply += _("\nLinux Distribution: {}").format(utils.escape_html(b["PRETTY_NAME"]))
+                reply += "\n" + _("Linux Distribution: {}").format(utils.escape_html(b["PRETTY_NAME"]))
                 done = True
             except FileNotFoundError:
                 getprop = shutil.which('getprop')
@@ -55,11 +56,13 @@ class InfoMod(loader.Module):
                     vers, _ = await ver.communicate()
                     secs, _ = await sec.communicate()
                     if sdk.returncode == 0 and ver.returncode == 0 and sec.returncode == 0:
-                        reply += _("\nAndroid SDK: {}\nAndroid Version: {}\nAndroid Security Patch: {}").format(sdks.decode('utf-8').strip(), vers.decode('utf-8').strip(), secs.decode('utf-8').strip())
+                        reply += "\n" + _("Android SDK: {}").format(sdks.decode('utf-8').strip())
+                        reply += "\n" + _("Android Version: {}").format(vers.decode('utf-8').strip())
+                        reply += "\n" + _("Android Security Patch: {}").format(secs.decode('utf-8').strip())
                         done = True
             if not done:
-                reply += _("\nCould not determine Linux distribution")
-        reply += _("\nPython version: ").format(utils.escape_html(platform.python_version()))
+                reply += "\n" + _("Could not determine Linux distribution")
+        reply += "\n" + _("Python version: ").format(utils.escape_html(platform.python_version()))
         reply += '</code>'
         logger.debug(reply)
         await message.edit(reply)

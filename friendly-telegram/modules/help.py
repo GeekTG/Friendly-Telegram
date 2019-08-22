@@ -41,10 +41,10 @@ class HelpMod(loader.Module):
                 if mod.name.lower() == args.lower():
                     module = mod
             if module is None:
-                await message.edit(_("<code>Invalid module name specified</code>"))
+                await message.edit("<code>" + _("Invalid module name specified") + "</code>")
                 return
             # Translate the format specification and the module seperately
-            reply = _("<code>Help for {}:\n  ").format(utils.escape_html(_(module.name)))
+            reply = "<code>" + _("Help for {}:").format(utils.escape_html(_(module.name))) + "\n  "
             if module.__doc__:
                 reply += utils.escape_html(inspect.cleandoc(module.__doc__))
             else:
@@ -56,18 +56,18 @@ class HelpMod(loader.Module):
                 else:
                     reply += _("There is no documentation for this command")
         else:
-            reply = _("<code>Available Modules:\n")
+            reply = "<code>" + _("Available Modules:")
             for mod in self.allmodules.modules:
-                reply += _("\n  {} has {} ").format(mod.name, len(mod.commands)) + _('command') if len(mod.commands) == 1 else _('commands') + _(" available\n")
+                reply += "\n  " + (_("{} has 1 command available").format(mod.name) if len(mod.commands) == 1 else _("{} has {} commands available").format(mod.name))
                 for cmd in mod.commands:
-                    reply += f"    {cmd}\n"
+                    reply += f"\n    {cmd}"
         reply += "</code>"
         await message.edit(reply)
 
     async def supportcmd(self, message):
         """Joins the support chat"""
         await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
-        await message.edit(_('<code>Joined to </code><a href="https://t.me/friendlytgbot">support chat</a><code>.</code>'))
+        await message.edit('<code>' + _('Joined to ') + '</code><a href="https://t.me/friendlytgbot">' + _('support chat') + '</a>')
 
     async def client_ready(self, client, db):
         self.client = client

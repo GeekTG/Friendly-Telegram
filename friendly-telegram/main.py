@@ -122,8 +122,14 @@ def main():
     parser.add_argument("--phone", "-p", action="append")
     parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
+    parser.add_argument("--translate", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
+
+    if arguments.translate:
+        from .translations import translateutil
+        translateutil.ui()
+        return
 
     if sys.platform == 'win32':
         # Subprocess support

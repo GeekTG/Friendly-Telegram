@@ -139,8 +139,8 @@ class MessageEditor():
         text = _("<code>Running command: {}").format(utils.escape_html(self.command))+"\n"
         if self.rc != None:
             text += _("Process exited with code {}").format(utils.escape_html(str(self.rc)))
-        text += _("\nStdout:\n")
-        text += utils.escape_html(self.stdout[max(len(self.stdout) - 2048, 0):])+_("\n\nStderr:\n")
+        text += "\n" + _("Stdout:") + "\n"
+        text += utils.escape_html(self.stdout[max(len(self.stdout) - 2048, 0):]) + "\n\n" + _("Stderr:") + "\n"
         text += utils.escape_html(self.stderr[max(len(self.stdout) - 1024, 0):])+"</code>"
         try:
             await self.message.edit(text)
@@ -252,7 +252,7 @@ class RawMessageEditor(SudoMessageEditor):
         else:
             text = '<code>' + utils.escape_html(self.stderr[max(len(self.stderr) - 4095, 0):]) + '</code>'
         if self.rc != None and self.show_done:
-            text += _("\nDone")
+            text += "\n" + _("Done")
         logger.debug(text)
         try:
             await self.message.edit(text)

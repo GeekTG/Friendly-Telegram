@@ -14,8 +14,13 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from . import utils
-import heroku3, logging, json, os, git
+import heroku3
+import logging
+import json
+import os
+import git
 from git import Repo
+
 
 def publish(clients, key, api_token=None):
     data = json.dumps({getattr(client, "phone", ""): client.session.save() for client in clients})
@@ -24,7 +29,8 @@ def publish(clients, key, api_token=None):
     app = None
     for poss_app in heroku.apps():
         config = poss_app.config()
-        if (api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH)) and config["authorization_strings"] == data:
+        if (api_token is None or (config["api_id"] == api_token.ID and
+                                  config["api_hash"] == api_token.HASH)) and config["authorization_strings"] == data:
             app = poss_app
             break
     if not app:
@@ -45,6 +51,7 @@ def publish(clients, key, api_token=None):
     print("Pushing...")
     remote.push(refspec='HEAD:refs/heads/master')
     print("Pushed")
+
 
 def get_repo():
     try:

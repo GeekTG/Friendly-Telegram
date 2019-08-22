@@ -14,9 +14,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import importlib, os, logging, sys, ast, asyncio
+import importlib
+import os
+import logging
+import sys
+import ast
+import asyncio
 from . import utils
-MODULES_NAME="modules"
+MODULES_NAME = "modules"
+
 
 class Module():
     """There is no help for this module"""
@@ -33,6 +39,7 @@ class Module():
     async def handle_command(self, message):
         logging.error("NI! handle_command")
 
+
 class Modules():
     def __init__(self):
         self.commands = {}
@@ -41,13 +48,14 @@ class Modules():
 
     def register_all(self, skip, babelfish):
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
-        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
+        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'),
+                      os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
         logging.debug(mods)
         for mod in mods:
-            mod = mod[:-3] # Cut .py
+            mod = mod[:-3]  # Cut .py
             try:
                 importlib.import_module('.'+MODULES_NAME+'.'+mod, __package__)
-                mod = __package__+'.'+MODULES_NAME+'.'+mod # FQN
+                mod = __package__+'.'+MODULES_NAME+'.'+mod  # FQN
                 if mod in skip:
                     logging.debug("Not loading module %s because it is blacklisted", mod)
                     continue
@@ -68,7 +76,7 @@ class Modules():
         if not hasattr(instance, "commands"):
             # https://stackoverflow.com/a/34452/5509575
             instance.commands = {method_name[:-3]: getattr(instance, method_name) for method_name in dir(instance)
-                                if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
+                                 if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
 
         for command in instance.commands:
             if command.lower() in self.commands.keys():
@@ -87,14 +95,13 @@ class Modules():
             instance.allmodules = self
         self.modules += [instance]
 
-
     def dispatch(self, command, message):
         logging.debug(self.commands)
         for com in self.commands:
             logging.debug(com)
             if command.lower() == "."+com:
                 logging.debug('found command')
-                return self.commands[com](message) # Returns a coroutine
+                return self.commands[com](message)  # Returns a coroutine
 
     def send_config(self, db, additional_config=None):
         for mod in self.modules:
@@ -112,7 +119,7 @@ class Modules():
                 logging.debug(mod.config)
             try:
                 mod.config_complete()
-            except:
+            except Exception:
                 logging.exception("Failed to send mod config complete signal")
 
     async def send_ready(self, client, db, allclients):
@@ -120,5 +127,5 @@ class Modules():
             for m in self.modules:
                 m.allclients = allclients
             await asyncio.gather(*[m.client_ready(client, db) for m in self.modules])
-        except:
+        except Exception:
             logging.exception("Failed to send mod init complete signal")

@@ -16,23 +16,28 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import locale, time, os, inspect, ast
+import locale
+import os
+import inspect
+import ast
 
 from dialog import Dialog, ExecutableNotFound
 
 from . import loader, utils, main
 from .translations.core import Translator
 
+
 class TDialog():
-    OK=0
-    NOT_OK=1
+    OK = 0
+    NOT_OK = 1
+
     # Similar interface to pythondialog
     def menu(self, title, choices):
         print()
         print()
         print(title)
         print()
-        biggest = max([len(k) for k,d in choices])
+        biggest = max([len(k) for k, d in choices])
         i = 1
         for k, d in choices:
             print(" "+str(i)+". "+k+(" "*(biggest+2-len(k)))+(d.replace("\n", "...\n      ")))
@@ -46,6 +51,7 @@ class TDialog():
                 return (self.OK, choices[inp-1][0])
             except (ValueError, IndexError):
                 pass
+
     def inputbox(self, query):
         print()
         print()
@@ -55,10 +61,12 @@ class TDialog():
         if inp == "":
             return (self.NOT_OK, "Cancelled")
         return (self.OK, inp)
+
     def msgbox(self, msg):
         print()
         print()
         print(msg)
+
 
 TITLE = ""
 
@@ -71,27 +79,30 @@ except ExecutableNotFound:
 locale.setlocale(locale.LC_ALL, '')
 
 modules = loader.Modules()
-#TODO load the language settings from the same place as main does, when i implement that into main
+# TODO load the language settings from the same place as main does, when i implement that into main
 modules.register_all([], Translator())
 
 global db
 
+
 def validate_value(string):
     try:
         return ast.literal_eval(string)
-    except:
+    except Exception:
         return string
+
 
 def modules_config():
     global db
-    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or "")) for module in modules.modules])
+    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or ""))
+                                       for module in modules.modules])
     if code == d.OK:
         for mod in modules.modules:
             if mod.name == tag:
                 # Match
                 choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
                 for key, value in getattr(mod, "config", {}).items():
-                    if key.upper() == key: # Constants only
+                    if key.upper() == key:  # Constants only
                         choices += [(key, "")]
                 code, tag = d.menu(TITLE, choices=choices)
                 if code == d.OK:
@@ -103,17 +114,21 @@ def modules_config():
                             except ValueError:
                                 enabled = True
                             try:
-                                db.setdefault(main.__name__, {}).setdefault("disable_modules", []).remove(mod.__module__)
+                                db.setdefault(main.__name__, {}).setdefault("disable_modules",
+                                                                            []).remove(mod.__module__)
                             except ValueError:
                                 pass
                             if not enabled:
-                                db.setdefault(main.__name__, {}).setdefault("disable_modules", []).append(mod.__module__)
+                                db.setdefault(main.__name__, {}).setdefault("disable_modules",
+                                                                            []).append(mod.__module__)
                         else:
-                            db.setdefault(mod.__module__, {}).setdefault("__config__", {})[tag] = validate_value(string)
+                            db.setdefault(mod.__module__, {}).setdefault("__config__",
+                                                                         {})[tag] = validate_value(string)
                 modules_config()
                 return
     else:
         return
+
 
 def run(database, phone, init):
     global db, TITLE
@@ -123,6 +138,7 @@ def run(database, phone, init):
     while main_config(init):
         pass
     return db
+
 
 def api_config():
     code, string = d.inputbox("Enter your API Hash")
@@ -135,16 +151,22 @@ def api_config():
         f.close()
         d.msgbox("API Token and ID set.")
 
+
 def logging_config():
     global db
-    code, tag = d.menu(TITLE, choices=[("50", "CRITICAL"), ("40", "ERROR"), ("30", "WARNING"), ("20", "INFO"), ("10", "DEBUG"), ("0", "ALL")])
+    code, tag = d.menu(TITLE, choices=[("50", "CRITICAL"), ("40", "ERROR"),
+                                       ("30", "WARNING"), ("20", "INFO"),
+                                       ("10", "DEBUG"), ("0", "ALL")])
     if code == d.OK:
         db.setdefault(main.__name__, {})["loglevel"] = int(tag)
+
 
 def main_config(init):
     if init:
         return api_config()
-    choices = [("API Token and ID", "Configure API Token and ID"), ("Modules", "Modular configuration"), ("Logging", "Configure debug output")]
+    choices = [("API Token and ID", "Configure API Token and ID"),
+               ("Modules", "Modular configuration"),
+               ("Logging", "Configure debug output")]
     code, tag = d.menu(TITLE, choices=choices)
     if code == d.OK:
         if tag == "Modules":

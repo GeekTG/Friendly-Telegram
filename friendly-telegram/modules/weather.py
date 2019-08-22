@@ -71,6 +71,6 @@ class WeatherMod(loader.Module):
         except ValueError:
             await message.edit(_("<code>Invalid temperature units provided. Please reconfigure the module.</code>"))
             return
-        ret = _("<code>Weather in {loc} is {w} with a high of {high} and a low of {}, averaging at {avg}.")
+        ret = _("<code>Weather in {loc} is {w} with a high of {high} and a low of {low}, averaging at {avg}.")
         ret = ret.format(loc=eh(w.get_location().get_name()), w=eh(w.get_weather().get_detailed_status().lower()), high=eh(temp['temp_max']), low=eh(temp['temp_min']), avg=eh(temp['temp']))
         await message.edit(ret)

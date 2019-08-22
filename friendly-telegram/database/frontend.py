@@ -22,6 +22,7 @@ class Database():
         self._backend = backend
         self._pending = {}
         self._loading = True
+        self._waiter = asyncio.Event()
     async def init(self):
         await self._backend.init(self.reload)
         db = await self._backend.do_download()
@@ -34,6 +35,7 @@ class Database():
         else:
             self._db = {}
         self._loading = False
+        self._waiter.set()
     def get(self, owner, key, default=None):
         try:
             return self._db[owner][key]
@@ -42,7 +44,7 @@ class Database():
 
     def set(self, owner, key, value):
         if self._loading:
-            return
+            self._waiter.wait()
         self._db.setdefault(owner, {})[key] = value
         id = uuid.uuid4()
         task = asyncio.ensure_future(self._set(self._db, id))
@@ -54,8 +56,12 @@ class Database():
         del self._pending[id]
 
     async def reload(self, event):
-        self._loading = True
-        for task in self._pending:
-            task.cancel()
-        db = await self._backend.do_download()
-        self._loading = False
+        try:
+            self._waiter.clear()
+            self._loading = True
+            for task in self._pending:
+                task.cancel()
+            db = await self._backend.do_download()
+        finally:
+            self._loading = False
+            self._waiter.set()

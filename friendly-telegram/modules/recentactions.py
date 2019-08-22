@@ -33,6 +33,7 @@ class RecentActionsMod(loader.Module):
         msgs = message.client.iter_admin_log(message.to_id, delete=True)
         if not message.is_reply:
             await utils.answer(message, _("<code>Reply to a message to specify where to start</code>"))
+            return
         target = (await message.get_reply_message()).date
         ret = []
         try:

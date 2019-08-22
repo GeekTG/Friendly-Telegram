@@ -52,9 +52,9 @@ class InfoMod(loader.Module):
                     sdk = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.sdk', stdout=asyncio.subprocess.PIPE)
                     ver = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.release', stdout=asyncio.subprocess.PIPE)
                     sec = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.security_patch', stdout=asyncio.subprocess.PIPE)
-                    sdks, _ = await sdk.communicate()
-                    vers, _ = await ver.communicate()
-                    secs, _ = await sec.communicate()
+                    sdks, unused = await sdk.communicate()
+                    vers, unused = await ver.communicate()
+                    secs, unused = await sec.communicate()
                     if sdk.returncode == 0 and ver.returncode == 0 and sec.returncode == 0:
                         reply += "\n" + _("Android SDK: {}").format(sdks.decode('utf-8').strip())
                         reply += "\n" + _("Android Version: {}").format(vers.decode('utf-8').strip())

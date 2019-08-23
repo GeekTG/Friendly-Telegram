@@ -59,6 +59,9 @@ class MockMod(loader.Module):
         """.figlet <font> <text>"""
         # We can't localise figlet due to a lack of fonts
         args = utils.get_args(message)
+        if len(args) < 2:
+            await utils.answer(message, "<code>Supply a font and some text to render with figlet</code>")
+            return
         text = " ".join(args[1:])
         mode = args[0]
         if mode == "random":

@@ -14,7 +14,10 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json, asyncio, uuid
+import json
+import asyncio
+import uuid
+
 
 # Not thread safe
 class Database():
@@ -23,19 +26,21 @@ class Database():
         self._pending = {}
         self._loading = True
         self._waiter = asyncio.Event()
+
     async def init(self):
         await self._backend.init(self.reload)
         db = await self._backend.do_download()
-        if db != None:
+        if db is not None:
             try:
                 self._db = json.loads(db)
-            except:
+            except Exception:
                 # Don't worry if its corrupted. Just set it to {} and let it be fixed on next upload
                 self._db = {}
         else:
             self._db = {}
         self._loading = False
         self._waiter.set()
+
     def get(self, owner, key, default=None):
         try:
             return self._db[owner][key]
@@ -62,6 +67,7 @@ class Database():
             for task in self._pending:
                 task.cancel()
             db = await self._backend.do_download()
+            self._db = json.loads(db)
         finally:
             self._loading = False
             self._waiter.set()

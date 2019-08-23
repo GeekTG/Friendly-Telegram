@@ -14,13 +14,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging, os, json
-
 from .. import utils
+
+import logging
+import os
+import json
+
+from babel import negotiate_locale
 
 logger = logging.getLogger(__name__)
 
-from babel import Locale, negotiate_locale
 
 class Translator:
     def __init__(self, languages=["en"]):
@@ -38,8 +41,10 @@ class Translator:
             except json.decoder.JSONDecodeError:
                 logger.exception("Unable to decode %s", os.path.join(path, translation_file))
         self._languages = languages
+
     def set_preferred_languages(self, languages):
         self._languages = languages
+
     def gettext(self, english_text):
         locales = []
         for locale, strings in self._data.items():

@@ -14,25 +14,30 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import ast, os, json
-from . import core
+import ast
+import os
+import json
+
 from .. import loader, utils
 
+
 def ui():
-    mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'), os.listdir(os.path.join(utils.get_base_dir(), loader.MODULES_NAME)))
+    mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'),
+                  os.listdir(os.path.join(utils.get_base_dir(), loader.MODULES_NAME)))
     finder = UsageFinder()
     for mod in mods:
         with open(os.path.join(utils.get_base_dir(), loader.MODULES_NAME, mod), "r") as f:
             finder.visit(ast.parse(f.read()))
     output = finder.get_output()
     lang = input("Enter language code (two-character or underscore-seperated): ")
-    filename = os.path.join(os.path.dirname(utils.get_base_dir()), "translations", input("Enter translation pack name: "))
+    filename = os.path.join(os.path.dirname(utils.get_base_dir()), "translations",
+                            input("Enter translation pack name: "))
     translated = {}
     for string in output:
         tr = input("Translate "+string+" to "+lang+": ")
         if len(tr.strip()) > 0:
             translated[string] = tr
-    j = {lang:translated}
+    j = {lang: translated}
     with open(filename + ".json", "w") as file:
         json.dump(j, file)
 
@@ -40,8 +45,11 @@ def ui():
 class UsageFinder(ast.NodeVisitor):
     def __init__(self):
         self._output = []
+
     def visit_Call(self, node):
-        if isinstance(node.func, ast.Name) and node.func.id == "_" and len(node.args) == 1 and isinstance(node.args[0], ast.Str) and len(node.keywords) == 0:
+        if isinstance(node.func, ast.Name) and node.func.id == "_" and len(node.args) == 1 and \
+                isinstance(node.args[0], ast.Str) and len(node.keywords) == 0:
             self._output += [node.args[0].s]
+
     def get_output(self):
         return self._output

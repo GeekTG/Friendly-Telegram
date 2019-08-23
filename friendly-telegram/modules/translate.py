@@ -23,14 +23,16 @@ from .. import loader, utils
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(TranslateMod())
+
 
 class TranslateMod(loader.Module):
     """Translator"""
     def __init__(self):
-        self.commands = {"translate":self.translatecmd}
-        self.config = {"DEFAULT_LANG":"en", "API_KEY":""}
+        self.commands = {"translate": self.translatecmd}
+        self.config = {"DEFAULT_LANG": "en", "API_KEY": ""}
         self.name = _("Translator")
 
     def config_complete(self):
@@ -40,7 +42,7 @@ class TranslateMod(loader.Module):
         """.translate [from_lang->][->to_lang] <text>"""
         args = utils.get_args(message)
 
-        if len(args) == 0 or not "->" in args[0]:
+        if len(args) == 0 or "->" not in args[0]:
             text = " ".join(args)
             args = ["", self.config["DEFAULT_LANG"]]
         else:
@@ -52,9 +54,6 @@ class TranslateMod(loader.Module):
         if len(text) == 0:
             await message.edit(_("Invalid text to translate"))
             return
-
-
-
         if args[0] == "":
             args[0] = self.tr.detect(text)
         if len(args) == 3:
@@ -67,6 +66,8 @@ class TranslateMod(loader.Module):
         args[0] = args[0].lower()
         logger.debug(args)
         translated = self.tr.translate(text, args[1], args[0])
-        ret = _("<b>Translated </b><code>{text}</code><b> from </b><code>{frlang}</code><b> to </b><code>{to}</code><b> and it reads </b><code>{output}</code>")
-        ret = ret.format(text=utils.escape_html(text), frlang=utils.escape_html(args[0]), to=utils.escape_html(args[1]), output=utils.escape_html(translated))
+        ret = _("<b>Translated </b><code>{text}</code><b> from </b><code>{frlang}</code><b> to </b>" +
+                "<code>{to}</code><b> and it reads </b><code>{output}</code>")
+        ret = ret.format(text=utils.escape_html(text), frlang=utils.escape_html(args[0]),
+                         to=utils.escape_html(args[1]), output=utils.escape_html(translated))
         await message.edit(ret)

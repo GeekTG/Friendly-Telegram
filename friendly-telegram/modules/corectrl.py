@@ -16,12 +16,12 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging
-
 from .. import loader, main, utils
+
 
 def register(cb):
     cb(CoreMod())
+
 
 class CoreMod(loader.Module):
     """Control core userbot settings"""
@@ -57,7 +57,8 @@ class CoreMod(loader.Module):
         """.unblacklist [id]
            Unblacklist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "blacklist_chats", list(set(self._db.get(main.__name__, "blacklist_chats", []))-set([id])))
+        self._db.set(main.__name__, "blacklist_chats",
+                     list(set(self._db.get(main.__name__, "blacklist_chats", []))-set([id])))
         await message.edit(_("<code>Chat {} unblacklisted from userbot</code>").format(id))
 
     async def whitelistcmd(self, message):
@@ -71,6 +72,6 @@ class CoreMod(loader.Module):
         """.unwhitelist [id]
            Unwhitelist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "whitelist_chats", list(set(self._db.get(main.__name__, "whitelist_chats", []))-set([id])))
+        self._db.set(main.__name__, "whitelist_chats",
+                     list(set(self._db.get(main.__name__, "whitelist_chats", []))-set([id])))
         await message.edit(_("<code>Chat {id} unwhitelisted from userbot</code>").format(id))
-

@@ -17,25 +17,32 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import inspect
+import itertools
+import telethon
 
 from .. import loader, utils
 
-from types import ModuleType
-
-import telethon
+tlfuns = dict(filter(lambda mod: mod[1].__module__.startswith('telethon.tl.functions'),
+                     itertools.chain.from_iterable([inspect.getmembers(mod[1], inspect.isclass)
+                                                    for mod in inspect.getmembers(telethon.tl.functions,
+                                                                                  inspect.ismodule)])))
 
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(RemoteMod())
 
+
 class RemoteMod(loader.Module):
     """Operate on other accounts"""
     instances = {}
+
     def __init__(self):
-        self.config = {"ACCOUNT_NAME":None}
+        self.config = {"ACCOUNT_NAME": None}
         self.name = _("Remote Control")
-        self.commands = {"remote":self.remote_command}
+        self.commands = {"remote": self.remote_command}
         self.allmodules = None
 
     async def client_ready(self, client, db):
@@ -46,16 +53,16 @@ class RemoteMod(loader.Module):
         # Validation
         args = utils.get_args(message)
         if len(args) < 2:
-            await message.edit("<code>What account and operation should be performed?</code>")
+            await message.edit(_("<code>What account and operation should be performed?</code>"))
             return
         account = args[0].strip()
         command = getattr(self, args[1] + "cmd", None)
         if not callable(command):
-            await message.edit("<code>Invalid command</code>")
+            await message.edit(_("<code>Invalid command</code>"))
             return
         account = await self.find_account(account)
         if account is None:
-            await message.edit("<code>Invalid account</code>")
+            await message.edit(_("<code>Invalid account</code>"))
             return
         await command(account, args[2:], message)
 
@@ -63,8 +70,6 @@ class RemoteMod(loader.Module):
         # phone, id, username, first name, last name, full name
         clients = []
         for client in self.allclients:
-#            if self.instances[client].config["ACCOUNT_NAME"] == account:
-#                return client
             clients += [[client, await client.get_me()]]
         for client, client_me in clients:
             if client_me.phone == account:
@@ -88,16 +93,16 @@ class RemoteMod(loader.Module):
 
     async def customcmd(self, client, args, message):
         if len(args) < 1:
-            await message.edit("<code>What custom client command should be executed?</code>")
+            await message.edit(_("<code>What custom client command should be executed?</code>"))
             return
         cmd = getattr(client, args[0], None)
         if not callable(cmd):
-            await message.edit("<code>That custom client command does not exist!</code>")
+            await message.edit(_("<code>That custom client command does not exist!</code>"))
             return
         try:
             args = ast.literal_eval(" ".join(args[1:]))
         except ValueError:
-            await message.edit("<code>Malformed parameters</code>")
+            await message.edit(_("<code>Malformed parameters</code>"))
             return
         except SyntaxError:
             args = []
@@ -105,6 +110,16 @@ class RemoteMod(loader.Module):
 
     async def cmdcmd(self, client, args, message):
         if len(args) < 1:
-            await message.edit("<code>What custom client command should be executed?</code>")
+            await message.edit(_("<code>What command should be executed?</code>"))
             return
         await self.instances[client].allmodules.dispatch(args[0], message)
+
+    async def rawcmd(self, client, args, message):
+        if len(args) < 1:
+            await message.edit(_("<code>What raw MTProto command should be executed?</code>"))
+            return
+        if not args[0] in tlfuns.keys():
+            await message.edit(_("<code>Invalid MTProto function</code>"))
+            return
+        func = tlfuns[args[0]]
+        await client(func())

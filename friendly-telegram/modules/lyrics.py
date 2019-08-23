@@ -15,9 +15,12 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, lyricsgenius
+
+import logging
+import lyricsgenius
 
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(LyricsMod())

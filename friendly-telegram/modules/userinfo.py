@@ -17,12 +17,14 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, asyncio
+import logging
+import asyncio
 
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import Channel, Chat
 
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(UserInfoMod())
@@ -70,23 +72,27 @@ class UserInfoMod(loader.Module):
             except ValueError:
                 logger.debug(e)
                 # look harder for the user
-                basemsg = _("Searching harder for user... May take several minutes, or even hours. Current progress: {}/{}")
+                basemsg = _("Searching harder for user... May take several minutes, or even hours. " +
+                            "Current progress: {}/{}")
                 await message.edit(basemsg.format(0, len(dialogs)))
-                # Look in every group the user is in, in batches. After each batch, attempt to get the input entity again
+                # Look in every group the user is in, in batches. After each batch,
+                # attempt to get the input entity again
                 ops = []
-                c=0
+                c = 0
                 fulluser = None
                 for dialog in dialogs:
                     if len(ops) >= 50:
                         logger.debug(str(c)+"/"+str(len(dialogs)))
                         c += 1
-                        await asyncio.gather(*ops, message.edit(basemsg.format(c, len(dialogs))), return_exceptions=True)
+                        await asyncio.gather(*ops, message.edit(basemsg.format(c, len(dialogs))),
+                                             return_exceptions=True)
                         ops = []
                         try:
                             fulluser = await self.client.get_input_entity(user)
                         except ValueError as e:
                             logger.debug(e)
-                    if isinstance(dialog.entity, Chat) or isinstance(dialog.entity, Channel): # Channels usually fail because we can't list members.
+                    # Channels usually fail because we can't list members.
+                    if isinstance(dialog.entity, Chat) or isinstance(dialog.entity, Channel):
                         logger.debug(dialog)
                         ops += [self.client.get_participants(dialog.entity, aggressive=True)]
 

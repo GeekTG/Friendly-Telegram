@@ -17,10 +17,18 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, os, sys, atexit, asyncio, functools, random, git
+
+import logging
+import os
+import sys
+import atexit
+import random
+import git
+
 from git import Repo
 
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(UpdaterMod())
@@ -52,7 +60,7 @@ class UpdaterMod(loader.Module):
         for client in self.allclients:
             # Terminate main loop of all running clients
             # Won't work if not all clients are ready
-            if not client is message.client:
+            if client is not message.client:
                 await client.disconnect()
         await message.client.disconnect()
 
@@ -85,7 +93,8 @@ class UpdaterMod(loader.Module):
             from .. import heroku
             await self.prerestart_common(message)
             heroku.publish(self.allclients, heroku_key)
-            # If we pushed, this won't return. If the push failed, we will get thrown at. So this only happens when remote is already up to date (remote is heroku, where we are running)
+            # If we pushed, this won't return. If the push failed, we will get thrown at.
+            # So this only happens when remote is already up to date (remote is heroku, where we are running)
             self._db.set(__name__, "selfupdatechat", None)
             self._db.set(__name__, "selfupdatemsg", None)
             await message.edit(_("Already up-to-date!"))
@@ -95,7 +104,7 @@ class UpdaterMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._me = await client.get_me()
-        if db.get(__name__, "selfupdatechat") != None and db.get(__name__, "selfupdatemsg") != None:
+        if db.get(__name__, "selfupdatechat") is not None and db.get(__name__, "selfupdatemsg") is not None:
             await self.update_complete(client)
         self._db.set(__name__, "selfupdatechat", None)
         self._db.set(__name__, "selfupdatemsg", None)
@@ -106,11 +115,14 @@ class UpdaterMod(loader.Module):
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = _("Heroku API key is not set. Update was successful but updates will reset every time the bot restarts.")
+            msg = _("Heroku API key is not set. " +
+                    "Update was successful but updates will reset every time the bot restarts.")
         else:
             logger.debug("Self update successful! Edit message: "+str(self.config))
             msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully!")
-        await client.edit_message(self._db.get(__name__, "selfupdatechat"), self._db.get(__name__, "selfupdatemsg"), msg)
+        await client.edit_message(self._db.get(__name__, "selfupdatechat"),
+                                  self._db.get(__name__, "selfupdatemsg"), msg)
+
 
 def restart(*args):
     os.execl(sys.executable, sys.executable, "-m", os.path.relpath(utils.get_base_dir()), *args)

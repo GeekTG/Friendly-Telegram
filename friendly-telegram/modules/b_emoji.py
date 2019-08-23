@@ -15,12 +15,15 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, random
+import logging
+import random
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(BEmojiMod())
+
 
 class BEmojiMod(loader.Module):
     """🅱️-ifies things"""
@@ -57,4 +60,3 @@ class BEmojiMod(loader.Module):
         text = "".join(text)
         logger.debug(text)
         await utils.answer(message, text)
-

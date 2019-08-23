@@ -16,12 +16,14 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging, telethon
+import telethon
 
 from .. import loader, utils
 
+
 def register(cb):
     cb(RecentActionsMod())
+
 
 class RecentActionsMod(loader.Module):
     """Reads recent actions"""
@@ -56,5 +58,6 @@ class RecentActionsMod(loader.Module):
             orig = msg.original.action.message
             deldate = msg.original.date.isoformat()
             origdate = orig.date.isoformat()
-            await message.respond(_("=== Deleted message {} recovered. Originally sent at {} by {}, deleted at {} by {}. ===").format(msg.id, origdate, orig.from_id, deldate, msg.user_id))
+            await message.respond(_("Deleted message {} recovered. Originally sent at {} by {}, deleted at {} by {}")
+                                  .format(msg.id, origdate, orig.from_id, deldate, msg.user_id))
             await message.respond(orig)

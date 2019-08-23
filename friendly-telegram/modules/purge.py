@@ -19,8 +19,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(PurgeMod())
+
 
 class PurgeMod(loader.Module):
     """Deletes your messages"""

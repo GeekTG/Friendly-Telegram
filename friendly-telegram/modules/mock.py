@@ -15,13 +15,16 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, random
+import logging
+import random
 from pyfiglet import Figlet, FigletFont, FontNotFound
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(MockMod())
+
 
 class MockMod(loader.Module):
     """mOcKs PeOpLe"""

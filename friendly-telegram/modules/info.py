@@ -17,9 +17,14 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, subprocess, platform, asyncio, shutil
+
+import logging
+import platform
+import asyncio
+import shutil
 
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(InfoMod())
@@ -48,10 +53,13 @@ class InfoMod(loader.Module):
                 done = True
             except FileNotFoundError:
                 getprop = shutil.which('getprop')
-                if getprop != None:
-                    sdk = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.sdk', stdout=asyncio.subprocess.PIPE)
-                    ver = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.release', stdout=asyncio.subprocess.PIPE)
-                    sec = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.security_patch', stdout=asyncio.subprocess.PIPE)
+                if getprop is not None:
+                    sdk = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.sdk',
+                                                               stdout=asyncio.subprocess.PIPE)
+                    ver = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.release',
+                                                               stdout=asyncio.subprocess.PIPE)
+                    sec = await asyncio.create_subprocess_exec(getprop, 'ro.build.version.security_patch',
+                                                               stdout=asyncio.subprocess.PIPE)
                     sdks, unused = await sdk.communicate()
                     vers, unused = await ver.communicate()
                     secs, unused = await sec.communicate()

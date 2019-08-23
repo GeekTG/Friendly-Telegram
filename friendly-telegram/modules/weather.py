@@ -16,7 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import logging, pyowm
+import logging
+import pyowm
 
 from .. import loader, utils
 
@@ -24,14 +25,16 @@ from ..utils import escape_html as eh
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(WeatherMod())
+
 
 class WeatherMod(loader.Module):
     """Checks the weather
        Get an API key at https://openweathermap.org/appid"""
     def __init__(self):
-        self.config = {"DEFAULT_LOCATION":None, "API_KEY":None, "TEMP_UNITS":"celsius"}
+        self.config = {"DEFAULT_LOCATION": None, "API_KEY": None, "TEMP_UNITS": "celsius"}
         self.name = _("Weather")
         self._owm = None
 
@@ -40,7 +43,7 @@ class WeatherMod(loader.Module):
 
     async def weathercmd(self, message):
         """.weather [location]"""
-        if self.config["API_KEY"] == None:
+        if self.config["API_KEY"] is None:
             await message.edit(_("<code>Please provide an API key via the configuration mode.</code>"))
             return
         args = utils.get_args_raw(message)
@@ -58,7 +61,7 @@ class WeatherMod(loader.Module):
                     try:
                         args = [int(coord.strip()) for coord in coords]
                         func = self._owm.weather_at_coords
-                    except:
+                    except ValueError:
                         pass
         if func is None:
             func = self._owm.weather_at_place
@@ -72,5 +75,6 @@ class WeatherMod(loader.Module):
             await message.edit(_("<code>Invalid temperature units provided. Please reconfigure the module.</code>"))
             return
         ret = _("<code>Weather in {loc} is {w} with a high of {high} and a low of {low}, averaging at {avg}.")
-        ret = ret.format(loc=eh(w.get_location().get_name()), w=eh(w.get_weather().get_detailed_status().lower()), high=eh(temp['temp_max']), low=eh(temp['temp_min']), avg=eh(temp['temp']))
+        ret = ret.format(loc=eh(w.get_location().get_name()), w=eh(w.get_weather().get_detailed_status().lower()),
+                         high=eh(temp['temp_max']), low=eh(temp['temp_min']), avg=eh(temp['temp']))
         await message.edit(ret)

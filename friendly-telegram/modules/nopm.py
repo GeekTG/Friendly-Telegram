@@ -17,13 +17,17 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, asyncio
+
+import logging
+
 from telethon import functions, types
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(AntiPMMod())
+
 
 class AntiPMMod(loader.Module):
     """Provides a message saying that you are unavailable (out of office)"""
@@ -59,11 +63,15 @@ class AntiPMMod(loader.Module):
             pass
         if message.is_reply:
             # Report the message
-            await message.client(functions.messages.ReportRequest(peer=await message.client.get_input_entity(message.to_id), ids=[message.reply_to_msg_id], reason=types.InputReportReasonSpam()))
+            await message.client(functions.messages.ReportRequest(peer=await message.client
+                                                                  .get_input_entity(message.to_id),
+                                                                  ids=[message.reply_to_msg_id],
+                                                                  reason=types.InputReportReasonSpam()))
         else:
-            await message.client(functions.account.ReportPeerRequest(peer=await message.client.get_input_entity(message.to_id), reason=types.InputReportReasonSpam()))
-        msg = await message.edit("<code>You just got reported spam!</code>")
-#        await msg.delete(revoke=False)
+            await message.client(functions.account.ReportPeerRequest(peer=await message.client
+                                                                     .get_input_entity(message.to_id),
+                                                                     reason=types.InputReportReasonSpam()))
+        await message.edit("<code>You just got reported spam!</code>")
 
     async def watcher(self, message):
         if getattr(message.to_id, 'user_id', None) == self._me.id:

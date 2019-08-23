@@ -17,10 +17,15 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, warnings, itertools, asyncio
+
+import logging
+import warnings
+import itertools
+import asyncio
+import tgs
+
 from io import BytesIO
 from PIL import Image
-import tgs
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +35,11 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 def register(cb):
     cb(StickersMod())
 
+
 class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
-        self.config = {"STICKERS_USERNAME":"Stickers", "STICKER_SIZE":(512, 512), "DEFAULT_STICKER_EMOJI":u"🤔"}
+        self.config = {"STICKERS_USERNAME": "Stickers", "STICKER_SIZE": (512, 512), "DEFAULT_STICKER_EMOJI": u"🤔"}
         self.name = _("Stickers")
         self._lock = asyncio.Lock()
 
@@ -82,14 +88,16 @@ class StickersMod(loader.Module):
                 logger.debug(emojis)
                 # Lock access to @Stickers
                 async with self._lock:
-                    # Without t.me/ there is ambiguity; Stickers could be a name, in which case the wrong entity could be returned
-                    #TODO should this be translated?
-                    conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"], timeout=5, exclusive=True)
+                    # Without t.me/ there is ambiguity; Stickers could be a name,
+                    # in which case the wrong entity could be returned
+                    # TODO should this be translated?
+                    conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"],
+                                                       timeout=5, exclusive=True)
                     async with conv:
                         first = await conv.send_message("/cancel")
                         await conv.send_message("/addsticker")
                         buttons = (await conv.get_response()).buttons
-                        if buttons != None:
+                        if buttons is not None:
                             logger.debug("there are buttons, good")
                             button = click_buttons(buttons, args[0])
                             await button.click()
@@ -110,17 +118,17 @@ class StickersMod(loader.Module):
                         r1 = await conv.get_response(m1)
                         if "512" in r1.message:
                             # That's an error:
-                            # Sorry, the image dimensions are invalid. Please check that the image fits into a 512x512 square (one of the sides should be 512px and the other 512px or less).
+                            # Sorry, the image dimensions are invalid. Please check that the image fits into
+                            # a 512x512 square (one of the sides should be 512px and the other 512px or less).
                             logger.error("Bad response from StickerBot 1")
                             logger.error(r1)
                             await message.edit(_("<code>Something went wrong internally!</code>"))
                             return
                         r2 = await conv.get_response(m2)
                         msgs = []
-                        async for msg in message.client.iter_messages(
-                            entity="t.me/"+self.config["STICKERS_USERNAME"],
-                            min_id=first.id,
-                            reverse=True):
+                        async for msg in message.client.iter_messages(entity="t.me/"+self.config["STICKERS_USERNAME"],
+                                                                      min_id=first.id,
+                                                                      reverse=True):
                             msgs += [msg.id]
                     logger.debug(msgs)
                     await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
@@ -156,19 +164,20 @@ class StickersMod(loader.Module):
         finally:
             try:
                 file.close()
-            except:
+            except UnboundLocalError:
                 pass
             try:
                 result.close()
-            except:
+            except UnboundLocalError:
                 pass
+
 
 def click_buttons(buttons, target_pack):
     buttons = list(itertools.chain.from_iterable(buttons))
     # Process in reverse order; most difficult to match first
     try:
         return buttons[int(target_pack)]
-    except:
+    except IndexError:
         pass
     logger.debug(buttons)
     for button in buttons:
@@ -183,12 +192,13 @@ def click_buttons(buttons, target_pack):
             return button
     return buttons[-1]
 
+
 def resize_image(img, size, dest):
     # Wrapper for asyncio purposes
     try:
         im = Image.open(img)
-        # We used to use thumbnail(size) here, but it returns with a *max* dimension of 512,512 rather than making one side exactly 512
-        # So we have to calculate dimensions manually :(
+        # We used to use thumbnail(size) here, but it returns with a *max* dimension of 512,512
+        # rather than making one side exactly 512 so we have to calculate dimensions manually :(
         if im.width == im.height:
             size = (512, 512)
         elif im.width < im.height:

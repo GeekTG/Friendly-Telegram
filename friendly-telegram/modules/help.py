@@ -17,14 +17,17 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, inspect
+import logging
+import inspect
 
 from telethon.tl.functions.channels import JoinChannelRequest
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(HelpMod())
+
 
 class HelpMod(loader.Module):
     """Provides this help message"""
@@ -52,13 +55,16 @@ class HelpMod(loader.Module):
             for name, fun in module.commands.items():
                 reply += f"\n  {name}\n"
                 if fun.__doc__:
-                    reply += utils.escape_html("\n".join(["    "+x for x in _(inspect.cleandoc(fun.__doc__)).splitlines()]))
+                    reply += utils.escape_html("\n".join(["    "+x for x in
+                                                          _(inspect.cleandoc(fun.__doc__)).splitlines()]))
                 else:
                     reply += _("There is no documentation for this command")
         else:
             reply = "<code>" + _("Available Modules:")
             for mod in self.allmodules.modules:
-                reply += "\n  " + (_("{} has 1 command available").format(mod.name) if len(mod.commands) == 1 else _("{} has {} commands available").format(mod.name, len(mod.commands)))
+                reply += "\n  " + (_("{} has 1 command available")
+                                   .format(mod.name) if len(mod.commands) == 1 else _("{} has {} commands available")
+                                   .format(mod.name, len(mod.commands)))
                 for cmd in mod.commands:
                     reply += f"\n    {cmd}"
         reply += "</code>"
@@ -67,7 +73,8 @@ class HelpMod(loader.Module):
     async def supportcmd(self, message):
         """Joins the support chat"""
         await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
-        await message.edit('<code>' + _('Joined to ') + '</code><a href="https://t.me/friendlytgbot">' + _('support chat') + '</a>')
+        await message.edit('<code>' + _('Joined to ') +
+                           '</code><a href="https://t.me/friendlytgbot">' + _('support chat') + '</a>')
 
     async def client_ready(self, client, db):
         self.client = client

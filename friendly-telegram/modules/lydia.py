@@ -20,27 +20,38 @@
 # The API is not yet public. To get a key, go to https://t.me/Intellivoid then ask Qián Zhào.
 
 from .. import loader, utils
-import logging, asyncio, requests, time, random
+import logging
+import asyncio
+import requests
+import time
+import random
 from telethon import functions, types
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(LydiaMod())
+
 
 class LydiaAPI():
     endpoint = "https://api.intellivoid.info/coffeehouse/v2"
 
     class APIError(ValueError):
         pass
+
     class ApiSuspendedError(APIError):
         pass
+
     class InvalidApiKeyError(APIError):
         pass
+
     class AIError(APIError):
         pass
+
     class SessionInvalidError(APIError):
         pass
+
     class SessionNotFoundError(APIError):
         pass
 
@@ -51,7 +62,7 @@ class LydiaAPI():
         payload = {
             "api_key": self.api_key,
         }
-        if not language is None:
+        if language is not None:
             payload["language"] = language
         response = (await utils.run_sync(requests.post, self.endpoint + "/createSession", payload)).json()
         if response["code"] != 200:
@@ -79,10 +90,11 @@ class LydiaAPI():
             raise self.APIError(response["message"])
         return response["payload"]
 
+
 class LydiaMod(loader.Module):
     """Talks to a robot instead of a human"""
     def __init__(self):
-        self.config = {"CLIENT_KEY":""}
+        self.config = {"CLIENT_KEY": ""}
         self.name = _("Lydia anti-PM")
         self._ratelimit = []
         self._cleanup = None
@@ -96,7 +108,7 @@ class LydiaMod(loader.Module):
 
     async def schedule_cleanups(self):
         """Cleans up dead sessions and reschedules itself to run when the next session expiry takes place"""
-        if not self._cleanup is None:
+        if self._cleanup is not None:
             self._cleanup.cancel()
         sessions = self._db.get(__name__, "sessions", {})
         if len(sessions) == 0:
@@ -105,14 +117,15 @@ class LydiaMod(loader.Module):
         t = time.time()
         for ident, session in sessions.items():
             if not session["expires"] < t:
-                nsessions.update({ident:session})
+                nsessions.update({ident: session})
         if len(nsessions):
-            next = min(*[v["expires"] for k,v in nsessions.items()])
+            next = min(*[v["expires"] for k, v in nsessions.items()])
         else:
             next = 86399
         if nsessions != sessions:
             self._db.set(__name__, "sessions", nsessions)
-        # Don't worry about the 1 day limit below 3.7.1, if it isn't expired we will just reschedule, as nothing will be matched for deletion.
+        # Don't worry about the 1 day limit below 3.7.1, if it isn't expired we will just reschedule,
+        # as nothing will be matched for deletion.
         await asyncio.sleep(min(next - t, 86399))
 
         await self.schedule_cleanups()
@@ -125,13 +138,15 @@ class LydiaMod(loader.Module):
         else:
             user = getattr(message.to_id, "user_id", None)
         if user is None:
-            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. Is this a group chat?</code>"))
+            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. " +
+                                 "Is this a group chat?</code>"))
             return
         try:
             old.remove(user)
             self._db.set(__name__, "allow", old)
         except ValueError:
-            await message.edit(_("<code>The AI service cannot be enabled for this user. Perhaps it wasn't disabled to begin with?</code>"))
+            await message.edit(_("<code>The AI service cannot be enabled for this user. Perhaps it wasn't disabled " +
+                                 "to begin with?</code>"))
             return
         await message.edit(_("<code>AI enabled for this user. </code>"))
 
@@ -142,10 +157,11 @@ class LydiaMod(loader.Module):
         else:
             user = getattr(message.to_id, "user_id", None)
         if user is None:
-            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. Is this a group chat?</code>"))
+            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. " +
+                                 "Is this a group chat?</code>"))
             return
         self._db.set(__name__, "allow", self._db.get(__name__, "allow", [])+[user])
-        msg = await message.edit(_("<code>AI disabled for this user.</code>"))
+        await message.edit(_("<code>AI disabled for this user.</code>"))
 
     async def watcher(self, message):
         if self.config["CLIENT_KEY"] == "":
@@ -174,7 +190,7 @@ class LydiaMod(loader.Module):
                         sessions[message.from_id] = session
                         logger.debug(sessions)
                         self._db.set(__name__, "sessions", sessions)
-                        if not self._cleanup is None:
+                        if self._cleanup is not None:
                             self._cleanup.cancel()
                         self._cleanup = asyncio.ensure_future(self.schedule_cleanups())
                     logger.debug(session)

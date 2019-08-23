@@ -17,15 +17,17 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import ast
 
 from .. import loader, utils
 
-from ast import *
-
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(PythonMod())
+
+
 # We dont modify locals VVVV ; this lets us keep the message available to the user-provided function
 async def meval(code, **kwargs):
     # Note to self: please don't set globals here as they will be lost.
@@ -33,7 +35,8 @@ async def meval(code, **kwargs):
     locs = {}
     # Restore globals later
     globs = globals().copy()
-    # This code saves __name__ and __package into a kwarg passed to the function. It is set before the users code runs to make sure relative imports work
+    # This code saves __name__ and __package into a kwarg passed to the function.
+    # It is set before the users code runs to make sure relative imports work
     global_args = "_globs"
     while global_args in globs.keys():
         # Make sure there's no name collision, just keep prepending _s
@@ -43,19 +46,20 @@ async def meval(code, **kwargs):
         # Copy data to args we are sending
         kwargs[global_args][glob] = globs[glob]
 
-    root = parse(code, 'exec')
+    root = ast.parse(code, 'exec')
     code = root.body
-    if isinstance(code[-1], Expr): # If we can use it as a lambda return (but multiline)
-        code[-1] = copy_location(Return(code[-1].value), code[-1]) # Change it to a return statement
+    if isinstance(code[-1], ast.Expr):  # If we can use it as a lambda return (but multiline)
+        code[-1] = ast.copy_location(ast.Return(code[-1].value), code[-1])  # Change it to a return statement
     args = []
-    for a in list(map(lambda x: arg(x, None), kwargs.keys())):
+    for a in list(map(lambda x: ast.arg(x, None), kwargs.keys())):
         a.lineno = 0
         a.col_offset = 0
         args += [a]
-    fun = AsyncFunctionDef('tmp', arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[], kw_defaults=[None for i in range(len(args))]), code, [], None)
+    fun = ast.AsyncFunctionDef('tmp', ast.arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[],
+                                                    kw_defaults=[None for i in range(len(args))]), code, [], None)
     fun.lineno = 0
     fun.col_offset = 0
-    mod = Module([fun])
+    mod = ast.Module([fun])
     comp = compile(mod, '<string>', 'exec')
 
     exec(comp, {}, locs)
@@ -67,7 +71,6 @@ async def meval(code, **kwargs):
     finally:
         globals().update(**globs)
     return r
-
 
 
 class PythonMod(loader.Module):
@@ -83,7 +86,8 @@ class PythonMod(loader.Module):
         """.eval <expression>
            Evaluates python code"""
         ret = _("Evaluated expression <code>{}</code> and it returned <code>{}</code>")
-        ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(await meval(utils.get_args_raw(message), **self.getattrs(message))))
+        ret = ret.format(utils.escape_html(utils.get_args_raw(message)),
+                         utils.escape_html(await meval(utils.get_args_raw(message), **self.getattrs(message))))
         await message.edit(ret)
 
     async def execcmd(self, message):
@@ -92,4 +96,4 @@ class PythonMod(loader.Module):
         await meval(utils.get_args_raw(message), **self.getattrs(message))
 
     def getattrs(self, message):
-        return {"message":message, "client":self.client, "self":self, "db":self.db}
+        return {"message": message, "client": self.client, "self": self, "db": self.db}

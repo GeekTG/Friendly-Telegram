@@ -17,6 +17,7 @@
 from .. import loader
 import random
 
+
 def register(cb):
     cb(YesNoMod())
 
@@ -28,7 +29,7 @@ class YesNoMod(loader.Module):
 
     async def yesnocmd(self, message):
         """Make a life choice"""
-        #TODO translate
+        # TODO translate
         yes = ["Yes", "Yup", "Absolutely", "Non't"]
         no = ["No", "Nope", "Nah", "Yesn't"]
         if random.getrandbits(1):

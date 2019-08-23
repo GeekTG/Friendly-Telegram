@@ -17,12 +17,15 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, asyncio
+
+import logging
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(AFKMod())
+
 
 class AFKMod(loader.Module):
     """Provides a message saying that you are unavailable (out of office)"""
@@ -62,9 +65,9 @@ class AFKMod(loader.Module):
             if user.is_self or user.bot or user.verified:
                 logger.debug("User is self, bot or verified.")
                 return
-            if self.get_afk() == True:
+            if self.get_afk() is True:
                 await message.reply(_("<code>I'm AFK!</code>"))
-            elif self.get_afk() != False:
+            elif self.get_afk() is not False:
                 await message.reply(f"<code>{utils.escape_html(self.get_afk())}</code>")
 
     def get_afk(self):

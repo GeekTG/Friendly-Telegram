@@ -15,9 +15,13 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader
-import logging, random
+
+import logging
+import random
+
 
 logger = logging.getLogger(__name__)
+
 
 def register(cb):
     cb(InsultMod())
@@ -30,12 +34,13 @@ class InsultMod(loader.Module):
 
     async def insultcmd(self, message):
         """Use when angry"""
-        #TODO localisation
+        # TODO localisation?
         adjectives_start = ["salty", "fat", "fucking", "shitty", "stupid", "retarded", "self conscious", "tiny"]
         adjectives_mid = ["little", "vitamin D deficient", "idiotic", "incredibly stupid"]
-        nouns = ["cunt", "pig", "pedophile", "beta male","bottom" "retard", "ass licker", "cunt nugget", "PENIS", "dickhead", "flute","idiot","motherfucker",
-"loner", "creep"]
-        starts = ["You're a", "You", "Fuck off you","Actually die you", "Listen up you", "What the fuck is wrong with you, you"]
+        nouns = ["cunt", "pig", "pedophile", "beta male", "bottom", "retard", "ass licker", "cunt nugget",
+                 "PENIS", "dickhead", "flute", "idiot", "motherfucker", "loner", "creep"]
+        starts = ["You're a", "You", "Fuck off you", "Actually die you", "Listen up you",
+                  "What the fuck is wrong with you, you"]
         ends = ["!!!!", "!", ""]
         start = random.choice(starts)
         adjective_start = random.choice(adjectives_start)
@@ -45,4 +50,3 @@ class InsultMod(loader.Module):
         insult = start + " " + adjective_start + " " + adjective_mid + (" " if adjective_mid else "") + noun + end
         logger.debug(insult)
         await message.edit(insult)
-

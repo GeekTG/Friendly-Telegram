@@ -22,8 +22,10 @@ from .. import loader, utils
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(ForwardMod())
+
 
 class ForwardMod(loader.Module):
     """Forwards messages"""
@@ -47,4 +49,3 @@ class ForwardMod(loader.Module):
         if len(msgs) > 0:
             logger.debug(msgs)
             await message.client.forward_messages(user, msgs, message.from_id)
-

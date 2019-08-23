@@ -15,12 +15,16 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, utils
-import logging, asyncio
+
+import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
+
 def register(cb):
     cb(QuickTypeMod())
+
 
 class QuickTypeMod(loader.Module):
     """Deletes your message after a timeout"""

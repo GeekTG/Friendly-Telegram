@@ -20,16 +20,20 @@ import logging
 
 from .. import loader, utils
 
+logger = logging.getLogger(__name__)
+
+
 def register(cb):
     cb(YourMod())
+
 
 class YourMod(loader.Module):
     """Description for module"""
     def __init__(self):
-        self.config = {"CONFIG_STRING":_("hello")}
+        self.config = {"CONFIG_STRING": _("hello")}
         self.name = _("A Name")
 
     async def examplecmd(self, message):
         """Does something when you type .example"""
-        await message.edit(self.config["CONFIG_STRING"])
-
+        logger.debug("We logged something!")
+        await utils.answer(message, self.config["CONFIG_STRING"])

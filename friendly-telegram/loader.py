@@ -48,14 +48,14 @@ class Modules():
 
     def register_all(self, skip, babelfish):
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
-        mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'),
+        mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
                       os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
         logging.debug(mods)
         for mod in mods:
             mod = mod[:-3]  # Cut .py
             try:
-                importlib.import_module('.' + MODULES_NAME + '.' + mod, __package__)
-                mod = __package__ + '.' + MODULES_NAME + '.' + mod  # FQN
+                importlib.import_module("." + MODULES_NAME + "." + mod, __package__)
+                mod = __package__ + "." + MODULES_NAME + "." + mod  # FQN
                 if mod in skip:
                     logging.debug("Not loading module %s because it is blacklisted", mod)
                     continue
@@ -100,7 +100,7 @@ class Modules():
         for com in self.commands:
             logging.debug(com)
             if command.lower() == "." + com:
-                logging.debug('found command')
+                logging.debug("found command")
                 return self.commands[com](message)  # Returns a coroutine
 
     def send_config(self, db, additional_config=None):

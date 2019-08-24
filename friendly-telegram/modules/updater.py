@@ -37,7 +37,7 @@ def register(cb):
 class UpdaterMod(loader.Module):
     """Updates itself"""
     def __init__(self):
-        self.config = {"GIT_ORIGIN_URL": "https://github.com/penn5/friendly-telegram"}
+        self.config = {"GIT_ORIGIN_URL": "https://github.com/friendly-telegram/friendly-telegram"}
         self.name = _("Updater")
 
     async def restartcmd(self, message):

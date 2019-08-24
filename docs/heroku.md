@@ -10,5 +10,5 @@ Heroku is fully supported. Setup is extremely simple
 `python3.7 -m friendly-telegram` -> `python3.7 -m friendly-telegram --heroku`
 
 Alternatively, if your OS is supported by the setup script, run:
-`"$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh) --heroku'`
+`"$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh) --heroku'`
 to automatically push to heroku with a one-liner

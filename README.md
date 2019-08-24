@@ -13,7 +13,7 @@ Hey, welcome to our userbot!
 ## But how do I set it up?
 
 TL;DR run on a Linux PC or in Termux:
-`$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)`
+`$SHELL <(curl -Ls https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh)`
 
 All of the setup instructions are in this README, read carefully!
 
@@ -44,7 +44,7 @@ sudo apt install dialog
 1. Clone the source code
 ```
 cd
-git clone https://github.com/penn5/friendly-telegram
+git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 ```
 
@@ -80,7 +80,7 @@ Try typing .help in any Telegram chat while the bot is running
 Use Termux
 ```
 pkg install git python libjpeg-turbo zlib libwebp libffi build-essential dialog neofetch
-git clone https://github.com/penn5/friendly-telegram
+git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 pip install cryptg
 pip install -r requirements.txt

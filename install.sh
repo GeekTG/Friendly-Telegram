@@ -1,7 +1,7 @@
 if [ "$OSTYPE" = "linux-gnu" ]; then
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
-    sudo "$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)'"$@"
+    sudo "$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh)'"$@"
     exit $?
   fi
   PKGMGR="apt"
@@ -11,10 +11,10 @@ elif [ "$OSTYPE" = "linux-android" ]; then
   PKGMGR="pkg"
   PYVER=""
 elif [ "$OSTYPE" = "darwin"* ]; then
-  echo "macOS not yet supported by automated install script. Please go to https://github.com/penn5/friendly-telegram/#mac-os-x"
+  echo "macOS not yet supported by automated install script. Please go to https://github.com/friendly-telegram/friendly-telegram/#mac-os-x"
   exit 1
 else
-  echo "Unrecognised OS. Please follow https://github.com/penn5/friendly-telegram/blob/master/README.md"
+  echo "Unrecognised OS. Please follow https://github.com/friendly-telegram/friendly-telegram/blob/master/README.md"
   exit 1
 fi
 
@@ -36,7 +36,7 @@ else
   SUDO_CMD=""
 fi
 
-${SUDO_CMD}git clone https://github.com/penn5/friendly-telegram || { echo "Clone failed."; exit 3; }
+${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { echo "Clone failed."; exit 3; }
 cd friendly-telegram
 ${SUDO_CMD}"python$PYVER" -m pip install cryptg || echo "Cryptg failed"
 ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt || { echo "Requirements failed!"; exit 4; }

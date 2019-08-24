@@ -4,7 +4,7 @@
 
 ## Scripted method
 
-It's very simple - paste this command into a Linux terminal (on Android use termux): ```"$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)'```
+It's very simple - paste this command into a Linux terminal (on Android use termux): ```"$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh)'```
 
 ## Manual method
 
@@ -31,7 +31,7 @@ sudo apt install dialog
 1. Clone the source code
 ```
 cd
-git clone https://github.com/penn5/friendly-telegram
+git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 ```
 
@@ -59,7 +59,7 @@ python3 -m friendly-telegram
 
 ```
 pkg install git python libjpeg-turbo zlib libwebp libffi build-essential dialog neofetch
-git clone https://github.com/penn5/friendly-telegram
+git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 pip install cryptg
 pip install -r requirements.txt
@@ -81,7 +81,7 @@ python -m friendly-telegram
 
 5. Type:
 ```
-git clone https://github.com/penn5/friendly-telegram
+git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 python -m pip install -r requirements.txt
 python -m friendly-telegram
@@ -115,7 +115,7 @@ brew install dialog
 
 6. Type:
 ```
-git clone https://github.com/penn5/friendly-telegram
+git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 python -m pip install -r requirements.txt
 python -m friendly-telegram

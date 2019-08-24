@@ -1,7 +1,7 @@
 if [ "$OSTYPE" = "linux-gnu" ]; then
   if [ ! "$(whoami)" = "root" ]; then
-    # Relaunch as root
-    sudo "$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)'
+    # Relaunch as root, preserving arguments
+    sudo "$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/penn5/friendly-telegram/master/install.sh)'"$@"
     exit $?
   fi
   PKGMGR="apt"

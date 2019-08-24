@@ -20,6 +20,7 @@ import logging
 import inspect
 import itertools
 import telethon
+import ast
 
 from .. import loader, utils
 

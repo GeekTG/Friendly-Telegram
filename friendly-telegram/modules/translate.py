@@ -60,7 +60,7 @@ class TranslateMod(loader.Module):
             del args[1]
         if len(args) == 1:
             logging.error("python split() error, if there is -> in the text, it must split!")
-            raise RuntimeException()
+            raise RuntimeError()
         if args[1] == "":
             args[1] = self.config["DEFAULT_LANG"]
         args[0] = args[0].lower()

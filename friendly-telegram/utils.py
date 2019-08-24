@@ -92,7 +92,13 @@ async def get_user(message):
 
 
 def run_sync(func, *args, **kwargs):
+    # Returning a coro
     return asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args, **kwargs))
+
+
+def run_async(loop, coro):
+    # When we bump minimum support to 3.7, use run()
+    return asyncio.run_coroutine_threadsafe(coro, loop).result()
 
 
 def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
@@ -108,7 +114,7 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
 async def answer(message, answer, **kwargs):
     CONT_MSG = "[continued]\n"
     ret = [message]
-    if isinstance(answer, str):
+    if isinstance(answer, str) and not kwargs.get("asfile", False):
         await message.edit(answer)
         answer = answer[4096:]
         while len(answer) > 0:

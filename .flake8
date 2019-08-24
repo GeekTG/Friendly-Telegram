@@ -1,5 +1,5 @@
 [flake8]
-ignore = F821,E226,E704,W503,W504
+ignore = F821,E226,E704,W503
 max-line-length = 120
 # Only needed in modules/ but flake8 doesn't let us tell it that
 builtins = _

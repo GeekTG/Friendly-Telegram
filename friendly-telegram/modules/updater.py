@@ -115,8 +115,8 @@ class UpdaterMod(loader.Module):
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = _("Heroku API key is not set. " +
-                    "Update was successful but updates will reset every time the bot restarts.")
+            msg = _("Heroku API key is not set. "
+                    + "Update was successful but updates will reset every time the bot restarts.")
         else:
             logger.debug("Self update successful! Edit message: "+str(self.config))
             msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully!")

@@ -72,8 +72,8 @@ class UserInfoMod(loader.Module):
             except ValueError:
                 logger.debug(e)
                 # look harder for the user
-                basemsg = _("Searching harder for user... May take several minutes, or even hours. " +
-                            "Current progress: {}/{}")
+                basemsg = _("Searching harder for user... May take several minutes, or even hours. "
+                            + "Current progress: {}/{}")
                 await message.edit(basemsg.format(0, len(dialogs)))
                 # Look in every group the user is in, in batches. After each batch,
                 # attempt to get the input entity again

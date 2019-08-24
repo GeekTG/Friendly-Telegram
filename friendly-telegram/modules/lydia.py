@@ -138,15 +138,15 @@ class LydiaMod(loader.Module):
         else:
             user = getattr(message.to_id, "user_id", None)
         if user is None:
-            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. " +
-                                 "Is this a group chat?</code>"))
+            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. "
+                                 + "Is this a group chat?</code>"))
             return
         try:
             old.remove(user)
             self._db.set(__name__, "allow", old)
         except ValueError:
-            await message.edit(_("<code>The AI service cannot be enabled for this user. Perhaps it wasn't disabled " +
-                                 "to begin with?</code>"))
+            await message.edit(_("<code>The AI service cannot be enabled for this user. Perhaps it wasn't disabled "
+                                 + "to begin with?</code>"))
             return
         await message.edit(_("<code>AI enabled for this user. </code>"))
 
@@ -157,8 +157,8 @@ class LydiaMod(loader.Module):
         else:
             user = getattr(message.to_id, "user_id", None)
         if user is None:
-            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. " +
-                                 "Is this a group chat?</code>"))
+            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. "
+                                 + "Is this a group chat?</code>"))
             return
         self._db.set(__name__, "allow", self._db.get(__name__, "allow", [])+[user])
         await message.edit(_("<code>AI disabled for this user.</code>"))

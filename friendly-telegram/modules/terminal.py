@@ -45,8 +45,8 @@ class TerminalMod(loader.Module):
 
     async def aptcmd(self, message):
         """Shorthand for '.terminal apt'"""
-        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ") +
-                          utils.get_args_raw(message) + ' -y',
+        await self.runcmd(message, ("apt " if os.geteuid() == 0 else "sudo -S apt ")
+                          + utils.get_args_raw(message) + ' -y',
                           RawMessageEditor(message, "apt " + utils.get_args_raw(message), self.config, True))
 
     async def runcmd(self, message, cmd, editor=None):
@@ -224,10 +224,10 @@ class SudoMessageEditor(MessageEditor):
             except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
                 logger.debug(e)
             logger.debug("edited message with link to self")
-            self.authmsg = await self.message.client.send_message('me', _("Please edit this message to the password " +
-                                                                          "for user {user} to run command {command}")
-                                                                  .format(command="<code>" +
-                                                                          utils.escape_html(self.command) + "</code>",
+            self.authmsg = await self.message.client.send_message('me', _("Please edit this message to the password "
+                                                                          + "for user {user} to run command {command}")
+                                                                  .format(command="<code>"
+                                                                          + utils.escape_html(self.command) + "</code>",
                                                                           user=utils.escape_html(lastlines[1][:-1])))
             logger.debug("sent message to self")
             self.message.client.remove_event_handler(self.on_message_edited)
@@ -235,8 +235,8 @@ class SudoMessageEditor(MessageEditor):
                                                   telethon.events.messageedited.MessageEdited(chats=['me']))
             logger.debug("registered handler")
             handled = True
-        if len(lines) > 1 and (re.fullmatch(self.TOO_MANY_TRIES, lastline) and
-                               (self.state == 1 or self.state == 3 or self.state == 4)):
+        if len(lines) > 1 and (re.fullmatch(self.TOO_MANY_TRIES, lastline)
+                               and (self.state == 1 or self.state == 3 or self.state == 4)):
             logger.debug("password wrong lots of times")
             await self.message.edit(_("Authentication failed, please try again later."))
             await self.authmsg.delete()

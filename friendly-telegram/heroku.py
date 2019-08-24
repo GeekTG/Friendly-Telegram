@@ -29,8 +29,8 @@ def publish(clients, key, api_token=None):
     app = None
     for poss_app in heroku.apps():
         config = poss_app.config()
-        if (api_token is None or (config["api_id"] == api_token.ID and
-                                  config["api_hash"] == api_token.HASH)) and config["authorization_strings"] == data:
+        if (api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH)) \
+                and config["authorization_strings"] == data:
             app = poss_app
             break
     if not app:

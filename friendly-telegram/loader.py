@@ -54,8 +54,8 @@ class Modules():
         for mod in mods:
             mod = mod[:-3]  # Cut .py
             try:
-                importlib.import_module('.'+MODULES_NAME+'.'+mod, __package__)
-                mod = __package__+'.'+MODULES_NAME+'.'+mod  # FQN
+                importlib.import_module('.' + MODULES_NAME + '.' + mod, __package__)
+                mod = __package__ + '.' + MODULES_NAME + '.' + mod  # FQN
                 if mod in skip:
                     logging.debug("Not loading module %s because it is blacklisted", mod)
                     continue
@@ -99,7 +99,7 @@ class Modules():
         logging.debug(self.commands)
         for com in self.commands:
             logging.debug(com)
-            if command.lower() == "."+com:
+            if command.lower() == "." + com:
                 logging.debug('found command')
                 return self.commands[com](message)  # Returns a coroutine
 
@@ -115,7 +115,7 @@ class Modules():
                     elif conf in modcfg.keys():
                         mod.config[conf] = modcfg[conf]
                     else:
-                        logging.debug("No config value for "+conf)
+                        logging.debug("No config value for " + conf)
                 logging.debug(mod.config)
             try:
                 mod.config_complete()

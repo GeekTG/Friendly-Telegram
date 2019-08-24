@@ -40,7 +40,7 @@ class TDialog():
         biggest = max([len(k) for k, d in choices])
         i = 1
         for k, d in choices:
-            print(" "+str(i)+". "+k+(" "*(biggest+2-len(k)))+(d.replace("\n", "...\n      ")))
+            print(" " + str(i) + ". " + k + (" " * (biggest + 2 - len(k))) + (d.replace("\n", "...\n      ")))
             i += 1
         while True:
             inp = input("Please enter your selection as a number, or 0 to cancel: ")
@@ -48,7 +48,7 @@ class TDialog():
                 inp = int(inp)
                 if inp == 0:
                     return (self.NOT_OK, "Cancelled")
-                return (self.OK, choices[inp-1][0])
+                return (self.OK, choices[inp - 1][0])
             except (ValueError, IndexError):
                 pass
 

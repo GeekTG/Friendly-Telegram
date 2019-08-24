@@ -42,7 +42,7 @@ class PurgeMod(loader.Module):
             msgs += [msg.id]
             # No async list comprehension in 3.5
         logger.debug(msgs)
-        await message.client.delete_messages(message.to_id, msgs+[message.reply_to_msg_id])
+        await message.client.delete_messages(message.to_id, msgs + [message.reply_to_msg_id])
 
     async def delcmd(self, message):
         """Delete the replied message"""

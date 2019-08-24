@@ -71,4 +71,4 @@ class MockMod(loader.Module):
         except FontNotFound:
             await message.edit(_("<code>Font not found</code>"))
             return
-        await message.edit("<code>\u206a"+utils.escape_html(fig.renderText(text))+"</code>")
+        await message.edit("<code>\u206a" + utils.escape_html(fig.renderText(text)) + "</code>")

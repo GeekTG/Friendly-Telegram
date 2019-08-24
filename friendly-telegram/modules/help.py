@@ -55,7 +55,7 @@ class HelpMod(loader.Module):
             for name, fun in module.commands.items():
                 reply += f"\n  {name}\n"
                 if fun.__doc__:
-                    reply += utils.escape_html("\n".join(["    "+x for x in
+                    reply += utils.escape_html("\n".join(["    " + x for x in
                                                           _(inspect.cleandoc(fun.__doc__)).splitlines()]))
                 else:
                     reply += _("There is no documentation for this command")

@@ -50,7 +50,7 @@ class AntiPMMod(loader.Module):
         if not user:
             await message.edit(_("<code>Who shall I allow to PM?</code>"))
             return
-        self._db.set(__name__, "allow", self._db.get(__name__, "allow", [])+[user])
+        self._db.set(__name__, "allow", self._db.get(__name__, "allow", []) + [user])
         await message.edit(_("<code>PM Authorised</code>"))
 
     async def reportcmd(self, message):

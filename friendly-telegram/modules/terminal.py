@@ -111,7 +111,7 @@ class TerminalMod(loader.Module):
 
 
 def hash_msg(message):
-    return str(utils.get_chat_id(message))+"/"+str(message.id)
+    return str(utils.get_chat_id(message)) + "/" + str(message.id)
 
 
 async def read_stream(func, stream, delay):
@@ -157,12 +157,12 @@ class MessageEditor():
         await self.redraw()
 
     async def redraw(self, skip_wait=False):
-        text = _("<code>Running command: {}").format(utils.escape_html(self.command))+"\n"
+        text = _("<code>Running command: {}").format(utils.escape_html(self.command)) + "\n"
         if self.rc is not None:
             text += _("Process exited with code {}").format(utils.escape_html(str(self.rc)))
         text += "\n" + _("Stdout:") + "\n"
         text += utils.escape_html(self.stdout[max(len(self.stdout) - 2048, 0):]) + "\n\n" + _("Stderr:") + "\n"
-        text += utils.escape_html(self.stderr[max(len(self.stdout) - 1024, 0):])+"</code>"
+        text += utils.escape_html(self.stderr[max(len(self.stdout) - 1024, 0):]) + "</code>"
         try:
             await self.message.edit(text)
         except telethon.errors.rpcerrorlist.MessageNotModifiedError as e:
@@ -197,7 +197,7 @@ class SudoMessageEditor(MessageEditor):
         self.process = process
 
     async def update_stderr(self, stderr):
-        logger.debug("stderr update "+stderr)
+        logger.debug("stderr update " + stderr)
         self.stderr = stderr
         lines = stderr.strip().split("\n")
         lastline = lines[-1]
@@ -264,7 +264,7 @@ class SudoMessageEditor(MessageEditor):
         # Message contains sensitive information.
         if self.authmsg is None:
             return
-        logger.debug("got message edit update in self "+str(message.id))
+        logger.debug("got message edit update in self " + str(message.id))
         if hash_msg(message) == hash_msg(self.authmsg):
             # The user has provided interactive authentication. Send password to stdin for sudo.
             try:
@@ -273,7 +273,7 @@ class SudoMessageEditor(MessageEditor):
                 # Try to clear personal info if the edit fails
                 await message.delete()
             self.state = 1
-            self.process.stdin.write(message.message.message.split("\n", 1)[0].encode("utf-8")+b"\n")
+            self.process.stdin.write(message.message.message.split("\n", 1)[0].encode("utf-8") + b"\n")
 
 
 class RawMessageEditor(SudoMessageEditor):

@@ -51,7 +51,7 @@ class RecentActionsMod(loader.Module):
         if len(args) > 0:
             try:
                 count = int(args[0])
-                ret = ret[0-count:]
+                ret = ret[-count:]
             except ValueError:
                 pass
         for msg in reversed(ret):

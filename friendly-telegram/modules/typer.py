@@ -42,7 +42,7 @@ class TyperMod(loader.Module):
             m += self.config["TYPE_CHAR"]
             message = await update_message(message, m)
             await asyncio.sleep(0.04)
-            m = m[:-1]+c
+            m = m[:-1] + c
             message = await update_message(message, m)
             await asyncio.sleep(0.02)
 

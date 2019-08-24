@@ -118,7 +118,7 @@ class UpdaterMod(loader.Module):
             msg = _("Heroku API key is not set. "
                     + "Update was successful but updates will reset every time the bot restarts.")
         else:
-            logger.debug("Self update successful! Edit message: "+str(self.config))
+            logger.debug("Self update successful! Edit message")
             msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully!")
         await client.edit_message(self._db.get(__name__, "selfupdatechat"),
                                   self._db.get(__name__, "selfupdatemsg"), msg)

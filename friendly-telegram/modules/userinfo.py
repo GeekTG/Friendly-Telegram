@@ -82,7 +82,7 @@ class UserInfoMod(loader.Module):
                 fulluser = None
                 for dialog in dialogs:
                     if len(ops) >= 50:
-                        logger.debug(str(c)+"/"+str(len(dialogs)))
+                        logger.debug(str(c) + "/" + str(len(dialogs)))
                         c += 1
                         await asyncio.gather(*ops, message.edit(basemsg.format(c, len(dialogs))),
                                              return_exceptions=True)

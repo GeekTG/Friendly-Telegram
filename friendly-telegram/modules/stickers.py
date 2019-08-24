@@ -91,7 +91,7 @@ class StickersMod(loader.Module):
                     # Without t.me/ there is ambiguity; Stickers could be a name,
                     # in which case the wrong entity could be returned
                     # TODO should this be translated?
-                    conv = message.client.conversation("t.me/"+self.config["STICKERS_USERNAME"],
+                    conv = message.client.conversation("t.me/" + self.config["STICKERS_USERNAME"],
                                                        timeout=5, exclusive=True)
                     async with conv:
                         first = await conv.send_message("/cancel")
@@ -103,7 +103,7 @@ class StickersMod(loader.Module):
                             await button.click()
                         else:
                             logger.warning("there's no buttons!")
-                            await message.client.send_message("t.me/"+self.config["STICKERS_USERNAME"], "/cancel")
+                            await message.client.send_message("t.me/" + self.config["STICKERS_USERNAME"], "/cancel")
                             await message.edit("Something went wrong")
                             return
                         # We have sent the pack we wish to modify.
@@ -126,12 +126,12 @@ class StickersMod(loader.Module):
                             return
                         r2 = await conv.get_response(m2)
                         msgs = []
-                        async for msg in message.client.iter_messages(entity="t.me/"+self.config["STICKERS_USERNAME"],
+                        async for msg in message.client.iter_messages(entity="t.me/" + self.config["STICKERS_USERNAME"],
                                                                       min_id=first.id,
                                                                       reverse=True):
                             msgs += [msg.id]
                     logger.debug(msgs)
-                    await message.client.delete_messages("t.me/"+self.config["STICKERS_USERNAME"], msgs+[first])
+                    await message.client.delete_messages("t.me/" + self.config["STICKERS_USERNAME"], msgs + [first])
                     if "emoji" in r2.message:
                         # The emoji(s) are invalid.
                         logger.error("Bad response from StickerBot 2")
@@ -202,9 +202,9 @@ def resize_image(img, size, dest):
         if im.width == im.height:
             size = (512, 512)
         elif im.width < im.height:
-            size = (int(512*im.width/im.height), 512)
+            size = (int(512 * im.width / im.height), 512)
         else:
-            size = (512, int(512*im.height/im.width))
+            size = (512, int(512 * im.height / im.width))
         logger.debug("Resizing to %s", size)
         im.resize(size).save(dest, "PNG")
     finally:

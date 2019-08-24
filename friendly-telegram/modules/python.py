@@ -40,7 +40,7 @@ async def meval(code, **kwargs):
     global_args = "_globs"
     while global_args in globs.keys():
         # Make sure there's no name collision, just keep prepending _s
-        global_args = "_"+global_args
+        global_args = "_" + global_args
     kwargs[global_args] = {}
     for glob in ["__name__", "__package__"]:
         # Copy data to args we are sending

@@ -160,7 +160,7 @@ class LydiaMod(loader.Module):
             await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. "
                                  + "Is this a group chat?</code>"))
             return
-        self._db.set(__name__, "allow", self._db.get(__name__, "allow", [])+[user])
+        self._db.set(__name__, "allow", self._db.get(__name__, "allow", []) + [user])
         await message.edit(_("<code>AI disabled for this user.</code>"))
 
     async def watcher(self, message):

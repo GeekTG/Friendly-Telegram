@@ -34,7 +34,7 @@ def ui():
                             input("Enter translation pack name: "))
     translated = {}
     for string in output:
-        tr = input("Translate "+string+" to "+lang+": ")
+        tr = input("Translate " + string + " to " + lang + ": ")
         if len(tr.strip()) > 0:
             translated[string] = tr
     j = {lang: translated}

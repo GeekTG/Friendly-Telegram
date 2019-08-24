@@ -83,8 +83,8 @@ class MiscMod(loader.Module):
             out = ""
             for line in self.config["F_LENGTHS"]:
                 c = max(round(line / len(args)), 1)
-                out += (args*c)+"\n"
-            await message.edit("<code>"+utils.escape_html(out)+"</code>")
+                out += (args * c) + "\n"
+            await message.edit("<code>" + utils.escape_html(out) + "</code>")
 
     async def huaweicmd(self, message):
         """Use when your country is "investing" in Huawei 5G modems"""

@@ -42,7 +42,7 @@ class LyricsMod(loader.Module):
             logger.debug(args)
             await message.edit(_("<code>Please specify song and artist.</code>"))
             return
-        logger.debug("getting song lyrics for "+args[0]+", "+args[1])
+        logger.debug("getting song lyrics for " + args[0] + ", " + args[1])
         try:
             song = await utils.run_sync(self.genius.search_song, args[0], args[1])
         except TypeError:

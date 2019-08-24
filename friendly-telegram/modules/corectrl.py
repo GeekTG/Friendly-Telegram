@@ -50,7 +50,7 @@ class CoreMod(loader.Module):
         """.blacklist [id]
            Blacklist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", [])+[id])
+        self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [id])
         await message.edit(_("<code>Chat {} blacklisted from userbot</code>").format(id))
 
     async def unblacklistcmd(self, message):
@@ -58,14 +58,14 @@ class CoreMod(loader.Module):
            Unblacklist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats",
-                     list(set(self._db.get(main.__name__, "blacklist_chats", []))-set([id])))
+                     list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([id])))
         await message.edit(_("<code>Chat {} unblacklisted from userbot</code>").format(id))
 
     async def whitelistcmd(self, message):
         """.whitelist [id]
            Whitelist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "whitelist_chats", self._db.get(main.__name__, "whitelist_chats", [])+[id])
+        self._db.set(main.__name__, "whitelist_chats", self._db.get(main.__name__, "whitelist_chats", []) + [id])
         await message.edit(_("<code>Chat {} whitelisted from userbot</code>").format(id))
 
     async def unwhitelistcmd(self, message):
@@ -73,5 +73,5 @@ class CoreMod(loader.Module):
            Unwhitelist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "whitelist_chats",
-                     list(set(self._db.get(main.__name__, "whitelist_chats", []))-set([id])))
+                     list(set(self._db.get(main.__name__, "whitelist_chats", [])) - set([id])))
         await message.edit(_("<code>Chat {id} unwhitelisted from userbot</code>").format(id))

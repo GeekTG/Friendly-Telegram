@@ -2,7 +2,7 @@
 
 Heroku is fully supported. Setup is extremely simple
 
-1. First follow the instructions to set up the bot in [installing.md](https://github.com/penn5/friendly-telegram/blob/master/docs/installing.md "installing.md") and ensure the bot works
+1. First follow the instructions to set up the bot in [the guide](installing "the guide") and ensure the bot works
 
 2. Append `--heroku` to the end of the command used to start the bot. For example:
 `python -m friendly-telegram` -> `python -m friendly-telegram --heroku`

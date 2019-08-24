@@ -1,6 +1,6 @@
 # Lydia (AI Chat)
 
-Read [about configuration of modules](https://github.com/penn5/friendly-telegram/blob/master/docs/configuration.md#configuring-modules "about configuration of modules").
+Read [about configuration of modules](configuration#configuring-modules "about configuration of modules").
 
 ## Acquiring an API key:
 

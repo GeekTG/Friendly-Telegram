@@ -177,10 +177,12 @@ def main():
     if authtoken or arguments.heroku:
         from telethon.sessions import StringSession
     if arguments.heroku:
-        def session_name(phone): return StringSession()
+        def session_name(phone):
+            return StringSession()
     else:
-        def session_name(phone): return os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                                     + (("-"+phone) if phone else ""))
+        def session_name(phone):
+            return os.path.join(os.path.dirname(utils.get_base_dir()),
+                                "friendly-telegram" + (("-"+phone) if phone else ""))
     try:
         from . import api_token
     except ImportError:

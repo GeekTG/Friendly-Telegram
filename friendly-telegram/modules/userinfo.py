@@ -43,9 +43,10 @@ class UserInfoMod(loader.Module):
             args = utils.get_args(message)
             full = await self.client(GetFullUserRequest(args[0]))
         logger.debug(full)
-        reply = _("First name: <code>{}</code>").format(utils.escape_html(full.user.first_name))
-        reply += _("\nLast name: <code>{}</code>").format(utils.escape_html(str(full.user.last_name)))
-        reply += _("\nBio: <code>{}</code>").format(utils.escape_html(full.about))
+        reply = _("First name: <code>{}</code>").format(utils.escape_html(ascii(full.user.first_name)))
+        if full.user.last_name is not None:
+            reply += _("\nLast name: <code>{}</code>").format(utils.escape_html(ascii(full.user.last_name)))
+        reply += _("\nBio: <code>{}</code>").format(utils.escape_html(ascii(full.about)))
         reply += _("\nRestricted: <code>{}</code>").format(utils.escape_html(str(full.user.restricted)))
         await message.edit(reply)
 

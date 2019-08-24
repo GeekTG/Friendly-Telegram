@@ -64,8 +64,9 @@ class Database():
         try:
             self._waiter.clear()
             self._loading = True
-            for task in self._pending:
+            for key, task in self._pending.items():
                 task.cancel()
+                del self._pending[key]
             db = await self._backend.do_download()
             self._db = json.loads(db)
         finally:

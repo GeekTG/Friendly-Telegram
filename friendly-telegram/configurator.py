@@ -143,11 +143,11 @@ def run(database, phone, init):
 def api_config():
     code, string = d.inputbox("Enter your API Hash")
     if code == d.OK:
-        string1 = 'HASH="' + string + '"'
+        string1 = 'HASH = "' + string + '"'
         code, string = d.inputbox("Enter your API ID")
-        string2 = 'ID="' + string + '"'
+        string2 = 'ID = "' + string + '"'
         f = open(os.path.join(utils.get_base_dir(), "api_token.py"), "w")
-        f.write(string1 + "\n" + string2)
+        f.write(string1 + "\n" + string2 + "\n")
         f.close()
         d.msgbox("API Token and ID set.")
 

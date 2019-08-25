@@ -177,7 +177,7 @@ def click_buttons(buttons, target_pack):
     # Process in reverse order; most difficult to match first
     try:
         return buttons[int(target_pack)]
-    except IndexError:
+    except (IndexError, ValueError):
         pass
     logger.debug(buttons)
     for button in buttons:

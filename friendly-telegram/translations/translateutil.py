@@ -34,7 +34,7 @@ def ui():
                             input("Enter translation pack name: "))
     translated = {}
     for string in output:
-        tr = input("Translate " + string + " to " + lang + ": ")
+        tr = input("Translate `" + string + "` to " + lang + ": ")
         if len(tr.strip()) > 0:
             translated[string] = tr
     j = {lang: translated}
@@ -46,10 +46,21 @@ class UsageFinder(ast.NodeVisitor):
     def __init__(self):
         self._output = []
 
+    def visit_AsyncFunctionDef(self, node):
+        self.generic_visit(node)
+        self._output += [ast.get_docstring(node, clean=True)]
+
+    def visit_Class(self, node):
+        self.generic_visit(node)
+        self._output += [ast.get_docstring(node, clean=True)]
+
     def visit_Call(self, node):
-        if isinstance(node.func, ast.Name) and node.func.id == "_" and len(node.args) == 1 and \
-                isinstance(node.args[0], ast.Str) and len(node.keywords) == 0:
-            self._output += [node.args[0].s]
+        self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and node.func.id == "_" and len(node.args) == 1:
+            if isinstance(node.args[0], ast.Str) and len(node.keywords) == 0:
+                self._output += [node.args[0].s]
+            else:
+                print("W: Could not process " + ast.dump(node))
 
     def get_output(self):
         return self._output

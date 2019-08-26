@@ -188,18 +188,30 @@ def main():
             return
     if authtoken:
         for phone, token in authtoken.items():
-            clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
-                                       connection_retries=None).start(phone)]
+            try:
+                clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
+                                           connection_retries=None).start(phone)]
+            except ValueError:
+                run_config({})
+                return
             clients[-1].phone = phone  # for consistency
     if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
-        clients += [TelegramClient(session_name(None), api_token.ID, api_token.HASH).start()]
+        try:
+            clients += [TelegramClient(session_name(None), api_token.ID, api_token.HASH).start()]
+        except ValueError:
+            run_config({})
+            return
         print("You're using the legacy session format. Please contact support, this will break in a future update.")
     if len(clients) == 0 and len(phones) == 0:
         phones += [input("Please enter your phone: ")]
     for phone in phones:
         try:
-            clients += [TelegramClient(session_name(phone), api_token.ID, api_token.HASH,
-                        connection_retries=None).start(phone)]
+            try:
+                clients += [TelegramClient(session_name(phone), api_token.ID, api_token.HASH,
+                            connection_retries=None).start(phone)]
+            except ValueError:
+                run_config({})
+                return
             clients[-1].phone = phone  # so we can format stuff nicer in configurator
         except PhoneNumberInvalidError:
             print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")

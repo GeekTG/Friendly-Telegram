@@ -70,4 +70,4 @@ class TranslateMod(loader.Module):
                 + "<code>{to}</code><b> and it reads </b><code>{output}</code>")
         ret = ret.format(text=utils.escape_html(text), frlang=utils.escape_html(args[0]),
                          to=utils.escape_html(args[1]), output=utils.escape_html(translated))
-        await message.edit(ret)
+        await utils.answer(message, ret)

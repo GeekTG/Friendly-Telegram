@@ -50,6 +50,16 @@ async def meval(code, **kwargs):
     code = root.body
     if isinstance(code[-1], ast.Expr):  # If we can use it as a lambda return (but multiline)
         code[-1] = ast.copy_location(ast.Return(code[-1].value), code[-1])  # Change it to a return statement
+    # globals().update(**<global_args>)
+    glob_copy = ast.Expr(ast.Call(func=ast.Attribute(value=ast.Call(func=ast.Name(id='globals', ctx=ast.Load()),
+                                                                    args=[], keywords=[]),
+                                                     attr='update', ctx=ast.Load()),
+                                  args=[], keywords=[ast.keyword(arg=None,
+                                                                 value=ast.Name(id=global_args, ctx=ast.Load()))]))
+    glob_copy.lineno = 0
+    glob_copy.col_offset = 0
+    ast.fix_missing_locations(glob_copy)
+    code.insert(0, glob_copy)
     args = []
     for a in list(map(lambda x: ast.arg(x, None), kwargs.keys())):
         a.lineno = 0

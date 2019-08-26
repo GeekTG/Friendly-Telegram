@@ -88,10 +88,7 @@ async def handle_command(modules, db, event):
         return
     message = utils.censor(event.message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    whitelist_chats = db.get(__name__, "whitelist_chats", [])
-    if (utils.get_chat_id(message) in blacklist_chats or (whitelist_chats
-                                                          and not utils.get_chat_id(message) in whitelist_chats)) \
-            and not utils.get_chat_id(message) == message.from_id:
+    if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
         logging.debug("Message is blacklisted or not in whitelist")
         return
     if len(message.message) > 1 and message.message[:2] == ".." and message.message != len(message.message) * ".":
@@ -119,10 +116,7 @@ async def handle_incoming(modules, db, event):
     message = utils.censor(event.message)
     logging.debug(message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    whitelist_chats = db.get(__name__, "whitelist_chats", [])
-    if (utils.get_chat_id(message) in blacklist_chats or (whitelist_chats
-                                                          and not utils.get_chat_id(message) in whitelist_chats)) \
-            and not utils.get_chat_id(message) == message.from_id:
+    if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
         logging.debug("Message is blacklisted or not in whitelist")
         return
     for fun in modules.watchers:

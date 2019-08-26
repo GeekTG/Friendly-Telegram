@@ -60,18 +60,3 @@ class CoreMod(loader.Module):
         self._db.set(main.__name__, "blacklist_chats",
                      list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([id])))
         await message.edit(_("<code>Chat {} unblacklisted from userbot</code>").format(id))
-
-    async def whitelistcmd(self, message):
-        """.whitelist [id]
-           Whitelist the bot from operating somewhere"""
-        id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "whitelist_chats", self._db.get(main.__name__, "whitelist_chats", []) + [id])
-        await message.edit(_("<code>Chat {} whitelisted from userbot</code>").format(id))
-
-    async def unwhitelistcmd(self, message):
-        """.unwhitelist [id]
-           Unwhitelist the bot from operating somewhere"""
-        id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "whitelist_chats",
-                     list(set(self._db.get(main.__name__, "whitelist_chats", [])) - set([id])))
-        await message.edit(_("<code>Chat {id} unwhitelisted from userbot</code>").format(id))

@@ -18,6 +18,8 @@ import os
 import logging
 import asyncio
 import functools
+import shlex
+
 from . import __main__
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
 
@@ -29,7 +31,7 @@ def get_args(message):
         pass
     if not message:
         return False
-    return list(filter(lambda x: len(x) > 0, message.split(' ')))[1:]
+    return list(filter(lambda x: len(x) > 0, shlex.split(message, ' ')))[1:]
 
 
 def get_args_raw(message):
@@ -69,7 +71,11 @@ def escape_quotes(text):
 
 
 def get_base_dir():
-    return os.path.abspath(os.path.dirname(os.path.abspath(__main__.__file__)))
+    return get_dir(__main__.__file__)
+
+
+def get_dir(mod):
+    return os.path.abspath(os.path.dirname(os.path.abspath(mod)))
 
 
 async def get_user(message):
@@ -115,7 +121,7 @@ async def answer(message, answer, **kwargs):
     CONT_MSG = "[continued]\n"
     ret = [message]
     if isinstance(answer, str) and not kwargs.get("asfile", False):
-        await message.edit(answer)
+        await message.edit(answer[:4096])
         answer = answer[4096:]
         while len(answer) > 0:
             answer = CONT_MSG + answer

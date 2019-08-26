@@ -18,10 +18,13 @@
 
 import logging
 import time
+import pprint
 
 from io import BytesIO
 
 from .. import loader, utils
+from ..tests import mock
+from ..tests.wrapper import testable
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +37,9 @@ class TestMod(loader.Module):
     """Self-tests"""
     def __init__(self):
         self.name = _("Tester")
+        self.allmodules = None
 
+    @testable()
     async def pingcmd(self, message):
         """Does nothing"""
         await message.edit(_('Pong'))
@@ -85,3 +90,13 @@ class TestMod(loader.Module):
             logger.info("Good Morning")
         except ValueError:
             await message.edit(_("<code>Invalid time to suspend</code>"))
+
+    async def client_ready(self, client, db):
+        self.client = client
+
+    async def selftestcmd(self, message):
+        tester = mock.Tester(self.client)
+        ret = await tester.test_all(self.allmodules)
+        logging.debug("self test results\n\n" + repr(ret))
+        pret = pprint.pformat(ret, width=30)
+        await utils.answer(message, pret)

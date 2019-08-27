@@ -14,7 +14,7 @@ babel
 # Lyrics
 lyricsgenius
 # Stickers
-Pillow
+Pillow >= 6.1.0
 # Speedtest
 speedtest-cli
 # Weather
@@ -25,7 +25,7 @@ pyyandextranslateapi
 pyfiglet
 # Animated stickers
 cairosvg
-tgs
+tgs  # master branch is required
 # TTS
 gtts
 hachoir

@@ -48,7 +48,8 @@ class TestMod(loader.Module):
         """Use in reply to get a dump of a message"""
         if not message.is_reply:
             return
-        await message.edit("<code>" + utils.escape_html((await message.get_reply_message()).stringify()) + "</code>")
+        await utils.answer(message, "<code>"
+                           + utils.escape_html((await message.get_reply_message()).stringify()) + "</code>")
 
     async def logscmd(self, message):
         """.logs <level>

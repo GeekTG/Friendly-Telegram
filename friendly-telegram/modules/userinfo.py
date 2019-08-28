@@ -54,7 +54,7 @@ class UserInfoMod(loader.Module):
         """Get permalink to user based on ID or username"""
         # Recent server changes make this almost useless. Remove to cleanup code? TODO consider this
         args = utils.get_args(message)
-        if len(args) != 1:
+        if len(args) < 1:
             await message.edit(_("Provide a user to locate"))
             return
         try:
@@ -112,7 +112,10 @@ class UserInfoMod(loader.Module):
                     return
                 else:
                     user = fulluser
-        await message.edit(_("<a href='tg://user?id={uid}'>Permalink to {uid}</a>").format(uid=user.user_id))
+        if len(args) > 1:
+            await utils.answer(message, "<a href='tg://user?id={uid}'>{txt}</a>".format(uid=user.user_id, txt=args[1]))
+        else:
+            await message.edit(_("<a href='tg://user?id={uid}'>Permalink to {uid}</a>").format(uid=user.user_id))
 
     async def client_ready(self, client, db):
         self.client = client

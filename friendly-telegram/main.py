@@ -99,7 +99,7 @@ async def handle_command(modules, db, event):
         # Allow escaping commands using .'s
         await message.edit(utils.escape_html(message.message[len(prefix):]))
     logging.debug(message)
-    command = message.message.split(' ', 1)[0][len(prefix):]
+    command = message.message[len(prefix):].split(' ', 1)[0]
     logging.debug(command)
     coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one
     if coro is not None:

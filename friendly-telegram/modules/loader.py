@@ -65,6 +65,7 @@ class LoaderMod(loader.Module):
         args = utils.get_args(message)
         if len(args) != 1:
             await message.edit(_("<code>What class needs to be unloaded?</code>"))
+            return
         clazz = args[0]
         worked = self.allmodules.unload_module(clazz)
         if worked:

@@ -96,6 +96,7 @@ class TestMod(loader.Module):
         self.client = client
 
     async def selftestcmd(self, message):
+        """Run self-tests"""
         tester = mock.Tester(self.client)
         ret = await tester.test_all(self.allmodules)
         logging.debug("self test results\n\n" + repr(ret))

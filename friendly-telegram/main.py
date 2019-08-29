@@ -92,14 +92,16 @@ async def handle_command(modules, db, event):
     message = utils.censor(event.message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
     if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
-        logging.debug("Message is blacklisted or not in whitelist")
+        logging.debug("Message is blacklisted")
         return
     if len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
             and message.message != len(message.message) * prefix:
         # Allow escaping commands using .'s
         await message.edit(utils.escape_html(message.message[len(prefix):]))
     logging.debug(message)
-    command = message.message[len(prefix):].split(' ', 1)[0]
+    # Make sure we don't get confused about spaces or other shit in the prefix
+    message.message = message.message[len(prefix):]
+    command = message.message.split(' ', 1)[0]
     logging.debug(command)
     coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one
     if coro is not None:
@@ -121,7 +123,7 @@ async def handle_incoming(modules, db, event):
     logging.debug(message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
     if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
-        logging.debug("Message is blacklisted or not in whitelist")
+        logging.debug("Message is blacklisted")
         return
     for fun in modules.watchers:
         try:

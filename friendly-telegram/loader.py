@@ -68,7 +68,6 @@ class Modules():
                     del sys.modules[mod]
                 except BaseException as e:
                     logging.exception("Failed to clear namespace of module %s due to:", mod)
-                    pass
 
     def register_module(self, instance):
         if not issubclass(instance.__class__, Module):
@@ -79,20 +78,33 @@ class Modules():
                                  if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
 
         for command in instance.commands:
+            # Verify that command does not already exist, or, if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
-                logging.error("Duplicate command %s", command)
-                continue
+                if instance.commands[command].__self__.__class__.__name__ \
+                        != self.commands[command].__self__.__class__.__name__:
+                    logging.error("Duplicate command %s", command)
+                    continue
+                else:
+                    logging.debug("Replacing command for update " + repr(self.commands[command]))
             if not instance.commands[command].__doc__:
                 logging.warning("Missing docs for %s", command)
             self.commands.update({command.lower(): instance.commands[command]})
         try:
             if instance.watcher:
+                for watcher in self.watchers:
+                    if watcher.__self__.__class__.__name__ == instance.watcher.__self__.__class__.__name__:
+                        logging.debug("Removing watcher for update " + repr(watcher))
+                        self.watchers.remove(watcher)
                 self.watchers += [instance.watcher]
         except AttributeError:
             pass
         if hasattr(instance, "allmodules"):
             # Mainly for the Help module
             instance.allmodules = self
+        for module in self.modules:
+            if module.__class__.__name__ == instance.__class__.__name__:
+                logging.debug("Removing module for update " + repr(module))
+                self.modules.remove(module)
         self.modules += [instance]
 
     def dispatch(self, command, message):
@@ -129,3 +141,22 @@ class Modules():
             await asyncio.gather(*[m.client_ready(client, db) for m in self.modules])
         except Exception:
             logging.exception("Failed to send mod init complete signal")
+
+    def unload_module(self, classname):
+        worked = False
+        for module in self.modules:
+            if module.__class__.__name__ == classname:
+                worked = True
+                logging.debug("Removing module for unload" + repr(module))
+                self.modules.remove(module)
+        for watcher in self.watchers:
+            if watcher.__self__.__class__.__name__ == classname:
+                worked = True
+                logging.debug("Removing watcher for unload " + repr(watcher))
+                self.watchers.remove(watcher)
+        for command in self.commands:
+            if command.__self__.__class__.__name__ == classname:
+                worked = True
+                logging.debug("Removing command for unload " + repr(command))
+                self.commands.remove(command)
+        return worked

@@ -60,3 +60,16 @@ class CoreMod(loader.Module):
         self._db.set(main.__name__, "blacklist_chats",
                      list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([id])))
         await message.edit(_("<code>Chat {} unblacklisted from userbot</code>").format(id))
+
+    async def setprefixcmd(self, message):
+        """Sets command prefix"""
+        args = utils.get_args(message)
+        if len(args) != 1:
+            await message.edit(_("<code>What should the prefix be set to?</code>"))
+            return
+        oldprefix = self._db.get(main.__name__, "command_prefix", ".")
+        self._db.set(main.__name__, "command_prefix", args[0])
+        await utils.answer(message, _("<b>Command prefix updated. "
+                                      + "Type </b><code>{newprefix}setprefix {oldprefix}</code><b> "
+                                      + "to change it back</b>")
+                           .format(newprefix=args[0], oldprefix=oldprefix))

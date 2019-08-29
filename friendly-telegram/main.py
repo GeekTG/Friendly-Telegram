@@ -79,6 +79,9 @@ logging.getLogger().setLevel(0)
 
 
 async def handle_command(modules, db, event):
+    prefix = db.get(__name__, "command_prefix", False) or "."  # Empty string evaluates to False, so the `or` activates
+    if not (hasattr(event, "message") and getattr(event.message, "message", "")[0:len(prefix)] == prefix):
+        return
     logging.debug("Incoming command!")
     if not event.message:
         logging.debug("Ignoring command with no text.")
@@ -91,11 +94,12 @@ async def handle_command(modules, db, event):
     if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
         logging.debug("Message is blacklisted or not in whitelist")
         return
-    if len(message.message) > 1 and message.message[:2] == ".." and message.message != len(message.message) * ".":
+    if len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
+            and message.message != len(message.message) * prefix:
         # Allow escaping commands using .'s
-        await message.edit(utils.escape_html(message.message[1:]))
+        await message.edit(utils.escape_html(message.message[len(prefix):]))
     logging.debug(message)
-    command = message.message.split(' ', 1)[0]
+    command = message.message.split(' ', 1)[0][len(prefix):]
     logging.debug(command)
     coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one
     if coro is not None:
@@ -273,6 +277,6 @@ async def amain(client, cfg, allclients, setup=False):
         client.add_event_handler(functools.partial(handle_incoming, modules, db),
                                  events.NewMessage(incoming=True, forwards=False))
         client.add_event_handler(functools.partial(handle_command, modules, db),
-                                 events.NewMessage(outgoing=True, forwards=False, pattern=r'\..*'))
+                                 events.NewMessage(outgoing=True, forwards=False))
         print("Started")
         await c.run_until_disconnected()

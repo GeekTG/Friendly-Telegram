@@ -111,7 +111,7 @@ class Modules():
         logging.debug(self.commands)
         for com in self.commands:
             logging.debug(com)
-            if command.lower() == "." + com:
+            if command.lower() == com:
                 logging.debug("found command")
                 return self.commands[com](message)  # Returns a coroutine
 

@@ -29,6 +29,7 @@ class BotCompat(MetaPathFinder, Loader):
         module.__path__ = []
 
     def client_ready(self, client):
+        self.clients += [client]
         for mod in self.created:
             try:
                 mod.client_ready(client)

@@ -47,6 +47,7 @@ class LoaderMod(loader.Module):
     def __init__(self):
         self.name = _("Loader")
         self.allmodules = None
+        self._pending_setup = []
 
     async def loadmodcmd(self, message):
         """Loads the module file"""
@@ -89,7 +90,13 @@ class LoaderMod(loader.Module):
             await message.edit(_("<code>Module did not expose correct API"))
             logging.error("Module does not have register(), it has " + repr(vars(module)))
             return
-        vars(module)["register"](self.allmodules.register_module)  # Invoke generic registration
+        vars(module)["register"](self.register_and_configure)  # Invoke generic registration
+        await self._pending_setup.pop()
+
+    async def register_and_configure(self, instance):
+        self.allmodules.register_module(instance)
+        self.allmodules.send_config_one(instance, self._db, None)
+        self._pending_setup.append(instance.client_ready(self._client, self._db))
 
     async def unloadmodcmd(self, message):
         """Unload module by class name"""
@@ -103,3 +110,7 @@ class LoaderMod(loader.Module):
             await message.edit(_("<code>Module unloaded.</code>"))
         else:
             await message.edit(_("<code>Nothing was unloaded.</code>"))
+
+    async def client_ready(self, client, db):
+        self._db = db
+        self._client = client

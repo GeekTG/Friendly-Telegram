@@ -126,22 +126,25 @@ class Modules():
 
     def send_config(self, db, additional_config=None):
         for mod in self.modules:
-            if hasattr(mod, "config"):
-                modcfg = db.get(mod.__module__, "__config__", {})
-                logging.debug(modcfg)
-                for conf in mod.config.keys():
-                    logging.debug(conf)
-                    if conf in additional_config:
-                        mod.config[conf] = ast.literal_eval(additional_config[conf])
-                    elif conf in modcfg.keys():
-                        mod.config[conf] = modcfg[conf]
-                    else:
-                        logging.debug("No config value for " + conf)
-                logging.debug(mod.config)
-            try:
-                mod.config_complete()
-            except Exception:
-                logging.exception("Failed to send mod config complete signal")
+            self.send_config_one(mod, db, additional_config)
+
+    def send_config_one(self, mod, db, additional_config=None):
+        if hasattr(mod, "config"):
+            modcfg = db.get(mod.__module__, "__config__", {})
+            logging.debug(modcfg)
+            for conf in mod.config.keys():
+                logging.debug(conf)
+                if conf in additional_config:
+                    mod.config[conf] = ast.literal_eval(additional_config[conf])
+                elif conf in modcfg.keys():
+                    mod.config[conf] = modcfg[conf]
+                else:
+                    logging.debug("No config value for " + conf)
+            logging.debug(mod.config)
+        try:
+            mod.config_complete()
+        except Exception:
+            logging.exception("Failed to send mod config complete signal")
 
     async def send_ready(self, client, db, allclients):
         self._compat_layer.client_ready(client)

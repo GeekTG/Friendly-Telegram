@@ -4,6 +4,7 @@ import logging
 import re
 import sys
 
+from functools import wraps
 
 COMMAND_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_"
 
@@ -258,7 +259,6 @@ class RaphielgangEvents():
 
             def subreg(func):  # ALWAYS return func.
                 logger.debug(kwargs)
-                logger.warning("NI for raphielgang events.register")
                 if not self._setup_complete:
                     setattr(sys.modules[func.__module__], "register", self.register)
                     self._module = func.__module__
@@ -290,6 +290,7 @@ class RaphielgangEvents():
                         logger.error("Unable to identify command correctly, i=" + str(i) + ", pattern=" + pattern)
                         return func
 
+                    @wraps(func)
                     def commandhandler(message):
                         """Closure to execute command when handler activated and regex matched"""
                         logger.debug("Command triggered")
@@ -309,6 +310,7 @@ class RaphielgangEvents():
                 elif kwargs.get("incoming", False):
                     # Watcher-based thing
 
+                    @wraps(func)
                     def subwatcher(message):
                         """Closure to execute watcher when handler activated and regex matched"""
                         match = re.match(message.message, kwargs.get("pattern", ".*"), re.I)

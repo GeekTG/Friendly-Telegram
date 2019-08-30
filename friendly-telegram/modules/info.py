@@ -70,7 +70,7 @@ class InfoMod(loader.Module):
                         done = True
             if not done:
                 reply += "\n" + _("Could not determine Linux distribution")
-        reply += "\n" + _("Python version: ").format(utils.escape_html(platform.python_version()))
+        reply += "\n" + _("Python version: {}").format(utils.escape_html(platform.python_version()))
         reply += '</code>'
         logger.debug(reply)
         await message.edit(reply)

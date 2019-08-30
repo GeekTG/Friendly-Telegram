@@ -20,7 +20,9 @@ import logging
 import sys
 import ast
 import asyncio
+
 from . import utils
+
 MODULES_NAME = "modules"
 
 
@@ -47,6 +49,8 @@ class Modules():
         self.watchers = []
 
     def register_all(self, skip, babelfish):
+        from . import compat  # Avoid circular import
+        self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
                       os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
@@ -60,7 +64,10 @@ class Modules():
                     logging.debug("Not loading module %s because it is blacklisted", mod)
                     continue
                 sys.modules[mod]._ = babelfish.gettext
-                sys.modules[mod].register(self.register_module)
+                try:
+                    sys.modules[mod].register(self.register_module, mod)
+                except TypeError:  # Too many arguments
+                    sys.modules[mod].register(self.register_module)
             except BaseException as e:
                 logging.exception("Failed to load module %s due to:", mod)
             finally:
@@ -80,7 +87,8 @@ class Modules():
         for command in instance.commands:
             # Verify that command does not already exist, or, if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
-                if instance.commands[command].__self__.__class__.__name__ \
+                if hasattr(instance.commands[command], "__self__") and \
+                        instance.commands[command].__self__.__class__.__name__ \
                         != self.commands[command].__self__.__class__.__name__:
                     logging.error("Duplicate command %s", command)
                     continue
@@ -92,7 +100,8 @@ class Modules():
         try:
             if instance.watcher:
                 for watcher in self.watchers:
-                    if watcher.__self__.__class__.__name__ == instance.watcher.__self__.__class__.__name__:
+                    if hasattr(watcher, "__self__") and watcher.__self__.__class__.__name__ \
+                            == instance.watcher.__self__.__class__.__name__:
                         logging.debug("Removing watcher for update " + repr(watcher))
                         self.watchers.remove(watcher)
                 self.watchers += [instance.watcher]
@@ -135,6 +144,7 @@ class Modules():
                 logging.exception("Failed to send mod config complete signal")
 
     async def send_ready(self, client, db, allclients):
+        self._compat_layer.client_ready(client)
         try:
             for m in self.modules:
                 m.allclients = allclients
@@ -150,12 +160,12 @@ class Modules():
                 logging.debug("Removing module for unload" + repr(module))
                 self.modules.remove(module)
         for watcher in self.watchers:
-            if watcher.__self__.__class__.__name__ == classname:
+            if hasattr(watcher, "__self__") and watcher.__self__.__class__.__name__ == classname:
                 worked = True
                 logging.debug("Removing watcher for unload " + repr(watcher))
                 self.watchers.remove(watcher)
         for command in self.commands:
-            if command.__self__.__class__.__name__ == classname:
+            if hasattr(command, "__self__") and command.__self__.__class__.__name__ == classname:
                 worked = True
                 logging.debug("Removing command for unload " + repr(command))
                 self.commands.remove(command)

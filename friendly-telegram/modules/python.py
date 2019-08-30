@@ -87,6 +87,7 @@ class PythonMod(loader.Module):
     """Python stuff"""
     def __init__(self):
         self.name = _("Python")
+        self.allmodules = None
 
     async def client_ready(self, client, db):
         self.client = client

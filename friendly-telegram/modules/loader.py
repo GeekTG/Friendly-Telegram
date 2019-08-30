@@ -66,9 +66,9 @@ class LoaderMod(loader.Module):
             return
         uid = str(uuid.uuid4())
         try:
-            module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod" + uid,
+            module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod_" + uid,
                                                                 StringLoader(doc), origin="<string>"))
-            sys.modules["friendly-telegram.modules.__extmod" + uid] = module
+            sys.modules["friendly-telegram.modules.__extmod_" + uid] = module
             module.__spec__.loader.exec_module(module)
         except BaseException:  # That's okay because it might try to exit or something, who knows.
             await message.edit(_("<code>Loading failed. See logs for details</code>"))

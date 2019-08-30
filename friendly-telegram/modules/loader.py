@@ -15,6 +15,12 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import importlib
+import sys
+import uuid
+
+from importlib.machinery import ModuleSpec
+from importlib.abc import SourceLoader
 
 from .. import loader, utils
 
@@ -23,6 +29,17 @@ logger = logging.getLogger(__name__)
 
 def register(cb):
     cb(LoaderMod())
+
+
+class StringLoader(SourceLoader):
+    def __init__(self, data):
+        self.data = data
+
+    def get_filename(self, fullname):
+        return "<string>"  # We really don't care
+
+    def get_data(self, filename):
+        return self.data
 
 
 class LoaderMod(loader.Module):
@@ -47,18 +64,21 @@ class LoaderMod(loader.Module):
         except UnicodeDecodeError:
             await message.edit(_("<code>Invalid Unicode formatting in module</code>"))
             return
-        globs = globals().copy()
+        uid = str(uuid.uuid4())
         try:
-            exec(doc, globs)  # Pass our own globals, but that means we must be sure not to set any.
+            module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod" + uid,
+                                                                StringLoader(doc), origin="<string>"))
+            sys.modules["friendly-telegram.modules.__extmod" + uid] = module
+            module.__spec__.loader.exec_module(module)
         except BaseException:  # That's okay because it might try to exit or something, who knows.
             await message.edit(_("<code>Loading failed. See logs for details</code>"))
             logging.exception("Loading external module failed.")
             return
-        if "register" not in globs:
+        if "register" not in vars(module):
             await message.edit(_("<code>Module did not expose correct API"))
-            logging.error("Module does not have register(), it has " + globs)
+            logging.error("Module does not have register(), it has " + repr(vars(module)))
             return
-        globs["register"](self.allmodules.register_module)  # Invoke generic registration
+        vars(module)["register"](self.allmodules.register_module)  # Invoke generic registration
 
     async def unloadmodcmd(self, message):
         """Unload module by class name"""

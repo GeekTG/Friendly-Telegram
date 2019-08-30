@@ -56,7 +56,7 @@ def get_args_split_by(message, s):
 
 def get_chat_id(message):
     chat = message.to_id
-    attrs = chat.__dict__
+    attrs = vars(chat)
     if len(attrs) != 1:
         return None
     return next(iter(attrs.values()))
@@ -109,7 +109,7 @@ def run_async(loop, coro):
 
 def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
     """May modify the original object, but don't rely on it"""
-    for k, v in obj.__dict__.items():
+    for k, v in vars(obj).items():
         if k in to_censor:
             setattr(obj, k, replace_with.format(count=len(v)))
         elif k[0] != "_" and hasattr(v, "__dict__"):

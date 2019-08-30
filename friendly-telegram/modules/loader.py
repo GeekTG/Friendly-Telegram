@@ -93,7 +93,7 @@ class LoaderMod(loader.Module):
         vars(module)["register"](self.register_and_configure)  # Invoke generic registration
         await self._pending_setup.pop()
 
-    async def register_and_configure(self, instance):
+    def register_and_configure(self, instance):
         self.allmodules.register_module(instance)
         self.allmodules.send_config_one(instance, self._db, None)
         self._pending_setup.append(instance.client_ready(self._client, self._db))

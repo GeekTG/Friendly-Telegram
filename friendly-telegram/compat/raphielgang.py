@@ -44,6 +44,9 @@ class MarkdownBotPassthrough():
     def __setattr__(self, name, value):
         self.__dict__[name] = value
 
+    def __call__(self, *args, **kwargs):
+        self.__under.__call__(*args, **kwargs)
+
 
 class RaphielgangConfig():
     def __init__(self, clients):

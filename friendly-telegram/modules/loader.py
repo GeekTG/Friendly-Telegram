@@ -55,10 +55,20 @@ class LoaderMod(loader.Module):
         else:
             msg = (await message.get_reply_message())
         if msg is None or msg.media is None:
-            await message.edit(_("<code>Provide a module to load</code>"))
-            return
+            args = utils.get_args(message)
+            if len(args) == 1:
+                try:
+                    with open(args[0], "rb") as f:
+                        doc = f.read()
+                except FileNotFoundError:
+                    await message.edit(_("<code>File not found</code>"))
+                    return
+            else:
+                await message.edit(_("<code>Provide a module to load</code>"))
+                return
+        else:
+            doc = await msg.download_media(bytes)
         logger.debug("Loading external module...")
-        doc = await msg.download_media(bytes)
         try:
             doc = doc.decode("utf-8")
         except UnicodeDecodeError:
@@ -68,6 +78,7 @@ class LoaderMod(loader.Module):
         try:
             module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod_" + uid,
                                                                 StringLoader(doc), origin="<string>"))
+            module._ = _
             sys.modules["friendly-telegram.modules.__extmod_" + uid] = module
             module.__spec__.loader.exec_module(module)
         except BaseException:  # That's okay because it might try to exit or something, who knows.

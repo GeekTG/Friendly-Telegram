@@ -1,7 +1,5 @@
 from .. import loader
 
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel
-
 import logging
 import re
 import sys
@@ -33,6 +31,8 @@ class MarkdownBotPassthrough():
         return self.__under.send_message(*args, **kwargs)
 
     def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
         if name == "edit":
             return self.__edit
         if name == "send_message":
@@ -40,6 +40,9 @@ class MarkdownBotPassthrough():
         if name == "client":
             return type(self)(self.__under.client)  # Recurse
         return getattr(self.__under, name)
+
+    def __setattr__(self, name, value):
+        self.__dict__[name] = value
 
 
 class RaphielgangConfig():
@@ -277,7 +280,7 @@ class RaphielgangEvents():
                         return func
                     # Find first non-alpha character and get all chars before it
                     i = 0
-                    while pattern[i] in COMMAND_CHARS:
+                    while i < len(pattern) and pattern[i] in COMMAND_CHARS:
                         i += 1
                     cmd = pattern[:i]
                     if not len(cmd):
@@ -291,12 +294,11 @@ class RaphielgangEvents():
                         match = re.match(kwargs["pattern"], message.message, re.I)
                         if match:
                             logger.debug("and matched")
-                            event = message
+                            event = MarkdownBotPassthrough(message)
                             # Try to emulate the expected format for an event
                             event.text = list(str(message.message))
                             event.pattern_match = match
                             event.message = MarkdownBotPassthrough(message)
-                            event = MarkdownBotPassthrough(event)
                             return func(event)  # Return a coroutine
                         else:
                             logger.debug("but not matched cmd " + message.message + " regex " + kwargs["pattern"])
@@ -310,12 +312,11 @@ class RaphielgangEvents():
                         if match:
                             event = message
                             # Try to emulate the expected format for an event
-                            event.is_private = isinstance(message.to_id, PeerUser)
-                            event.is_group = isinstance(message.to_id, PeerChat) or message.from_id is None
-                            event.is_channel = isinstance(message.to_id, PeerChannel)
-                            event.message = message
+                            event = MarkdownBotPassthrough(message)
+                            # Try to emulate the expected format for an event
                             event.text = list(str(message.message))
                             event.pattern_match = match
+                            event.message = MarkdownBotPassthrough(message)
                             return func(event)  # Return a coroutine
                     self._watchers += [subwatcher]  # Add to list of watchers so we can call later.
                 else:

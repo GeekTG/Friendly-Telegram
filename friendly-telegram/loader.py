@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import importlib
+import importlib.util
 import os
 import logging
 import sys
@@ -56,25 +57,25 @@ class Modules():
                       os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
         logging.debug(mods)
         for mod in mods:
-            mod = mod[:-3]  # Cut .py
             try:
-                importlib.import_module("." + MODULES_NAME + "." + mod, __package__)
-                mod = __package__ + "." + MODULES_NAME + "." + mod  # FQN
-                if mod in skip:
-                    logging.debug("Not loading module %s because it is blacklisted", mod)
+                module_name = __package__ + "." + MODULES_NAME + "." + mod[:-3]  # FQN
+                if module_name in skip:
+                    logging.debug("Not loading module %s because it is blacklisted", module_name)
                     continue
-                sys.modules[mod]._ = babelfish.gettext
+                logging.debug(module_name)
+                logging.debug(os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
+                spec = importlib.util.spec_from_file_location(module_name,
+                                                              os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
+                module = importlib.util.module_from_spec(spec)
+                sys.modules[module_name] = module
+                spec.loader.exec_module(module)
+                module._ = babelfish.gettext
                 try:
-                    sys.modules[mod].register(self.register_module, mod)
+                    module.register(self.register_module, module_name)
                 except TypeError:  # Too many arguments
-                    sys.modules[mod].register(self.register_module)
+                    module.register(self.register_module)
             except BaseException as e:
                 logging.exception("Failed to load module %s due to:", mod)
-            finally:
-                try:
-                    del sys.modules[mod]
-                except BaseException as e:
-                    logging.exception("Failed to clear namespace of module %s due to:", mod)
 
     def register_module(self, instance):
         if not issubclass(instance.__class__, Module):

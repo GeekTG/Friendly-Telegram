@@ -1,52 +1,15 @@
 from .. import loader
 
+from .util import get_cmd_name, MarkdownBotPassthrough
+
 import logging
 import re
 import sys
 
 from functools import wraps
 
-COMMAND_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_"
-
 
 logger = logging.getLogger(__name__)
-
-
-class MarkdownBotPassthrough():
-    def __init__(self, under):
-        self.__under = under
-
-    def __edit(self, *args, **kwargs):
-        logging.debug("Forcing markdown for edit")
-        kwargs.update(parse_mode="Markdown")
-        return self.__under.edit(*args, **kwargs)
-
-    def __send_message(self, *args, **kwargs):
-        logging.debug("Forcing markdown for send_message")
-        kwargs.update(parse_mode="Markdown")
-        return self.__under.send_message(*args, **kwargs)
-
-    def __send_file(self, *args, **kwargs):
-        logging.debug("Forcing Markdown for send_file")
-        kwargs.update(parse_mode="Markdown")
-        return self.__under.send_message(*args, **kwargs)
-
-    def __getattr__(self, name):
-        if name in self.__dict__:
-            return self.__dict__[name]
-        if name == "edit":
-            return self.__edit
-        if name == "send_message":
-            return self.__send_message
-        if name == "client":
-            return type(self)(self.__under.client)  # Recurse
-        return getattr(self.__under, name)
-
-    def __setattr__(self, name, value):
-        self.__dict__[name] = value
-
-    def __call__(self, *args, **kwargs):
-        self.__under.__call__(*args, **kwargs)
 
 
 class RaphielgangConfig():
@@ -262,8 +225,8 @@ class RaphielgangEvents():
 
             def subreg(func):  # ALWAYS return func.
                 logger.debug(kwargs)
+                sys.modules[func.__module__].__dict__["registration"] = self.register
                 if not self._setup_complete:
-                    setattr(sys.modules[func.__module__], "register", self.register)
                     self._module = func.__module__
                     self._setup_complete = True
                 if kwargs.get("outgoing", False):
@@ -271,26 +234,8 @@ class RaphielgangEvents():
                     if "pattern" not in kwargs.keys():
                         logger.error("Unable to register for outgoing messages without pattern.")
                         return func
-                    # Find command string: ugly af :)
-                    if kwargs["pattern"] == "(?i)":
-                        pattern = kwargs["pattern"][4:]
-                    else:
-                        pattern = kwargs["pattern"]
-                    if pattern[0] == "^":
-                        pattern = pattern[1:]
-                    if pattern[0] == ".":
-                        # That seems to be the normal command prefix
-                        pattern = pattern[1:]
-                    else:
-                        logger.error("Unable to register for non-command-based outgoing messages, pattern=" + pattern)
-                        return func
-                    # Find first non-alpha character and get all chars before it
-                    i = 0
-                    while i < len(pattern) and pattern[i] in COMMAND_CHARS:
-                        i += 1
-                    cmd = pattern[:i]
-                    if not len(cmd):
-                        logger.error("Unable to identify command correctly, i=" + str(i) + ", pattern=" + pattern)
+                    cmd = get_cmd_name(kwargs["pattern"])
+                    if not cmd:
                         return func
 
                     @wraps(func)

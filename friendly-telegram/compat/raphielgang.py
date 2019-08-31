@@ -58,7 +58,7 @@ class RaphielgangConfig():
                         "LASTFM_SECRET", "LASTFM_USERNAME", "LASTFM_PASSWORD_PLAIN", "LASTFM_PASS", "lastfm",
                         "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA", "GDRIVE_FOLDER_ID",
                         "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG", "ENABLE_KILLME",
-                        "CMD_HELP"]
+                        "CMD_HELP", "BRAIN_CHECKER", "is_mongo_alive"]
 
         self.bots = clients
 
@@ -211,6 +211,9 @@ class RaphielgangConfig():
             " ̷",
             " ͡",
         ]]
+        self.BRAIN_CHECKER = []
+        self.is_mongo_alive = lambda: False
+        self.is_redis_alive = lambda: False
 
     @property
     def bot(self):

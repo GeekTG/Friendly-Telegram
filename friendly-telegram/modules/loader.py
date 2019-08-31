@@ -23,6 +23,7 @@ from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
 
 from .. import loader, utils
+from ..compat import uniborg
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,7 @@ class LoaderMod(loader.Module):
         try:
             module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod_" + uid,
                                                                 StringLoader(doc), origin="<string>"))
+            module.borg = uniborg.UniborgClient()
             module._ = _
             sys.modules["friendly-telegram.modules.__extmod_" + uid] = module
             module.__spec__.loader.exec_module(module)

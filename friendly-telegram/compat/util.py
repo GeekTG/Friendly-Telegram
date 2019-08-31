@@ -7,6 +7,7 @@ COMMAND_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_"
 
 def get_cmd_name(pattern):
     # Find command string: ugly af :)
+    logger.debug(pattern)
     if pattern == "(?i)":
         pattern = pattern[4:]
     if pattern[0] == "^":
@@ -14,6 +15,9 @@ def get_cmd_name(pattern):
     if pattern[0] == ".":
         # That seems to be the normal command prefix
         pattern = pattern[1:]
+    elif pattern[:2] == "\.":
+        # That seems to be the normal command prefix
+        pattern = pattern[2:]
     else:
         logger.error("Unable to register for non-command-based outgoing messages, pattern=" + pattern)
         return False

@@ -5,10 +5,11 @@ from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 
 from .raphielgang import RaphielgangConfig, RaphielgangEvents
+from .uniborg import UniborgUtil, Uniborg
 
 
 # When a name is matched, the import is overriden, and our custom object is returned
-modules = {"userbot": RaphielgangConfig, "userbot.events": RaphielgangEvents}
+modules = {"userbot": RaphielgangConfig, "userbot.events": RaphielgangEvents, "uniborg": Uniborg, "uniborg.util": UniborgUtil}
 
 
 class BotCompat(MetaPathFinder, Loader):

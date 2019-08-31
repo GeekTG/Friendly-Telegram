@@ -1,12 +1,15 @@
 # flake8: noqa: I didnt finish coding it lol
 
 from .util import get_cmd_name, MarkdownBotPassthrough
+from .. import loader
 
 from functools import wraps
-from inspect import signature
+from inspect import signature, Parameter
 
 import logging
 import telethon
+import sys
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +18,7 @@ class UniborgClient:
         def __init__(self, borg):
             self._borg = borg
             self.commands = borg._commands
+            print(self.commands)
             self.name = "UniborgShim__" + borg._module
 
         async def watcher(self, message):
@@ -25,28 +29,29 @@ class UniborgClient:
 
     def __init__(self):
         self._storage = None  # TODO
+        self._commands = {}
+        self._watchers = []
 
     def on(self, event):
         def subreg(func):
             logger.debug(event)
             sig = signature(func)
-            newsig = sig.replace(parameters=tuple(sig.parameters) + (Parameter("borg", KEYWORD_ONLY),
-                                                                     Parameter("logger", KEYWORD_ONLY),
-                                                                     Parameter("storage", KEYWORD_ONLY)))
+            newsig = sig.replace(parameters=list(sig.parameters.values()) + [Parameter("borg", Parameter.KEYWORD_ONLY),
+                                                                     Parameter("logger", Parameter.KEYWORD_ONLY),
+                                                                     Parameter("storage", Parameter.KEYWORD_ONLY)])
             logger.debug(newsig)
             func.__signature__ = newsig
-
+            logger.debug(signature(func))
             self._module = func.__module__
 
             sys.modules[self._module].__dict__["register"] = self.registerfunc
-            sys.modules[self._module].
 
             if event.outgoing:
                 # Command based thing
                 if not event.pattern:
                     logger.error("Unable to register for outgoing messages without pattern.")
                     return func
-                cmd = get_cmd_name(event.pattern)
+                cmd = get_cmd_name(event.pattern.__self__.pattern)
                 if not cmd:
                     return func
 
@@ -54,20 +59,21 @@ class UniborgClient:
                 def commandhandler(message):
                     """Closure to execute command when handler activated and regex matched"""
                     logger.debug("Command triggered")
-                    match = re.match(event.pattern, message.message, re.I)
+                    match = re.match(event.pattern.__self__.pattern, "." + message.message, re.I)
                     if match:
                         logger.debug("and matched")
                         message.message = "." + message.message  # Framework strips prefix, give them a generic one
-                        event = MarkdownBotPassthrough(message)
+                        event2 = MarkdownBotPassthrough(message)
                         # Try to emulate the expected format for an event
-                        event.text = list(str(message.message))
-                        event.pattern_match = match
-                        event.message = MarkdownBotPassthrough(message)
+                        event2.text = list(str(message.message))
+                        event2.pattern_match = match
+                        event2.message = MarkdownBotPassthrough(message)
                         # TODO storage
-                        return func(event, borg=event.client, logger=logging.getLogger(func.__module__), storage=self._storage)
+                        return func(event2, borg=event2.client, logger=logging.getLogger(func.__module__), storage=self._storage)
                         # Return a coroutine
                     else:
-                        logger.debug("but not matched cmd " + message.message + " regex " + kwargs["pattern"])
+                        logger.debug("but not matched cmd " + message.message + " regex " + event.pattern.__self__.pattern)
+                self._commands[cmd] = commandhandler
             elif event.incoming:
                 @wraps(func)
                 def watcherhandler(message):
@@ -89,6 +95,10 @@ class UniborgClient:
             return func
         return subreg
 
+
+class Uniborg:
+    def __init__(self, clients):
+        self.__all__ = "util"
 
 class UniborgUtil:
     def __init__(self, clients):

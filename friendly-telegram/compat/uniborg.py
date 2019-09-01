@@ -1,4 +1,4 @@
-# flake8: noqa: I didnt finish coding it lol
+# flake8: noqa: I utterly gave up and killed myself. 
 
 from .util import get_cmd_name, MarkdownBotPassthrough
 from .. import loader
@@ -10,6 +10,7 @@ import logging
 import telethon
 import sys
 import re
+import types
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +37,9 @@ class UniborgClient:
         def subreg(func):
             logger.debug(event)
             sig = signature(func)
-            newsig = sig.replace(parameters=list(sig.parameters.values()) + [Parameter("borg", Parameter.KEYWORD_ONLY),
-                                                                     Parameter("logger", Parameter.KEYWORD_ONLY),
-                                                                     Parameter("storage", Parameter.KEYWORD_ONLY)])
-            logger.debug(newsig)
-            func.__signature__ = newsig
-            logger.debug(signature(func))
-            self._module = func.__module__
+            logger.debug(sig)
 
+            self._module = func.__module__
             sys.modules[self._module].__dict__["register"] = self.registerfunc
 
             if event.outgoing:
@@ -69,7 +65,52 @@ class UniborgClient:
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
                         # TODO storage
-                        return func(event2, borg=event2.client, logger=logging.getLogger(func.__module__), storage=self._storage)
+
+                        import dis
+                        co = func.__code__
+                        logger.debug(co.co_varnames)
+                        logger.debug(co.co_names)
+                        logger.debug(co.co_code)
+                        dis.dis(co)
+
+                        LOAD_GLOBAL = b't'
+                        STORE_FAST = b'}'
+                        inject_code = LOAD_GLOBAL  # Load global var passed via eval()
+                        inject_code += bytes([len(co.co_names)])  # Set it to one higher than the final global
+                        inject_code += STORE_FAST  # Store...
+                        inject_code += bytes([0])  # ... to 0th local, which is the param
+                        dis.dis(inject_code)
+#                        inject_names = (co.co_varnames[0],)
+                        inject_names = ("__event__",)
+
+                        code = types.CodeType(co.co_argcount - 1,  # Remove the argument
+                                              co.co_kwonlyargcount,
+                                              co.co_nlocals,
+                                              co.co_stacksize,
+                                              co.co_flags,
+                                              inject_code + co.co_code,
+                                              co.co_consts,
+                                              co.co_names + inject_names,
+                                              co.co_varnames,
+                                              co.co_filename,
+                                              co.co_name,
+                                              co.co_firstlineno,
+                                              co.co_lnotab,
+                                              co.co_freevars,
+                                              co.co_cellvars)
+                        dis.dis(code)
+                        dis.show_code(code)
+
+                        globs = vars(sys.modules[func.__module__])  # Keep context
+                        # Pass params as locals because its genuinely the cleanest way
+#                        params = {list(sig.parameters.keys())[0]: event2}
+                        params = {"__event__": event2}
+                        params.update(borg=event2.client)
+                        params.update(logger=logging.getLogger(func.__module__))
+                        params.update(storage=self._storage)
+                        logger.debug(params)
+                        globs.update(params)
+                        return eval(code, globs, params)
                         # Return a coroutine
                     else:
                         logger.debug("but not matched cmd " + message.message + " regex " + event.pattern.__self__.pattern)
@@ -107,3 +148,5 @@ class UniborgUtil:
     def admin_cmd(self, **kwargs):
         """Uniborg uses this for sudo users but we don't have that concept."""
         return telethon.events.NewMessage(**kwargs)
+
+# If you try to revive this code, careful not to die inside along the way

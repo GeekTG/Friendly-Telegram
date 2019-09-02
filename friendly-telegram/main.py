@@ -254,7 +254,7 @@ async def amain(client, cfg, allclients, setup=False):
             jdb = await db.do_download()
             try:
                 pdb = json.loads(jdb)
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError, TypeError:
                 pdb = {}
             pdb = run_config(pdb, getattr(c, 'phone', "Unknown Number"))
             try:

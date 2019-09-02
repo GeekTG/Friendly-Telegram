@@ -25,14 +25,19 @@ class UniborgClient:
             for w in self._borg._watchers:
                 w(message)
 
+        async def client_ready(self, client, db):
+            self._client = client
+
     def registerfunc(self, cb):
-        cb(type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self))
+        self._wrapper = type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self)
+        cb(self._wrapper)
 
     def __init__(self):
         self._storage = None  # TODO
         self._config = UniborgConfig()
         self._commands = {}
         self._watchers = []
+        self._wrapper = None  # Set in registerfunc
 
     def on(self, event):
         def subreg(func):
@@ -40,7 +45,6 @@ class UniborgClient:
 
             self._module = func.__module__
             sys.modules[self._module].__dict__["register"] = self.registerfunc
-            sys.modules[self._module].__dict__["borg"] = self
             sys.modules[self._module].__dict__["logger"] = logging.getLogger(self._module)
             sys.modules[self._module].__dict__["storage"] = self._storage
             sys.modules[self._module].__dict__["Config"] = self._config
@@ -67,6 +71,9 @@ class UniborgClient:
                         event2.text = list(str(message.message))
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
+
+                        # Put it off as long as possible so event handlers register
+                        sys.modules[self._module].__dict__["borg"] = self._wrapper._client
 
                         return func(event2)
                         # Return a coroutine

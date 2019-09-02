@@ -50,7 +50,7 @@ class Modules():
         self.watchers = []
 
     def register_all(self, skip, babelfish):
-        # from .compat import uniborg  # Uniborg is disabled because it Doesn't Work™️.
+        from .compat import uniborg  # Uniborg is disabled because it Doesn't Work™️.
         from . import compat  # Avoid circular import
         self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
@@ -68,7 +68,7 @@ class Modules():
                 spec = importlib.util.spec_from_file_location(module_name,
                                                               os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 module = importlib.util.module_from_spec(spec)
-                # module.borg = uniborg.UniborgClient()  # Uniborg is disabled because it Doesn't Work™️.
+                module.borg = uniborg.UniborgClient()  # Uniborg is disabled because it Doesn't Work™️.
                 sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
                 spec.loader.exec_module(module)
                 module._ = babelfish.gettext

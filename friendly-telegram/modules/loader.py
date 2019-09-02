@@ -84,9 +84,9 @@ class LoaderMod(loader.Module):
             module._ = _
             sys.modules["friendly-telegram.modules.__extmod_" + uid] = module
             module.__spec__.loader.exec_module(module)
-        except BaseException:  # That's okay because it might try to exit or something, who knows.
+        except Exception:  # That's okay because it might try to exit or something, who knows.
+            logger.exception("Loading external module failed.")
             await message.edit(_("<code>Loading failed. See logs for details</code>"))
-            logging.exception("Loading external module failed.")
             return
         if "register" not in vars(module):
             await message.edit(_("<code>Module did not expose correct API"))

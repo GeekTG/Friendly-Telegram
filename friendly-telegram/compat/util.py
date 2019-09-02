@@ -15,7 +15,7 @@ def get_cmd_name(pattern):
     if pattern[0] == ".":
         # That seems to be the normal command prefix
         pattern = pattern[1:]
-    elif pattern[:2] == "\.":
+    elif pattern[:2] == r"\.":
         # That seems to be the normal command prefix
         pattern = pattern[2:]
     else:

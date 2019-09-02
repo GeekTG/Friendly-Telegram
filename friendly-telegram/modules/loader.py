@@ -94,6 +94,7 @@ class LoaderMod(loader.Module):
             return
         vars(module)["register"](self.register_and_configure)  # Invoke generic registration
         await self._pending_setup.pop()
+        await message.edit(_("<code>Module loaded.</code>"))
 
     def register_and_configure(self, instance):
         self.allmodules.register_module(instance)

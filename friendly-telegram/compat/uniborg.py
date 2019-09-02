@@ -19,14 +19,14 @@ class UniborgClient:
             self._borg = borg
             self.commands = borg._commands
             print(self.commands)
-            self.name = "UniborgShim__" + borg._module
+            self.name = type(self).__name__
 
         async def watcher(self, message):
             for w in self._borg._watchers:
                 w(message)
 
     def registerfunc(self, cb):
-        cb(type("__UniborgShimMod__" + self._module, (self.__UniborgShimMod__Base,), dict())(self))
+        cb(type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self))
 
     def __init__(self):
         self._storage = None  # TODO

@@ -204,7 +204,7 @@ class RaphielgangEvents():
             def __init__(self, events_instance):
                 self._events = events_instance
                 self.commands = events_instance._commands
-                self.name = "RaphielgangShim__" + events_instance._module
+                self.name = type(self).__name__
 
             async def watcher(self, message):
                 for watcher in self._events._watchers:
@@ -220,7 +220,7 @@ class RaphielgangEvents():
             if len(args) >= 1:
                 # This is the register() function in normal ftg modules
                 # Create a fake type, instantiate it with our own self
-                args[0](type("__RaphielgangShimMod__" + self._module, (self.__RaphielgangShimMod__Base,), dict())(self))
+                args[0](type("RaphielgangShim__" + self._module, (self.__RaphielgangShimMod__Base,), dict())(self))
                 return
 
             def subreg(func):  # ALWAYS return func.

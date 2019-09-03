@@ -31,3 +31,5 @@ gtts
 hachoir
 # Updater
 gitpython
+# Lydia
+coffeehouse

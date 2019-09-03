@@ -1,4 +1,4 @@
-if [ "$OSTYPE" = "linux-gnu" ]; then
+if [ "$OSTYPE" = "linux-gnu*" ]; then
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
     sudo "$SHELL" -c '$SHELL <('"$(if which curl >/dev/null; then echo 'curl -Ls'; elif which wget >/dev/null; then echo 'wget -qO-'; fi)"' https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh) '"$@"

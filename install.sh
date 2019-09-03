@@ -36,6 +36,7 @@ else
   SUDO_CMD=""
 fi
 
+[ -d friendly-telegram ] || ${SUDO_CMD}rm -rf friendly-telegram
 ${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { echo "Clone failed."; exit 3; }
 cd friendly-telegram
 ${SUDO_CMD}"python$PYVER" -m pip install cryptg || echo "Cryptg failed"

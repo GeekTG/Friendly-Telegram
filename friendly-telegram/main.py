@@ -122,7 +122,7 @@ async def handle_incoming(modules, db, event):
     message = utils.censor(event.message)
     logging.debug(message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
+    if utils.get_chat_id(message) in blacklist_chats:
         logging.debug("Message is blacklisted")
         return
     for fun in modules.watchers:

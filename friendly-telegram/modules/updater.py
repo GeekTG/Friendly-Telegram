@@ -24,6 +24,7 @@ import sys
 import atexit
 import random
 import git
+import subprocess
 
 from git import Repo
 
@@ -83,8 +84,17 @@ class UpdaterMod(loader.Module):
             repo.heads.master.set_tracking_branch(origin.refs.master)
             repo.heads.master.checkout(True)
 
+    def req_common(self):
+        # Now we have downloaded new code, install requirements
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-r",
+                            os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "--user"])
+        except subprocess.CalledProcessError:
+            logger.exception("Req install failed")
+
     async def updatecmd(self, message):
         """Downloads userbot updates"""
+        # We don't really care about asyncio at this point, as we are shutting down
         await message.edit(_("Downloading..."))
         await self.download_common()
         await message.edit(_("Downloaded! Installation in progress."))
@@ -99,6 +109,7 @@ class UpdaterMod(loader.Module):
             self._db.set(__name__, "selfupdatemsg", None)
             await message.edit(_("Already up-to-date!"))
         else:
+            self.req_common()
             await self.restart_common(message)
 
     async def client_ready(self, client, db):

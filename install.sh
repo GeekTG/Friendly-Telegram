@@ -6,7 +6,7 @@ if [ "$OSTYPE" = "linux-gnu" ]; then
   fi
   PKGMGR="apt"
   apt update
-  PYVER="3"
+  PYVER="3.7"
 elif [ "$OSTYPE" = "linux-android" ]; then
   PKGMGR="pkg"
   PYVER=""

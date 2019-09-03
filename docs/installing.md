@@ -21,35 +21,37 @@ This is split into several methods, one for each supported OS.
 3. Install optional modular dependencies (required for some modules)
 ```
 # Pillow for stickers/kang
-sudo apt install python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 libcairo2
+sudo apt install python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5
+# Cairo for animated stickers
+sudo apt install libffi-dev libcairo2
 # Utilities
 sudo apt install neofetch
 # UI
 sudo apt install dialog
 ```
 
-1. Clone the source code
+4. Clone the source code
 ```
 cd
 git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 ```
 
-2. Install requirements
+5. Install requirements
 ```
 python3 -m pip install cryptg
 python3 -m pip install -r requirements.txt
 ```
 
-3. Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
+6. Follow the instructions written [here](https://core.telegram.org/api/obtaining_api_id "here") to get your API key/hash and ID
 
-4. Run the configuration script
+7. Run the configuration script
 `python3 -m friendly-telegram --setup`
 
-5. On the newly opened menu, select "API Key/hash and ID"
+8. On the newly opened menu, select "API Key/hash and ID"
 When prompted, enter your API key/hash and ID
 
-6. Launch the bot:
+9. Launch the bot:
 ```
 cd ~/friendly-telegram
 python3 -m friendly-telegram
@@ -58,7 +60,7 @@ python3 -m friendly-telegram
 ### Termux
 
 ```
-pkg install git python libjpeg-turbo zlib libwebp libffi build-essential dialog neofetch
+pkg install git python libjpeg-turbo zlib libwebp libffi libcairo build-essential dialog neofetch
 git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
 pip install cryptg

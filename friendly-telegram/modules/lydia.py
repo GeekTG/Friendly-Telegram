@@ -61,6 +61,10 @@ class LydiaMod(loader.Module):
         for ident, session in sessions.items():
             if not session["expires"] < t:
                 nsessions.update({ident: session})
+            else:
+                session = self._lydia.get_session(session["id"])
+                if session["available"]:
+                    nsessions.update({ident: session})
         if len(nsessions):
             next = min(*[v["expires"] for k, v in nsessions.items()])
         else:

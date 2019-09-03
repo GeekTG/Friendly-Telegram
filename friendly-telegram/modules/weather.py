@@ -18,6 +18,7 @@
 
 import logging
 import pyowm
+import math
 
 from .. import loader, utils
 
@@ -28,6 +29,15 @@ logger = logging.getLogger(__name__)
 
 def register(cb):
     cb(WeatherMod())
+
+
+def deg_to_text(deg):
+    return ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW",
+            "SW", "WSW", "W", "WNW", "NW", "NNW"][round(deg / 22.5) % 16]
+
+
+def round_to_sf(n, digits):
+    return round(n, digits - 1 - int(math.floor(math.log10(abs(n)))))
 
 
 class WeatherMod(loader.Module):
@@ -71,11 +81,16 @@ class WeatherMod(loader.Module):
         w = await utils.run_sync(func, *args)
         logger.debug(_("Weather at {args} is {w}").format(args=args, w=w))
         try:
-            temp = w.get_weather().get_temperature(self.config["TEMP_UNITS"])
+            weather = w.get_weather()
+            temp = weather.get_temperature(self.config["TEMP_UNITS"])
         except ValueError:
             await message.edit(_("<code>Invalid temperature units provided. Please reconfigure the module.</code>"))
             return
-        ret = _("<code>Weather in {loc} is {w} with a high of {high} and a low of {low}, averaging at {avg}.")
+        ret = _("<code>Weather in {loc} is {w} with a high of {high} and a low of {low}, "
+                + "averaging at {avg} with {humid}% humidity and a {ws}mph {wd} wind.")
         ret = ret.format(loc=eh(w.get_location().get_name()), w=eh(w.get_weather().get_detailed_status().lower()),
-                         high=eh(temp['temp_max']), low=eh(temp['temp_min']), avg=eh(temp['temp']))
+                         high=eh(temp['temp_max']), low=eh(temp['temp_min']), avg=eh(temp['temp']),
+                         humid=eh(weather.get_humidity()),
+                         ws=eh(round_to_sf(weather.get_wind('miles_hour')['speed'], 3)),
+                         wd=eh(deg_to_text(weather.get_wind()['deg'])))
         await message.edit(ret)

@@ -150,7 +150,7 @@ class Modules():
             logging.exception("Failed to send mod config complete signal")
 
     async def send_ready(self, client, db, allclients):
-        self._compat_layer.client_ready(client)
+        await self._compat_layer.client_ready(client)
         try:
             for m in self.modules:
                 m.allclients = allclients

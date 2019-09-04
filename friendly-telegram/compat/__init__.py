@@ -30,11 +30,11 @@ class BotCompat(MetaPathFinder, Loader):
     def exec_module(self, module):
         module.__path__ = []
 
-    def client_ready(self, client):
+    async def client_ready(self, client):
         self.clients += [client]
         for mod in self.created:
             try:
-                mod.client_ready(client)
+                await mod.client_ready(client)
             except BaseException:
                 logging.exception("Failed to send client_ready to compat layer " + repr(mod))
 

@@ -97,6 +97,19 @@ class LydiaMod(loader.Module):
             return
         await message.edit(_("<code>AI enabled for this user. </code>"))
 
+    async def forcelydiacmd(self, message):
+        """Enables Lydia for user in groups"""
+        if message.is_reply:
+            user = (await message.get_reply_message()).from_id
+        else:
+            user = getattr(message.to_id, "user_id", None)
+        if user is None:
+            await message.edit(_("<code>The AI service cannot be enabled or disabled in this chat. "
+                                 + "Is this a group chat?</code>"))
+            return
+        self._db.set(__name__, "force", self._db.get(__name__, "force", []) + [user])
+        await message.edit(_("<code>AI enabled for this user in groups.</code>"))
+
     async def dislydiacmd(self, message):
         """Disables Lydia for the target user"""
         if message.is_reply:
@@ -108,20 +121,24 @@ class LydiaMod(loader.Module):
                                  + "Is this a group chat?</code>"))
             return
         self._db.set(__name__, "allow", self._db.get(__name__, "allow", []) + [user])
+        old = self._db.get(__name__, "force", [])
+        try:
+            old.remove(user)
+            self._db.set(__name__, "force", old)
+        except ValueError:
+            pass
         await message.edit(_("<code>AI disabled for this user.</code>"))
 
     async def watcher(self, message):
         if self.config["CLIENT_KEY"] == "":
             logger.debug("no key set for lydia, returning")
             return
-        if getattr(message.to_id, 'user_id', None) == self._me.id:
-            logger.debug("pm'd!")
+        if (isinstance(message.to_id, types.PeerUser) and not self.get_allowed(message.from_id)) or \
+                (self.get_forced(message.from_id) and not isinstance(message.to_id, types.PeerUser)):
             user = await utils.get_user(message)
             if user.is_self or user.bot or user.verified:
                 logger.debug("User is self, bot or verified.")
                 return
-            if self.get_allowed(message.from_id):
-                logger.debug("PM received from user who is not using AI service")
             else:
                 if not isinstance(message.message, str):
                     return
@@ -134,12 +151,12 @@ class LydiaMod(loader.Module):
                 try:
                     # Get a session
                     sessions = self._db.get(__name__, "sessions", {})
-                    session = sessions.get(message.from_id, None)
+                    session = sessions.get(utils.get_chat_id(message), None)
                     if session is None or session["expires"] < time.time():
                         session = await utils.run_sync(self._lydia.create_session)
                         session = {"session_id": session.id, "expires": session.expires}
                         logger.debug(session)
-                        sessions[message.from_id] = session
+                        sessions[utils.get_chat_id(message)] = session
                         logger.debug(sessions)
                         self._db.set(__name__, "sessions", sessions)
                         if self._cleanup is not None:
@@ -150,7 +167,7 @@ class LydiaMod(loader.Module):
                     msg = message.message
                     airesp = await utils.run_sync(self._lydia.think_thought, session["session_id"], str(msg))
                     logger.debug("AI says %s", airesp)
-                    if random.randint(0, 1):
+                    if random.randint(0, 1) and isinstance(message.to_id, types.PeerUser):
                         await message.respond(airesp)
                     else:
                         await message.reply(airesp)
@@ -162,3 +179,6 @@ class LydiaMod(loader.Module):
 
     def get_allowed(self, id):
         return id in self._db.get(__name__, "allow", [])
+
+    def get_forced(self, id):
+        return id in self._db.get(__name__, "force", [])

@@ -1,4 +1,4 @@
-if [ "$OSTYPE" = "linux-gnu"* ]; then
+if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
     sudo "$SHELL" -c '$SHELL <('"$(if which curl >/dev/null; then echo 'curl -Ls'; elif which wget >/dev/null; then echo 'wget -qO-'; fi)"' https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh) '"$@"
@@ -10,7 +10,7 @@ if [ "$OSTYPE" = "linux-gnu"* ]; then
 elif [ "$OSTYPE" = "linux-android" ]; then
   PKGMGR="pkg"
   PYVER=""
-elif [ "$OSTYPE" = "darwin"* ]; then
+elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   echo "macOS not yet supported by automated install script. Please go to https://github.com/friendly-telegram/friendly-telegram/#mac-os-x"
   exit 1
 else

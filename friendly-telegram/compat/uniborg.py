@@ -18,7 +18,6 @@ class UniborgClient:
         def __init__(self, borg):
             self._borg = borg
             self.commands = borg._commands
-            print(self.commands)
             self.name = type(self).__name__
 
         async def watcher(self, message):

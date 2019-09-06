@@ -90,6 +90,7 @@ class Modules():
             # Verify that command does not already exist, or, if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
                 if hasattr(instance.commands[command], "__self__") and \
+                        hasattr(self.commands[command], "__self__") and \
                         instance.commands[command].__self__.__class__.__name__ \
                         != self.commands[command].__self__.__class__.__name__:
                     logging.error("Duplicate command %s", command)

@@ -177,6 +177,7 @@ class RaphielgangConfig():
         self.BRAIN_CHECKER = []
         self.is_mongo_alive = lambda: False
         self.is_redis_alive = lambda: False
+        self.CURRENCY_API = None
 
         self.__passthrus = []
 

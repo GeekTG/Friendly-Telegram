@@ -77,12 +77,13 @@ class LoaderMod(loader.Module):
             await message.edit(_("<code>Invalid Unicode formatting in module</code>"))
             return
         uid = str(uuid.uuid4())
+        module_name = "friendly-telegram.modules.__extmod_" + uid
         try:
             module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod_" + uid,
                                                                 StringLoader(doc), origin="<string>"))
             module.borg = uniborg.UniborgClient()
             module._ = _
-            sys.modules["friendly-telegram.modules.__extmod_" + uid] = module
+            sys.modules[module_name] = module
             module.__spec__.loader.exec_module(module)
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")
@@ -92,7 +93,10 @@ class LoaderMod(loader.Module):
             await message.edit(_("<code>Module did not expose correct API"))
             logging.error("Module does not have register(), it has " + repr(vars(module)))
             return
-        vars(module)["register"](self.register_and_configure)  # Invoke generic registration
+        try:
+            module.register(self.register_and_configure, module_name)
+        except TypeError:
+            module.register(self.register_and_configure)
         await self._pending_setup.pop()
         await message.edit(_("<code>Module loaded.</code>"))
 

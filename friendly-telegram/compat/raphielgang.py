@@ -290,9 +290,11 @@ class RaphielgangEvents():
 
     def register(self, *args, **kwargs):
         if len(args) == 2:
-            logger.debug("Regiser2 for " + args[1])
+            logger.debug("Register2 for " + args[1])
             self.instances[args[1]].register(args[0])  # Passthrough if we have enough info
+            logger.debug("Completed register2")
         elif len(args) != 0:
+            logger.error(args)
             raise TypeError("Takes exactly 2 or 0 params")
 
         def subreg(func):

@@ -7,6 +7,7 @@ if [ -d "friendly-telegram" ]; then
     cd friendly-telegram
   fi
   "python$PYVER" -m friendly-telegram
+  exit $?
 fi
 
 

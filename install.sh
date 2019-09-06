@@ -1,3 +1,15 @@
+if [ -d "friendly-telegram" ]; then
+  PYVER=""
+  if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
+    PYVER="3"
+  fi
+  if [ -d "friendly-telegram/friendly-telegram" ]; then
+    cd friendly-telegram
+  fi
+  "python$PYVER" -m friendly-telegram
+fi
+
+
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments

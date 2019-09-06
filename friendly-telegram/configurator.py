@@ -82,7 +82,7 @@ modules = loader.Modules()
 # TODO load the language settings from the same place as main does, when i implement that into main
 modules.register_all([], Translator())
 
-global db
+global db  # eww... meh.
 
 
 def validate_value(string):
@@ -146,9 +146,8 @@ def api_config():
         string1 = 'HASH = "' + string + '"'
         code, string = d.inputbox("Enter your API ID")
         string2 = 'ID = "' + string + '"'
-        f = open(os.path.join(utils.get_base_dir(), "api_token.py"), "w")
-        f.write(string1 + "\n" + string2 + "\n")
-        f.close()
+        with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as f:
+            f.write(string1 + "\n" + string2 + "\n")
         d.msgbox("API Token and ID set.")
 
 

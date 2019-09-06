@@ -19,7 +19,6 @@ import importlib.util
 import os
 import logging
 import sys
-import ast
 import asyncio
 
 from . import utils
@@ -127,19 +126,17 @@ class Modules():
                 logging.debug("found command")
                 return self.commands[com](message)  # Returns a coroutine
 
-    def send_config(self, db, additional_config=None):
+    def send_config(self, db):
         for mod in self.modules:
-            self.send_config_one(mod, db, additional_config)
+            self.send_config_one(mod, db)
 
-    def send_config_one(self, mod, db, additional_config=None):
+    def send_config_one(self, mod, db):
         if hasattr(mod, "config"):
             modcfg = db.get(mod.__module__, "__config__", {})
             logging.debug(modcfg)
             for conf in mod.config.keys():
                 logging.debug(conf)
-                if conf in additional_config:
-                    mod.config[conf] = ast.literal_eval(additional_config[conf])
-                elif conf in modcfg.keys():
+                if conf in modcfg.keys():
                     mod.config[conf] = modcfg[conf]
                 else:
                     logging.debug("No config value for " + conf)

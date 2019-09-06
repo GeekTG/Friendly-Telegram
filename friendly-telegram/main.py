@@ -140,8 +140,6 @@ def run_config(db, phone=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--setup", "-s", action="store_true")
-    parser.add_argument("--config", "-c", action="append")
-    parser.add_argument("--value", "-v", action="append")
     parser.add_argument("--phone", "-p", action="append")
     parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
@@ -229,13 +227,10 @@ def main():
         heroku.publish(clients, key, api_token)
         return
 
-    cfg = arguments.config if arguments.config else []
-    vlu = arguments.value if arguments.value else []
-
     loops = []
     for client in clients:
         atexit.register(client.disconnect)
-        loops += [amain(client, dict(zip(cfg, vlu)), clients, arguments.setup)]
+        loops += [amain(client, clients, arguments.setup)]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
                                                    logging.error("Exception on event loop! %s", x["message"],
@@ -243,10 +238,9 @@ def main():
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
 
-async def amain(client, cfg, allclients, setup=False):
+async def amain(client, allclients, setup=False):
     async with client as c:
         await c.start()
-        await client.catch_up()
         c.parse_mode = "HTML"
         if setup:
             db = backend.CloudBackend(c)
@@ -256,7 +250,7 @@ async def amain(client, cfg, allclients, setup=False):
                 pdb = json.loads(jdb)
             except (json.decoder.JSONDecodeError, TypeError):
                 pdb = {}
-            pdb = run_config(pdb, getattr(c, 'phone', "Unknown Number"))
+            pdb = run_config(pdb, getattr(c, "phone", "Unknown Number"))
             try:
                 await db.do_upload(json.dumps(pdb))
             except MessageNotModifiedError:
@@ -269,12 +263,12 @@ async def amain(client, cfg, allclients, setup=False):
         [handler] = logging.getLogger().handlers
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        babelfish = Translator(["en"])
+        babelfish = Translator(["en"])  # TODO
 
         modules = loader.Modules()
         modules.register_all(db.get(__name__, "disable_modules", []), babelfish)
 
-        modules.send_config(db, cfg)
+        modules.send_config(db)
         await modules.send_ready(client, db, allclients)
         client.add_event_handler(functools.partial(handle_incoming, modules, db),
                                  events.NewMessage(incoming=True, forwards=False))

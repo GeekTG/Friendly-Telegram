@@ -48,9 +48,7 @@ def publish(clients, key, api_token=None):
         remote.set_url(url)
     else:
         remote = repo.create_remote("heroku", url)
-    print("Pushing...")
     remote.push(refspec='HEAD:refs/heads/master')
-    print("Pushed")
 
 
 def get_repo():

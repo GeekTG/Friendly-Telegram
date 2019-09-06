@@ -178,12 +178,22 @@ class RaphielgangConfig():
         self.is_mongo_alive = lambda: False
         self.is_redis_alive = lambda: False
 
+        self.__passthrus = []
+
     @property
     def bot(self):
-        return self.bots[0]  # TODO return the right one
+        if not len(self.__passthrus):
+            self.__passthrus += [MarkdownBotPassthrough(self.bots[0] if len(self.bots) else None)]
+        return self.__passthrus[0]  # TODO return the right one
 
     async def client_ready(self, client):
-        self.bots += [MarkdownBotPassthrough(client)]
+        self.bots += [client]
+        logging.debug(len(self.__passthrus))
+        logging.debug(len(self.bots))
+        try:
+            self.__passthrus[len(self.bots) - 1].__under = client  # Ewwww
+        except IndexError:
+            pass
 
 # The core machinery will fail to identify any register() function in the module.
 # So we need to introspect the module and add register(), and a shimmed class to store state

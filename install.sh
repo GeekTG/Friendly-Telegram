@@ -31,16 +31,16 @@ else
   exit 1
 fi
 
-"$PKGMGR" install "python$PYVER" git || { echo "Core install failed."; exit 2; }
+"$PKGMGR" install -y "python$PYVER" git || { echo "Core install failed."; exit 2; }
 
 
 if [ ! "$OSTYPE" = "linux-android" ]; then
-  "$PKGMGR" -y install "python$PYVER-dev" || echo "Python-dev install failed."
-  "$PKGMGR" -y install build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
-  "$PKGMGR" -y install neofetch || echo "Utilities install failed."
-  "$PKGMGR" -y install dialog || echo "UI install failed."
+  "$PKGMGR" install -y "python$PYVER-dev" || echo "Python-dev install failed."
+  "$PKGMGR" install -y build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
+  "$PKGMGR" install -y neofetch || echo "Utilities install failed."
+  "$PKGMGR" install -y dialog || echo "UI install failed."
 else
-  "$PKGMGR" -y install libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
+  "$PKGMGR" install -y libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
 fi
 
 if [ ! x"$SUDO_USER" = x"" ]; then

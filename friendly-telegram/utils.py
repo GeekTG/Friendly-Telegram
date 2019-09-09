@@ -63,11 +63,11 @@ def get_chat_id(message):
 
 
 def escape_html(text):
-    return str(text).replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;")
+    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def escape_quotes(text):
-    return str(text).replace("<", "&lt;").replace(">", "&gt;").replace("&", "&amp;").replace('"', "&quot;")
+    return escape_html(text).replace('"', "&quot;")
 
 
 def get_base_dir():

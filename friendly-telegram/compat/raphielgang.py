@@ -5,6 +5,7 @@ from .util import get_cmd_name, MarkdownBotPassthrough
 import logging
 import re
 import sys
+import asyncio
 
 from functools import wraps
 
@@ -216,6 +217,7 @@ class RaphielgangEvents():
                 self._events = events_instance
                 self.commands = events_instance._commands
                 self.name = type(self).__name__
+                self.unknowns = events_instance._unknowns
 
             async def watcher(self, message):
                 for watcher in self._events._watchers:
@@ -226,6 +228,14 @@ class RaphielgangEvents():
             self._setup_complete = False
             self._watchers = []
             self._commands = {}
+            self._unknowns = []
+
+        def _ensure_unknowns(self):
+            self.commands["raphcmd" + str(self.instance_id)] = self._unknown_command
+
+        def _unknown_command(self, message):
+            message.message = message.message[len("raphcmd" + str(self.instance_id)) + 1:]
+            return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
         def register(self, *args, **kwargs):
             if len(args) >= 1:
@@ -242,18 +252,21 @@ class RaphielgangEvents():
                     self._setup_complete = True
                 if kwargs.get("outgoing", False):
                     # Command-based thing
+                    use_unknown = False
                     if "pattern" not in kwargs.keys():
-                        logger.error("Unable to register for outgoing messages without pattern.")
-                        return func
+                        self._ensure_unknowns()
+                        use_unknown = True
                     cmd = get_cmd_name(kwargs["pattern"])
                     if not cmd:
-                        return func
+                        self._ensure_unknowns()
+                        use_unknown = True
 
                     @wraps(func)
-                    def commandhandler(message):
+                    def commandhandler(message, pre="."):
                         """Closure to execute command when handler activated and regex matched"""
                         logger.debug("Command triggered")
-                        message.message = "." + message.message  # Framework strips prefix, give them a generic one
+                        # Framework strips prefix, give them a generic one
+                        message.message = pre + message.message
                         match = re.match(kwargs["pattern"], message.message, re.I)
                         if match:
                             logger.debug("and matched")
@@ -265,7 +278,10 @@ class RaphielgangEvents():
                             return func(event)  # Return a coroutine
                         else:
                             logger.debug("but not matched cmd " + message.message + " regex " + kwargs["pattern"])
-                    self._commands[cmd] = commandhandler  # Add to list of commands so we can call later
+                    if use_unknown:
+                        self._unknowns += [commandhandler]
+                    else:
+                        self._commands[cmd] = commandhandler  # Add to list of commands so we can call later
                 elif kwargs.get("incoming", False):
                     # Watcher-based thing
 
@@ -287,6 +303,7 @@ class RaphielgangEvents():
                     logger.error("event not incoming or outgoing")
                     return func
                 return func
+            self.instance_id = kwargs["__instance_number"]
             return subreg
 
     def register(self, *args, **kwargs):
@@ -301,6 +318,7 @@ class RaphielgangEvents():
         def subreg(func):
             if func.__module__ not in self.instances:
                 self.instances[func.__module__] = self.RaphielgangEventsSub()
+            kwargs["__instance_number"] = list(self.instances.keys()).index(func.__module__)
             return self.instances[func.__module__].register(**kwargs)(func)
         return subreg
 

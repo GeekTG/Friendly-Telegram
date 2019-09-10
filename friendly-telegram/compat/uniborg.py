@@ -9,11 +9,14 @@ import sys
 import re
 import datetime
 import tempfile
+import asyncio
 
 logger = logging.getLogger(__name__)
 
 
 class UniborgClient:
+    instance_count = 0
+
     class __UniborgShimMod__Base(loader.Module):
         def __init__(self, borg):
             self._borg = borg
@@ -32,11 +35,21 @@ class UniborgClient:
         cb(self._wrapper)
 
     def __init__(self):
+        self.instance_count += 1
+        self.instance_id = self.instance_count
         self._storage = None  # TODO
         self._config = UniborgConfig()
         self._commands = {}
         self._watchers = []
+        self._unknowns = []
         self._wrapper = None  # Set in registerfunc
+
+    def _ensure_unknowns(self):
+        self._commands["borgcmd" + str(self.instance_id)] = self._unknown_command
+
+    def _unknown_command(self, message):
+        message.message = "." + message.message[len("borgcmd" + str(self.instance_id)) + 1:]
+        return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
     def on(self, event):
         def subreg(func):
@@ -51,26 +64,26 @@ class UniborgClient:
             if event.outgoing:
                 # Command based thing
                 if not event.pattern:
-                    logger.error("Unable to register for outgoing messages without pattern.")
-                    return func
+                    self._ensure_unknowns()
+                    use_unknown = True
                 cmd = get_cmd_name(event.pattern.__self__.pattern)
                 if not cmd:
-                    return func
+                    self._ensure_unknowns()
+                    use_unknown = True
 
                 @wraps(func)
-                def commandhandler(message):
+                def commandhandler(message, pre="."):
                     """Closure to execute command when handler activated and regex matched"""
                     logger.debug("Command triggered")
-                    match = re.match(event.pattern.__self__.pattern, "." + message.message, re.I)
+                    match = re.match(event.pattern.__self__.pattern, pre + message.message, re.I)
                     if match:
                         logger.debug("and matched")
-                        message.message = "." + message.message  # Framework strips prefix, give them a generic one
+                        message.message = pre + message.message  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
                         # Try to emulate the expected format for an event
                         event2.text = list(str(message.message))
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
-
                         # Put it off as long as possible so event handlers register
                         sys.modules[self._module].__dict__["borg"] = self._wrapper._client
 
@@ -79,7 +92,10 @@ class UniborgClient:
                     else:
                         logger.debug("but not matched cmd " + message.message
                                      + " regex " + event.pattern.__self__.pattern)
-                self._commands[cmd] = commandhandler
+                if use_unknown:
+                    self._unknowns += [commandhandler]
+                else:
+                    self._commands[cmd] = commandhandler
             elif event.incoming:
                 @wraps(func)
                 def watcherhandler(message):

@@ -35,8 +35,7 @@ class UniborgClient:
         cb(self._wrapper)
 
     def __init__(self):
-        self.instance_count += 1
-        self.instance_id = self.instance_count
+        self.instance_id = -1
         self._storage = None  # TODO
         self._config = UniborgConfig()
         self._commands = {}
@@ -45,6 +44,9 @@ class UniborgClient:
         self._wrapper = None  # Set in registerfunc
 
     def _ensure_unknowns(self):
+        if self.instance_id < 0:
+            type(self).instance_count += 1
+            self.instance_id = type(self).instance_count
         self._commands["borgcmd" + str(self.instance_id)] = self._unknown_command
 
     def _unknown_command(self, message):

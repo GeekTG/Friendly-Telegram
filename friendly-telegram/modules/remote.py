@@ -41,7 +41,7 @@ class RemoteMod(loader.Module):
     instances = {}
 
     def __init__(self):
-        self.config = {"ACCOUNT_NAME": None}
+        self.config = loader.ModuleConfig("ACCOUNT_NAME", None, "What to call this account in .remote commands")
         self.name = _("Remote Control")
         self.commands = {"remote": self.remote_command}
         self.allmodules = None

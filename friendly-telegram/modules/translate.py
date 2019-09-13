@@ -32,7 +32,8 @@ class TranslateMod(loader.Module):
     """Translator"""
     def __init__(self):
         self.commands = {"translate": self.translatecmd}
-        self.config = {"DEFAULT_LANG": "en", "API_KEY": ""}
+        self.config = loader.ModuleConfig("DEFAULT_LANG", "en", "Language to translate to by default",
+                                          "API_KEY", "", "API key from https://translate.yandex.com/developers/keys")
         self.name = _("Translator")
 
     def config_complete(self):

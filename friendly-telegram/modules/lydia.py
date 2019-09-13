@@ -37,7 +37,7 @@ def register(cb):
 class LydiaMod(loader.Module):
     """Talks to a robot instead of a human"""
     def __init__(self):
-        self.config = {"CLIENT_KEY": ""}
+        self.config = loader.ModuleConfig("CLIENT_KEY", "", "The API key for lydia, acquire from @IntellivoidDev")
         self.name = _("Lydia anti-PM")
         self._ratelimit = []
         self._cleanup = None

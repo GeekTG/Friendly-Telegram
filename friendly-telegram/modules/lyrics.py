@@ -29,7 +29,8 @@ def register(cb):
 class LyricsMod(loader.Module):
     """Sings songs"""
     def __init__(self):
-        self.config = {"GENIUS_API_TOKEN": ""}
+        self.config = loader.ModuleConfig("GENIUS_API_TOKEN", "",
+                                          "The LyricsGenius API token from http://genius.com/api-clients")
         self.name = _("Lyrics")
 
     def config_complete(self):

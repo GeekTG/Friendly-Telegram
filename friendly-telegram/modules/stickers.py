@@ -39,7 +39,9 @@ def register(cb):
 class StickersMod(loader.Module):
     """Tasks with stickers"""
     def __init__(self):
-        self.config = {"STICKERS_USERNAME": "Stickers", "STICKER_SIZE": (512, 512), "DEFAULT_STICKER_EMOJI": u"🤔"}
+        self.config = loader.ModuleConfig("STICKERS_USERNAME", "Stickers", "Bot username to create stickers via",
+                                          "STICKER_SIZE", (512, 512), "The size of one sticker",
+                                          "DEFAULT_STICKER_EMOJI", u"🤔", "The emoji to use for stickers by default")
         self.name = _("Stickers")
         self._lock = asyncio.Lock()
 

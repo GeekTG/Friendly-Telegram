@@ -38,7 +38,7 @@ def sgen(agen, loop):
 class TransferShMod(loader.Module):
     """Upload to and from transfer.sh"""
     def __init__(self):
-        self.config = {"UPLOAD_URL": "https://transfer.sh/{}"}
+        self.config = loader.ModuleConfig("UPLOAD_URL", "https://transfer.sh/{}", "Url to PUT to")
         self.name = _("transfer.sh support")
 
     async def uploadshcmd(self, message):

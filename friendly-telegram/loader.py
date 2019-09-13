@@ -26,6 +26,27 @@ from . import utils
 MODULES_NAME = "modules"
 
 
+class ModuleConfig(dict):
+    def __init__(self, *entries):
+        i = 0
+        keys = []
+        values = []
+        docstrings = []
+        for entry in entries:
+            if i % 3 == 0:
+                keys.append(entry)
+            elif i % 3 == 1:
+                values.append(entry)
+            else:
+                docstrings.append(entry)
+            i += 1
+        super().__init__(zip(keys, values))
+        self.docstrings = dict(zip(keys, docstrings))
+
+    def getdoc(self, key):
+        return self.docstrings[key]
+
+
 class Module():
     """There is no help for this module"""
     def __init__(self):
@@ -37,9 +58,6 @@ class Module():
     # Will always be called after config loaded.
     async def client_ready(self, client, db):
         pass
-
-    async def handle_command(self, message):
-        logging.error("NI! handle_command")
 
 
 class Modules():

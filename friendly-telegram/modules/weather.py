@@ -44,7 +44,9 @@ class WeatherMod(loader.Module):
     """Checks the weather
        Get an API key at https://openweathermap.org/appid"""
     def __init__(self):
-        self.config = {"DEFAULT_LOCATION": None, "API_KEY": None, "TEMP_UNITS": "celsius"}
+        self.config = loader.ModuleConfig("DEFAULT_LOCATION", None, "OpenWeatherMap City ID",
+                                          "API_KEY", None, "API Key from https://openweathermap.org/appid",
+                                          "TEMP_UNITS", "celsius", "Temperature unit as English")
         self.name = _("Weather")
         self._owm = None
 

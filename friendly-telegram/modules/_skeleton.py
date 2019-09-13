@@ -30,7 +30,8 @@ def register(cb):
 class YourMod(loader.Module):
     """Description for module"""
     def __init__(self):
-        self.config = {"CONFIG_STRING": _("hello")}
+        self.config = loader.ModuleConfig("CONFIG_STRING", _("hello"),
+                                          "This is what is said, you can edit me with the configurator")
         self.name = _("A Name")
 
     async def examplecmd(self, message):

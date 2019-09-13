@@ -71,7 +71,7 @@ class TDialog():
 TITLE = ""
 
 try:
-    d = Dialog(dialog="dialog")
+    d = Dialog(dialog="dialog", autowidgetsize=True)
 except ExecutableNotFound:
     # Fall back to a terminal based configurator.
     d = TDialog()
@@ -103,7 +103,7 @@ def modules_config():
                 choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
                 for key, value in getattr(mod, "config", {}).items():
                     if key.upper() == key:  # Constants only
-                        choices += [(key, "")]
+                        choices += [(key, getattr(mod.config, "getdoc", lambda k: "")(key))]
                 code, tag = d.menu(TITLE, choices=choices)
                 if code == d.OK:
                     code, string = d.inputbox(tag)

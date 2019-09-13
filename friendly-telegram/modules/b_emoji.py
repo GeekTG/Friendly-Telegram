@@ -28,7 +28,7 @@ def register(cb):
 class BEmojiMod(loader.Module):
     """🅱️-ifies things"""
     def __init__(self):
-        self.config = {"REPLACABLE_CHARS": "bdfgpv"}
+        self.config = loader.ModuleConfig("REPLACABLE_CHARS", "bdfgpv", "Characters that can be replaced with 🅱️")
         self.name = _("🅱️")
 
     async def bcmd(self, message):

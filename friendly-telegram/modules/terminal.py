@@ -35,7 +35,7 @@ class TerminalMod(loader.Module):
     def __init__(self):
         self.commands = {"terminal": self.terminalcmd, "terminate": self.terminatecmd, "kill": self.killcmd,
                          "apt": self.aptcmd, "neofetch": self.neocmd, "uptime": self.upcmd}
-        self.config = {"FLOOD_WAIT_PROTECT": 2}
+        self.config = loader.ModuleConfig("FLOOD_WAIT_PROTECT", 2, "How long to wait in seconds during commands")
         self.name = _("Terminal")
         self.activecmds = {}
 

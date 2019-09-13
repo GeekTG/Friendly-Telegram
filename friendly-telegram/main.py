@@ -271,7 +271,7 @@ async def amain(client, allclients, setup=False):
         modules.send_config(db)
         await modules.send_ready(client, db, allclients)
         client.add_event_handler(functools.partial(handle_incoming, modules, db),
-                                 events.NewMessage(incoming=True, forwards=False))
+                                 events.NewMessage(incoming=True))
         client.add_event_handler(functools.partial(handle_command, modules, db),
                                  events.NewMessage(outgoing=True, forwards=False))
         print("Started")

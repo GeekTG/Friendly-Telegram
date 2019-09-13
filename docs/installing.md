@@ -85,8 +85,8 @@ python -m friendly-telegram
 ```
 git clone https://github.com/friendly-telegram/friendly-telegram
 cd friendly-telegram
-python -m pip install -r requirements.txt
-python -m friendly-telegram
+python3 -m pip install -r requirements.txt
+python3 -m friendly-telegram
 ```
 
 6. Enter the API hash and ID when prompted (note the menu is a little archeic on Windows, read everything the program outputs to get a better understanding)

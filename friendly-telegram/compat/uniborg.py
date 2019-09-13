@@ -65,6 +65,7 @@ class UniborgClient:
 
             if event.outgoing:
                 # Command based thing
+                use_unknown = False
                 if not event.pattern:
                     self._ensure_unknowns()
                     use_unknown = True

@@ -81,7 +81,7 @@ class LoaderMod(loader.Module):
                 await message.edit(_("<b>Module not available in repo.</b>"))
             return False
         r.raise_for_status()
-        return await self.load_module(r.content, message, url)
+        return await self.load_module(r.content, message, module_name, url)
 
     async def loadmodcmd(self, message):
         """Loads the module file"""
@@ -112,16 +112,18 @@ class LoaderMod(loader.Module):
             await message.edit(_("<code>Invalid Unicode formatting in module</code>"))
             return
         if path is not None:
-            await self.load_module(doc, message, path)
+            await self.load_module(doc, message, origin=path)
         else:
             await self.load_module(doc, message)
 
-    async def load_module(self, doc, message, source="<string>"):
-        uid = str(uuid.uuid4())
-        module_name = "friendly-telegram.modules.__extmod_" + uid
+    async def load_module(self, doc, message, name=None, origin="<string>"):
+        if name is None:
+            uid = "__extmod_" + str(uuid.uuid4())
+        else:
+            uid = name
+        module_name = "friendly-telegram.modules." + uid
         try:
-            module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod_" + uid,
-                                                                StringLoader(doc), origin=source))
+            module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc), origin=origin))
             module.borg = uniborg.UniborgClient()
             module._ = _
             sys.modules[module_name] = module

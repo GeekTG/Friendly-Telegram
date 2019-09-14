@@ -60,4 +60,7 @@ class RecentActionsMod(loader.Module):
             origdate = orig.date.isoformat()
             await message.respond(_("Deleted message {} recovered. Originally sent at {} by {}, deleted at {} by {}")
                                   .format(msg.id, origdate, orig.from_id, deldate, msg.user_id))
-            await message.respond(orig)
+            if isinstance(orig, telethon.tl.types.MessageService):
+                await message.respond("<code>" + utils.escape_html(orig.stringify()) + "</code>")
+            else:
+                await message.respond(orig)

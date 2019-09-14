@@ -46,7 +46,8 @@ WORDS_WEIGHTED = [RANDOM_WORDS[i] for i in range(len(RANDOM_WORDS)) for dummy in
 class XDAMod(loader.Module):
     """Gibes bholte bro"""
     def __init__(self):
-        self.config = {"XDA_RANDOM_WORDS":RANDOM_WORDS, "XDA_WEIGHT_WORDS":WEIGHT_WORDS}
+        self.config = loader.ModuleConfig("XDA_RANDOM_WORDS", RANDOM_WORDS, "Random words from XDA",
+                                          "XDA_WEIGHT_WORDS", WEIGHT_WORDS, "And the weightings")
         self.name = "XDA"
 
     async def xdacmd(self, message):

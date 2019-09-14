@@ -133,9 +133,9 @@ async def handle_incoming(modules, db, event):
             logging.exception("Error running watcher")
 
 
-def run_config(db, phone=None):
+def run_config(db, phone=None, modules=None):
     from . import configurator
-    return configurator.run(db, phone, phone is None)
+    return configurator.run(db, phone, phone is None, modules)
 
 
 def main():
@@ -243,6 +243,7 @@ async def amain(client, allclients, setup=False):
     async with client as c:
         await c.start()
         c.parse_mode = "HTML"
+        [handler] = logging.getLogger().handlers
         if setup:
             db = backend.CloudBackend(c)
             await db.init(lambda e: None)
@@ -251,7 +252,14 @@ async def amain(client, allclients, setup=False):
                 pdb = json.loads(jdb)
             except (json.decoder.JSONDecodeError, TypeError):
                 pdb = {}
-            pdb = run_config(pdb, getattr(c, "phone", "Unknown Number"))
+            modules = loader.Modules()
+            modules.register_all([], Translator())
+            fdb = frontend.Database(None)
+            await fdb.init()
+            modules.send_config(fdb)
+            await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
+            handler.setLevel(50)
+            pdb = run_config(pdb, getattr(c, "phone", "Unknown Number"), modules)
             if pdb is None:
                 print("Factory reset triggered...")
                 await client(DeleteChannelRequest(db.db))
@@ -265,7 +273,6 @@ async def amain(client, allclients, setup=False):
         await db.init()
         logging.debug("got db")
         logging.info("Loading logging config...")
-        [handler] = logging.getLogger().handlers
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
         babelfish = Translator(["en"])  # TODO

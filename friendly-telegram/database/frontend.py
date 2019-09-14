@@ -22,12 +22,18 @@ import uuid
 # Not thread safe
 class Database():
     def __init__(self, backend):
+        self._noop = backend is None
         self._backend = backend
         self._pending = {}
         self._loading = True
         self._waiter = asyncio.Event()
 
     async def init(self):
+        if self._noop:
+            self._db = {}
+            self._loading = False
+            self._waiter.set()
+            return
         await self._backend.init(self.reload)
         db = await self._backend.do_download()
         if db is not None:
@@ -57,10 +63,15 @@ class Database():
         return task
 
     async def _set(self, db, id):
+        if self._noop:
+            del self._pending[id]
+            return
         await self._backend.do_upload(json.dumps(db))
         del self._pending[id]
 
     async def reload(self, event):
+        if self._noop:
+            return
         try:
             self._waiter.clear()
             self._loading = True

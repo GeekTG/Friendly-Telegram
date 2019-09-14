@@ -23,8 +23,7 @@ import ast
 
 from dialog import Dialog, ExecutableNotFound
 
-from . import loader, utils, main
-from .translations.core import Translator
+from . import utils, main
 
 
 class TDialog():
@@ -78,10 +77,7 @@ except ExecutableNotFound:
 
 locale.setlocale(locale.LC_ALL, '')
 
-modules = loader.Modules()
-# TODO load the language settings from the same place as main does, when i implement that into main
-modules.register_all([], Translator())
-
+global modules
 global db  # eww... meh.
 
 
@@ -130,9 +126,10 @@ def modules_config():
         return
 
 
-def run(database, phone, init):
-    global db, TITLE
+def run(database, phone, init, mods):
+    global db, modules, TITLE
     db = database
+    modules = mods
     TITLE = "Userbot Configuration for {}"
     TITLE = TITLE.format(phone)
     d.set_background_title(TITLE)

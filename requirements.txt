@@ -1,5 +1,5 @@
 # Core
-telethon >= 1.9.0
+telethon >= 1.10.3
 # Compatibility for 3.5
 future-fstrings
 # Config

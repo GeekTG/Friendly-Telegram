@@ -221,7 +221,7 @@ class RaphielgangEvents():
 
             async def watcher(self, message):
                 for watcher in self._events._watchers:
-                    watcher(message)
+                    await watcher(message)
 
         def __init__(self):
             self._module = None

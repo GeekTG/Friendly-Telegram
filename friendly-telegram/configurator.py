@@ -66,6 +66,12 @@ class TDialog():
         print()
         print(msg)
 
+    def set_background_title(self, x):
+        pass
+
+    def yesno(self, question):
+        return input(question + "y/N").lower() == "y"
+
 
 TITLE = ""
 

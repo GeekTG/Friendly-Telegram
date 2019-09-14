@@ -47,26 +47,27 @@ class HelpMod(loader.Module):
                 await message.edit("<code>" + _("Invalid module name specified") + "</code>")
                 return
             # Translate the format specification and the module seperately
-            reply = "<code>" + _("Help for {}:").format(utils.escape_html(_(module.name))) + "\n  "
+            reply = "<b>" + _("Help for</b> <code>{}</code>:").format(utils.escape_html(_(module.name))) + "\n  "
             if module.__doc__:
                 reply += utils.escape_html(inspect.cleandoc(module.__doc__))
             else:
                 logger.warning("Module %s is missing docstring!", module)
             for name, fun in module.commands.items():
-                reply += f"\n  {name}\n"
+                reply += f"\n  <code>{name}</code>\n"
                 if fun.__doc__:
                     reply += utils.escape_html("\n".join(["    " + x for x in
                                                           _(inspect.cleandoc(fun.__doc__)).splitlines()]))
                 else:
                     reply += _("There is no documentation for this command")
         else:
-            reply = "<code>" + _("Available Modules:")
+            reply = "<b>" + _("Available Modules:") + "</b>"
             for mod in self.allmodules.modules:
-                reply += "\n  " + (_("{} has 1 command available")
-                                   .format(mod.name) if len(mod.commands) == 1 else _("{} has {} commands available")
-                                   .format(mod.name, len(mod.commands)))
+                reply += "\n\n  " + (_("<code>{}</code> has 1 command available")
+                                     .format(mod.name) if len(mod.commands) == 1
+                                     else _("<code>{}</code> has {} commands available")
+                                     .format(mod.name, len(mod.commands)))
                 for cmd in mod.commands:
-                    reply += f"\n    {cmd}"
+                    reply += f"\n    <code>{cmd}</code>"
         reply += "</code>"
         await message.edit(reply)
 

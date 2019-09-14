@@ -20,6 +20,7 @@ import os
 import logging
 import sys
 import asyncio
+import inspect
 
 from . import utils
 
@@ -67,8 +68,9 @@ class Modules():
         self.watchers = []
 
     def register_all(self, skip, babelfish):
-        from .compat import uniborg  # Uniborg is disabled because it Doesn't Work™️.
+        from .compat import uniborg
         from . import compat  # Avoid circular import
+        self._skip = skip
         self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
@@ -85,7 +87,7 @@ class Modules():
                 spec = importlib.util.spec_from_file_location(module_name,
                                                               os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 module = importlib.util.module_from_spec(spec)
-                module.borg = uniborg.UniborgClient()  # Uniborg is disabled because it Doesn't Work™️.
+                module.borg = uniborg.UniborgClient()
                 sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
                 spec.loader.exec_module(module)
                 module._ = babelfish.gettext
@@ -97,13 +99,16 @@ class Modules():
                 logging.exception("Failed to load module %s due to:", mod)
 
     def register_module(self, instance):
-        if not issubclass(instance.__class__, Module):
+        if not issubclass(type(instance), Module):
             logging.error("Not a subclass %s", repr(instance.__class__))
         if not hasattr(instance, "commands"):
             # https://stackoverflow.com/a/34452/5509575
             instance.commands = {method_name[:-3]: getattr(instance, method_name) for method_name in dir(instance)
                                  if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
 
+        if inspect.getmodule(type(instance)).__name__ in self._skip:
+            logging.debug("Not loading module %s because it is blacklisted", type(instance).__name__)
+            return
         for command in instance.commands:
             # Verify that command does not already exist, or, if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():

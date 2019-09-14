@@ -179,7 +179,7 @@ def main_config(init):
                ("Logging", "Configure debug output")]
     if db.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) == []:
         choices += [("Enable lite mode", "Removes all non-core modules")]
-    elif db.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) is None:
+    else:
         choices += [("Disable lite mode", "Enable all available modules")]
     choices += [("Factory reset", "Removes all userbot data stored in Telegram cloud")]
     code, tag = d.menu(TITLE, choices=choices)

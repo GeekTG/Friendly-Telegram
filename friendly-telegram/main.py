@@ -30,8 +30,13 @@ from telethon.tl.functions.channels import DeleteChannelRequest
 
 from . import utils, loader
 
+
 from .database import backend, frontend
 from .translations.core import Translator
+
+from . import modules  # Required for 3.5 to work with importlib
+
+del modules
 
 
 class MemoryHandler(logging.Handler):

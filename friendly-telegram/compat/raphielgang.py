@@ -298,6 +298,7 @@ class RaphielgangEvents():
                             event.pattern_match = match
                             event.message = MarkdownBotPassthrough(message)
                             return func(event)  # Return a coroutine
+                        return asyncio.gather()
                     self._watchers += [subwatcher]  # Add to list of watchers so we can call later.
                 else:
                     logger.error("event not incoming or outgoing")

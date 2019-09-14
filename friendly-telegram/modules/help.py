@@ -60,14 +60,15 @@ class HelpMod(loader.Module):
                 else:
                     reply += _("There is no documentation for this command")
         else:
-            reply = "<b>" + _("Available Modules:") + "</b>"
+            reply = "<b>" + _("Available Modules:") + "</b><code>"
             for mod in self.allmodules.modules:
-                reply += "\n\n  " + (_("<code>{}</code> has 1 command available")
+                reply += "\n\n  " + (_("{}</code> has 1 command available")
                                      .format(mod.name) if len(mod.commands) == 1
                                      else _("<code>{}</code> has {} commands available")
                                      .format(mod.name, len(mod.commands)))
                 for cmd in mod.commands:
                     reply += f"\n    <code>{cmd}</code>"
+                reply = reply[:-len("</code>")]  # Save entities
         reply += "</code>"
         await message.edit(reply)
 

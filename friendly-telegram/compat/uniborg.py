@@ -25,7 +25,7 @@ class UniborgClient:
 
         async def watcher(self, message):
             for w in self._borg._watchers:
-                w(message)
+                await w(message)
 
         async def client_ready(self, client, db):
             self._client = client

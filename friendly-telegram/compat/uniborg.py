@@ -114,6 +114,7 @@ class UniborgClient:
                         event2.message = MarkdownBotPassthrough(message)
 
                         return func(event2)
+                    return asyncio.gather()
                         # Return a coroutine
                 self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
             else:

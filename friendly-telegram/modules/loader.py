@@ -18,12 +18,15 @@ import logging
 import importlib
 import sys
 import uuid
+import asyncio
 
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
 
 from .. import loader, utils
 from ..compat import uniborg
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +50,38 @@ class LoaderMod(loader.Module):
     """Loads modules"""
     def __init__(self):
         self.name = _("Loader")
+        self.config = loader.ModuleConfig("MODULES_REPO",
+                                          "https://raw.githubusercontent.com/friendly-telegram/modules-repo/master",
+                                          "Fully qualified URL to a module repo")
         self.allmodules = None
         self._pending_setup = []
+
+    async def dlmodcmd(self, message):
+        """Downloads and installs a module from the official module repo"""
+        args = utils.get_args(message)
+        if len(args) == 0:
+            text = utils.escape_html("\n".join(await self.get_repo_list()))
+            await utils.answer(message, "<b>" + _("Available official modules from repo")
+                               + "</b>\n<code>" + text + "</code>")
+        elif len(args) == 1:
+            if await self.download_and_install_official(args[0], message):
+                self._db.set(__name__, "loaded_modules",
+                             list(set(self._db.get(__name__, "loaded_modules", []) + [args[0]])))
+
+    async def get_repo_list(self):
+        r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/manifest.txt")
+        r.raise_for_status()
+        return r.text.split("\n")
+
+    async def download_and_install_official(self, module_name, message=None):
+        url = self.config["MODULES_REPO"] + "/" + module_name + ".py"
+        r = await utils.run_sync(requests.get, url)
+        if r.status_code == 404:
+            if message is not None:
+                await message.edit(_("<b>Module not available in repo.</b>"))
+            return False
+        r.raise_for_status()
+        return await self.load_module(r.content, message, url)
 
     async def loadmodcmd(self, message):
         """Loads the module file"""
@@ -60,7 +93,8 @@ class LoaderMod(loader.Module):
             args = utils.get_args(message)
             if len(args) == 1:
                 try:
-                    with open(args[0], "rb") as f:
+                    path = args[0]
+                    with open(path, "rb") as f:
                         doc = f.read()
                 except FileNotFoundError:
                     await message.edit(_("<code>File not found</code>"))
@@ -69,6 +103,7 @@ class LoaderMod(loader.Module):
                 await message.edit(_("<code>Provide a module to load</code>"))
                 return
         else:
+            path = None
             doc = await msg.download_media(bytes)
         logger.debug("Loading external module...")
         try:
@@ -76,29 +111,44 @@ class LoaderMod(loader.Module):
         except UnicodeDecodeError:
             await message.edit(_("<code>Invalid Unicode formatting in module</code>"))
             return
+        if path is not None:
+            await self.load_module(doc, message, path)
+        else:
+            await self.load_module(doc, message)
+
+    async def load_module(self, doc, message, source="<string>"):
         uid = str(uuid.uuid4())
         module_name = "friendly-telegram.modules.__extmod_" + uid
         try:
             module = importlib.util.module_from_spec(ModuleSpec("friendly-telegram.modules.__extmod_" + uid,
-                                                                StringLoader(doc), origin="<string>"))
+                                                                StringLoader(doc), origin=source))
             module.borg = uniborg.UniborgClient()
             module._ = _
             sys.modules[module_name] = module
             module.__spec__.loader.exec_module(module)
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")
-            await message.edit(_("<code>Loading failed. See logs for details</code>"))
-            return
+            if message is not None:
+                await message.edit(_("<code>Loading failed. See logs for details</code>"))
+            return False
         if "register" not in vars(module):
-            await message.edit(_("<code>Module did not expose correct API"))
+            if message is not None:
+                await message.edit(_("<code>Module did not expose correct API"))
             logging.error("Module does not have register(), it has " + repr(vars(module)))
-            return
+            return False
         try:
-            module.register(self.register_and_configure, module_name)
-        except TypeError:
-            module.register(self.register_and_configure)
-        await self._pending_setup.pop()
-        await message.edit(_("<code>Module loaded.</code>"))
+            try:
+                module.register(self.register_and_configure, module_name)
+            except TypeError:
+                module.register(self.register_and_configure)
+            await self._pending_setup.pop()
+        except Exception:
+            if message is not None:
+                await message.edit(_("<code>Module crashed.</code>"))
+            return False
+        if message is not None:
+            await message.edit(_("<code>Module loaded.</code>"))
+        return True
 
     def register_and_configure(self, instance):
         self.allmodules.register_module(instance)
@@ -118,6 +168,15 @@ class LoaderMod(loader.Module):
         else:
             await message.edit(_("<code>Nothing was unloaded.</code>"))
 
+    async def _update_modules(self):
+        todo = self._db.get(__name__, "loaded_modules", [])
+        if todo is None:
+            return  # User manually requested that we don't load core modules
+        if len(todo) == 0:
+            todo = await self.get_repo_list()
+        await asyncio.gather(*[self.download_and_install_official(mod) for mod in todo])
+
     async def client_ready(self, client, db):
         self._db = db
         self._client = client
+        await self._update_modules()

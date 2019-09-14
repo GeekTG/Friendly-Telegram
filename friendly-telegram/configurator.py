@@ -135,6 +135,7 @@ def run(database, phone, init):
     db = database
     TITLE = "Userbot Configuration for {}"
     TITLE = TITLE.format(phone)
+    d.set_background_title(TITLE)
     while main_config(init):
         pass
     return db
@@ -160,12 +161,24 @@ def logging_config():
         db.setdefault(main.__name__, {})["loglevel"] = int(tag)
 
 
+def factory_reset_check():
+    global db
+    code, tag = d.yesno("Do you REALLY want to erase ALL userbot data stored in Telegram cloud?\n"
+                        + "Your existing Telegram chats will not be affected.")
+    db = None
+
+
 def main_config(init):
     if init:
         return api_config()
     choices = [("API Token and ID", "Configure API Token and ID"),
                ("Modules", "Modular configuration"),
                ("Logging", "Configure debug output")]
+    if db.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) == []:
+        choices += [("Enable lite mode", "Removes all non-core modules")]
+    elif db.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) is None:
+        choices += [("Disable lite mode", "Enable all available modules")]
+    choices += [("Factory reset", "Removes all userbot data stored in Telegram cloud")]
     code, tag = d.menu(TITLE, choices=choices)
     if code == d.OK:
         if tag == "Modules":
@@ -174,6 +187,13 @@ def main_config(init):
             api_config()
         if tag == "Logging":
             logging_config()
+        if tag == "Enable lite mode":
+            db.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = None
+        if tag == "Disable lite mode":
+            db.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = []
+        if tag == "Factory reset":
+            factory_reset_check()
+            return False
     else:
         return False
     return True

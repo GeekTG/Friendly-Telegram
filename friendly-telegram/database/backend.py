@@ -33,7 +33,9 @@ class CloudBackend():
     def __init__(self, client):
         self._client = client
         self._me = None
-        self._db = None
+        self.db = None
+        self._anti_double_lock = asyncio.Lock()
+        self._data_already_exists = False
 
     async def init(self, trigger_refresh):
         self._me = await self._client.get_me()
@@ -49,22 +51,27 @@ class CloudBackend():
                 return dialog.entity
 
     async def _make_data_channel(self):
-        return (await self._client(CreateChannelRequest(f"friendly-{self._me.id}-data", "// Don't touch",
-                                                        megagroup=True))).chats[0]
+        async with self._anti_double_lock:
+            if not self._data_already_exists:
+                self._data_already_exists = True
+                return (await self._client(CreateChannelRequest(f"friendly-{self._me.id}-data", "// Don't touch",
+                                                                megagroup=True))).chats[0]
+            else:
+                return await self._find_data_channel()
 
     async def do_download(self):
         """Attempt to download the database.
            Return the database (as unparsed JSON) or None"""
-        if not self._db:
-            self._db = await self._find_data_channel()
-            if not self._db:
+        if not self.db:
+            self.db = await self._find_data_channel()
+            if not self.db:
                 logging.debug("No DB, returning")
                 return None
             self._client.add_event_handler(self._callback,
-                                           telethon.events.messageedited.MessageEdited(chats=[self._db]))
+                                           telethon.events.messageedited.MessageEdited(chats=[self.db]))
 
         msgs = self._client.iter_messages(
-            entity=self._db,
+            entity=self.db,
             reverse=True
         )
         data = ""
@@ -82,14 +89,14 @@ class CloudBackend():
     async def do_upload(self, data):
         """Attempt to upload the database.
            Return True or throw"""
-        if not self._db:
-            self._db = await self._find_data_channel()
-            if not self._db:
-                self._db = await self._make_data_channel()
+        if not self.db:
+            self.db = await self._find_data_channel()
+            if not self.db:
+                self.db = await self._make_data_channel()
             self._client.add_event_handler(self._callback,
-                                           telethon.events.messageedited.MessageEdited(chats=[self._db]))
+                                           telethon.events.messageedited.MessageEdited(chats=[self.db]))
         msgs = await self._client.get_messages(
-            entity=self._db,
+            entity=self.db,
             reverse=True
         )
         ops = []
@@ -113,14 +120,14 @@ class CloudBackend():
             await asyncio.gather(*ops)
         except MessageEditTimeExpiredError:
             logging.debug("Making new channel.")
-            _db = self._db
-            self._db = None
+            _db = self.db
+            self.db = None
             await self._client(DeleteChannelRequest(channel=_db))
             return await self.do_upload(data)
         while len(sdata):  # Only happens if newmsg is True or there was no message before
             newmsg = True
-            await self._client.send_message(self._db, utils.escape_html(sdata[:4096]))
+            await self._client.send_message(self.db, utils.escape_html(sdata[:4096]))
             sdata = sdata[4096:]
         if newmsg:
-            await self._client.send_message(self._db, "Please ignore this chat.")
+            await self._client.send_message(self.db, "Please ignore this chat.")
         return True

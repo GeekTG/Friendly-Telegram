@@ -26,6 +26,7 @@ import collections
 
 from telethon import TelegramClient, events
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError
+from telethon.tl.functions.channels import DeleteChannelRequest
 
 from . import utils, loader
 
@@ -251,6 +252,10 @@ async def amain(client, allclients, setup=False):
             except (json.decoder.JSONDecodeError, TypeError):
                 pdb = {}
             pdb = run_config(pdb, getattr(c, "phone", "Unknown Number"))
+            if pdb is None:
+                print("Factory reset triggered...")
+                await client(DeleteChannelRequest(db.db))
+                return
             try:
                 await db.do_upload(json.dumps(pdb))
             except MessageNotModifiedError:

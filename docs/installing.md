@@ -6,6 +6,8 @@
 
 It's very simple - paste this command into a Linux terminal (on Android use termux): ```"$SHELL" -c '$SHELL <(curl -Ls https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh)'```
 
+Or, for Windows, paste this command in a command prompt or Powershell window: ```Invoke-Expression((New-Object Net.WebClient).DownloadString("https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.ps1"))```
+
 ## Manual method
 
 This is split into several methods, one for each supported OS.

@@ -76,14 +76,26 @@ class UpdaterMod(loader.Module):
         try:
             repo = Repo(os.path.dirname(utils.get_base_dir()))
             origin = repo.remote("origin")
-            origin.pull()
+            r = origin.pull()
+            new_commit = repo.head.commit
+            for info in r:
+                if info.old_commit:
+                    for d in new_commit.diff(info.old_commit):
+                        if d.b_path == "requirements.txt":
+                            return True
+            return False
         except git.exc.InvalidGitRepositoryError:
             repo = Repo.init(os.path.dirname(utils.get_base_dir()))
             origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
             origin.fetch()
             repo.create_head('master', origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
+            with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
+                old_reqs = f.read()
             repo.heads.master.checkout(True)
+            with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
+                new_reqs = f.read()
+            return old_reqs != new_reqs
 
     def req_common(self):
         # Now we have downloaded new code, install requirements
@@ -97,7 +109,7 @@ class UpdaterMod(loader.Module):
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
         await message.edit(_("Downloading..."))
-        await self.download_common()
+        req_update = await self.download_common()
         await message.edit(_("Downloaded! Installation in progress."))
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
@@ -110,7 +122,8 @@ class UpdaterMod(loader.Module):
             self._db.set(__name__, "selfupdatemsg", None)
             await message.edit(_("Already up-to-date!"))
         else:
-            self.req_common()
+            if req_update:
+                self.req_common()
             await self.restart_common(message)
 
     async def client_ready(self, client, db):

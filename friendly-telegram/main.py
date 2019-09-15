@@ -228,7 +228,7 @@ def main():
             return
 
     if arguments.heroku:
-        key = input("Please enter your Heroku API key: ").strip()
+        key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
         from . import heroku
         heroku.publish(clients, key, api_token)
         return

@@ -231,7 +231,7 @@ class RaphielgangEvents():
             self._unknowns = []
 
         def _ensure_unknowns(self):
-            self.commands["raphcmd" + str(self.instance_id)] = self._unknown_command
+            self._commands["raphcmd" + str(self.instance_id)] = self._unknown_command
 
         def _unknown_command(self, message):
             message.message = message.message[len("raphcmd" + str(self.instance_id)) + 1:]

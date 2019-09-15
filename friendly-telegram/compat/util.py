@@ -67,4 +67,4 @@ class MarkdownBotPassthrough():
         self.__dict__[name] = value
 
     def __call__(self, *args, **kwargs):
-        self.__under.__call__(*args, **kwargs)
+        return self.__under.__call__(*args, **kwargs)

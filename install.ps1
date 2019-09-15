@@ -1,2 +1,2 @@
 # Does nothing rn
-echo "hi"
+Write-Output("hi")

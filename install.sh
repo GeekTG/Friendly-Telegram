@@ -36,6 +36,7 @@ fi
 
 if [ ! "$OSTYPE" = "linux-android" ]; then
   "$PKGMGR" install -y "python$PYVER-dev" || echo "Python-dev install failed."
+  "$PKGMGR" install -y "python$PYVER-pip" || echo "Python-pip install failed."
   "$PKGMGR" install -y build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
   "$PKGMGR" install -y neofetch || echo "Utilities install failed."
   "$PKGMGR" install -y dialog || echo "UI install failed."

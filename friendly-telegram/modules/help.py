@@ -64,11 +64,12 @@ class HelpMod(loader.Module):
             for mod in self.allmodules.modules:
                 reply += "\n\n  " + (_("{}</code> has 1 command available")
                                      .format(mod.name) if len(mod.commands) == 1
-                                     else _("<code>{}</code> has {} commands available")
+                                     else _("{}</code> has {} commands available")
                                      .format(mod.name, len(mod.commands)))
                 for cmd in mod.commands:
                     reply += f"\n    <code>{cmd}</code>"
-                reply = reply[:-len("</code>")]  # Save entities
+                if len(mod.commands) > 0:
+                    reply = reply[:-len("</code>")]  # Reduce number of entities consumed
         reply += "</code>"
         await message.edit(reply)
 

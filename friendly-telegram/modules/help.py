@@ -71,7 +71,7 @@ class HelpMod(loader.Module):
                 if len(mod.commands) > 0:
                     reply = reply[:-len("</code>")]  # Reduce number of entities consumed
         reply += "</code>"
-        await message.edit(reply)
+        await utils.answer(message, reply)
 
     async def supportcmd(self, message):
         """Joins the support chat"""

@@ -1,3 +1,11 @@
+if (Test-Path friendly-telegram -PathType Container) {
+    if (Test-Path friendly-telegram/friendly-telegram -PathType Container) {
+        Set-Location friendly-telegram
+    }
+    python -m friendly-telegram
+    exit
+}
+
 Write-Output("Downloading Python...")
 Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.7.4/python-3.7.4.exe" -OutFile (Join-Path $env:TEMP "python-installer.exe")
 Write-Output("Installing Python...")

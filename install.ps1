@@ -1,6 +1,6 @@
-if (Test-Path friendly-telegram -PathType Container) {
-    if (Test-Path friendly-telegram/friendly-telegram -PathType Container) {
-        Set-Location friendly-telegram
+if (Test-Path "friendly-telegram" -PathType Container) {
+    if (Test-Path (Join-Path "friendly-telegram" "friendly-telegram") -PathType Container) {
+        Set-Location "friendly-telegram"
     }
     python -m friendly-telegram
     exit

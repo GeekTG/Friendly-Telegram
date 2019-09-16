@@ -19,6 +19,7 @@ import importlib
 import sys
 import uuid
 import asyncio
+import urllib
 
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
@@ -64,17 +65,28 @@ class LoaderMod(loader.Module):
             await utils.answer(message, "<b>" + _("Available official modules from repo")
                                + "</b>\n<code>" + text + "</code>")
         elif len(args) == 1:
-            if await self.download_and_install_official(args[0], message):
+            if await self.download_and_install(args[0], message):
                 self._db.set(__name__, "loaded_modules",
-                             list(set(self._db.get(__name__, "loaded_modules", []) + [args[0]])))
+                             list((await self._get_modules_to_load()).union(set([args[0]]))))
+
+    async def _get_modules_to_load(self):
+        todo = self._db.get(__name__, "loaded_modules", [])
+        if todo is None:
+            return set()
+        if todo == []:
+            return await self.get_repo_list()
+        return set(todo)
 
     async def get_repo_list(self):
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/manifest.txt")
         r.raise_for_status()
-        return r.text.split("\n")
+        return set(filter(lambda x: len(x) > 0, r.text.split("\n")))
 
-    async def download_and_install_official(self, module_name, message=None):
-        url = self.config["MODULES_REPO"] + "/" + module_name + ".py"
+    async def download_and_install(self, module_name, message=None):
+        if len(urllib.parse.urlparse(module_name).netloc) == 0:
+            url = self.config["MODULES_REPO"] + "/" + module_name + ".py"
+        else:
+            url = module_name
         r = await utils.run_sync(requests.get, url)
         if r.status_code == 404:
             if message is not None:
@@ -171,12 +183,8 @@ class LoaderMod(loader.Module):
             await message.edit(_("<code>Nothing was unloaded.</code>"))
 
     async def _update_modules(self):
-        todo = self._db.get(__name__, "loaded_modules", [])
-        if todo is None:
-            return  # User manually requested that we don't load core modules
-        if len(todo) == 0:
-            todo = await self.get_repo_list()
-        await asyncio.gather(*[self.download_and_install_official(mod) for mod in todo])
+        todo = await self._get_modules_to_load()
+        await asyncio.gather(*[self.download_and_install(mod) for mod in todo])
 
     async def client_ready(self, client, db):
         self._db = db

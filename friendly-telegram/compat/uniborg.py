@@ -115,7 +115,7 @@ class UniborgClient:
 
                         return func(event2)
                     return asyncio.gather()
-                        # Return a coroutine
+                    # Return a coroutine
                 self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
             else:
                 logger.error("event not incoming or outgoing")

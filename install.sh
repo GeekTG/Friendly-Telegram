@@ -14,7 +14,7 @@ fi
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
-    sudo "$SHELL" -c '$SHELL <('"$(if which curl >/dev/null; then echo 'curl -Ls'; elif which wget >/dev/null; then echo 'wget -qO-'; fi)"' https://raw.githubusercontent.com/friendly-telegram/friendly-telegram/master/install.sh) '"$@"
+    sudo "$SHELL" -c '$SHELL <('"$(which curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$@"
     exit $?
   fi
   PKGMGR="apt"

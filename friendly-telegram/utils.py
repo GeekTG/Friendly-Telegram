@@ -22,6 +22,7 @@ import shlex
 
 from . import __main__
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
+from telethon.extensions import html
 
 
 def get_args(message):
@@ -121,13 +122,20 @@ async def answer(message, answer, **kwargs):
     CONT_MSG = "[continued]\n"
     ret = [message]
     if isinstance(answer, str) and not kwargs.get("asfile", False):
-        await message.edit(answer[:4096])
-        answer = answer[4096:]
-        while len(answer) > 0:
-            answer = CONT_MSG + answer
-            message.message = answer[:4096]
-            answer = answer[4096:]
-            ret.append(await message.respond(message, **kwargs))
+        txt, ent = html.parse(answer)
+        await message.edit(html.unparse(txt[:4096], ent))
+        txt = txt[4096:]
+        for e in ent:
+            e.offset -= 4096 - len(CONT_MSG)
+        while len(txt) > 0:
+            txt = CONT_MSG + txt
+            message.message = txt[:4096]
+            message.entities = ent
+            message.text = html.unparse(message.message, message.entities)
+            txt = txt[4096:]
+            for e in ent:
+                e.offset -= 4096 - len(CONT_MSG)
+            ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
     else:
         if message.media is not None:
             await message.edit(file=answer, **kwargs)

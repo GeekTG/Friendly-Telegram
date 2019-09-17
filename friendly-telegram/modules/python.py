@@ -46,14 +46,14 @@ async def meval(code, **kwargs):
         # Copy data to args we are sending
         kwargs[global_args][glob] = globs[glob]
 
-    root = ast.parse(code, 'exec')
+    root = ast.parse(code, "exec")
     code = root.body
     if isinstance(code[-1], ast.Expr):  # If we can use it as a lambda return (but multiline)
         code[-1] = ast.copy_location(ast.Return(code[-1].value), code[-1])  # Change it to a return statement
     # globals().update(**<global_args>)
-    glob_copy = ast.Expr(ast.Call(func=ast.Attribute(value=ast.Call(func=ast.Name(id='globals', ctx=ast.Load()),
+    glob_copy = ast.Expr(ast.Call(func=ast.Attribute(value=ast.Call(func=ast.Name(id="globals", ctx=ast.Load()),
                                                                     args=[], keywords=[]),
-                                                     attr='update', ctx=ast.Load()),
+                                                     attr="update", ctx=ast.Load()),
                                   args=[], keywords=[ast.keyword(arg=None,
                                                                  value=ast.Name(id=global_args, ctx=ast.Load()))]))
     glob_copy.lineno = 0
@@ -65,12 +65,13 @@ async def meval(code, **kwargs):
         a.lineno = 0
         a.col_offset = 0
         args += [a]
-    fun = ast.AsyncFunctionDef('tmp', ast.arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[],
+    fun = ast.AsyncFunctionDef("tmp", ast.arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[],
                                                     kw_defaults=[None for i in range(len(args))]), code, [], None)
     fun.lineno = 0
     fun.col_offset = 0
-    mod = ast.Module([fun])
-    comp = compile(mod, '<string>', 'exec')
+    mod = ast.parse("")
+    mod.body = [fun]
+    comp = compile(mod, "<string>", "exec")
 
     exec(comp, {}, locs)
 

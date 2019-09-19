@@ -20,6 +20,7 @@ import locale
 import os
 import inspect
 import ast
+import sys
 
 from dialog import Dialog, ExecutableNotFound
 
@@ -29,6 +30,25 @@ from . import utils, main
 class TDialog():
     OK = 0
     NOT_OK = 1
+
+    def _safe_input(self, *args, **kwargs):
+        try:
+            return input(*args, **kwargs)
+        except (EOFError, OSError):
+            print()
+            print("=" * 30)
+            print()
+            print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
+            print()
+            print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
+            print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
+            print()
+            print("If you're not using heroku, then you are using a non-interactive prompt but "
+                  + "you have not got a session configured, meaning authentication to Telegram is impossible.")
+            print()
+            print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
+            print("Goodbye.")
+            sys.exit(1)
 
     # Similar interface to pythondialog
     def menu(self, title, choices):
@@ -42,7 +62,7 @@ class TDialog():
             print(" " + str(i) + ". " + k + (" " * (biggest + 2 - len(k))) + (d.replace("\n", "...\n      ")))
             i += 1
         while True:
-            inp = input("Please enter your selection as a number, or 0 to cancel: ")
+            inp = self._safe_input("Please enter your selection as a number, or 0 to cancel: ")
             try:
                 inp = int(inp)
                 if inp == 0:
@@ -56,7 +76,7 @@ class TDialog():
         print()
         print(query)
         print()
-        inp = input("Please enter your response, or type nothing to cancel: ")
+        inp = self._safe_input("Please enter your response, or type nothing to cancel: ")
         if inp == "":
             return (self.NOT_OK, "Cancelled")
         return (self.OK, inp)
@@ -70,7 +90,7 @@ class TDialog():
         pass
 
     def yesno(self, question):
-        return input(question + "y/N").lower() == "y"
+        return self._safe_input(question + "y/N").lower() == "y"
 
 
 TITLE = ""

@@ -157,6 +157,7 @@ class LoaderMod(loader.Module):
                 module.register(self.register_and_configure)
             await self._pending_setup.pop()
         except Exception:
+            logger.exception("Module threw")
             if message is not None:
                 await message.edit(_("<code>Module crashed.</code>"))
             return False

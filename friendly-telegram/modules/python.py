@@ -18,6 +18,8 @@
 
 import logging
 import ast
+import traceback
+import sys
 
 from .. import loader, utils
 
@@ -97,15 +99,30 @@ class PythonMod(loader.Module):
     async def evalcmd(self, message):
         """.eval <expression>
            Evaluates python code"""
-        ret = _("Evaluated expression <code>{}</code> and it returned <code>{}</code>")
-        ret = ret.format(utils.escape_html(utils.get_args_raw(message)),
-                         utils.escape_html(await meval(utils.get_args_raw(message), **self.getattrs(message))))
+        ret = _("Evaluated expression:\n<code>{}</code>\nReturn value:\n<code>{}</code>")
+        try:
+            it = await meval(utils.get_args_raw(message), **await self.getattrs(message))
+        except Exception:
+            et, ei, tr = sys.exc_info()
+            await message.edit(_("Failed to evaluate expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
+                               .format(utils.get_args_raw(message),
+                               "".join(traceback.format_exception(et, ei, tr.tb_next.tb_next.tb_next))))
+            return
+        ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
         await utils.answer(message, ret)
 
     async def execcmd(self, message):
         """.aexec <expression>
            Executes python code"""
-        await meval(utils.get_args_raw(message), **self.getattrs(message))
+        try:
+            await meval(utils.get_args_raw(message), **await self.getattrs(message))
+        except Exception:
+            et, ei, tr = sys.exc_info()
+            await message.edit(_("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
+                               .format(utils.get_args_raw(message),
+                               "".join(traceback.format_exception(et, ei, tr.tb_next.tb_next.tb_next))))
+            return
 
-    def getattrs(self, message):
-        return {"message": message, "client": self.client, "self": self, "db": self.db}
+    async def getattrs(self, message):
+        return {"message": message, "client": self.client, "self": self, "db": self.db,
+                "reply": await message.get_reply_message()}

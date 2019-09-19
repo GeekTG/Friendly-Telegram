@@ -96,38 +96,40 @@ def validate_value(string):
 
 def modules_config():
     global db
-    code, tag = d.menu(TITLE, choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or ""))
-                                       for module in modules.modules])
+    code, tag = d.menu("Modules", choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or ""))
+                                           for module in modules.modules])
     if code == d.OK:
         for mod in modules.modules:
             if mod.name == tag:
                 # Match
-                choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
-                for key, value in getattr(mod, "config", {}).items():
-                    if key.upper() == key:  # Constants only
-                        choices += [(key, getattr(mod.config, "getdoc", lambda k: "")(key))]
-                code, tag = d.menu(TITLE, choices=choices)
-                if code == d.OK:
-                    code, string = d.inputbox(tag)
+                while True:
+                    choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
+                    for key, value in getattr(mod, "config", {}).items():
+                        if key.upper() == key:  # Constants only
+                            choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
+                    code, tag = d.menu("Module configuration for {}".format(mod.name), choices=choices)
                     if code == d.OK:
-                        if tag == "Enabled":
-                            try:
-                                enabled = int(string) > 0
-                            except ValueError:
-                                enabled = True
-                            try:
-                                db.setdefault(main.__name__, {}).setdefault("disable_modules",
-                                                                            []).remove(mod.__module__)
-                            except ValueError:
-                                pass
-                            if not enabled:
-                                db.setdefault(main.__name__, {}).setdefault("disable_modules",
-                                                                            []).append(mod.__module__)
-                        else:
-                            db.setdefault(mod.__module__, {}).setdefault("__config__",
-                                                                         {})[tag] = validate_value(string)
-                modules_config()
-                return
+                        code, string = d.inputbox(tag)
+                        if code == d.OK:
+                            if tag == "Enabled":
+                                try:
+                                    enabled = int(string) > 0
+                                except ValueError:
+                                    enabled = True
+                                try:
+                                    db.setdefault(main.__name__, {}).setdefault("disable_modules",
+                                                                                []).remove(mod.__module__)
+                                except ValueError:
+                                    pass
+                                if not enabled:
+                                    db.setdefault(main.__name__, {}).setdefault("disable_modules",
+                                                                                []).append(mod.__module__)
+                            else:
+                                db.setdefault(mod.__module__, {}).setdefault("__config__",
+                                                                             {})[tag] = validate_value(string)
+                    else:
+                        break
+                return modules_config()
     else:
         return
 
@@ -157,9 +159,9 @@ def api_config():
 
 def logging_config():
     global db
-    code, tag = d.menu(TITLE, choices=[("50", "CRITICAL"), ("40", "ERROR"),
-                                       ("30", "WARNING"), ("20", "INFO"),
-                                       ("10", "DEBUG"), ("0", "ALL")])
+    code, tag = d.menu("Log Level", choices=[("50", "CRITICAL"), ("40", "ERROR"),
+                                             ("30", "WARNING"), ("20", "INFO"),
+                                             ("10", "DEBUG"), ("0", "ALL")])
     if code == d.OK:
         db.setdefault(main.__name__, {})["loglevel"] = int(tag)
 
@@ -182,7 +184,7 @@ def main_config(init):
     else:
         choices += [("Disable lite mode", "Enable all available modules")]
     choices += [("Factory reset", "Removes all userbot data stored in Telegram cloud")]
-    code, tag = d.menu(TITLE, choices=choices)
+    code, tag = d.menu("Main Menu", choices=choices)
     if code == d.OK:
         if tag == "Modules":
             modules_config()

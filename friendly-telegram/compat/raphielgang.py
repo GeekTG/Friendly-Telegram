@@ -6,6 +6,7 @@ import logging
 import re
 import sys
 import asyncio
+import inspect
 
 from functools import wraps
 
@@ -203,7 +204,7 @@ class RaphielgangConfig():
 # Please don't refactor this class. Even while writing it only God knew how it worked.
 
 
-__hours_wasted_here = 4
+__hours_wasted_here = 5
 
 
 # // don't touch
@@ -213,10 +214,14 @@ class RaphielgangEvents():
 
     class RaphielgangEventsSub():
         class __RaphielgangShimMod__Base(loader.Module):
+            instance_count = 0
+
             def __init__(self, events_instance):
+                inspect.getmro(type(self))[1].instance_count += 1
+                self.instance_id = self.instance_count
                 self._events = events_instance
                 self.commands = events_instance._commands
-                self.name = type(self).__name__
+                self.name = "RaphielGang" + str(self.instance_id)
                 self.unknowns = events_instance._unknowns
 
             async def watcher(self, message):

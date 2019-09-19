@@ -21,7 +21,7 @@ class UniborgClient:
         def __init__(self, borg):
             self._borg = borg
             self.commands = borg._commands
-            self.name = type(self).__name__
+            self.name = "UniBorg" + str(self._borg.instance_id)
 
         async def watcher(self, message):
             for w in self._borg._watchers:
@@ -48,9 +48,6 @@ class UniborgClient:
         sys.modules[self._module].__dict__["Config"] = self._config
 
     def _ensure_unknowns(self):
-        if self.instance_id < 0:
-            type(self).instance_count += 1
-            self.instance_id = type(self).instance_count
         self._commands["borgcmd" + str(self.instance_id)] = self._unknown_command
 
     def _unknown_command(self, message):
@@ -58,6 +55,10 @@ class UniborgClient:
         return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
     def on(self, event):
+        if self.instance_id < 0:
+            type(self).instance_count += 1
+            self.instance_id = type(self).instance_count
+
         def subreg(func):
             logger.debug(event)
 

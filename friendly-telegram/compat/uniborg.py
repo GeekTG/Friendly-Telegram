@@ -34,7 +34,7 @@ class UniborgClient:
         self._wrapper = type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self)
         cb(self._wrapper)
 
-    def __init__(self):
+    def __init__(self, module_name):
         self.instance_id = -1
         self._storage = None  # TODO
         self._config = UniborgConfig()
@@ -42,6 +42,10 @@ class UniborgClient:
         self._watchers = []
         self._unknowns = []
         self._wrapper = None  # Set in registerfunc
+        self._module = module_name
+        sys.modules[self._module].__dict__["logger"] = logging.getLogger(self._module)
+        sys.modules[self._module].__dict__["storage"] = self._storage
+        sys.modules[self._module].__dict__["Config"] = self._config
 
     def _ensure_unknowns(self):
         if self.instance_id < 0:
@@ -59,9 +63,6 @@ class UniborgClient:
 
             self._module = func.__module__
             sys.modules[self._module].__dict__["register"] = self.registerfunc
-            sys.modules[self._module].__dict__["logger"] = logging.getLogger(self._module)
-            sys.modules[self._module].__dict__["storage"] = self._storage
-            sys.modules[self._module].__dict__["Config"] = self._config
 
             if event.outgoing:
                 # Command based thing
@@ -161,49 +162,47 @@ class UniborgUtil:
 class UniborgConfig:
     TMP_DOWNLOAD_DIRECTORY = tempfile.mkdtemp()
 
-    def __init__(self):
-        self.GOOGLE_CHROME_BIN = None
-        self.SCREEN_SHOT_LAYER_ACCESS_KEY = None
-        self.PRIVATE_GROUP_BOT_API_ID = None
-        # self.TMP_DOWNLOAD_DIRECTORY = tempfile.mkdtmp()  # static
-        self.IBM_WATSON_CRED_USERNAME = None
-        self.IBM_WATSON_CRED_PASSWORD = None
-        self.HASH_TO_TORRENT_API = None
-        self.TELEGRAPH_SHORT_NAME = "UniborgShimFriendlyTelegram"
-        self.OCR_SPACE_API_KEY = None
-        self.G_BAN_LOGGER_GROUP = None
-        self.TG_GLOBAL_ALBUM_LIMIT = 9  # What does this do o.O?
-        self.TG_BOT_TOKEN_BF_HER = None
-        self.TG_BOT_USER_NAME_BF_HER = None
-        self.ANTI_FLOOD_WARN_MODE = None
-        self.MAX_ANTI_FLOOD_MESSAGES = 10
-        self.CHATS_TO_MONITOR_FOR_ANTI_FLOOD = []
-        self.REM_BG_API_KEY = None
-        self.NO_P_M_SPAM = False
-        self.MAX_FLOOD_IN_P_M_s = 3  # Default from spechide
-        self.NC_LOG_P_M_S = False
-        self.PM_LOGGR_BOT_API_ID = -100
-        self.DB_URI = None
-        self.NO_OF_BUTTONS_DISPLAYED_IN_H_ME_CMD = 5
-        self.COMMAND_HAND_LER = r"\."
-        self.SUDO_USERS = set()  # Don't add anyone here!
-        self.VERY_STREAM_LOGIN = None
-        self.VERY_STREAM_KEY = None
-        self.G_DRIVE_CLIENT_ID = None
-        self.G_DRIVE_CLIENT_SECRET = None
-        self.G_DRIVE_AUTH_TOKEN_DATA = None
-        self.TELE_GRAM_2FA_CODE = None
-        self.GROUP_REG_SED_EX_BOT_S = None
-        self.OPEN_LOAD_LOGIN = None
-        self.OPEN_LOAD_KEY = None
-        self.GOOGLE_CHROME_DRIVER = None
-        self.GOOGLE_CHROME_BIN = None
+    GOOGLE_CHROME_BIN = None
+    SCREEN_SHOT_LAYER_ACCESS_KEY = None
+    PRIVATE_GROUP_BOT_API_ID = None
+    IBM_WATSON_CRED_USERNAME = None
+    IBM_WATSON_CRED_PASSWORD = None
+    HASH_TO_TORRENT_API = None
+    TELEGRAPH_SHORT_NAME = "UniborgShimFriendlyTelegram"
+    OCR_SPACE_API_KEY = None
+    G_BAN_LOGGER_GROUP = None
+    TG_GLOBAL_ALBUM_LIMIT = 9  # What does this do o.O?
+    TG_BOT_TOKEN_BF_HER = None
+    TG_BOT_USER_NAME_BF_HER = None
+    ANTI_FLOOD_WARN_MODE = None
+    MAX_ANTI_FLOOD_MESSAGES = 10
+    CHATS_TO_MONITOR_FOR_ANTI_FLOOD = []
+    REM_BG_API_KEY = None
+    NO_P_M_SPAM = False
+    MAX_FLOOD_IN_P_M_s = 3  # Default from spechide
+    NC_LOG_P_M_S = False
+    PM_LOGGR_BOT_API_ID = -100
+    DB_URI = None
+    NO_OF_BUTTONS_DISPLAYED_IN_H_ME_CMD = 5
+    COMMAND_HAND_LER = r"\."
+    SUDO_USERS = set()  # Don't add anyone here!
+    VERY_STREAM_LOGIN = None
+    VERY_STREAM_KEY = None
+    G_DRIVE_CLIENT_ID = None
+    G_DRIVE_CLIENT_SECRET = None
+    G_DRIVE_AUTH_TOKEN_DATA = None
+    TELE_GRAM_2FA_CODE = None
+    GROUP_REG_SED_EX_BOT_S = None
+    OPEN_LOAD_LOGIN = None
+    OPEN_LOAD_KEY = None
+    GOOGLE_CHROME_DRIVER = None
 
-        # === SNIP ===
-        # this stuff should never get changed, because its either unused or dangerous
-        self.MAX_MESSAGE_SIZE_LIMIT = 4095
-        self.UB_BLACK_LIST_CHAT = set()
-        self.LOAD = []
-        self.NO_LOAD = []
-        self.CHROME_DRIVER = self.GOOGLE_CHROME_DRIVER
-        self.CHROME_BIN = self.GOOGLE_CHROME_BIN
+    # === SNIP ===
+    # this stuff should never get changed, because its either unused or dangerous
+    MAX_MESSAGE_SIZE_LIMIT = 4095
+    UB_BLACK_LIST_CHAT = set()
+    LOAD = []
+    NO_LOAD = []
+    CHROME_DRIVER = GOOGLE_CHROME_DRIVER
+    CHROME_BIN = GOOGLE_CHROME_BIN
+    TEMP_DIR = TMP_DOWNLOAD_DIRECTORY

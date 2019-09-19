@@ -87,8 +87,8 @@ class Modules():
                 spec = importlib.util.spec_from_file_location(module_name,
                                                               os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 module = importlib.util.module_from_spec(spec)
-                module.borg = uniborg.UniborgClient()
                 sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
+                module.borg = uniborg.UniborgClient(module_name)
                 spec.loader.exec_module(module)
                 module._ = babelfish.gettext
                 try:

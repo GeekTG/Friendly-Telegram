@@ -136,9 +136,9 @@ class LoaderMod(loader.Module):
         module_name = "friendly-telegram.modules." + uid
         try:
             module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc), origin=origin))
-            module.borg = uniborg.UniborgClient()
-            module._ = _
             sys.modules[module_name] = module
+            module.borg = uniborg.UniborgClient(module_name)
+            module._ = _
             module.__spec__.loader.exec_module(module)
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")

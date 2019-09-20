@@ -86,7 +86,6 @@ class UniborgClient:
                         message.message = pre + message.message  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
                         # Try to emulate the expected format for an event
-                        event2.text = list(str(message.message))
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
                         # Put it off as long as possible so event handlers register
@@ -111,7 +110,6 @@ class UniborgClient:
                         message.message = message.message  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
                         # Try to emulate the expected format for an event
-                        event2.text = list(str(message.message))
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
 

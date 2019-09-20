@@ -63,6 +63,6 @@ fi
 [ -d friendly-telegram ] || ${SUDO_CMD}rm -rf friendly-telegram
 ${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { echo "Clone failed."; exit 3; }
 cd friendly-telegram
-${SUDO_CMD}"python$PYVER" -m pip install cryptg || echo "Cryptg failed"
-${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt || { echo "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m pip -q install cryptg || echo "Cryptg failed"
+${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt || { echo "Requirements failed!"; exit 4; }
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram $@ || { echo "Python scripts failed"; exit 5; }

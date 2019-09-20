@@ -17,32 +17,40 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     sudo "$SHELL" -c '$SHELL <('"$(which curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$@"
     exit $?
   fi
-  PKGMGR="apt"
+  PKGMGR="apt install -y"
   apt update
   PYVER="3"
 elif [ "$OSTYPE" = "linux-android" ]; then
-  PKGMGR="pkg"
+  PKGMGR="pkg install -y"
   PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
+  if which brew; then
+    echo "brew detected"
+  else
+    ruby <(curl -fsSk https://raw.github.com/mxcl/homebrew/go)
+  fi
+  PKGMGR="brew install"
+  PYVER="3"
+  SKIP_OPTIONAL="1"
   echo "macOS not yet supported by automated install script. Please go to https://github.com/friendly-telegram/friendly-telegram/#mac-os-x"
-  exit 1
 else
   echo "Unrecognised OS. Please follow https://github.com/friendly-telegram/friendly-telegram/blob/master/README.md"
   exit 1
 fi
 
-"$PKGMGR" install -y "python$PYVER" git || { echo "Core install failed."; exit 2; }
+$PKGMGR "python$PYVER" git || { echo "Core install failed."; exit 2; }
 
-
-if [ ! "$OSTYPE" = "linux-android" ]; then
-  "$PKGMGR" install -y "python$PYVER-dev" || echo "Python-dev install failed."
-  "$PKGMGR" install -y "python$PYVER-pip" || echo "Python-pip install failed."
-  "$PKGMGR" install -y build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
-  "$PKGMGR" install -y neofetch || echo "Utilities install failed."
-  "$PKGMGR" install -y dialog || echo "UI install failed."
-else
-  "$PKGMGR" install -y libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
-fi
+if [ ! "$SKIP_OPTIONAL" = "1" ]; then
+  if [ ! "$OSTYPE" = "linux-android" ]; then
+    $PKGMGR "python$PYVER-dev" || echo "Python-dev install failed."
+    $PKGMGR "python$PYVER-pip" || echo "Python-pip install failed."
+    $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
+    $PKGMGR neofetch || echo "Utilities install failed."
+    $PKGMGR dialog || echo "UI install failed."
+  else
+    $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
+  fi
+fi  # FI @dil3mm4
 
 if [ ! x"$SUDO_USER" = x"" ]; then
   SUDO_CMD="sudo -u $SUDO_USER "

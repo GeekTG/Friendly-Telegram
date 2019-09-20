@@ -40,19 +40,17 @@ fi
 
 $PKGMGR "python$PYVER" git || { echo "Core install failed."; exit 2; }
 
-if [ ! "$SKIP_OPTIONAL" = "1" ]; then
-  if [ ! "$OSTYPE" = "linux-android" ]; then
-    $PKGMGR "python$PYVER-dev" || echo "Python-dev install failed."
-    $PKGMGR "python$PYVER-pip" || echo "Python-pip install failed."
-    $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
-    $PKGMGR neofetch || echo "Utilities install failed."
-    $PKGMGR dialog || echo "UI install failed."
-  else
-    $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
-  fi
-else
-  $PKGMGR neofetch dialog || echo "GUI installation failed"
-fi  # FI @dil3mm4
+if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
+  $PKGMGR "python$PYVER-dev" || echo "Python-dev install failed."
+  $PKGMGR "python$PYVER-pip" || echo "Python-pip install failed."
+  $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
+elif [ "$OSTYPE" = "linux-android" ]
+  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential || echo "Optional installation failed."
+elif echo "$OSTYPE" | grep -qE '^darwin.*'
+  $PKGMGR jpeg webp || echo "Stickers install failed"
+fi
+
+$PKGMGR neofetch dialog || echo "GUI installation failed"
 
 if [ ! x"$SUDO_USER" = x"" ]; then
   SUDO_CMD="sudo -u $SUDO_USER "

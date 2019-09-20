@@ -104,9 +104,10 @@ class PythonMod(loader.Module):
             it = await meval(utils.get_args_raw(message), **await self.getattrs(message))
         except Exception:
             et, ei, tr = sys.exc_info()
-            await message.edit(_("Failed to evaluate expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
-                               .format(utils.get_args_raw(message),
-                               "".join(traceback.format_exception(et, ei, tr.tb_next.tb_next.tb_next))))
+            await message.edit(_("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
+                               .format(utils.escape_html(utils.get_args_raw(message)),
+                               utils.escape_html("".join(traceback.format_exception(et, ei,
+                                                                                    tr.tb_next.tb_next.tb_next)))))
             return
         ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
         await utils.answer(message, ret)
@@ -119,8 +120,9 @@ class PythonMod(loader.Module):
         except Exception:
             et, ei, tr = sys.exc_info()
             await message.edit(_("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
-                               .format(utils.get_args_raw(message),
-                               "".join(traceback.format_exception(et, ei, tr.tb_next.tb_next.tb_next))))
+                               .format(utils.escape_html(utils.get_args_raw(message)),
+                               utils.escape_html("".join(traceback.format_exception(et, ei,
+                                                                                    tr.tb_next.tb_next.tb_next)))))
             return
 
     async def getattrs(self, message):

@@ -50,6 +50,8 @@ if [ ! "$SKIP_OPTIONAL" = "1" ]; then
   else
     $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential dialog neofetch || echo "Optional installation failed."
   fi
+else
+  $PKGMGR neofetch dialog || echo "GUI installation failed"
 fi  # FI @dil3mm4
 
 if [ ! x"$SUDO_USER" = x"" ]; then

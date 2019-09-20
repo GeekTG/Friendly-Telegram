@@ -182,17 +182,19 @@ class Modules():
     def unload_module(self, classname):
         worked = False
         for module in self.modules:
-            if module.__class__.__name__ == classname:
+            if module.__class__.__name__ == classname or module.name == classname:
                 worked = True
                 logging.debug("Removing module for unload" + repr(module))
                 self.modules.remove(module)
         for watcher in self.watchers:
-            if hasattr(watcher, "__self__") and watcher.__self__.__class__.__name__ == classname:
+            if hasattr(watcher, "__self__") and (watcher.__self__.__class__.__name__ == classname
+                                                 and watcher.__self__.name == classname):
                 worked = True
                 logging.debug("Removing watcher for unload " + repr(watcher))
                 self.watchers.remove(watcher)
         for command in self.commands:
-            if hasattr(command, "__self__") and command.__self__.__class__.__name__ == classname:
+            if hasattr(command, "__self__") and (command.__self__.__class__.__name__ == classname
+                                                 and command.__self__.name == classname):
                 worked = True
                 logging.debug("Removing command for unload " + repr(command))
                 self.commands.remove(command)

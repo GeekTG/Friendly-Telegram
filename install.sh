@@ -60,9 +60,9 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   $PKGMGR "python$PYVER-dev" || echo "Python-dev install failed."
   $PKGMGR "python$PYVER-pip" || echo "Python-pip install failed."
   $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
-elif [ "$OSTYPE" = "linux-android" ]
+elif [ "$OSTYPE" = "linux-android" ]; then
   $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential || echo "Optional installation failed."
-elif echo "$OSTYPE" | grep -qE '^darwin.*'
+elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   $PKGMGR jpeg webp || echo "Stickers install failed"
 fi
 

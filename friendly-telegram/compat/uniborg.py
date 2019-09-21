@@ -143,6 +143,8 @@ class UniborgUtil:
             kwargs["pattern"] = r"\." + kwargs["pattern"]
         if not ("incoming" in kwargs.keys() or "outgoing" in kwargs.keys()):
             kwargs["outgoing"] = True
+        if "allow_sudo" in kwargs.keys():
+            del kwargs["allow_sudo"]
         return telethon.events.NewMessage(**kwargs)
 
     async def progress(self, *args, **kwargs):

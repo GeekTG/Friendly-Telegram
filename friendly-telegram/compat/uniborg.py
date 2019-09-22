@@ -22,6 +22,7 @@ class UniborgClient:
             self._borg = borg
             self.commands = borg._commands
             self.name = "UniBorg" + str(self._borg.instance_id)
+            self.__module__ = borg._module
 
         async def watcher(self, message):
             for w in self._borg._watchers:

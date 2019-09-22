@@ -223,6 +223,7 @@ class RaphielgangEvents():
                 self.commands = events_instance._commands
                 self.name = "RaphielGang" + str(self.instance_id)
                 self.unknowns = events_instance._unknowns
+                self.__module__ = events_instance._module
 
             async def watcher(self, message):
                 for watcher in self._events._watchers:

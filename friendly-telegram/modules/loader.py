@@ -178,7 +178,13 @@ class LoaderMod(loader.Module):
             return
         clazz = args[0]
         worked = self.allmodules.unload_module(clazz)
-        if worked:
+        without_prefix = []
+        for mod in worked:
+            assert mod.startswith("friendly-telegram.modules."), mod
+            without_prefix += [mod[len("friendly-telegram.modules."):]]
+        it = (await self._get_modules_to_load()).difference(without_prefix)
+        self._db.set(__name__, "loaded_modules", list(it))
+        if len(worked):
             await message.edit(_("<code>Module unloaded.</code>"))
         else:
             await message.edit(_("<code>Nothing was unloaded.</code>"))

@@ -180,22 +180,23 @@ class Modules():
             logging.exception("Failed to send mod init complete signal")
 
     def unload_module(self, classname):
-        worked = False
+        worked = []
+        to_remove = []
         for module in self.modules:
             if module.__class__.__name__ == classname or module.name == classname:
-                worked = True
+                worked += [module.__module__]
                 logging.debug("Removing module for unload" + repr(module))
                 self.modules.remove(module)
-        for watcher in self.watchers:
-            if hasattr(watcher, "__self__") and (watcher.__self__.__class__.__name__ == classname
-                                                 and watcher.__self__.name == classname):
-                worked = True
+                to_remove += module.commands.values()
+                if hasattr(module, "watcher"):
+                    to_remove += [module.watcher]
+        logging.debug("to_remove: %r", to_remove)
+        for watcher in self.watchers.copy():
+            if watcher in to_remove:
                 logging.debug("Removing watcher for unload " + repr(watcher))
                 self.watchers.remove(watcher)
-        for command in self.commands:
-            if hasattr(command, "__self__") and (command.__self__.__class__.__name__ == classname
-                                                 and command.__self__.name == classname):
-                worked = True
+        for name, command in self.commands.copy().items():
+            if command in to_remove:
                 logging.debug("Removing command for unload " + repr(command))
-                self.commands.remove(command)
+                del self.commands[name]
         return worked

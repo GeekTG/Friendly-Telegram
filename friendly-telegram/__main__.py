@@ -14,6 +14,19 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from . import main
-if __name__ == '__main__':
-    main.main()
+import sys
+if sys.version_info < (3, 5, 0):  # Minimum version - asyncio got major revamp and so did importlib
+    print("Error: you must use at least Python version 3.5.0")
+else:
+    if __package__ != "friendly-telegram":  # In case they did python __main__.py
+        print("Error: you cannot run this as a script; you must execute as a package")
+    else:
+        try:
+            import future_fstrings  # noqa: F401 # Coding presence check for main.py
+        except ImportError:
+            print("Error: you have not installed all dependencies correctly.")
+            print("Please install all dependencies from requirements.txt")
+        else:
+            from . import main
+            if __name__ == '__main__':
+                main.main()  # Execute main function

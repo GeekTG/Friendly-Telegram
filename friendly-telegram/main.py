@@ -82,6 +82,7 @@ handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 logging.getLogger().addHandler(MemoryHandler(handler, 500))
 logging.getLogger().setLevel(0)
+logging.captureWarnings(True)
 
 
 async def handle_command(modules, db, event):

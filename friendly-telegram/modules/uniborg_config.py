@@ -32,7 +32,7 @@ def register(cb):
 class UniborgConfig(loader.Module):
     """Stores configuration for Uniborg modules"""
     def __init__(self):
-        self.config = filter(lambda x: len(x) and upper(x) == x, uniborg.UniborgConfig.__all__)
+        self.config = filter(lambda x: len(x) and x.upper() == x, uniborg.UniborgConfig.__all__)
         self.config = loader.ModuleConfig(*itertools.chain.from_iterable([(x, None, "External configuration item")
                                                                           for x in self.config]))
         self.name = _("Uniborg Configuration Placeholder")

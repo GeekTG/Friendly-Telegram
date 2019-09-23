@@ -24,7 +24,7 @@ import telethon
 
 from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
 from telethon.tl.types import Message
-from telethon.errors.rpcerrorlist import MessageEditTimeExpiredError
+from telethon.errors.rpcerrorlist import MessageEditTimeExpiredError, MessageNotModifiedError
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +117,13 @@ class CloudBackend():
                     if not msg.id == msgs[-1].id:
                         ops += [msg.delete()]
         try:
-            await asyncio.gather(*ops)
+            for r in await asyncio.gather(*ops, return_exceptions=True):
+                if isinstance(r, MessageNotModifiedError):
+                    logging.warning("db not modified", exc_info=r)
+                elif isinstance(r, Exception):
+                    raise r  # Makes more sense to raise even for MessageEditTimeExpiredError
+                elif r is not None:
+                    logging.debug("unknown ret from gather, %r", r)
         except MessageEditTimeExpiredError:
             logging.debug("Making new channel.")
             _db = self.db

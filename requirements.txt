@@ -16,7 +16,7 @@ lyricsgenius
 # Stickers
 Pillow >= 6.1.0
 # Speedtest
-speedtest-cli
+speedtest-cli >= 2.1.0
 # Weather
 pyowm
 # Translation

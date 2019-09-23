@@ -51,8 +51,8 @@ class UpdaterMod(loader.Module):
 
     async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        await self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
-        await self._db.set(__name__, "selfupdatemsg", message.id)
+        await asyncio.gather(self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message)),
+                             self._db.set(__name__, "selfupdatemsg", message.id))
 
     async def restart_common(self, message):
         await self.prerestart_common(message)

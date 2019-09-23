@@ -16,17 +16,26 @@
 
 import json
 import asyncio
-import uuid
 
 
-# Not thread safe
+# Not thread safe, use the event loop!
 class Database():
     def __init__(self, backend):
         self._noop = backend is None
         self._backend = backend
-        self._pending = {}
+        self._pending = None
         self._loading = True
         self._waiter = asyncio.Event()
+        self._sync_future = None
+        # We use a future because we need await-ability and we will be delaying by 10s, but
+        # because we are gonna frequently be changing the data, we want to avoid floodwait
+        # and to do that we will discard most requests. However, attempting to await any request
+        # should return a future corresponding to the next time that we flush the database.
+        # To achieve this, we have one future stored here (the next time we flush the db) and we
+        # always return that from set(). However, if someone decides to await set() much later
+        # than when they called set(), it will already be finished. Luckily, we return a future,
+        # not a reference to _sync_future, so it will be the correct future, and set_result will
+        # already have been called. Simple, right?
 
     async def init(self):
         if self._noop:
@@ -57,17 +66,22 @@ class Database():
         if self._loading:
             self._waiter.wait()
         self._db.setdefault(owner, {})[key] = value
-        id = uuid.uuid4()
-        task = asyncio.ensure_future(self._set(self._db, id))
-        self._pending[id] = task
-        return task
+        if self._pending is not None and not self._pending.cancelled():
+            self._pending.cancel()
+        if self._sync_future is None or self._sync_future.done():
+            self._sync_future = asyncio.Future()
+        self._pending = asyncio.ensure_future(_wait_then_do(10, self._set))  # Delay database ops by 10s
+        return self._sync_future
 
-    async def _set(self, db, id):
+    async def _set(self):
         if self._noop:
-            del self._pending[id]
+            self._sync_future.set_result(True)
             return
-        await self._backend.do_upload(json.dumps(db))
-        del self._pending[id]
+        try:
+            await self._backend.do_upload(json.dumps(self._db))
+        except Exception as e:
+            self._sync_future.set_exception(e)
+        self._sync_future.set_result(True)
 
     async def reload(self, event):
         if self._noop:
@@ -75,11 +89,15 @@ class Database():
         try:
             self._waiter.clear()
             self._loading = True
-            for key, task in self._pending.items():
-                task.cancel()
-            self._pending.clear()
+            if self._pending is not None:
+                self._pending.cancel()
             db = await self._backend.do_download()
             self._db = json.loads(db)
         finally:
             self._loading = False
             self._waiter.set()
+
+
+async def _wait_then_do(time, task, *args, **kwargs):
+    await asyncio.sleep(time)
+    return await task(*args, **kwargs)

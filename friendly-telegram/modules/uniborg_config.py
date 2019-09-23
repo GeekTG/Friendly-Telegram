@@ -40,7 +40,7 @@ class UniborgConfig(loader.Module):
                        "NO_OF_BUTTONS_DISPLAYED_IN_H_ME_CMD", "COMMAND_HAND_LER", "SUDO_USERS", "VERY_STREAM_LOGIN",
                        "VERY_STREAM_KEY", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
                        "TELE_GRAM_2FA_CODE", "GROUP_REG_SED_EX_BOT_S", "OPEN_LOAD_LOGIN", "OPEN_LOAD_KEY",
-                       "GOOGLE_CHROME_DRIVER"]
+                       "GOOGLE_CHROME_DRIVER", "OPEN_WEATHER_MAP_APPID"]
         self.config = loader.ModuleConfig(*itertools.chain.from_iterable([(x, None, "External configuration item")
                                                                           for x in self.config]))
         self.name = _("Uniborg Configuration Placeholder")

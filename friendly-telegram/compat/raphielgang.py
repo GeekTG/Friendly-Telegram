@@ -16,14 +16,15 @@ logger = logging.getLogger(__name__)
 
 class RaphielgangConfig():
     def __init__(self, clients):
-        self.__all__ = ["bot", "API_KEY", "API_HASH", "CONSOLE_LOGGER_VERBOSE", "LOGS", "BOTLOG_CHATID",
+        self.__all__ = ["bots", "API_KEY", "API_HASH", "CONSOLE_LOGGER_VERBOSE", "LOGS", "BOTLOG_CHATID",
                         "BOTLOG", "PM_AUTO_BAN", "DB_URI", "OCR_SPACE_API_KEY", "REM_BG_API_KEY", "CHROME_DRIVER",
-                        "GOOGLE_CHROME_BIN", "OPEN_WEATHER_MAP_APPID", "ANTI_SPAMBOT", "ANTI_SPAMBOT_SHOUT",
-                        "YOUTUBE_API_KEY", "CLEAN_WELCOME", "BIO_PREFIX", "DEFAULT_BIO", "LASTFM_API",
-                        "LASTFM_SECRET", "LASTFM_USERNAME", "LASTFM_PASSWORD_PLAIN", "LASTFM_PASS", "lastfm",
-                        "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA", "GDRIVE_FOLDER_ID",
-                        "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG", "ENABLE_KILLME",
-                        "CMD_HELP", "BRAIN_CHECKER", "is_mongo_alive"]
+                        "GOOGLE_CHROME_BIN", "OPEN_WEATHER_MAP_APPID", "WELCOME_MUTE", "ANTI_SPAMBOT",
+                        "ANTI_SPAMBOT_SHOUT", "YOUTUBE_API_KEY", "CLEAN_WELCOME", "BIO_PREFIX", "DEFAULT_BIO",
+                        "LASTFM_API", "LASTFM_SECRET", "LASTFM_USERNAME", "LASTFM_PASSWORD_PLAIN", "LASTFM_PASS",
+                        "lastfm", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
+                        "GDRIVE_FOLDER_ID", "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG",
+                        "ENABLE_KILLME", "CMD_HELP", "AFKREASON", "ZALG_LIST", "BRAIN_CHECKER", "CURRENCY_API",
+                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME"]
 
         self.bots = clients
 
@@ -41,6 +42,7 @@ class RaphielgangConfig():
         self.CHROME_DRIVER = None
         self.GOOGLE_CHROME_BIN = None
         self.OPEN_WEATHER_MAP_APPID = None
+        self.WELCOME_MUTE = False
         self.ANTI_SPAMBOT = False
         self.ANTI_SPAMBOT_SHOUT = False
         self.YOUTUBE_API_KEY = None
@@ -180,6 +182,13 @@ class RaphielgangConfig():
         self.is_mongo_alive = lambda: False
         self.is_redis_alive = lambda: False
         self.CURRENCY_API = None
+        self.SPOTIFY_USERNAME = None
+        self.SPOTIFY_PASS = None
+        self.ISAFK = False
+        self.ALIVE_NAME = "`**PPE bad! Use **[friendly-telegram](https://t.me/friendlytgbot)`."
+
+
+        self.GDRIVE_FOLDER = self.GDRIVE_FOLDER_ID
 
         self.__passthrus = []
 

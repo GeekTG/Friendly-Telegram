@@ -162,7 +162,17 @@ class UniborgUtil:
 
 
 class UniborgConfig:
-    TMP_DOWNLOAD_DIRECTORY = tempfile.mkdtemp()
+    __all__ = ["GOOGLE_CHROME_BIN", "SCREEN_SHOT_LAYER_ACCESS_KEY", "PRIVATE_GROUP_BOT_API_ID",
+               "IBM_WATSON_CRED_USERNAME", "IBM_WATSON_CRED_PASSWORD", "HASH_TO_TORRENT_API",
+               "TELEGRAPH_SHORT_NAME", "OCR_SPACE_API_KEY", "G_BAN_LOGGER_GROUP", "TG_GLOBAL_ALBUM_LIMIT",
+               "TG_BOT_TOKEN_BF_HER", "TG_BOT_USER_NAME_BF_HER", "ANTI_FLOOD_WARN_MODE",
+               "MAX_ANTI_FLOOD_MESSAGES", "CHATS_TO_MONITOR_FOR_ANTI_FLOOD", "REM_BG_API_KEY",
+               "NO_P_M_SPAM", "MAX_FLOOD_IN_P_M_s", "NC_LOG_P_M_S", "PM_LOGGR_BOT_API_ID", "DB_URI",
+               "NO_OF_BUTTONS_DISPLAYED_IN_H_ME_CMD", "COMMAND_HAND_LER", "SUDO_USERS", "VERY_STREAM_LOGIN",
+               "VERY_STREAM_KEY", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
+               "TELE_GRAM_2FA_CODE", "GROUP_REG_SED_EX_BOT_S", "OPEN_LOAD_LOGIN", "OPEN_LOAD_KEY",
+               "GOOGLE_CHROME_DRIVER", "OPEN_WEATHER_MAP_APPID"]
+
 
     GOOGLE_CHROME_BIN = None
     SCREEN_SHOT_LAYER_ACCESS_KEY = None
@@ -173,8 +183,7 @@ class UniborgConfig:
     TELEGRAPH_SHORT_NAME = "UniborgShimFriendlyTelegram"
     OCR_SPACE_API_KEY = None
     G_BAN_LOGGER_GROUP = None
-    TG_GLOBAL_ALBUM_LIMIT = 9  # What does this do o.O?
-    TG_BOT_TOKEN_BF_HER = None
+    TG_BOT_TOKEN_BF_HER = None  # Oh yes, her bf (botfather owo)
     TG_BOT_USER_NAME_BF_HER = None
     ANTI_FLOOD_WARN_MODE = None
     MAX_ANTI_FLOOD_MESSAGES = 10
@@ -198,9 +207,11 @@ class UniborgConfig:
     OPEN_LOAD_LOGIN = None
     OPEN_LOAD_KEY = None
     GOOGLE_CHROME_DRIVER = None
+    OPEN_WEATHER_MAP_APPID = None
 
     # === SNIP ===
-    # this stuff should never get changed, because its either unused or dangerous
+    # this stuff should never get changed, because its either unused, stupid or dangerous.
+    TMP_DOWNLOAD_DIRECTORY = tempfile.mkdtemp()
     MAX_MESSAGE_SIZE_LIMIT = 4095
     UB_BLACK_LIST_CHAT = set()
     LOAD = []
@@ -208,3 +219,4 @@ class UniborgConfig:
     CHROME_DRIVER = GOOGLE_CHROME_DRIVER
     CHROME_BIN = GOOGLE_CHROME_BIN
     TEMP_DIR = TMP_DOWNLOAD_DIRECTORY
+    TG_GLOBAL_ALBUM_LIMIT = 9  # What does this do o.O?

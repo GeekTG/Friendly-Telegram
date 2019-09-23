@@ -20,6 +20,10 @@ import logging
 import ast
 import traceback
 import sys
+import itertools
+import types
+
+import telethon
 
 from .. import loader, utils
 
@@ -104,7 +108,7 @@ class PythonMod(loader.Module):
             it = await meval(utils.get_args_raw(message), **await self.getattrs(message))
         except Exception:
             et, ei, tr = sys.exc_info()
-            await message.edit(_("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
+            await utils.answer(message, _("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
                                .format(utils.escape_html(utils.get_args_raw(message)),
                                utils.escape_html("".join(traceback.format_exception(et, ei,
                                                                                     tr.tb_next.tb_next.tb_next)))))
@@ -119,7 +123,7 @@ class PythonMod(loader.Module):
             await meval(utils.get_args_raw(message), **await self.getattrs(message))
         except Exception:
             et, ei, tr = sys.exc_info()
-            await message.edit(_("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
+            await utils.answer(message, _("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
                                .format(utils.escape_html(utils.get_args_raw(message)),
                                utils.escape_html("".join(traceback.format_exception(et, ei,
                                                                                     tr.tb_next.tb_next.tb_next)))))
@@ -127,4 +131,26 @@ class PythonMod(loader.Module):
 
     async def getattrs(self, message):
         return {"message": message, "client": self.client, "self": self, "db": self.db,
-                "reply": await message.get_reply_message()}
+                "reply": await message.get_reply_message(), **self.get_types(), **self.get_functions()}
+
+    def get_types(self):
+        return self.get_sub(telethon.tl.types)
+
+    def get_functions(self):
+        return self.get_sub(telethon.tl.functions)
+
+    def get_sub(self, it, _depth=1):
+        """Get all callable capitalised objects in an object recursively, ignoring _*"""
+        return {**dict(filter(lambda x: x[0][0] != "_" and x[0][0].upper() == x[0][0] and callable(x[1]),
+                              it.__dict__.items())),
+                **dict(itertools.chain.from_iterable([self.get_sub(y[1], _depth + 1).items() for y in
+                                                      filter(lambda x: x[0][0] != "_"
+                                                             and isinstance(x[1], types.ModuleType)
+                                                             and x[1] != it
+                                                             and x[1].__package__.rsplit(".", _depth)[0] == "telethon.tl",
+                                                      it.__dict__.items())]))}
+#                **dict(itertools.chain.from_iterable([self.get_sub(y[1]) for y in
+#                                                      filter(lambda x: x[0][0] != "_"
+#                                                             and isinstance(x[1], types.ModuleType)
+#                                                             and x[1] != it,
+#                                                      it.__dict__.items())]))}

@@ -37,11 +37,21 @@ def register(cb):
 
 
 class StringLoader(SourceLoader):
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, data, origin):
+        if isinstance(data, str):
+            self.data = data.encode("utf-8")
+        else:
+            self.data = data
+        self.origin = origin
+
+    def get_code(self, fullname):
+        source = self.get_source(fullname)
+        if source is None:
+            return None
+        return compile(source, self.origin, 'exec', dont_inherit=True)
 
     def get_filename(self, fullname):
-        return "<string>"  # We really don't care
+        return self.origin
 
     def get_data(self, filename):
         return self.data
@@ -135,7 +145,7 @@ class LoaderMod(loader.Module):
             uid = name
         module_name = "friendly-telegram.modules." + uid
         try:
-            module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc), origin=origin))
+            module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin), origin=origin))
             sys.modules[module_name] = module
             module.borg = uniborg.UniborgClient(module_name)
             module._ = _

@@ -187,7 +187,6 @@ class RaphielgangConfig():
         self.ISAFK = False
         self.ALIVE_NAME = "`**PPE bad! Use **[friendly-telegram](https://t.me/friendlytgbot)`."
 
-
         self.GDRIVE_FOLDER = self.GDRIVE_FOLDER_ID
 
         self.__passthrus = []

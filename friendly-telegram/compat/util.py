@@ -38,18 +38,21 @@ class MarkdownBotPassthrough():
         self.__under = under
 
     def __edit(self, *args, **kwargs):
-        logger.debug("Forcing markdown for edit")
-        kwargs.update(parse_mode="Markdown")
+        if "parse_mode" not in kwargs:
+            logger.debug("Forcing markdown for edit")
+            kwargs.update(parse_mode="Markdown")
         return self.__under.edit(*args, **kwargs)
 
     def __send_message(self, *args, **kwargs):
-        logger.debug("Forcing markdown for send_message")
-        kwargs.update(parse_mode="Markdown")
+        if "parse_mode" not in kwargs:
+            logger.debug("Forcing markdown for send_message")
+            kwargs.update(parse_mode="Markdown")
         return self.__under.send_message(*args, **kwargs)
 
     def __send_file(self, *args, **kwargs):
-        logger.debug("Forcing Markdown for send_file")
-        kwargs.update(parse_mode="Markdown")
+        if "parse_mode" not in kwargs:
+            logger.debug("Forcing markdown for send_file")
+            kwargs.update(parse_mode="Markdown")
         return self.__under.send_message(*args, **kwargs)
 
     def __getattr__(self, name):

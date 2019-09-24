@@ -22,6 +22,7 @@ import traceback
 import sys
 import itertools
 import types
+import importlib
 
 import telethon
 
@@ -71,8 +72,11 @@ async def meval(code, **kwargs):
         a.lineno = 0
         a.col_offset = 0
         args += [a]
-    fun = ast.AsyncFunctionDef("tmp", ast.arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[],
-                                                    kw_defaults=[None for i in range(len(args))]), code, [], None)
+    args = ast.arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[],
+                         kw_defaults=[None for i in range(len(args))])
+    if int.from_bytes(importlib.util.MAGIC_NUMBER[:-2], 'little') >= 3410:
+        args.posonlyargs = []
+    fun = ast.AsyncFunctionDef(name="tmp", args=args, body=code, decorator_list=[], returns=None)
     fun.lineno = 0
     fun.col_offset = 0
     mod = ast.parse("")
@@ -147,7 +151,8 @@ class PythonMod(loader.Module):
                                                       filter(lambda x: x[0][0] != "_"
                                                              and isinstance(x[1], types.ModuleType)
                                                              and x[1] != it
-                                                             and x[1].__package__.rsplit(".", _depth)[0] == "telethon.tl",
+                                                             and x[1].__package__.rsplit(".", _depth)[0]
+                                                             == "telethon.tl",
                                                       it.__dict__.items())]))}
 #                **dict(itertools.chain.from_iterable([self.get_sub(y[1]) for y in
 #                                                      filter(lambda x: x[0][0] != "_"

@@ -39,7 +39,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
       PKGMGR="true"
     fi
   fi
-  apt update
+  $PKGMGR update
   PYVER="3"
 elif [ "$OSTYPE" = "linux-android" ]; then
   PKGMGR="pkg install -y"
@@ -73,10 +73,11 @@ fi
 
 $PKGMGR neofetch dialog || echo "GUI installation failed"
 
+SUDO_CMD=""
 if [ ! x"$SUDO_USER" = x"" ]; then
-  SUDO_CMD="sudo -u $SUDO_USER "
-else
-  SUDO_CMD=""
+  if which sudo>/dev/null; then
+    SUDO_CMD="sudo -u $SUDO_USER "
+  fi
 fi
 
 [ -d friendly-telegram ] || ${SUDO_CMD}rm -rf friendly-telegram

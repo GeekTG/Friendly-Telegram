@@ -28,12 +28,17 @@ fi
 
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
+  PKGMGR="apt install -y"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
-    sudo "$SHELL" -c '$SHELL <('"$(which curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$@"
-    exit $?
+    if which sudo >/dev/null; then
+      sudo "$SHELL" -c '$SHELL <('"$(which curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$@"
+      exit $?
+    else
+      echo "Sudo not present. Rerun as root or dependencies won't install, potentially causing issues"
+      PKGMGR="true"
+    fi
   fi
-  PKGMGR="apt install -y"
   apt update
   PYVER="3"
 elif [ "$OSTYPE" = "linux-android" ]; then

@@ -57,7 +57,9 @@ class UsageFinder(ast.NodeVisitor):
     def visit_Call(self, node):
         self.generic_visit(node)
         if isinstance(node.func, ast.Name) and node.func.id == "_" and len(node.args) == 1:
-            if isinstance(node.args[0], ast.Str) and len(node.keywords) == 0:
+            if len(node.keywords) == 0 and (isinstance(node.args[0], ast.Str)
+                                            or (isinstance(node.args[0], ast.Constant)
+                                                and isinstance(node.args[0].value, str))):
                 self._output += [node.args[0].s]
             else:
                 print("W: Could not process " + ast.dump(node))

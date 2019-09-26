@@ -18,6 +18,8 @@ import sys
 if sys.version_info < (3, 5, 0):  # Minimum version - asyncio got major revamp and so did importlib
     print("Error: you must use at least Python version 3.5.0")
 else:
+    if sys.version_info >= (3, 8, 0):
+        print("Warning: you are using an untested Python version")
     if __package__ != "friendly-telegram":  # In case they did python __main__.py
         print("Error: you cannot run this as a script; you must execute as a package")
     else:

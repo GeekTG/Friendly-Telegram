@@ -118,6 +118,21 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):
     return obj
 
 
+def _fix_entities(ent, CONT_MSG, initial=False):
+    for e in ent:
+        e.offset -= 4096
+        if initial:
+            e.offset += len(CONT_MSG)
+        else:
+            e.length += len(CONT_MSG)
+        if e.offset + e.length > 0:
+            if e.offset < 0:
+                e.offset = e.offset + 4096
+                e.length = e.length - 4096
+        elif e.offset < 0:
+            e.length = 0  # We don't need this one, it doesn't reach.
+
+
 async def answer(message, answer, **kwargs):
     CONT_MSG = "[continued]\n"
     ret = [message]
@@ -125,16 +140,14 @@ async def answer(message, answer, **kwargs):
         txt, ent = html.parse(answer)
         await message.edit(html.unparse(txt[:4096], ent))
         txt = txt[4096:]
-        for e in ent:
-            e.offset -= 4096 - len(CONT_MSG)
+        _fix_entities(ent, CONT_MSG, True)
         while len(txt) > 0:
             txt = CONT_MSG + txt
             message.message = txt[:4096]
             message.entities = ent
             message.text = html.unparse(message.message, message.entities)
             txt = txt[4096:]
-            for e in ent:
-                e.offset -= 4096 - len(CONT_MSG)
+            _fix_entities(ent, CONT_MSG)
             ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
     else:
         if message.media is not None:

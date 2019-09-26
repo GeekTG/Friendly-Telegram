@@ -21,6 +21,7 @@ import os
 import inspect
 import ast
 import sys
+import string
 
 from dialog import Dialog, ExecutableNotFound
 
@@ -107,11 +108,11 @@ global modules
 global db  # eww... meh.
 
 
-def validate_value(string):
+def validate_value(s):
     try:
-        return ast.literal_eval(string)
+        return ast.literal_eval(s)
     except Exception:
-        return string
+        return s
 
 
 def modules_config():
@@ -129,11 +130,11 @@ def modules_config():
                             choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
                     code, tag = d.menu("Module configuration for {}".format(mod.name), choices=choices)
                     if code == d.OK:
-                        code, string = d.inputbox(tag)
+                        code, s = d.inputbox(tag)
                         if code == d.OK:
                             if tag == "Enabled":
                                 try:
-                                    enabled = int(string) > 0
+                                    enabled = int(s) > 0
                                 except ValueError:
                                     enabled = True
                                 try:
@@ -146,7 +147,7 @@ def modules_config():
                                                                                 []).append(mod.__module__)
                             else:
                                 db.setdefault(mod.__module__, {}).setdefault("__config__",
-                                                                             {})[tag] = validate_value(string)
+                                                                             {})[tag] = validate_value(s)
                     else:
                         break
                 return modules_config()
@@ -167,11 +168,17 @@ def run(database, phone, init, mods):
 
 
 def api_config():
-    code, string = d.inputbox("Enter your API Hash")
+    code, hash = d.inputbox("Enter your API Hash")
     if code == d.OK:
-        string1 = 'HASH = "' + string + '"'
-        code, string = d.inputbox("Enter your API ID")
-        string2 = 'ID = "' + string + '"'
+        if len(hash) != 32 or not all(it in string.hexdigits for it in hash):
+            d.msgbox("Invalid hash")
+            return
+        string1 = 'HASH = "' + hash + '"'
+        code, id = d.inputbox("Enter your API ID")
+        if len(id) != 6 or not all(it in string.digits for it in id):
+            d.msgbox("Invalid ID")
+            return
+        string2 = 'ID = "' + id + '"'
         with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as f:
             f.write(string1 + "\n" + string2 + "\n")
         d.msgbox("API Token and ID set.")

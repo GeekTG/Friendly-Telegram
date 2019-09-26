@@ -21,7 +21,6 @@ import argparse
 import asyncio
 import json
 import functools
-import atexit
 import collections
 
 from telethon import TelegramClient, events
@@ -36,7 +35,7 @@ from .translations.core import Translator
 
 from . import modules  # Required for 3.5 to work with importlib
 
-del modules
+del modules  # But it isn't used.
 
 
 class MemoryHandler(logging.Handler):
@@ -160,7 +159,7 @@ def main():
         return
 
     if sys.platform == 'win32':
-        # Subprocess support
+        # Subprocess support; not needed in 3.8
         asyncio.set_event_loop(asyncio.ProactorEventLoop())
 
     clients = []
@@ -171,7 +170,11 @@ def main():
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku
     if authtoken:
-        authtoken = json.loads(authtoken)
+        try:
+            authtoken = json.loads(authtoken)
+        except json.decoder.JSONDecodeError:
+            logging.warning("authtoken invalid")
+            authtoken = False
 
     if arguments.tokens and not authtoken:
         authtoken = {}
@@ -179,15 +182,7 @@ def main():
         for token in arguments.tokens:
             phone = phones.pop(0)
             authtoken.update(**{phone: token})
-    if authtoken or arguments.heroku:
-        from telethon.sessions import StringSession
-    if arguments.heroku:
-        def session_name(phone):
-            return StringSession()
-    else:
-        def session_name(phone):
-            return os.path.join(os.path.dirname(utils.get_base_dir()),
-                                "friendly-telegram" + (("-" + phone) if phone else ""))
+
     try:
         from . import api_token
     except ImportError:
@@ -198,6 +193,7 @@ def main():
             run_config({})
             return
     if authtoken:
+        from telethon.sessions import StringSession
         for phone, token in authtoken.items():
             try:
                 clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
@@ -206,27 +202,21 @@ def main():
                 run_config({})
                 return
             clients[-1].phone = phone  # for consistency
-    if os.path.isfile(os.path.join(os.path.dirname(utils.get_base_dir()), 'friendly-telegram.session')):
-        try:
-            clients += [TelegramClient(session_name(None), api_token.ID, api_token.HASH).start()]
-        except ValueError:
-            run_config({})
-            return
-        print("You're using the legacy session format. Please contact support, this will break in a future update.")
     if len(clients) == 0 and len(phones) == 0:
-        phones += [input("Please enter your phone: ")]
+        phones = [input("Please enter your phone: ")]
     for phone in phones:
         try:
-            try:
-                clients += [TelegramClient(session_name(phone), api_token.ID, api_token.HASH,
-                            connection_retries=None).start(phone)]
-            except ValueError:
-                run_config({})
-                return
-            clients[-1].phone = phone  # so we can format stuff nicer in configurator
+            clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
+                                                    + (("-" + phone) if phone else "")), api_token.ID,
+                                       api_token.HASH, connection_retries=None).start(phone)]
+        except ValueError:
+            # Bad API hash/ID
+            run_config({})
+            return
         except PhoneNumberInvalidError:
             print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
-            return
+            continue
+        clients[-1].phone = phone  # so we can format stuff nicer in configurator
 
     if arguments.heroku:
         key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
@@ -236,7 +226,6 @@ def main():
 
     loops = []
     for client in clients:
-        atexit.register(client.disconnect)
         loops += [amain(client, clients, arguments.setup)]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
@@ -247,8 +236,8 @@ def main():
 
 async def amain(client, allclients, setup=False):
     async with client as c:
-        await c.start()
         c.parse_mode = "HTML"
+        await c.start()
         [handler] = logging.getLogger().handlers
         if setup:
             db = backend.CloudBackend(c)

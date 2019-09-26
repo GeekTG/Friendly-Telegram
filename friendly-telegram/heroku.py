@@ -20,10 +20,11 @@ import json
 import os
 import git
 from git import Repo
+from telethon.sessions import StringSession
 
 
 def publish(clients, key, api_token=None):
-    data = json.dumps({getattr(client, "phone", ""): client.session.save() for client in clients})
+    data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
     heroku = heroku3.from_key(key)
     logging.debug("Configuring heroku...")
     app = None

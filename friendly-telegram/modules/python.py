@@ -63,22 +63,18 @@ async def meval(code, **kwargs):
                                                      attr="update", ctx=ast.Load()),
                                   args=[], keywords=[ast.keyword(arg=None,
                                                                  value=ast.Name(id=global_args, ctx=ast.Load()))]))
-    glob_copy.lineno = 0
-    glob_copy.col_offset = 0
     ast.fix_missing_locations(glob_copy)
     code.insert(0, glob_copy)
     args = []
     for a in list(map(lambda x: ast.arg(x, None), kwargs.keys())):
-        a.lineno = 0
-        a.col_offset = 0
+        ast.fix_missing_locations(a)
         args += [a]
     args = ast.arguments(args=[], vararg=None, kwonlyargs=args, kwarg=None, defaults=[],
                          kw_defaults=[None for i in range(len(args))])
     if int.from_bytes(importlib.util.MAGIC_NUMBER[:-2], 'little') >= 3410:
         args.posonlyargs = []
     fun = ast.AsyncFunctionDef(name="tmp", args=args, body=code, decorator_list=[], returns=None)
-    fun.lineno = 0
-    fun.col_offset = 0
+    ast.fix_missing_locations(fun)
     mod = ast.parse("")
     mod.body = [fun]
     comp = compile(mod, "<string>", "exec")

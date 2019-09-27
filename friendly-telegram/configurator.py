@@ -175,7 +175,7 @@ def api_config():
             return
         string1 = 'HASH = "' + hash + '"'
         code, id = d.inputbox("Enter your API ID")
-        if len(id) != 6 or not all(it in string.digits for it in id):
+        if len(id) == 0 or not all(it in string.digits for it in id):
             d.msgbox("Invalid ID")
             return
         string2 = 'ID = "' + id + '"'

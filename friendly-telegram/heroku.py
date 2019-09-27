@@ -52,6 +52,7 @@ def publish(clients, key, api_token=None):
     remote.push(refspec='HEAD:refs/heads/master')
     logging.debug("We are still alive. Enabling dyno.")
     app.scale_formation_process("worker", 1)
+    print("Installed to heroku successfully! Type .help in Telegram for help.")
 
 
 def get_repo():

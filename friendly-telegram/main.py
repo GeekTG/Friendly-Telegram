@@ -24,6 +24,7 @@ import functools
 import collections
 
 from telethon import TelegramClient, events
+from telethon.sessions import StringSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError
 from telethon.tl.functions.channels import DeleteChannelRequest
 
@@ -193,7 +194,6 @@ def main():
             run_config({})
             return
     if authtoken:
-        from telethon.sessions import StringSession
         for phone, token in authtoken.items():
             try:
                 clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
@@ -206,9 +206,13 @@ def main():
         phones = [input("Please enter your phone: ")]
     for phone in phones:
         try:
-            clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                                    + (("-" + phone) if phone else "")), api_token.ID,
-                                       api_token.HASH, connection_retries=None).start(phone)]
+            if arguments.heroku:
+                clients += [TelegramClient(StringSession(), api_token.ID, api_token.HASH, connection_retries=None)
+                            .start(phone)]
+            else:
+                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
+                                                        + (("-" + phone) if phone else "")), api_token.ID,
+                                           api_token.HASH, connection_retries=None).start(phone)]
         except ValueError:
             # Bad API hash/ID
             run_config({})

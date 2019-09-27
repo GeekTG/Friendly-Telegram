@@ -50,6 +50,8 @@ def publish(clients, key, api_token=None):
     else:
         remote = repo.create_remote("heroku", url)
     remote.push(refspec='HEAD:refs/heads/master')
+    logging.debug("We are still alive. Enabling dyno.")
+    app.scale_formation_process("worker", 1)
 
 
 def get_repo():

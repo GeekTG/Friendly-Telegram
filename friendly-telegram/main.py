@@ -226,6 +226,7 @@ def main():
         key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
         from . import heroku
         heroku.publish(clients, key, api_token)
+        print("Installed to heroku successfully! Type .help in Telegram for help.")
         return
 
     loops = []

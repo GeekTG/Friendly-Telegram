@@ -37,6 +37,7 @@ def register(cb):
 
 # We dont modify locals VVVV ; this lets us keep the message available to the user-provided function
 async def meval(code, **kwargs):
+    # This function is released in the public domain. Feel free to kang it (although I like credit)
     # Note to self: please don't set globals here as they will be lost.
     # Don't clutter locals
     locs = {}

@@ -165,8 +165,8 @@ def main():
 
     clients = []
 
-    phones = arguments.phone if arguments.phone else []
-    phones += set(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session",
+    phones = set(arguments.phone if arguments.phone else [])
+    phones.update(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session",
                                                  os.listdir(os.path.dirname(utils.get_base_dir())))))
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku
@@ -181,7 +181,8 @@ def main():
         authtoken = {}
     if arguments.tokens:
         for token in arguments.tokens:
-            phone = phones.pop(0)
+            phone = sorted(phones).pop(0)
+            phones.remove(phone)  # Handled seperately by authtoken logic
             authtoken.update(**{phone: token})
 
     try:

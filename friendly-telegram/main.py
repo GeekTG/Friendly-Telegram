@@ -287,5 +287,5 @@ async def amain(client, allclients, setup=False):
                                  events.NewMessage(incoming=True))
         client.add_event_handler(functools.partial(handle_command, modules, db),
                                  events.NewMessage(outgoing=True, forwards=False))
-        print("Started")
+        print("Started for " + str((await c.get_me(True)).user_id))
         await c.run_until_disconnected()

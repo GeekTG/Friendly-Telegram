@@ -122,7 +122,7 @@ class CloudBackend():
                     logging.warning("db not modified", exc_info=r)
                 elif isinstance(r, Exception):
                     raise r  # Makes more sense to raise even for MessageEditTimeExpiredError
-                elif r is not None:
+                elif not isinstance(r, Message):
                     logging.debug("unknown ret from gather, %r", r)
         except MessageEditTimeExpiredError:
             logging.debug("Making new channel.")

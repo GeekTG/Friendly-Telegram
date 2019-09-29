@@ -27,6 +27,7 @@ class CoreMod(loader.Module):
     """Control core userbot settings"""
     def __init__(self):
         self.name = _("Settings")
+        self.allmodules = None
 
     async def client_ready(self, client, db):
         self._db = db
@@ -65,11 +66,31 @@ class CoreMod(loader.Module):
         """Sets command prefix"""
         args = utils.get_args(message)
         if len(args) != 1:
-            await message.edit(_("<code>What should the prefix be set to?</code>"))
-            return
+            return await message.edit(_("<code>What should the prefix be set to?</code>"))
         oldprefix = self._db.get(main.__name__, "command_prefix", ".")
         self._db.set(main.__name__, "command_prefix", args[0])
         await utils.answer(message, _("<b>Command prefix updated. "
                                       + "Type </b><code>{newprefix}setprefix {oldprefix}</code><b> "
                                       + "to change it back</b>")
                            .format(newprefix=args[0], oldprefix=oldprefix))
+
+    async def addaliascmd(self, message):
+        """Set an alias for a command"""
+        args = utils.get_args(message)
+        if len(args) != 2:
+            return await message.edit(_("You must provide a message and the alias for it"))
+        alias, cmd = args
+        ret = self.allmodules.add_alias(alias, cmd)
+        if ret:
+            self.db.set(__name__, "aliases", {**self.db.get(__name__, "aliases"), alias: cmd})
+            await utils.answer(message, _("Alias created. Access it with <code>{}</code>").format(alias))
+        else:
+            await utils.answer(message, _("Command <code>{}</code> does not exist").format(cmd))
+
+    async def _client_ready2(self, client, db):
+        self.db = db
+        ret = {}
+        for alias, cmd in db.get(__name__, "aliases", {}).items():
+            if self.allmodules.add_alias(alias, cmd):
+                ret[alias] = cmd
+        db.set(__name__, "aliases", ret)

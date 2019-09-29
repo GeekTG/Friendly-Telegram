@@ -60,10 +60,15 @@ class Module():
     async def client_ready(self, client, db):
         pass
 
+    # Called after client_ready, for internal use only. Must not be used by non-core modules
+    async def _client_ready2(self, client, db):
+        pass
+
 
 class Modules():
     def __init__(self):
         self.commands = {}
+        self.aliases = {}
         self.modules = []
         self.watchers = []
 
@@ -144,11 +149,20 @@ class Modules():
 
     def dispatch(self, command, message):
         logging.debug(self.commands)
+        logging.debug(self.aliases)
         for com in self.commands:
-            logging.debug(com)
             if command.lower() == com:
                 logging.debug("found command")
                 return self.commands[com](message)  # Returns a coroutine
+        for alias in self.aliases.keys():
+            if alias.lower() == command.lower():
+                logging.debug("found alias")
+                com = self.aliases[alias]
+                try:
+                    message.message = com + message.message[len(command):]
+                    return self.commands[com](message)
+                except KeyError:
+                    logging.warning("invalid alias")
 
     def send_config(self, db):
         for mod in self.modules:
@@ -176,6 +190,7 @@ class Modules():
             for m in self.modules:
                 m.allclients = allclients
             await asyncio.gather(*[m.client_ready(client, db) for m in self.modules])
+            await asyncio.gather(*[m._client_ready2(client, db) for m in self.modules])
         except Exception:
             logging.exception("Failed to send mod init complete signal")
 
@@ -195,8 +210,26 @@ class Modules():
             if watcher in to_remove:
                 logging.debug("Removing watcher for unload " + repr(watcher))
                 self.watchers.remove(watcher)
+        aliases_to_remove = []
         for name, command in self.commands.copy().items():
             if command in to_remove:
                 logging.debug("Removing command for unload " + repr(command))
                 del self.commands[name]
+                aliases_to_remove.append(name)
+        for alias, command in self.aliases.copy().items():
+            if command in aliases_to_remove:
+                del self.aliases[alias]
         return worked
+
+    def add_alias(self, alias, cmd):
+        if cmd not in self.commands.keys():
+            return False
+        self.aliases[alias] = cmd
+        return True
+
+    def remove_alias(self, alias):
+        try:
+            del self.aliases[alias]
+        except KeyError:
+            return False
+        return True

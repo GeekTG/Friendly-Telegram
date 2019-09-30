@@ -77,15 +77,13 @@ class LoaderMod(loader.Module):
         elif len(args) == 1:
             if await self.download_and_install(args[0], message):
                 self._db.set(__name__, "loaded_modules",
-                             list((await self._get_modules_to_load()).union(set([args[0]]))))
+                             list(set(self._db.get(__name__, "loaded_modules")).union([args[0]])))
 
     async def _get_modules_to_load(self):
-        todo = self._db.get(__name__, "loaded_modules", [])
-        if todo is None:
-            return set()
-        if todo == []:
-            return await self.get_repo_list()
-        return set(todo)
+        todo = await self.get_repo_list()
+        todo.update(self._db.get(__name__, "loaded_modules", []))
+        todo = todo.difference(self._db.get(__name__, "unloaded_modules", []))
+        return todo
 
     async def get_repo_list(self):
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/manifest.txt")
@@ -193,8 +191,10 @@ class LoaderMod(loader.Module):
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod
             without_prefix += [mod[len("friendly-telegram.modules."):]]
-        it = (await self._get_modules_to_load()).difference(without_prefix)
+        it = self._db.get(__name__, "loaded_modules").difference(without_prefix)
         self._db.set(__name__, "loaded_modules", list(it))
+        it = self._db.get(__name__, "unloaded_modules").union(without_prefix)
+        self._db.set(__name__, "unloaded_modules", list(it))
         if len(worked):
             await message.edit(_("<code>Module unloaded.</code>"))
         else:

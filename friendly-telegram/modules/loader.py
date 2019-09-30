@@ -79,14 +79,32 @@ class LoaderMod(loader.Module):
                 self._db.set(__name__, "loaded_modules",
                              list(set(self._db.get(__name__, "loaded_modules")).union([args[0]])))
 
+    async def dlpresetcmd(self, message):
+        args = utils.get_args(message)
+        if len(args) != 1:
+            await utils.answer(message, _("Please select a preset"))
+            return
+        try:
+            await self.get_repo_list(args[0])
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                await utils.answer(message, _("Preset not found"))
+                return
+            else:
+                raise
+        self._db.set(__name__, "chosen_preset", args[0])
+        await utils.answer(message, _("Preset loaded"))
+
     async def _get_modules_to_load(self):
-        todo = await self.get_repo_list()
+        todo = await self.get_repo_list(self._db.get(__name__, "chosen_preset", None))
         todo.update(self._db.get(__name__, "loaded_modules", []))
         todo = todo.difference(self._db.get(__name__, "unloaded_modules", []))
         return todo
 
-    async def get_repo_list(self):
-        r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/manifest.txt")
+    async def get_repo_list(self, preset=None):
+        if preset is None:
+            preset = "minimal"
+        r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()
         return set(filter(lambda x: len(x) > 0, r.text.split("\n")))
 

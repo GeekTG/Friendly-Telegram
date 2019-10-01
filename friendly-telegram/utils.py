@@ -57,6 +57,8 @@ def get_args_split_by(message, s):
 
 def get_chat_id(message):
     chat = message.to_id
+    if isinstance(chat, PeerUser):
+        return message.chat_id
     attrs = vars(chat)
     if len(attrs) != 1:
         return None

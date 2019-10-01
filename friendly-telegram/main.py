@@ -188,7 +188,7 @@ def get_api_token():
                                                                             os.environ["api_hash"])
         except KeyError:
             run_config({})
-            return
+            return None
     return api_token
 
 
@@ -207,6 +207,8 @@ def main():
     clients = []
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token()
+    if api_token is None:
+        return
 
     if authtoken:
         for phone, token in authtoken.items():
@@ -244,9 +246,7 @@ def main():
         print("Installed to heroku successfully! Type .help in Telegram for help.")
         return
 
-    loops = []
-    for client in clients:
-        loops += [amain(client, clients, arguments.setup)]
+    loops = [amain(client, clients, arguments.setup) for client in clients]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
                                                    logging.error("Exception on event loop! %s", x["message"],

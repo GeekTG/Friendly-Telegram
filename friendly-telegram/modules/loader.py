@@ -77,7 +77,7 @@ class LoaderMod(loader.Module):
         elif len(args) == 1:
             if await self.download_and_install(args[0], message):
                 self._db.set(__name__, "loaded_modules",
-                             list(set(self._db.get(__name__, "loaded_modules")).union([args[0]])))
+                             list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0]])))
 
     async def dlpresetcmd(self, message):
         args = utils.get_args(message)

@@ -205,7 +205,7 @@ def main():
         asyncio.set_event_loop(asyncio.ProactorEventLoop())
 
     clients = []
-    phones, authtoken = get_phones()
+    phones, authtoken = get_phones(arguments)
     api_token = get_api_token()
 
     if authtoken:

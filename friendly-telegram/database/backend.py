@@ -54,8 +54,8 @@ class CloudBackend():
         async with self._anti_double_lock:
             if not self._data_already_exists:
                 self._data_already_exists = True
-                return (await self._client(CreateChannelRequest(f"friendly-{self._me.id}-data", "// Don't touch",
-                                                                megagroup=True))).chats[0]
+                return (await self._client(CreateChannelRequest(f"friendly-{self._me.id}-data",
+                                                                "// Don't touch", megagroup=True))).chats[0]
             else:
                 return await self._find_data_channel()
 

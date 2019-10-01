@@ -14,6 +14,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+if [ ! x"" = x"$DYNO" ]; then
+  # We are running in a heroku dyno, time to get ugly!
+  echo "Heroku detected. Bootstrapping Python..."
+  git clone https://github.com/heroku/heroku-buildpack-python || { echo "Bootstrap download failed!"; exit 1; }
+  rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
+  mkdir .cache .env
+  echo "python-3.7.4" > runtime.txt
+  echo "pip" > requirements.txt
+  STACK=heroku-18 bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
+      { echo "Bootstrap install failed!"; exit 1; }
+  rm -rf .cache
+  export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
+fi
+
 if [ -d "friendly-telegram" ]; then
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then

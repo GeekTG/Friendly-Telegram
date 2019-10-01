@@ -40,7 +40,7 @@ class RaphielgangConfig():
                         "lastfm", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
                         "GDRIVE_FOLDER_ID", "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG",
                         "ENABLE_KILLME", "CMD_HELP", "AFKREASON", "ZALG_LIST", "BRAIN_CHECKER", "CURRENCY_API",
-                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME"]
+                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER"]
 
         self.bots = clients
 
@@ -204,6 +204,10 @@ class RaphielgangConfig():
         self.ALIVE_NAME = "`**PPE bad! Use **[friendly-telegram](https://t.me/friendlytgbot)`."
 
         self.GDRIVE_FOLDER = self.GDRIVE_FOLDER_ID
+
+        # And some for "AliHasan7671"
+        self.LOGGER_GROUP = 0
+        self.HELPER = {}  # What is this even?
 
         self.__passthrus = []
 

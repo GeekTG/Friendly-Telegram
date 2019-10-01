@@ -267,7 +267,7 @@ class RaphielgangEvents():
             message.message = message.message[len("raphcmd" + str(self.instance_id)) + 1:]
             return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
-        def register(self, *args, **kwargs):
+        def register(self, *args, **kwargs):  # noqa: C901 # legacy code that works fine
             if len(args) >= 1:
                 # This is the register() function in normal ftg modules
                 # Create a fake type, instantiate it with our own self

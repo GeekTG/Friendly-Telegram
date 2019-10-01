@@ -71,7 +71,7 @@ class UniborgClient:
         message.message = "." + message.message[len("borgcmd" + str(self.instance_id)) + 1:]
         return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
-    def on(self, event):
+    def on(self, event):  # noqa: C901 # legacy code that works fine
         if self.instance_id < 0:
             type(self).instance_count += 1
             self.instance_id = type(self).instance_count

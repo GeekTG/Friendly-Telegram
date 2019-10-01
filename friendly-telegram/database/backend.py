@@ -116,6 +116,18 @@ class CloudBackend():
                     logging.debug("maybe deleting message")
                     if not msg.id == msgs[-1].id:
                         ops += [msg.delete()]
+
+        if await self._do_ops(ops):
+            return await self.do_upload(data)
+        while len(sdata):  # Only happens if newmsg is True or there was no message before
+            newmsg = True
+            await self._client.send_message(self.db, utils.escape_html(sdata[:4096]))
+            sdata = sdata[4096:]
+        if newmsg:
+            await self._client.send_message(self.db, "Please ignore this chat.")
+        return True
+
+    async def _do_ops(self, ops):
         try:
             for r in await asyncio.gather(*ops, return_exceptions=True):
                 if isinstance(r, MessageNotModifiedError):
@@ -129,11 +141,5 @@ class CloudBackend():
             _db = self.db
             self.db = None
             await self._client(DeleteChannelRequest(channel=_db))
-            return await self.do_upload(data)
-        while len(sdata):  # Only happens if newmsg is True or there was no message before
-            newmsg = True
-            await self._client.send_message(self.db, utils.escape_html(sdata[:4096]))
-            sdata = sdata[4096:]
-        if newmsg:
-            await self._client.send_message(self.db, "Please ignore this chat.")
-        return True
+            return True
+        return False

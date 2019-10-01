@@ -122,35 +122,27 @@ def modules_config():
             if mod.name == tag:
                 # Match
                 while True:
-                    choices = [("Enabled", "Set to 0 to disable this module, 1 to enable")]
-                    for key, value in getattr(mod, "config", {}).items():
-                        if key.upper() == key:  # Constants only
-                            choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
-                    code, tag = d.menu("Module configuration for {}".format(mod.name), choices=choices)
-                    if code == d.OK:
-                        code, s = d.inputbox(tag)
-                        if code == d.OK:
-                            if tag == "Enabled":
-                                try:
-                                    enabled = int(s) > 0
-                                except ValueError:
-                                    enabled = True
-                                try:
-                                    db.setdefault(main.__name__, {}).setdefault("disable_modules",
-                                                                                []).remove(mod.__module__)
-                                except ValueError:
-                                    pass
-                                if not enabled:
-                                    db.setdefault(main.__name__, {}).setdefault("disable_modules",
-                                                                                []).append(mod.__module__)
-                            else:
-                                db.setdefault(mod.__module__, {}).setdefault("__config__",
-                                                                             {})[tag] = validate_value(s)
-                    else:
+                    if module_config(mod):
                         break
-                return modules_config()
+        return modules_config()
     else:
         return
+
+
+def module_config(mod):
+    choices = []
+    for key, value in getattr(mod, "config", {}).items():
+        if key.upper() == key:  # Constants only
+            choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
+    code, tag = d.menu("Module configuration for {}".format(mod.name), choices=choices)
+    if code == d.OK:
+        code, s = d.inputbox(tag)
+        if code == d.OK:
+            db.setdefault(mod.__module__, {}).setdefault("__config__",
+                                                         {})[tag] = validate_value(s)
+        return False
+    else:
+        return True
 
 
 def run(database, phone, init, mods):

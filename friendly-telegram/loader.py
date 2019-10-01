@@ -20,7 +20,6 @@ import os
 import logging
 import sys
 import asyncio
-import inspect
 
 from . import utils
 
@@ -72,10 +71,9 @@ class Modules():
         self.modules = []
         self.watchers = []
 
-    def register_all(self, skip, babelfish):
+    def register_all(self, babelfish):
         from .compat import uniborg
         from . import compat  # Avoid circular import
-        self._skip = skip
         self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
@@ -84,9 +82,6 @@ class Modules():
         for mod in mods:
             try:
                 module_name = __package__ + "." + MODULES_NAME + "." + mod[:-3]  # FQN
-                if module_name in skip:
-                    logging.debug("Not loading module %s because it is blacklisted", module_name)
-                    continue
                 logging.debug(module_name)
                 logging.debug(os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 spec = importlib.util.spec_from_file_location(module_name,
@@ -111,9 +106,11 @@ class Modules():
             instance.commands = {method_name[:-3]: getattr(instance, method_name) for method_name in dir(instance)
                                  if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
 
-        if inspect.getmodule(type(instance)).__name__ in self._skip:
-            logging.debug("Not loading module %s because it is blacklisted", type(instance).__name__)
-            return
+        self.register_commands(instance)
+        self.register_watcher(instance)
+        self.complete_registration(instance)
+
+    def register_commands(self, instance):
         for command in instance.commands:
             # Verify that command does not already exist, or, if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
@@ -128,6 +125,8 @@ class Modules():
             if not instance.commands[command].__doc__:
                 logging.warning("Missing docs for %s", command)
             self.commands.update({command.lower(): instance.commands[command]})
+
+    def register_watcher(self, instance):
         try:
             if instance.watcher:
                 for watcher in self.watchers:
@@ -138,6 +137,8 @@ class Modules():
                 self.watchers += [instance.watcher]
         except AttributeError:
             pass
+
+    def complete_registration(self, instance):
         if hasattr(instance, "allmodules"):
             # Mainly for the Help module
             instance.allmodules = self

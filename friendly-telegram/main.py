@@ -144,7 +144,7 @@ def run_config(db, phone=None, modules=None):
     return configurator.run(db, phone, phone is None, modules)
 
 
-def main():
+def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--setup", "-s", action="store_true")
     parser.add_argument("--phone", "-p", action="append")
@@ -153,18 +153,10 @@ def main():
     parser.add_argument("--translate", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
+    return arguments
 
-    if arguments.translate:
-        from .translations import translateutil
-        translateutil.ui()
-        return
 
-    if sys.platform == 'win32':
-        # Subprocess support; not needed in 3.8
-        asyncio.set_event_loop(asyncio.ProactorEventLoop())
-
-    clients = []
-
+def get_phones(arguments):
     phones = set(arguments.phone if arguments.phone else [])
     phones.update(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session",
                                                  os.listdir(os.path.dirname(utils.get_base_dir())))))
@@ -184,7 +176,10 @@ def main():
             phone = sorted(phones).pop(0)
             phones.remove(phone)  # Handled seperately by authtoken logic
             authtoken.update(**{phone: token})
+    return phones, authtoken
 
+
+def get_api_token():
     try:
         from . import api_token
     except ImportError:
@@ -194,6 +189,25 @@ def main():
         except KeyError:
             run_config({})
             return
+    return api_token
+
+
+def main():
+    arguments = parse_arguments()
+
+    if arguments.translate:
+        from .translations import translateutil
+        translateutil.ui()
+        return
+
+    if sys.platform == 'win32':
+        # Subprocess support; not needed in 3.8
+        asyncio.set_event_loop(asyncio.ProactorEventLoop())
+
+    clients = []
+    phones, authtoken = get_phones()
+    api_token = get_api_token()
+
     if authtoken:
         for phone, token in authtoken.items():
             try:
@@ -279,7 +293,7 @@ async def amain(client, allclients, setup=False):
         babelfish = Translator(["en"])  # TODO
 
         modules = loader.Modules()
-        modules.register_all(db.get(__name__, "disable_modules", []), babelfish)
+        modules.register_all(babelfish)
 
         modules.send_config(db)
         await modules.send_ready(client, db, allclients)

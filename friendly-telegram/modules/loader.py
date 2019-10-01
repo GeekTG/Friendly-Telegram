@@ -209,9 +209,9 @@ class LoaderMod(loader.Module):
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod
             without_prefix += [mod[len("friendly-telegram.modules."):]]
-        it = set(self._db.get(__name__, "loaded_modules"), []).difference(without_prefix)
+        it = set(self._db.get(__name__, "loaded_modules", [])).difference(without_prefix)
         self._db.set(__name__, "loaded_modules", list(it))
-        it = set(self._db.get(__name__, "unloaded_modules"), []).union(without_prefix)
+        it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)
         self._db.set(__name__, "unloaded_modules", list(it))
         if len(worked):
             await message.edit(_("<code>Module unloaded.</code>"))

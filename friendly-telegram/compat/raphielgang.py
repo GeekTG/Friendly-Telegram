@@ -352,10 +352,10 @@ class RaphielgangEvents():
         return subreg
 
     def errors_handler(self, func):
-            """Do nothing as this is handled by ftg framework by default"""
-            return func
+        """Do nothing as this is handled by ftg framework by default"""
+        return func
 
     async def client_ready(self, client):
-            pass
+        pass
 
 # I just finished writing this. Please, someone, help me!

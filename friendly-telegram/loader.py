@@ -100,7 +100,7 @@ class Modules():
                     module.register(self.register_module, module_name)
                 except TypeError:  # Too many arguments
                     module.register(self.register_module)
-            except BaseException as e:
+            except BaseException:
                 logging.exception("Failed to load module %s due to:", mod)
 
     def register_module(self, instance):

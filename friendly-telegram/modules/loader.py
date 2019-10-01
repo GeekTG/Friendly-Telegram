@@ -71,7 +71,7 @@ class LoaderMod(loader.Module):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)
         if len(args) == 0:
-            text = utils.escape_html("\n".join(await self.get_repo_list()))
+            text = utils.escape_html("\n".join(await self.get_repo_list("full")))
             await utils.answer(message, "<b>" + _("Available official modules from repo")
                                + "</b>\n<code>" + text + "</code>")
         elif len(args) == 1:

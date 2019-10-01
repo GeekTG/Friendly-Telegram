@@ -24,7 +24,7 @@ else:
         print("Error: you cannot run this as a script; you must execute as a package")
     else:
         try:
-            import future_fstrings  # noqa: F401 # Coding presence check for main.py
+            import future_fstrings  # noqa: F401 # Coding presence check for main.py, notabug/its-a-feature
         except ImportError:
             print("Error: you have not installed all dependencies correctly.")
             print("Please install all dependencies from requirements.txt")

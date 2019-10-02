@@ -69,9 +69,9 @@ class UpdaterMod(loader.Module):
 
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
-        await message.edit("Downloading...")
+        await message.edit("Downloading updates...")
         await self.download_common()
-        await message.edit(_("Downloaded! Use <code>.restart</code> to restart."))
+        await message.edit(_("Downloaded successfully.\nPlease type <code>.restart</code> to restart the bot."))
 
     async def download_common(self):
         try:
@@ -109,9 +109,9 @@ class UpdaterMod(loader.Module):
     async def updatecmd(self, message):
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
-        await message.edit(_("Downloading..."))
+        await message.edit(_("Downloading updates..."))
         req_update = await self.download_common()
-        await message.edit(_("Downloaded! Installation in progress."))
+        await message.edit(_("Download successful.\nInstallation in progress..."))
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
             from .. import heroku
@@ -141,11 +141,11 @@ class UpdaterMod(loader.Module):
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = _("Heroku API key is not set. "
+            msg = _("Heroku API key has not been set. "
                     + "Update was successful but updates will reset every time the bot restarts.")
         else:
             logger.debug("Self update successful! Edit message")
-            msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully!")
+            msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully‽")
         await client.edit_message(self._db.get(__name__, "selfupdatechat"),
                                   self._db.get(__name__, "selfupdatemsg"), msg)
 

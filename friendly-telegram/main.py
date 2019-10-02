@@ -268,7 +268,7 @@ async def amain(client, allclients, setup=False):
             except (json.decoder.JSONDecodeError, TypeError):
                 pdb = {}
             modules = loader.Modules()
-            modules.register_all([], Translator())
+            modules.register_all(Translator())
             fdb = frontend.Database(None)
             await fdb.init()
             modules.send_config(fdb)

@@ -13,17 +13,22 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from . import utils
-import heroku3
+"""Handles heroku uploads"""
+
 import logging
 import json
 import os
-import git
+
 from git import Repo
+from git.exc import InvalidGitRepositoryError
 from telethon.sessions import StringSession
+import heroku3
+
+from . import utils
 
 
 def publish(clients, key, api_token=None):
+    """Push to heroku"""
     data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
     heroku = heroku3.from_key(key)
     logging.debug("Configuring heroku...")
@@ -54,9 +59,10 @@ def publish(clients, key, api_token=None):
 
 
 def get_repo():
+    """Helper to get the repo, making it if not found"""
     try:
         repo = Repo(os.path.dirname(utils.get_base_dir()))
-    except git.exc.InvalidGitRepositoryError:
+    except InvalidGitRepositoryError:
         repo = Repo.init(os.path.dirname(utils.get_base_dir()))
         origin = repo.create_remote("origin", "https://github.com/friendly-telegram/friendly-telegram")
         origin.fetch()

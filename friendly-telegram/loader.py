@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""Loads modules from disk and dispatches stuff, and stores state"""
+
 import importlib
 import importlib.util
 import os
@@ -27,6 +29,7 @@ MODULES_NAME = "modules"
 
 
 class ModuleConfig(dict):
+    """Like a dict but contains doc for each key"""
     def __init__(self, *entries):
         i = 0
         keys = []
@@ -44,6 +47,7 @@ class ModuleConfig(dict):
         self.docstrings = dict(zip(keys, docstrings))
 
     def getdoc(self, key):
+        """Get the documentation by key"""
         return self.docstrings[key]
 
 
@@ -53,11 +57,10 @@ class Module():
         self.name = "Unknown"
 
     def config_complete(self):
-        pass
+        """Will be called when module.config is populated"""
 
-    # Will always be called after config loaded.
     async def client_ready(self, client, db):
-        pass
+        """Will be called after client is ready (after config_loaded)"""
 
     # Called after client_ready, for internal use only. Must not be used by non-core modules
     async def _client_ready2(self, client, db):
@@ -65,16 +68,20 @@ class Module():
 
 
 class Modules():
+    """Stores all registered modules"""
     def __init__(self):
         self.commands = {}
         self.aliases = {}
         self.modules = []
         self.watchers = []
+        self._compat_layer = None
 
     def register_all(self, babelfish):
-        from .compat import uniborg
-        from . import compat  # Avoid circular import
-        self._compat_layer = compat.activate([])
+        """Load all modules in the module directory"""
+        if self._compat_layer is None:
+            from .compat import uniborg
+            from . import compat  # Avoid circular import
+            self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
                       os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
@@ -99,6 +106,7 @@ class Modules():
                 logging.exception("Failed to load module %s due to:", mod)
 
     def register_module(self, instance):
+        """Register single module instance"""
         if not issubclass(type(instance), Module):
             logging.error("Not a subclass %s", repr(instance.__class__))
         if not hasattr(instance, "commands"):
@@ -111,6 +119,7 @@ class Modules():
         self.complete_registration(instance)
 
     def register_commands(self, instance):
+        """Register commands from instance"""
         for command in instance.commands:
             # Verify that command does not already exist, or, if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
@@ -120,42 +129,44 @@ class Modules():
                         != self.commands[command].__self__.__class__.__name__:
                     logging.error("Duplicate command %s", command)
                     continue
-                else:
-                    logging.debug("Replacing command for update " + repr(self.commands[command]))
+                logging.debug("Replacing command for update %r", self.commands[command])
             if not instance.commands[command].__doc__:
                 logging.warning("Missing docs for %s", command)
             self.commands.update({command.lower(): instance.commands[command]})
 
     def register_watcher(self, instance):
+        """Register watcher from instance"""
         try:
             if instance.watcher:
                 for watcher in self.watchers:
                     if hasattr(watcher, "__self__") and watcher.__self__.__class__.__name__ \
                             == instance.watcher.__self__.__class__.__name__:
-                        logging.debug("Removing watcher for update " + repr(watcher))
+                        logging.debug("Removing watcher for update %r", watcher)
                         self.watchers.remove(watcher)
                 self.watchers += [instance.watcher]
         except AttributeError:
             pass
 
     def complete_registration(self, instance):
+        """Complete registration of instance"""
         if hasattr(instance, "allmodules"):
             # Mainly for the Help module
             instance.allmodules = self
         for module in self.modules:
             if module.__class__.__name__ == instance.__class__.__name__:
-                logging.debug("Removing module for update " + repr(module))
+                logging.debug("Removing module for update %r", module)
                 self.modules.remove(module)
         self.modules += [instance]
 
     def dispatch(self, command, message):
+        """Dispatch command to appropriate module"""
         logging.debug(self.commands)
         logging.debug(self.aliases)
         for com in self.commands:
             if command.lower() == com:
                 logging.debug("found command")
                 return self.commands[com](message)  # Returns a coroutine
-        for alias in self.aliases.keys():
+        for alias in self.aliases:
             if alias.lower() == command.lower():
                 logging.debug("found alias")
                 com = self.aliases[alias]
@@ -164,12 +175,15 @@ class Modules():
                     return self.commands[com](message)
                 except KeyError:
                     logging.warning("invalid alias")
+        return None
 
     def send_config(self, db):
+        """Configure modules"""
         for mod in self.modules:
             self.send_config_one(mod, db)
 
-    def send_config_one(self, mod, db):
+    def send_config_one(self, mod, db):  # pylint: disable=R0201
+        """Send config to single instance"""
         if hasattr(mod, "config"):
             modcfg = db.get(mod.__module__, "__config__", {})
             logging.debug(modcfg)
@@ -178,7 +192,7 @@ class Modules():
                 if conf in modcfg.keys():
                     mod.config[conf] = modcfg[conf]
                 else:
-                    logging.debug("No config value for " + conf)
+                    logging.debug("No config value for %s", conf)
             logging.debug(mod.config)
         try:
             mod.config_complete()
@@ -186,22 +200,24 @@ class Modules():
             logging.exception("Failed to send mod config complete signal")
 
     async def send_ready(self, client, db, allclients):
+        """Send all data to all modules"""
         await self._compat_layer.client_ready(client)
         try:
-            for m in self.modules:
-                m.allclients = allclients
-            await asyncio.gather(*[m.client_ready(client, db) for m in self.modules])
-            await asyncio.gather(*[m._client_ready2(client, db) for m in self.modules])
+            for mod in self.modules:
+                mod.allclients = allclients
+            await asyncio.gather(*[mod.client_ready(client, db) for mod in self.modules])
+            await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
         except Exception:
             logging.exception("Failed to send mod init complete signal")
 
     def unload_module(self, classname):
+        """Remove module and all stuff from it"""
         worked = []
         to_remove = []
         for module in self.modules:
-            if module.__class__.__name__ == classname or module.name == classname:
+            if classname in (module.name, module.__class__.__name__):
                 worked += [module.__module__]
-                logging.debug("Removing module for unload" + repr(module))
+                logging.debug("Removing module for unload %r", module)
                 self.modules.remove(module)
                 to_remove += module.commands.values()
                 if hasattr(module, "watcher"):
@@ -209,12 +225,12 @@ class Modules():
         logging.debug("to_remove: %r", to_remove)
         for watcher in self.watchers.copy():
             if watcher in to_remove:
-                logging.debug("Removing watcher for unload " + repr(watcher))
+                logging.debug("Removing watcher for unload %r", watcher)
                 self.watchers.remove(watcher)
         aliases_to_remove = []
         for name, command in self.commands.copy().items():
             if command in to_remove:
-                logging.debug("Removing command for unload " + repr(command))
+                logging.debug("Removing command for unload %r", command)
                 del self.commands[name]
                 aliases_to_remove.append(name)
         for alias, command in self.aliases.copy().items():
@@ -223,12 +239,14 @@ class Modules():
         return worked
 
     def add_alias(self, alias, cmd):
+        """Make an alias"""
         if cmd not in self.commands.keys():
             return False
         self.aliases[alias] = cmd
         return True
 
     def remove_alias(self, alias):
+        """Remove an alias"""
         try:
             del self.aliases[alias]
         except KeyError:

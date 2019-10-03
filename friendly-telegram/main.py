@@ -108,7 +108,7 @@ async def handle_command(modules, db, event):
     logging.debug(message)
     # Make sure we don't get confused about spaces or other shit in the prefix
     message.message = message.message[len(prefix):]
-    command = message.message.split(None, 1)[0]
+    command = message.message.split(maxsplit=1)[0]
     logging.debug(command)
     coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one
     if coro is not None:

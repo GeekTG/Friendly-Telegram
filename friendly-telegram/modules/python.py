@@ -108,11 +108,11 @@ class PythonMod(loader.Module):
         try:
             it = await meval(utils.get_args_raw(message), **await self.getattrs(message))
         except Exception:
-            et, ei, tr = sys.exc_info()
+            exc = sys.exc_info()
+            exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
             await utils.answer(message, _("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
                                .format(utils.escape_html(utils.get_args_raw(message)),
-                               utils.escape_html("".join(traceback.format_exception(et, ei,
-                                                                                    tr.tb_next.tb_next.tb_next)))))
+                                       utils.escape_html(exc)))
             return
         ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
         await utils.answer(message, ret)
@@ -123,11 +123,11 @@ class PythonMod(loader.Module):
         try:
             await meval(utils.get_args_raw(message), **await self.getattrs(message))
         except Exception:
-            et, ei, tr = sys.exc_info()
+            exc = sys.exc_info()
+            exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
             await utils.answer(message, _("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
                                .format(utils.escape_html(utils.get_args_raw(message)),
-                               utils.escape_html("".join(traceback.format_exception(et, ei,
-                                                                                    tr.tb_next.tb_next.tb_next)))))
+                                       utils.escape_html(exc)))
             return
 
     async def getattrs(self, message):
@@ -150,9 +150,4 @@ class PythonMod(loader.Module):
                                                              and x[1] != it
                                                              and x[1].__package__.rsplit(".", _depth)[0]
                                                              == "telethon.tl",
-                                                      it.__dict__.items())]))}
-#                **dict(itertools.chain.from_iterable([self.get_sub(y[1]) for y in
-#                                                      filter(lambda x: x[0][0] != "_"
-#                                                             and isinstance(x[1], types.ModuleType)
-#                                                             and x[1] != it,
-#                                                      it.__dict__.items())]))}
+                                                             it.__dict__.items())]))}

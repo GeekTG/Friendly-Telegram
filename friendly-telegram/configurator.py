@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""Configuration menu, providing interface for users to control internals"""
+
 import locale
 import os
 import inspect
@@ -26,42 +28,48 @@ from dialog import Dialog, ExecutableNotFound
 from . import utils, main
 
 
-class TDialog():
-    OK = 0
-    NOT_OK = 1
+def _safe_input(*args, **kwargs):
+    """Try to invoke input(*), print an error message if an EOFError or OSError occurs)"""
+    try:
+        return input(*args, **kwargs)
+    except (EOFError, OSError):
+        print()
+        print("=" * 30)
+        print()
+        print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
+        print()
+        print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
+        print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
+        print()
+        print("If you're not using heroku, then you are using a non-interactive prompt but "
+              "you have not got a session configured, meaning authentication to Telegram is impossible.")
+        print()
+        print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
+        print("Goodbye.")
+        sys.exit(1)
 
-    def _safe_input(self, *args, **kwargs):
-        try:
-            return input(*args, **kwargs)
-        except (EOFError, OSError):
-            print()
-            print("=" * 30)
-            print()
-            print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
-            print()
-            print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
-            print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
-            print()
-            print("If you're not using heroku, then you are using a non-interactive prompt but "
-                  + "you have not got a session configured, meaning authentication to Telegram is impossible.")
-            print()
-            print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
-            print("Goodbye.")
-            sys.exit(1)
+
+class TDialog():
+    """Reimplementation of dialog.Dialog without external dependencies"""
+
+    OK = True
+    NOT_OK = False
 
     # Similar interface to pythondialog
     def menu(self, title, choices):
+        """Print a menu and get a choice"""
+
         print()
         print()
         print(title)
         print()
         biggest = max([len(k) for k, d in choices])
         i = 1
-        for k, d in choices:
-            print(" " + str(i) + ". " + k + (" " * (biggest + 2 - len(k))) + (d.replace("\n", "...\n      ")))
+        for k, v in choices:
+            print(" " + str(i) + ". " + k + (" " * (biggest + 2 - len(k))) + (v.replace("\n", "...\n      ")))
             i += 1
         while True:
-            inp = self._safe_input("Please enter your selection as a number, or 0 to cancel: ")
+            inp = _safe_input("Please enter your selection as a number, or 0 to cancel: ")
             try:
                 inp = int(inp)
                 if inp == 0:
@@ -71,138 +79,152 @@ class TDialog():
                 pass
 
     def inputbox(self, query):
+        """Get a text input of the query"""
+
         print()
         print()
         print(query)
         print()
-        inp = self._safe_input("Please enter your response, or type nothing to cancel: ")
+        inp = _safe_input("Please enter your response, or type nothing to cancel: ")
         if inp == "":
             return (self.NOT_OK, "Cancelled")
         return (self.OK, inp)
 
     def msgbox(self, msg):
+        """Print some info"""
+
         print()
         print()
         print(msg)
+        return self.OK
 
-    def set_background_title(self, x):
-        pass
+    def set_background_title(self, title):
+        """Do nothing"""
 
     def yesno(self, question):
-        return self._safe_input(question + "y/N").lower() == "y"
+        """Ask yes or no, default to no"""
+        return self.OK if _safe_input(question + "y/N").lower() == "y" else self.NOT_OK
 
 
 TITLE = ""
 
 try:
-    d = Dialog(dialog="dialog", autowidgetsize=True)
+    DIALOG = Dialog(dialog="dialog", autowidgetsize=True)
 except ExecutableNotFound:
     # Fall back to a terminal based configurator.
-    d = TDialog()
+    DIALOG = TDialog()
 
 locale.setlocale(locale.LC_ALL, '')
 
-global modules
-global db  # eww... meh.
+MODULES = None
+DB = None  # eww... meh.
 
 
-def validate_value(s):
+# pylint: disable=W0603
+
+def validate_value(value):
+    """Convert string to literal or return string"""
     try:
-        return ast.literal_eval(s)
-    except Exception:
-        return s
+        return ast.literal_eval(value)
+    except (ValueError, SyntaxError):
+        return value
 
 
 def modules_config():
-    global db
-    code, tag = d.menu("Modules", choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or ""))
-                                           for module in modules.modules])
-    if code == d.OK:
-        for mod in modules.modules:
+    """Show menu of all modules and allow user to enter one"""
+    global DB
+    code, tag = DIALOG.menu("Modules", choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or ""))
+                                                for module in MODULES.modules])
+    if code == DIALOG.OK:
+        for mod in MODULES.modules:
             if mod.name == tag:
                 # Match
                 while True:
                     if module_config(mod):
                         break
         return modules_config()
-    else:
-        return
+    return None
 
 
 def module_config(mod):
+    """Show menu for specific module and allow user to set config items"""
     choices = []
-    for key, value in getattr(mod, "config", {}).items():
+    for key in getattr(mod, "config", {}).keys():
         if key.upper() == key:  # Constants only
             choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
-    code, tag = d.menu("Module configuration for {}".format(mod.name), choices=choices)
-    if code == d.OK:
-        code, s = d.inputbox(tag)
-        if code == d.OK:
-            db.setdefault(mod.__module__, {}).setdefault("__config__",
-                                                         {})[tag] = validate_value(s)
+    code, tag = DIALOG.menu("Module configuration for {}".format(mod.name), choices=choices)
+    if code == DIALOG.OK:
+        code, value = DIALOG.inputbox(tag)
+        if code == DIALOG.OK:
+            DB.setdefault(mod.__module__, {}).setdefault("__config__",
+                                                         {})[tag] = validate_value(value)
         return False
-    else:
-        return True
+    return True
 
 
 def run(database, phone, init, mods):
-    global db, modules, TITLE
-    db = database
-    modules = mods
+    """Launch configurator"""
+    global DB, MODULES, TITLE
+    DB = database
+    MODULES = mods
     TITLE = "Userbot Configuration for {}"
     TITLE = TITLE.format(phone)
-    d.set_background_title(TITLE)
+    DIALOG.set_background_title(TITLE)
     while main_config(init):
         pass
-    return db
+    return DB
 
 
 def api_config():
-    code, hash = d.inputbox("Enter your API Hash")
-    if code == d.OK:
-        if len(hash) != 32 or not all(it in string.hexdigits for it in hash):
-            d.msgbox("Invalid hash")
+    """Request API config from user and set"""
+    code, hash_value = DIALOG.inputbox("Enter your API Hash")
+    if code == DIALOG.OK:
+        if len(hash_value) != 32 or not all(it in string.hexdigits for it in hash_value):
+            DIALOG.msgbox("Invalid hash")
             return
-        string1 = 'HASH = "' + hash + '"'
-        code, id = d.inputbox("Enter your API ID")
-        if len(id) == 0 or not all(it in string.digits for it in id):
-            d.msgbox("Invalid ID")
+        string1 = 'HASH = "' + hash_value + '"'
+        code, id_value = DIALOG.inputbox("Enter your API ID")
+        if len(id_value) == 0 or not all(it in string.digits for it in id_value):
+            DIALOG.msgbox("Invalid ID")
             return
-        string2 = 'ID = "' + id + '"'
-        with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as f:
-            f.write(string1 + "\n" + string2 + "\n")
-        d.msgbox("API Token and ID set.")
+        string2 = 'ID = "' + id_value + '"'
+        with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as file:
+            file.write(string1 + "\n" + string2 + "\n")
+        DIALOG.msgbox("API Token and ID set.")
 
 
 def logging_config():
-    global db
-    code, tag = d.menu("Log Level", choices=[("50", "CRITICAL"), ("40", "ERROR"),
-                                             ("30", "WARNING"), ("20", "INFO"),
-                                             ("10", "DEBUG"), ("0", "ALL")])
-    if code == d.OK:
-        db.setdefault(main.__name__, {})["loglevel"] = int(tag)
+    """Ask the user to choose a loglevel and save it"""
+    global DB
+    code, tag = DIALOG.menu("Log Level", choices=[("50", "CRITICAL"), ("40", "ERROR"),
+                                                  ("30", "WARNING"), ("20", "INFO"),
+                                                  ("10", "DEBUG"), ("0", "ALL")])
+    if code == DIALOG.OK:
+        DB.setdefault(main.__name__, {})["loglevel"] = int(tag)
 
 
 def factory_reset_check():
-    global db
-    code, tag = d.yesno("Do you REALLY want to erase ALL userbot data stored in Telegram cloud?\n"
-                        + "Your existing Telegram chats will not be affected.")
-    db = None
+    """Make sure the user wants to factory reset"""
+    global DB
+    if DIALOG.yesno("Do you REALLY want to erase ALL userbot data stored in Telegram cloud?\n"
+                    "Your existing Telegram chats will not be affected.") == DIALOG.OK:
+        DB = None
 
 
 def main_config(init):
+    """Main menu"""
     if init:
         return api_config()
     choices = [("API Token and ID", "Configure API Token and ID"),
                ("Modules", "Modular configuration"),
                ("Logging", "Configure debug output")]
-    if db.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) == []:
+    if DB.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) == []:
         choices += [("Enable lite mode", "Removes all non-core modules")]
     else:
         choices += [("Disable lite mode", "Enable all available modules")]
     choices += [("Factory reset", "Removes all userbot data stored in Telegram cloud")]
-    code, tag = d.menu("Main Menu", choices=choices)
-    if code == d.OK:
+    code, tag = DIALOG.menu("Main Menu", choices=choices)
+    if code == DIALOG.OK:
         if tag == "Modules":
             modules_config()
         if tag == "API Token and ID":
@@ -210,9 +232,9 @@ def main_config(init):
         if tag == "Logging":
             logging_config()
         if tag == "Enable lite mode":
-            db.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = None
+            DB.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = None
         if tag == "Disable lite mode":
-            db.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = []
+            DB.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = []
         if tag == "Factory reset":
             factory_reset_check()
             return False

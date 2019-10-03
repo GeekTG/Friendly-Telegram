@@ -228,9 +228,9 @@ def main():
                 clients += [TelegramClient(StringSession(), api_token.ID, api_token.HASH, connection_retries=None)
                             .start(phone)]
             else:
-                    clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                                            + (("-" + phone) if phone else "")), api_token.ID,
-                                               api_token.HASH, connection_retries=None).start(phone)]
+                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
+                                                        + (("-" + phone) if phone else "")), api_token.ID,
+                                           api_token.HASH, connection_retries=None).start(phone)]
         except sqlite3.OperationalError as ex:
             print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)
                   + ": this is probably your fault. Try checking that this is the only instance running and "

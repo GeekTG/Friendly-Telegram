@@ -22,6 +22,7 @@ import asyncio
 import json
 import functools
 import collections
+import sqlite3
 
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
@@ -153,6 +154,10 @@ def parse_arguments():
     parser.add_argument("--translate", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
+    if sys.platform == 'win32':
+        # Subprocess support; not needed in 3.8 but not harmful
+        asyncio.set_event_loop(asyncio.ProactorEventLoop())
+
     return arguments
 
 
@@ -200,10 +205,6 @@ def main():
         translateutil.ui()
         return
 
-    if sys.platform == 'win32':
-        # Subprocess support; not needed in 3.8
-        asyncio.set_event_loop(asyncio.ProactorEventLoop())
-
     clients = []
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token()
@@ -227,9 +228,15 @@ def main():
                 clients += [TelegramClient(StringSession(), api_token.ID, api_token.HASH, connection_retries=None)
                             .start(phone)]
             else:
-                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                                        + (("-" + phone) if phone else "")), api_token.ID,
-                                           api_token.HASH, connection_retries=None).start(phone)]
+                    clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
+                                                            + (("-" + phone) if phone else "")), api_token.ID,
+                                               api_token.HASH, connection_retries=None).start(phone)]
+        except sqlite3.OperationalError as ex:
+            print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)
+                  + ": this is probably your fault. Try checking that this is the only instance running and "
+                  "that the session is not copied. If that doesn't help, delete the file named '"
+                  "friendly-telegram" + (("-" + phone) if phone else "") + ".session'")
+            continue
         except ValueError:
             # Bad API hash/ID
             run_config({})

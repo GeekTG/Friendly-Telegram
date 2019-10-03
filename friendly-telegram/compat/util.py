@@ -22,6 +22,7 @@ COMMAND_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_"
 
 
 def get_cmd_name(pattern):
+    """Get the first word out of a regex, hoping that it is easy to parse"""
     # Find command string: ugly af :)
     logger.debug(pattern)
     if pattern == "(?i)":
@@ -35,7 +36,7 @@ def get_cmd_name(pattern):
         # That seems to be the normal command prefix
         pattern = pattern[2:]
     else:
-        logger.error("Unable to register for non-command-based outgoing messages, pattern=" + pattern)
+        logger.error("Unable to register for non-command-based outgoing messages, pattern=%s", pattern)
         return False
     # Find first non-alpha character and get all chars before it
     i = 0
@@ -43,13 +44,14 @@ def get_cmd_name(pattern):
     while i < len(pattern) and pattern[i] in COMMAND_CHARS:
         i += 1
         cmd = pattern[:i]
-    if not len(cmd):
-        logger.error("Unable to identify command correctly, i=" + str(i) + ", pattern=" + pattern)
+    if not cmd:
+        logger.error("Unable to identify command correctly, i=%d, pattern=%s", i, pattern)
         return False
     return cmd
 
 
 class MarkdownBotPassthrough():
+    """Passthrough class that forces markdown mode"""
     def __init__(self, under):
         self.__under = under
 

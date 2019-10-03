@@ -17,8 +17,9 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import telethon
 import asyncio
+
+import telethon
 
 from .. import loader, utils
 

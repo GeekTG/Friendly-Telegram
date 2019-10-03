@@ -54,7 +54,7 @@ class UniborgClient:
 
     def __init__(self, module_name):
         self.instance_id = -1
-        self._storage = None  # TODO
+        self._storage = None
         self._config = UniborgConfig()
         self._commands = {}
         self._watchers = []

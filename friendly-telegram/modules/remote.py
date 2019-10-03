@@ -19,8 +19,9 @@
 import logging
 import inspect
 import itertools
-import telethon
 import ast
+
+import telethon
 
 from .. import loader, utils
 

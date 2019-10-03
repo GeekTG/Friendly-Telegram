@@ -24,19 +24,20 @@ import urllib
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
 
+import requests
+
 from .. import loader, utils
 from ..compat import uniborg
-
-import requests
 
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
+def register(cb):  # pylint: disable=C0116
     cb(LoaderMod())
 
 
-class StringLoader(SourceLoader):
+class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
+    """Load a python module/file from a string"""
     def __init__(self, data, origin):
         if isinstance(data, str):
             self.data = data.encode("utf-8")
@@ -53,13 +54,16 @@ class StringLoader(SourceLoader):
     def get_filename(self, fullname):
         return self.origin
 
-    def get_data(self, filename):
+    def get_data(self, filename):  # pylint: disable=W0221,W0613
+        # W0613 is not fixable, we are overriding
+        # W0221 is a false positive assuming docs are correct
         return self.data
 
 
 class LoaderMod(loader.Module):
     """Loads modules"""
     def __init__(self):
+        super().__init__()
         self.name = _("Loader")
         self.config = loader.ModuleConfig("MODULES_REPO",
                                           "https://raw.githubusercontent.com/friendly-telegram/modules-repo/master",

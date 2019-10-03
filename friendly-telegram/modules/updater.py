@@ -16,18 +16,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .. import loader, utils
-
 import logging
 import os
 import sys
 import atexit
 import random
-import git
 import subprocess
 import asyncio
 
+import git
 from git import Repo
+
+from .. import loader, utils
 
 logger = logging.getLogger(__name__)
 

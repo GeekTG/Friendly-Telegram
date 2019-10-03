@@ -14,17 +14,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .. import loader
-
-from .util import get_cmd_name, MarkdownBotPassthrough
-
 import logging
 import re
 import sys
 import asyncio
 import inspect
-
 from functools import wraps
+
+from .. import loader
+from .util import get_cmd_name, MarkdownBotPassthrough
 
 
 logger = logging.getLogger(__name__)
@@ -44,6 +42,7 @@ class RaphielgangConfig():
 
         self.bots = clients
 
+        # pylint: disable=C0103
         # Static 'cos I cba
         self.API_KEY = 12345
         self.API_HASH = "0123456789abcdef0123456789abcdef"
@@ -208,6 +207,7 @@ class RaphielgangConfig():
         # And some for "AliHasan7671"
         self.LOGGER_GROUP = 0
         self.HELPER = {}  # What is this even?
+        # pylint: enable=C0103
 
         self.__passthrus = []
 

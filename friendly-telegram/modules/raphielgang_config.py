@@ -19,8 +19,8 @@
 import logging
 import itertools
 
+import userbot  # see .compat
 from .. import loader
-import userbot
 
 logger = logging.getLogger(__name__)
 

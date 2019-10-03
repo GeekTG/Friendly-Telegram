@@ -134,7 +134,7 @@ def modules_config():
     """Show menu of all modules and allow user to enter one"""
     global DB
     code, tag = DIALOG.menu("Modules", choices=[(module.name, inspect.cleandoc(getattr(module, "__doc__", None) or ""))
-                                                for module in MODULES.modules])
+                                                for module in MODULES.modules if getattr(module, "config", {})])
     if code == DIALOG.OK:
         for mod in MODULES.modules:
             if mod.name == tag:

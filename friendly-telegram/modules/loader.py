@@ -84,6 +84,7 @@ class LoaderMod(loader.Module):
                                + "</b>\n<code>" + text + "</code>")
 
     async def dlpresetcmd(self, message):
+        """Set preset. Defaults to full"""
         args = utils.get_args(message)
         if not args:
             await utils.answer(message, _("Please select a preset"))

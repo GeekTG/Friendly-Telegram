@@ -23,6 +23,7 @@ import json
 import functools
 import collections
 import sqlite3
+import importlib
 
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
@@ -35,9 +36,7 @@ from . import utils, loader
 from .database import backend, frontend
 from .translations.core import Translator
 
-from . import modules  # Required for 3.5 to work with importlib
-
-del modules  # But it isn't used.
+importlib.import_module(".modules", __package__)  # Required on 3.5 only
 
 
 class MemoryHandler(logging.Handler):
@@ -55,14 +54,16 @@ class MemoryHandler(logging.Handler):
         self.lvl = level
 
     def dump(self):
+        """Return a list of logging entries"""
         return self.handledbuffer + self.buffer
 
     def dumps(self, lvl=0):
+        """Return all entries of minimum level as list of strings"""
         return [self.target.format(record) for record in (self.buffer + self.handledbuffer) if record.levelno >= lvl]
 
     def emit(self, record):
         if len(self.buffer) + len(self.handledbuffer) >= self.capacity:
-            if len(self.handledbuffer):
+            if self.handledbuffer:
                 del self.handledbuffer[0]
             else:
                 del self.buffer[0]
@@ -70,23 +71,24 @@ class MemoryHandler(logging.Handler):
         if record.levelno >= self.lvl and self.lvl >= 0:
             self.acquire()
             try:
-                for record in self.buffer:
-                    self.target.handle(record)
+                for precord in self.buffer:
+                    self.target.handle(precord)
                 self.handledbuffer = self.handledbuffer[-(self.capacity - len(self.buffer)):] + self.buffer
                 self.buffer = []
             finally:
                 self.release()
 
 
-formatter = logging.Formatter(logging.BASIC_FORMAT, "")
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-logging.getLogger().addHandler(MemoryHandler(handler, 500))
+_formatter = logging.Formatter(logging.BASIC_FORMAT, "")  # pylint: disable=C0103
+_handler = logging.StreamHandler()  # pylint: disable=C0103
+_handler.setFormatter(_formatter)
+logging.getLogger().addHandler(MemoryHandler(_handler, 500))
 logging.getLogger().setLevel(0)
 logging.captureWarnings(True)
 
 
 async def handle_command(modules, db, event):
+    """Handle all commands"""
     prefix = db.get(__name__, "command_prefix", False) or "."  # Empty string evaluates to False, so the `or` activates
     if not (hasattr(event, "message") and getattr(event.message, "message", "")[0:len(prefix)] == prefix):
         return
@@ -126,6 +128,7 @@ async def handle_command(modules, db, event):
 
 
 async def handle_incoming(modules, db, event):
+    """Handle all incoming messages"""
     logging.debug("Incoming message!")
     message = utils.censor(event.message)
     logging.debug(message)
@@ -141,11 +144,13 @@ async def handle_incoming(modules, db, event):
 
 
 def run_config(db, phone=None, modules=None):
+    """Load configurator.py"""
     from . import configurator
     return configurator.run(db, phone, phone is None, modules)
 
 
 def parse_arguments():
+    """Parse the arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--setup", "-s", action="store_true")
     parser.add_argument("--phone", "-p", action="append")
@@ -162,6 +167,7 @@ def parse_arguments():
 
 
 def get_phones(arguments):
+    """Get phones from the --token, --phone, and environment"""
     phones = set(arguments.phone if arguments.phone else [])
     phones.update(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session",
                                                  os.listdir(os.path.dirname(utils.get_base_dir())))))
@@ -185,6 +191,7 @@ def get_phones(arguments):
 
 
 def get_api_token():
+    """Get API Token from disk or environment"""
     try:
         from . import api_token
     except ImportError:
@@ -198,6 +205,7 @@ def get_api_token():
 
 
 def main():
+    """Main entrypoint"""
     arguments = parse_arguments()
 
     if arguments.translate:
@@ -224,13 +232,10 @@ def main():
         phones = [input("Please enter your phone: ")]
     for phone in phones:
         try:
-            if arguments.heroku:
-                clients += [TelegramClient(StringSession(), api_token.ID, api_token.HASH, connection_retries=None)
-                            .start(phone)]
-            else:
-                clients += [TelegramClient(os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                                        + (("-" + phone) if phone else "")), api_token.ID,
-                                           api_token.HASH, connection_retries=None).start(phone)]
+            clients += [TelegramClient(StringSession() if arguments.heroku else
+                                       os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
+                                                    + (("-" + phone) if phone else "")), api_token.ID,
+                                       api_token.HASH, connection_retries=None).start(phone)]
         except sqlite3.OperationalError as ex:
             print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)
                   + ": this is probably your fault. Try checking that this is the only instance running and "
@@ -262,12 +267,13 @@ def main():
 
 
 async def amain(client, allclients, setup=False):
-    async with client as c:
-        c.parse_mode = "HTML"
-        await c.start()
+    """Entrypoint for async init, run once for each user"""
+    async with client:
+        client.parse_mode = "HTML"
+        await client.start()
         [handler] = logging.getLogger().handlers
         if setup:
-            db = backend.CloudBackend(c)
+            db = backend.CloudBackend(client)
             await db.init(lambda e: None)
             jdb = await db.do_download()
             try:
@@ -281,7 +287,7 @@ async def amain(client, allclients, setup=False):
             modules.send_config(fdb)
             await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
             handler.setLevel(50)
-            pdb = run_config(pdb, getattr(c, "phone", "Unknown Number"), modules)
+            pdb = run_config(pdb, getattr(client, "phone", "Unknown Number"), modules)
             if pdb is None:
                 print("Factory reset triggered...")
                 await client(DeleteChannelRequest(db.db))
@@ -291,7 +297,7 @@ async def amain(client, allclients, setup=False):
             except MessageNotModifiedError:
                 pass
             return
-        db = frontend.Database(backend.CloudBackend(c))
+        db = frontend.Database(backend.CloudBackend(client))
         await db.init()
         logging.debug("got db")
         logging.info("Loading logging config...")
@@ -310,5 +316,5 @@ async def amain(client, allclients, setup=False):
                                  events.NewMessage(outgoing=True, forwards=False))
         client.add_event_handler(functools.partial(handle_command, modules, db),
                                  events.MessageEdited(outgoing=True, forwards=False))
-        print("Started for " + str((await c.get_me(True)).user_id))
-        await c.run_until_disconnected()
+        print("Started for " + str((await client.get_me(True)).user_id))
+        await client.run_until_disconnected()

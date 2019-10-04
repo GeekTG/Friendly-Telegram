@@ -33,8 +33,10 @@ def register(cb):
 class HelpMod(loader.Module):
     """Provides this help message"""
     def __init__(self):
+        super().__init__()
         self.name = _("Help")
         self.allmodules = None
+        self.client = None
 
     async def helpcmd(self, message):
         """.help [module]"""
@@ -75,7 +77,7 @@ class HelpMod(loader.Module):
         """Joins the support chat"""
         await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
         await message.edit('<code>' + _('Joined to '
-                           + '</code><a href="https://t.me/friendlytgbot">' + 'support chat' + '</a>'))
+                                        '</code><a href="https://t.me/friendlytgbot">' + 'support chat' + '</a>'))
 
     async def client_ready(self, client, db):
         self.client = client

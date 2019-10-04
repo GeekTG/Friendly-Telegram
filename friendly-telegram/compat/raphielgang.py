@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# pylint: disable=R,C,W0613 # This is bad code, just let it be. We will delete it at some point, perhaps?
+
 import logging
 import re
 import sys
@@ -215,14 +217,14 @@ class RaphielgangConfig():
     def bot(self):
         if not len(self.__passthrus):
             self.__passthrus += [MarkdownBotPassthrough(self.bots[0] if len(self.bots) else None)]
-        return self.__passthrus[0]  # TODO return the right one
+        return self.__passthrus[0]
 
     async def client_ready(self, client):
         self.bots += [client]
         logging.debug(len(self.__passthrus))
         logging.debug(len(self.bots))
         try:
-            self.__passthrus[len(self.bots) - 1].__under = client  # Ewwww
+            self.__passthrus[len(self.bots) - 1].__under = client  # pylint:disable=W0212 # Ewwww, but needed
         except IndexError:
             pass
 
@@ -243,46 +245,52 @@ class RaphielgangEvents():
     class RaphielgangEventsSub():
         class __RaphielgangShimMod__Base(loader.Module):
             instance_count = 0
+            # E1101 is triggered because pylint thinks that inspect.getmro(type(self))[1] means
+            # type(super()), and it's correct, but this is a base class and is never used. As a result, pylint
+            # incorrectly thinks that type(super()) resolves to loader.Module, and can't find .instance_count.
+            # Perhaps there's a way to annotate it? I don't think so.
 
             def __init__(self, events_instance):
-                inspect.getmro(type(self))[1].instance_count += 1
-                self.instance_id = self.instance_count
+                super().__init__()
+                inspect.getmro(type(self))[1].instance_count += 1  # pylint: disable=E1101 # See above
+                self.instance_id = inspect.getmro(type(self))[1].instance_count  # pylint: disable=E1101 # See above
                 self._events = events_instance
-                self.commands = events_instance._commands
+                self.commands = events_instance.commands
                 self.name = "RaphielGang" + str(self.instance_id)
-                self.unknowns = events_instance._unknowns
-                self.__module__ = events_instance._module
+                self.unknowns = events_instance.unknowns
+                self.__module__ = events_instance.module
 
             async def watcher(self, message):
-                for watcher in self._events._watchers:
+                for watcher in self._events.watchers:
                     await watcher(message)
 
         def __init__(self):
-            self._module = None
+            self.module = None
             self._setup_complete = False
-            self._watchers = []
-            self._commands = {}
-            self._unknowns = []
+            self.watchers = []
+            self.commands = {}
+            self.unknowns = []
+            self.instance_id = -1
 
         def _ensure_unknowns(self):
-            self._commands["raphcmd" + str(self.instance_id)] = self._unknown_command
+            self.commands["raphcmd" + str(self.instance_id)] = self._unknown_command
 
         def _unknown_command(self, message):
             message.message = message.message[len("raphcmd" + str(self.instance_id)) + 1:]
-            return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
+            return asyncio.gather(*[uk(message, "") for uk in self.unknowns])
 
         def register(self, *args, **kwargs):  # noqa: C901 # legacy code that works fine
             if len(args) >= 1:
                 # This is the register() function in normal ftg modules
                 # Create a fake type, instantiate it with our own self
-                args[0](type("RaphielgangShim__" + self._module, (self.__RaphielgangShimMod__Base,), dict())(self))
+                args[0](type("RaphielgangShim__" + self.module, (self.__RaphielgangShimMod__Base,), dict())(self))
                 return
 
             def subreg(func):  # ALWAYS return func.
                 logger.debug(kwargs)
                 sys.modules[func.__module__].__dict__["registration"] = self.register
                 if not self._setup_complete:
-                    self._module = func.__module__
+                    self.module = func.__module__
                     self._setup_complete = True
                 if kwargs.get("outgoing", False):
                     # Command-based thing
@@ -312,9 +320,9 @@ class RaphielgangEvents():
                         else:
                             logger.debug("but not matched cmd " + message.message + " regex " + kwargs["pattern"])
                     if use_unknown:
-                        self._unknowns += [commandhandler]
+                        self.unknowns += [commandhandler]
                     else:
-                        self._commands[cmd] = commandhandler  # Add to list of commands so we can call later
+                        self.commands[cmd] = commandhandler  # Add to list of commands so we can call later
                 elif kwargs.get("incoming", False):
                     # Watcher-based thing
 
@@ -331,7 +339,7 @@ class RaphielgangEvents():
                             event.message = MarkdownBotPassthrough(message)
                             return func(event)  # Return a coroutine
                         return asyncio.gather()
-                    self._watchers += [subwatcher]  # Add to list of watchers so we can call later.
+                    self.watchers += [subwatcher]  # Add to list of watchers so we can call later.
                 else:
                     logger.error("event not incoming or outgoing")
                     return func
@@ -341,7 +349,7 @@ class RaphielgangEvents():
 
     def register(self, *args, **kwargs):
         if len(args) == 2:
-            logger.debug("Register2 for " + args[1])
+            logger.debug("Register2 for %s", args[1])
             self.instances[args[1]].register(args[0])  # Passthrough if we have enough info
             logger.debug("Completed register2")
         elif len(args) != 0:

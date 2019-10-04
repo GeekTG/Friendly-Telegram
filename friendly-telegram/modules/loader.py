@@ -74,18 +74,18 @@ class LoaderMod(loader.Module):
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)
-        if len(args) == 0:
-            text = utils.escape_html("\n".join(await self.get_repo_list("full")))
-            await utils.answer(message, "<b>" + _("Available official modules from repo")
-                               + "</b>\n<code>" + text + "</code>")
-        elif len(args) == 1:
+        if args:
             if await self.download_and_install(args[0], message):
                 self._db.set(__name__, "loaded_modules",
                              list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0]])))
+        else:
+            text = utils.escape_html("\n".join(await self.get_repo_list("full")))
+            await utils.answer(message, "<b>" + _("Available official modules from repo")
+                               + "</b>\n<code>" + text + "</code>")
 
     async def dlpresetcmd(self, message):
         args = utils.get_args(message)
-        if len(args) != 1:
+        if not args:
             await utils.answer(message, _("Please select a preset"))
             return
         try:
@@ -110,13 +110,13 @@ class LoaderMod(loader.Module):
             preset = "full"
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()
-        return set(filter(lambda x: len(x) > 0, r.text.split("\n")))
+        return set(filter(lambda x: x, r.text.split("\n")))
 
     async def download_and_install(self, module_name, message=None):
-        if len(urllib.parse.urlparse(module_name).netloc) == 0:
-            url = self.config["MODULES_REPO"] + "/" + module_name + ".py"
-        else:
+        if urllib.parse.urlparse(module_name).netloc:
             url = module_name
+        else:
+            url = self.config["MODULES_REPO"] + "/" + module_name + ".py"
         r = await utils.run_sync(requests.get, url)
         if r.status_code == 404:
             if message is not None:
@@ -133,7 +133,7 @@ class LoaderMod(loader.Module):
             msg = (await message.get_reply_message())
         if msg is None or msg.media is None:
             args = utils.get_args(message)
-            if len(args) == 1:
+            if args:
                 try:
                     path = args[0]
                     with open(path, "rb") as f:
@@ -204,7 +204,7 @@ class LoaderMod(loader.Module):
     async def unloadmodcmd(self, message):
         """Unload module by class name"""
         args = utils.get_args(message)
-        if len(args) != 1:
+        if not args:
             await message.edit(_("<code>What class needs to be unloaded?</code>"))
             return
         clazz = args[0]
@@ -217,7 +217,7 @@ class LoaderMod(loader.Module):
         self._db.set(__name__, "loaded_modules", list(it))
         it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)
         self._db.set(__name__, "unloaded_modules", list(it))
-        if len(worked):
+        if worked:
             await message.edit(_("<code>Module unloaded.</code>"))
         else:
             await message.edit(_("<code>Nothing was unloaded.</code>"))

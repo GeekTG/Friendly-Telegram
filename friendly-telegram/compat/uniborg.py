@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# pylint: disable=R,C,W0613,W0212 # This is bad code, just let it be.
+
 import logging
 import sys
 import re
@@ -36,10 +38,12 @@ class UniborgClient:
 
     class __UniborgShimMod__Base(loader.Module):
         def __init__(self, borg):
+            super().__init__()
             self._borg = borg
             self.commands = borg._commands
             self.name = "UniBorg" + str(self._borg.instance_id)
             self.__module__ = borg._module
+            self._client = None
 
         async def watcher(self, message):
             for w in self._borg._watchers:
@@ -174,7 +178,7 @@ class UniborgUtil:
     def humanbytes(self, size):
         return str(size) + " bytes"  # Meh.
 
-    def time_formatter(ms):
+    def time_formatter(self, ms):
         return str(datetime.timedelta(milliseconds=ms))
 
 

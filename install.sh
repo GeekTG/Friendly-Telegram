@@ -28,13 +28,13 @@ if [ ! x"" = x"$DYNO" ]; then
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
-if [ -d "friendly-telegram" ]; then
+if [ -d "friendly-telegram/friendly-telegram" ]; then
+  cd friendly-telegram
+fi
+if [ -f ".setup_complete" ]; then
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     PYVER="3"
-  fi
-  if [ -d "friendly-telegram/friendly-telegram" ]; then
-    cd friendly-telegram
   fi
   "python$PYVER" -m friendly-telegram $@
   exit $?
@@ -93,9 +93,10 @@ if [ ! x"$SUDO_USER" = x"" ]; then
   fi
 fi
 
-[ -d friendly-telegram ] || ${SUDO_CMD}rm -rf friendly-telegram
+${SUDO_CMD}rm -rf friendly-telegram
 ${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { echo "Clone failed."; exit 3; }
 cd friendly-telegram
-${SUDO_CMD}"python$PYVER" -m pip -q install cryptg || echo "Cryptg failed"
-${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt || { echo "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m pip -q install cryptg --user || echo "Cryptg failed"
+${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt --user || { echo "Requirements failed!"; exit 4; }
+touch .setup_complete
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram $@ || { echo "Python scripts failed"; exit 5; }

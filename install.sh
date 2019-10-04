@@ -67,7 +67,6 @@ elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   PKGMGR="brew install"
   PYVER="3"
   SKIP_OPTIONAL="1"
-  echo "macOS not yet supported by automated install script. Please go to https://github.com/friendly-telegram/friendly-telegram/#mac-os-x"
 else
   echo "Unrecognised OS. Please follow https://github.com/friendly-telegram/friendly-telegram/blob/master/README.md"
   exit 1

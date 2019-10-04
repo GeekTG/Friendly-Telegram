@@ -28,13 +28,13 @@ if [ ! x"" = x"$DYNO" ]; then
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
-if [ -d "friendly-telegram/friendly-telegram" ]; then
-  cd friendly-telegram
-fi
-if [ -f ".setup_complete" ]; then
+if [ -f ".setup_complete" -o -f "friendly-telegram/.setup_complete" ]; then
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     PYVER="3"
+  fi
+  if [ -d "friendly-telegram/friendly-telegram" ]; then
+    cd friendly-telegram
   fi
   "python$PYVER" -m friendly-telegram $@
   exit $?

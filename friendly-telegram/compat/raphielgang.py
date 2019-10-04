@@ -319,6 +319,7 @@ class RaphielgangEvents():
                             return func(event)  # Return a coroutine
                         else:
                             logger.debug("but not matched cmd " + message.message + " regex " + kwargs["pattern"])
+                            return asyncio.gather()  # passthru coro
                     if use_unknown:
                         self.unknowns += [commandhandler]
                     else:

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #    Friendly Telegram (telegram userbot)
 #    Copyright (C) 2018-2019 The Authors
 
@@ -15,14 +17,13 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # Modified version of https://stackoverflow.com/a/3330834/5509575
-sp="/-\|"
-sc=0
+sp='/-\|'
 spin() {
     printf '\b%.1s' "$sp"
     sp=${sp#?}${sp%???}
 }
 endspin() {
-    printf "\r%s\n" "$@"
+    printf '\r%s\n' "$@"
 }
 
 ##############################################################################
@@ -33,20 +34,20 @@ endspin() {
 
 clear
 clear
-printf "%s\n" "   ___    _             ____    "
-printf "%s\n" "  / _/___(_)__ ___  ___/ / /_ __"
-printf "%s\n" " / _/ __/ / -_) _ \\/ _  / / // /"
-printf "%s\n" "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
-printf "%s\n" "                         /___/  "
-printf "%s\n" "  __      __                      "
-printf "%s\n" " / /____ / /__ ___ ________ ___ _ "
-printf "%s\n" "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
-printf "%s\n" "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
-printf "%s\n" "             /___/                "
-printf "%s\n" ""
+printf '%s\n' "   ___    _             ____    "
+printf '%s\n' "  / _/___(_)__ ___  ___/ / /_ __"
+printf '%s\n' " / _/ __/ / -_) _ \\/ _  / / // /"
+printf '%s\n' "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
+printf '%s\n' "                         /___/  "
+printf '%s\n' "  __      __                      "
+printf '%s\n' " / /____ / /__ ___ ________ ___ _ "
+printf '%s\n' "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
+printf '%s\n' "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
+printf '%s\n' "             /___/                "
+printf '%s\n' ""
 
-printf "%s\n" "The process takes around 1-3 minutes"
-printf "%s" "Installing now...  "
+printf '%s\n' "The process takes around 1-3 minutes"
+printf '%s' "Installing now...  "
 
 ##############################################################################
 
@@ -69,7 +70,7 @@ if [ ! x"" = x"$DYNO" ]; then
 fi
 
 if [ -d "friendly-telegram/friendly-telegram" ]; then
-  cd friendly-telegram
+  cd friendly-telegram || { endspin "Failed to chdir"; exit 6; }
   DIR_CHANGED="yes"
 fi
 if [ -f ".setup_complete" ]; then
@@ -78,7 +79,7 @@ if [ -f ".setup_complete" ]; then
     PYVER="3"
   fi
   endspin
-  "python$PYVER" -m friendly-telegram $@
+  "python$PYVER" -m friendly-telegram "$@"
   exit $?
 elif [ "$DIR_CHANGED" = "yes" ]; then
   cd ..
@@ -90,9 +91,9 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   PKGMGR="apt-get install -y"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
-    if which sudo >/dev/null; then
+    if command -v sudo >/dev/null; then
       endspin "Restarting as root..."
-      sudo "$SHELL" -c '$SHELL <('"$(which curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$@"
+      sudo "$SHELL" -c '$SHELL <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
       exit $?
     else
       PKGMGR="true"
@@ -108,13 +109,12 @@ elif [ "$OSTYPE" = "linux-android" ]; then
   PKGMGR="apt-get install -y"
   PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-  if ! which brew; then
+  if ! command -v brew >/dev/null; then
     spin
     ruby <(curl -fsSk https://raw.github.com/mxcl/homebrew/go)
   fi
   PKGMGR="brew install"
   PYVER="3"
-  SKIP_OPTIONAL="1"
 else
   endspin "Unrecognised OS. Please follow https://friendly-telegram.github.io/installing_advanced"
   exit 1
@@ -146,19 +146,24 @@ spin
 
 SUDO_CMD=""
 if [ ! x"$SUDO_USER" = x"" ]; then
-  if which sudo>/dev/null; then
+  if command -v sudo>/dev/null; then
     SUDO_CMD="sudo -u $SUDO_USER "
   fi
 fi
 
+# shellcheck disable=SC2086
 ${SUDO_CMD}rm -rf friendly-telegram
+# shellcheck disable=SC2086
 ${SUDO_CMD}git clone -q https://github.com/friendly-telegram/friendly-telegram || { endspin "Clone failed."; exit 3; }
 spin
-cd friendly-telegram
+cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
+# shellcheck disable=SC2086
 ${SUDO_CMD}"python$PYVER" -m pip -q install cryptg --user --no-warn-script-location --disable-pip-version-check 2>/dev/null >/dev/null
 spin
+# shellcheck disable=SC2086
 ${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || { endspin "Requirements failed!"; exit 4; }
 spin
 touch .setup_complete
 endspin
-${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram $@ || { echo "Python scripts failed"; exit 5; }
+# shellcheck disable=SC2086,SC2015
+${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram "$@" || { echo "Python scripts failed"; exit 5; }

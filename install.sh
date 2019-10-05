@@ -14,77 +14,135 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# Modified version of https://stackoverflow.com/a/3330834/5509575
+sp="/-\|"
+sc=0
+spin() {
+    printf '\b%.1s' "$sp"
+    sp=${sp#?}${sp%???}
+}
+endspin() {
+    printf "\r%s\n" "$@"
+}
+
+##############################################################################
+
+# Banner generated with following command:
+# pyfiglet -f smslant -w 50 friendly telegram | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/`/\\`/g' | sed 's/^/printf "%s\\n" "/m;s/$/"/m'
+# Ugly, I know.
+
+clear
+clear
+printf "%s\n" "   ___    _             ____    "
+printf "%s\n" "  / _/___(_)__ ___  ___/ / /_ __"
+printf "%s\n" " / _/ __/ / -_) _ \\/ _  / / // /"
+printf "%s\n" "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
+printf "%s\n" "                         /___/  "
+printf "%s\n" "  __      __                      "
+printf "%s\n" " / /____ / /__ ___ ________ ___ _ "
+printf "%s\n" "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
+printf "%s\n" "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
+printf "%s\n" "             /___/                "
+printf "%s\n" ""
+
+printf "%s\n" "The process takes around 1-3 minutes"
+printf "%s" "Installing now...  "
+
+##############################################################################
+
+spin
+
 if [ ! x"" = x"$DYNO" ]; then
   # We are running in a heroku dyno, time to get ugly!
-  echo "Heroku detected. Bootstrapping Python..."
-  git clone https://github.com/heroku/heroku-buildpack-python || { echo "Bootstrap download failed!"; exit 1; }
+  git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
+  spin
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
   echo "python-3.7.4" > runtime.txt
   echo "pip" > requirements.txt
+  spin
   STACK=heroku-18 bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
-      { echo "Bootstrap install failed!"; exit 1; }
+      { endspin "Bootstrap install failed!"; exit 1; }
+  spin
   rm -rf .cache
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
-if [ -f ".setup_complete" -o -f "friendly-telegram/.setup_complete" ]; then
+if [ -d "friendly-telegram/friendly-telegram" ]; then
+  cd friendly-telegram
+  DIR_CHANGED="yes"
+fi
+if [ -f ".setup_complete" ]; then
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     PYVER="3"
   fi
-  if [ -d "friendly-telegram/friendly-telegram" ]; then
-    cd friendly-telegram
-  fi
+  endspin
   "python$PYVER" -m friendly-telegram $@
   exit $?
+elif [ "$DIR_CHANGED" = "yes" ]; then
+  cd ..
 fi
 
+##############################################################################
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
-  PKGMGR="apt install -y"
+  PKGMGR="apt-get install -y"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
     if which sudo >/dev/null; then
+      endspin "Restarting as root..."
       sudo "$SHELL" -c '$SHELL <('"$(which curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$@"
       exit $?
     else
-      echo "Sudo not present. Rerun as root or dependencies won't install, potentially causing issues"
       PKGMGR="true"
     fi
+  else
+    spin
+    apt-get update >/dev/null
   fi
-  $PKGMGR update
   PYVER="3"
 elif [ "$OSTYPE" = "linux-android" ]; then
-  PKGMGR="pkg install -y"
+  spin
+  apt-get update >/dev/null
+  PKGMGR="apt-get install -y"
   PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-  if which brew; then
-    echo "brew detected"
-  else
+  if ! which brew; then
+    spin
     ruby <(curl -fsSk https://raw.github.com/mxcl/homebrew/go)
   fi
   PKGMGR="brew install"
   PYVER="3"
   SKIP_OPTIONAL="1"
 else
-  echo "Unrecognised OS. Please follow https://github.com/friendly-telegram/friendly-telegram/blob/master/README.md"
+  endspin "Unrecognised OS. Please follow https://friendly-telegram.github.io/installing_advanced"
   exit 1
 fi
+spin
 
-$PKGMGR "python$PYVER" git || { echo "Core install failed."; exit 2; }
+##############################################################################
+
+$PKGMGR "python$PYVER" git >/dev/null || { endspin "Core install failed."; exit 2; }
+spin
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
-  $PKGMGR "python$PYVER-dev" || echo "Python-dev install failed."
-  $PKGMGR "python$PYVER-pip" || echo "Python-pip install failed."
-  $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev || echo "Stickers install failed."
+  $PKGMGR "python$PYVER-dev" >/dev/null
+  spin
+  $PKGMGR "python$PYVER-pip" >/dev/null
+  spin
+  $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev >/dev/null
 elif [ "$OSTYPE" = "linux-android" ]; then
-  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential || echo "Optional installation failed."
+  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential >/dev/null
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-  $PKGMGR jpeg webp || echo "Stickers install failed"
+  $PKGMGR jpeg webp >/dev/null
 fi
+spin
 
-$PKGMGR neofetch dialog || echo "GUI installation failed"
+$PKGMGR neofetch dialog >/dev/null
+spin
+
+##############################################################################
 
 SUDO_CMD=""
 if [ ! x"$SUDO_USER" = x"" ]; then
@@ -94,9 +152,13 @@ if [ ! x"$SUDO_USER" = x"" ]; then
 fi
 
 ${SUDO_CMD}rm -rf friendly-telegram
-${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { echo "Clone failed."; exit 3; }
+${SUDO_CMD}git clone -q https://github.com/friendly-telegram/friendly-telegram || { endspin "Clone failed."; exit 3; }
+spin
 cd friendly-telegram
-${SUDO_CMD}"python$PYVER" -m pip -q install cryptg --user || echo "Cryptg failed"
-${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt --user || { echo "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m pip -q install cryptg --user --no-warn-script-location --disable-pip-version-check 2>/dev/null >/dev/null
+spin
+${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || { endspin "Requirements failed!"; exit 4; }
+spin
 touch .setup_complete
+endspin
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram $@ || { echo "Python scripts failed"; exit 5; }

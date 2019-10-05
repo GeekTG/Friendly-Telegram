@@ -36,7 +36,7 @@ def get_args(message):
         pass
     if not message:
         return False
-    return list(filter(lambda x: len(x) > 0, shlex.split(message, ' ')))[1:]
+    return list(filter(lambda x: len(x) > 0, shlex.split(message)))[1:]
 
 
 def get_args_raw(message):

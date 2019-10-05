@@ -24,6 +24,7 @@ import functools
 import collections
 import sqlite3
 import importlib
+import shlex
 
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
@@ -111,6 +112,11 @@ async def handle_command(modules, db, event):
     logging.debug(message)
     # Make sure we don't get confused about spaces or other shit in the prefix
     message.message = message.message[len(prefix):]
+    try:
+        shlex.split(message.message)
+    except ValueError as e:
+        await message.edit("Invalid Syntax: " + str(e))
+        return
     command = message.message.split(maxsplit=1)[0]
     logging.debug(command)
     coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one

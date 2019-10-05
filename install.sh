@@ -158,6 +158,7 @@ ${SUDO_CMD}git clone -q https://github.com/friendly-telegram/friendly-telegram |
 spin
 cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
+${SUDO_CMD}"python$PYVER" -m pip -q install --upgrade pip --user 2>/dev/null >/dev/null
 ${SUDO_CMD}"python$PYVER" -m pip -q install cryptg --user --no-warn-script-location --disable-pip-version-check 2>/dev/null >/dev/null
 spin
 # shellcheck disable=SC2086

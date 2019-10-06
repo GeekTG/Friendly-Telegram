@@ -139,9 +139,8 @@ def modules_config():
         for mod in MODULES.modules:
             if mod.name == tag:
                 # Match
-                while True:
-                    if module_config(mod):
-                        break
+                while not module_config(mod):
+                    pass
         return modules_config()
     return None
 
@@ -158,6 +157,7 @@ def module_config(mod):
         if code == DIALOG.OK:
             DB.setdefault(mod.__module__, {}).setdefault("__config__",
                                                          {})[tag] = validate_value(value)
+            DIALOG.msgbox("Config value set successfully")
         return False
     return True
 

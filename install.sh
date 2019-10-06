@@ -26,6 +26,15 @@ endspin() {
     printf '\r%s\n' "$@"
 }
 
+errorin() {
+    endspin "$@"
+    cat ../ftg-install.log
+}
+errorout() {
+    endspin "$@"
+    cat ftg-install.log
+}
+
 # Banner generated with following command:
 # pyfiglet -f smslant -w 50 friendly telegram | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/`/\\`/g' | sed 's/^/printf "%s\\n" "/m;s/$/"/m'
 # Ugly, I know.
@@ -131,7 +140,7 @@ spin
 
 ##############################################################################
 
-$PKGMGR "python$PYVER" git >>ftg-install.log || { endspin "Core install failed."; exit 2; }
+$PKGMGR "python$PYVER" git >>ftg-install.log || { errorout "Core install failed."; exit 2; }
 spin
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
@@ -162,7 +171,7 @@ fi
 # shellcheck disable=SC2086
 ${SUDO_CMD}rm -rf friendly-telegram
 # shellcheck disable=SC2086
-${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram 2>>ftg-install.log >>ftg-install.log || { endspin "Clone failed."; exit 3; }
+${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram 2>>ftg-install.log >>ftg-install.log || { errorout "Clone failed."; exit 3; }
 spin
 cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
@@ -171,7 +180,7 @@ ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user 2>>../ftg-install.
 ${SUDO_CMD}"python$PYVER" -m pip install cryptg --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log
 spin
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { endspin "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { errorin "Requirements failed!"; exit 4; }
 spin
 touch .setup_complete
 endspin "Installation successful. Launching setup interface..."

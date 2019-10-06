@@ -110,11 +110,11 @@ TITLE = ""
 
 try:
     DIALOG = Dialog(dialog="dialog", autowidgetsize=True)
-except ExecutableNotFound:
+    locale.setlocale(locale.LC_ALL, '')
+except (ExecutableNotFound, locale.Error):
     # Fall back to a terminal based configurator.
     DIALOG = TDialog()
 
-locale.setlocale(locale.LC_ALL, '')
 
 MODULES = None
 DB = None  # eww... meh.

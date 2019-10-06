@@ -26,26 +26,29 @@ endspin() {
     printf '\r%s\n' "$@"
 }
 
-##############################################################################
-
 # Banner generated with following command:
 # pyfiglet -f smslant -w 50 friendly telegram | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/`/\\`/g' | sed 's/^/printf "%s\\n" "/m;s/$/"/m'
 # Ugly, I know.
 
-clear
-clear
-printf '%s\n' "   ___    _             ____    "
-printf '%s\n' "  / _/___(_)__ ___  ___/ / /_ __"
-printf '%s\n' " / _/ __/ / -_) _ \\/ _  / / // /"
-printf '%s\n' "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
-printf '%s\n' "                         /___/  "
-printf '%s\n' "  __      __                      "
-printf '%s\n' " / /____ / /__ ___ ________ ___ _ "
-printf '%s\n' "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
-printf '%s\n' "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
-printf '%s\n' "             /___/                "
-printf '%s\n' ""
+banner() {
+    clear
+    clear
+    printf '%s\n' "   ___    _             ____    "
+    printf '%s\n' "  / _/___(_)__ ___  ___/ / /_ __"
+    printf '%s\n' " / _/ __/ / -_) _ \\/ _  / / // /"
+    printf '%s\n' "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
+    printf '%s\n' "                         /___/  "
+    printf '%s\n' "  __      __                      "
+    printf '%s\n' " / /____ / /__ ___ ________ ___ _ "
+    printf '%s\n' "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
+    printf '%s\n' "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
+    printf '%s\n' "             /___/                "
+    printf '%s\n' ""
+}
 
+##############################################################################
+
+banner
 printf '%s\n' "The process takes around 1-3 minutes"
 printf '%s' "Installing now...  "
 
@@ -78,7 +81,9 @@ if [ -f ".setup_complete" ]; then
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     PYVER="3"
   fi
-  endspin
+  endspin "Existing installation detected"
+  clear
+  banner
   "python$PYVER" -m friendly-telegram "$@"
   exit $?
 elif [ "$DIR_CHANGED" = "yes" ]; then

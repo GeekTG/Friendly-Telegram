@@ -105,7 +105,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     fi
   else
     spin
-    apt-get update >/dev/null
+    apt-get update 2>&1 >/dev/null  # Not essential
   fi
   PYVER="3"
 elif [ "$OSTYPE" = "linux-android" ]; then

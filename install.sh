@@ -174,7 +174,7 @@ spin
 ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { endspin "Requirements failed!"; exit 4; }
 spin
 touch .setup_complete
-endspin
+endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log
 # shellcheck disable=SC2086,SC2015
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram "$@" || { echo "Python scripts failed"; exit 5; }

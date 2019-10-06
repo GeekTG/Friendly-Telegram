@@ -92,12 +92,15 @@ fi
 
 ##############################################################################
 
+echo "Installing..." > ftg-install.log
+
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   PKGMGR="apt-get install -y"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
     if command -v sudo >/dev/null; then
       endspin "Restarting as root..."
+      echo "Relaunching" >>ftg-install.log
       sudo "$SHELL" -c '$SHELL <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
       exit $?
     else
@@ -105,12 +108,12 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     fi
   else
     spin
-    apt-get update 2>&1 >/dev/null  # Not essential
+    apt-get update 2>>ftg-install.log >>ftg-install.log  # Not essential
   fi
   PYVER="3"
 elif [ "$OSTYPE" = "linux-android" ]; then
   spin
-  apt-get update >/dev/null
+  apt-get update 2>>ftg-install.log >>ftg-install.log
   PKGMGR="apt-get install -y"
   PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
@@ -128,23 +131,23 @@ spin
 
 ##############################################################################
 
-$PKGMGR "python$PYVER" git >/dev/null || { endspin "Core install failed."; exit 2; }
+$PKGMGR "python$PYVER" git >>ftg-install.log || { endspin "Core install failed."; exit 2; }
 spin
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
-  $PKGMGR "python$PYVER-dev" >/dev/null
+  $PKGMGR "python$PYVER-dev" 2>>ftg-install.log >>ftg-install.log
   spin
-  $PKGMGR "python$PYVER-pip" >/dev/null
+  $PKGMGR "python$PYVER-pip" 2>>ftg-install.log >>ftg-install.log
   spin
-  $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev >/dev/null
+  $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev 2>>ftg-install.log >>ftg-install.log
 elif [ "$OSTYPE" = "linux-android" ]; then
-  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential >/dev/null
+  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential 2>>ftg-install.log >>ftg-install.log
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-  $PKGMGR jpeg webp >/dev/null
+  $PKGMGR jpeg webp 2>>ftg-install.log >>ftg-install.log
 fi
 spin
 
-$PKGMGR neofetch dialog >/dev/null
+$PKGMGR neofetch dialog 2>>ftg-install.log >>ftg-install.log
 spin
 
 ##############################################################################
@@ -159,17 +162,19 @@ fi
 # shellcheck disable=SC2086
 ${SUDO_CMD}rm -rf friendly-telegram
 # shellcheck disable=SC2086
-${SUDO_CMD}git clone -q https://github.com/friendly-telegram/friendly-telegram || { endspin "Clone failed."; exit 3; }
+${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram 2>>ftg-install.log >>ftg-install.log || { endspin "Clone failed."; exit 3; }
 spin
 cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip -q install --upgrade pip --user 2>/dev/null >/dev/null
-${SUDO_CMD}"python$PYVER" -m pip -q install cryptg --user --no-warn-script-location --disable-pip-version-check 2>/dev/null >/dev/null
+${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user 2>>../ftg-install.log >>../ftg-install.log
+# shellcheck disable=SC2086
+${SUDO_CMD}"python$PYVER" -m pip install cryptg --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log
 spin
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip -q install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || { endspin "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { endspin "Requirements failed!"; exit 4; }
 spin
 touch .setup_complete
 endspin
+rm -f ../ftg-install.log
 # shellcheck disable=SC2086,SC2015
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram && python$PYVER -m friendly-telegram "$@" || { echo "Python scripts failed"; exit 5; }

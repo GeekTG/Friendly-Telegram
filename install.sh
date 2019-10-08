@@ -177,7 +177,7 @@ cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
 ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user 2>>../ftg-install.log >>../ftg-install.log
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip install -r optional-requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log
+${SUDO_CMD}"python$PYVER" -m pip install -r optional-requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || true
 spin
 # shellcheck disable=SC2086
 ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { errorin "Requirements failed!"; exit 4; }

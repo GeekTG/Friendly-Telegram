@@ -24,7 +24,7 @@ pyyandextranslateapi
 # Figlet rendering (mock)
 pyfiglet
 # Animated stickers
-cairosvg
+# cairosvg # Skipped and installed no-fail in installer
 tgs  # master branch is required
 # TTS
 gtts

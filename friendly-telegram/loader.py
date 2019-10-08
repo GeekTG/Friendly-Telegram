@@ -75,6 +75,7 @@ class Modules():
         self.modules = []
         self.watchers = []
         self._compat_layer = None
+        self._log_handlers = []
 
     def register_all(self, babelfish):
         """Load all modules in the module directory"""
@@ -149,9 +150,9 @@ class Modules():
 
     def complete_registration(self, instance):
         """Complete registration of instance"""
-        if hasattr(instance, "allmodules"):
-            # Mainly for the Help module
-            instance.allmodules = self
+        # Mainly for the Help module
+        instance.allmodules = self
+        instance.log = self.log  # Like botlog from PP
         for module in self.modules:
             if module.__class__.__name__ == instance.__class__.__name__:
                 logging.debug("Removing module for update %r", module)
@@ -252,3 +253,9 @@ class Modules():
         except KeyError:
             return False
         return True
+
+    async def log(self, type, *, group=None, affected_uids=None, data=None):
+        return await asyncio.gather(*[fun(type, group, affected_uids, data) for fun in self._log_handlers])
+
+    def register_logger(self, logger):
+        self._log_handlers.append(logger)

@@ -217,12 +217,8 @@ def main_config(init):
         return api_config()
     choices = [("API Token and ID", "Configure API Token and ID"),
                ("Modules", "Modular configuration"),
-               ("Logging", "Configure debug output")]
-    if DB.get("friendly-telegram.modules.loader", {}).get("loaded_modules", []) == []:
-        choices += [("Enable lite mode", "Removes all non-core modules")]
-    else:
-        choices += [("Disable lite mode", "Enable all available modules")]
-    choices += [("Factory reset", "Removes all userbot data stored in Telegram cloud")]
+               ("Logging", "Configure debug output"),
+               ("Factory reset", "Removes all userbot data stored in Telegram cloud")]
     code, tag = DIALOG.menu("Main Menu", choices=choices)
     if code == DIALOG.OK:
         if tag == "Modules":
@@ -231,10 +227,6 @@ def main_config(init):
             api_config()
         if tag == "Logging":
             logging_config()
-        if tag == "Enable lite mode":
-            DB.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = None
-        if tag == "Disable lite mode":
-            DB.setdefault("friendly-telegram.modules.loader", {})["loaded_modules"] = []
         if tag == "Factory reset":
             factory_reset_check()
             return False

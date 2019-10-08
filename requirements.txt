@@ -13,8 +13,6 @@ babel
 ## Modules
 # Lyrics
 lyricsgenius
-# Stickers
-Pillow >= 6.1.0
 # Speedtest
 speedtest-cli >= 2.1.0
 # Weather

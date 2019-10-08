@@ -83,6 +83,8 @@ async def meval(code, **kwargs):
     exec(comp, {}, locs)
 
     r = await locs["tmp"](**kwargs)
+    if isinstance(r, types.CoroutineType):
+        r = await r  # workaround for 3.5
     try:
         globals().clear()
         # Inconsistent state

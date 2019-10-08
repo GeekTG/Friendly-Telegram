@@ -120,7 +120,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     apt-get update 2>>ftg-install.log >>ftg-install.log  # Not essential
   fi
   PYVER="3"
-elif [ "$OSTYPE" = "linux-android" ]; then
+elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
   spin
   apt-get update 2>>ftg-install.log >>ftg-install.log
   PKGMGR="apt-get install -y"

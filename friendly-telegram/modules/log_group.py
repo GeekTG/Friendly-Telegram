@@ -44,7 +44,7 @@ class LoggerMod(loader.Module):
             message += " in "
             for user in affected_uids:
                 try:
-                    ent = await self._client.get_input_entity(user)
+                    await self._client.get_input_entity(user)
                 except ValueError:
                     entities.append(MessageEntityCode(len(message), len(str(user))))
                 else:

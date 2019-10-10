@@ -193,7 +193,11 @@ class Modules():
                 if conf in modcfg.keys():
                     mod.config[conf] = modcfg[conf]
                 else:
-                    logging.debug("No config value for %s", conf)
+                    try:
+                        mod.config[conf] = os.environ[conf]
+                        logging.debug("Loaded config key %s from environment", conf)
+                    except KeyError:
+                        logging.debug("No config value for %s", conf)
             logging.debug(mod.config)
         try:
             mod.config_complete()

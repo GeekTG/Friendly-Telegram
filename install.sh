@@ -180,7 +180,7 @@ ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user 2>>../ftg-install.
 ${SUDO_CMD}"python$PYVER" -m pip install -r optional-requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || true
 spin
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { errorin "Requirements failed!"; exit 4; }
+${SUDO_CMD}"python$PYVER" -m pip install -r mandatory-requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { errorin "Requirements failed!"; exit 4; }
 spin
 touch .setup_complete
 endspin "Installation successful. Launching setup interface..."

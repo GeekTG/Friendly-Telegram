@@ -37,6 +37,7 @@ Start-Process (Join-Path $env:TEMP "git-scm-installer.exe") @("/VERYSILENT"; "/N
 Write-Output("Done")
 git clone https://github.com/friendly-telegram/friendly-telegram
 Set-Location friendly-telegram
-python -m pip install -r requirements.txt
+python -m pip install -r optional-requirements.txt
+python -m pip install -r mandatory-requirements.txt
 python -m friendly-telegram
 python -m friendly-telegram # TODO pass args

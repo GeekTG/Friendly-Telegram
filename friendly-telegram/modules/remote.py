@@ -101,14 +101,14 @@ class RemoteMod(loader.Module):
         if not callable(cmd):
             await message.edit(_("<code>That custom client command does not exist!</code>"))
             return
-        try:
-            args = ast.literal_eval(" ".join(args[1:]))
-        except ValueError:
-            await message.edit(_("<code>Malformed parameters</code>"))
-            return
-        except SyntaxError:
-            args = []
-        await cmd(*args)
+        fargs = []
+        for arg in args[1:]:
+            try:
+                fargs.append(ast.literal_eval(arg))
+            except (ValueError, SyntaxError):
+                fargs.append(arg)
+        logger.debug(fargs)
+        await cmd(*fargs)
 
     async def cmdcmd(self, client, args, message):
         if len(args) < 1:

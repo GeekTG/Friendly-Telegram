@@ -226,6 +226,7 @@ class RaphielgangConfig():
             except pymongo.errors.ServerSelectionTimeoutError:
                 return False
         self.is_mongo_alive = is_mongo_alive
+
         def is_redis_alive(self):
             if not self.db_enabled:
                 return False
@@ -341,10 +342,11 @@ class RaphielgangEvents():
                     if "pattern" not in kwargs.keys():
                         self._ensure_unknowns()
                         use_unknown = True
-                    cmd = get_cmd_name(kwargs["pattern"])
-                    if not cmd:
-                        self._ensure_unknowns()
-                        use_unknown = True
+                    else:
+                        cmd = get_cmd_name(kwargs["pattern"])
+                        if not cmd:
+                            self._ensure_unknowns()
+                            use_unknown = True
 
                     @wraps(func)
                     def commandhandler(message, pre="."):
@@ -352,7 +354,7 @@ class RaphielgangEvents():
                         logger.debug("Command triggered")
                         # Framework strips prefix, give them a generic one
                         message.message = pre + message.message
-                        match = re.match(kwargs["pattern"], message.message, re.I)
+                        match = re.match(kwargs.get("pattern", ".*"), message.message, re.I)
                         if match:
                             logger.debug("and matched")
                             event = MarkdownBotPassthrough(message)
@@ -361,7 +363,7 @@ class RaphielgangEvents():
                             event.message = MarkdownBotPassthrough(message)
                             return func(event)  # Return a coroutine
                         else:
-                            logger.debug("but not matched cmd " + message.message + " regex " + kwargs["pattern"])
+                            logger.debug("but not matched " + message.message + " / " + kwargs.get("pattern", "None"))
                             return asyncio.gather()  # passthru coro
                     if use_unknown:
                         self.unknowns += [commandhandler]

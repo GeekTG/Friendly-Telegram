@@ -23,6 +23,12 @@ import asyncio
 import inspect
 from functools import wraps
 
+try:
+    import pymongo
+    import redis
+except ImportError:
+    logging.debug("Unable to load SQL database modules for compat")
+
 from .. import loader
 from .util import get_cmd_name, MarkdownBotPassthrough
 
@@ -40,7 +46,8 @@ class RaphielgangConfig():
                         "lastfm", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
                         "GDRIVE_FOLDER_ID", "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG",
                         "ENABLE_KILLME", "CMD_HELP", "AFKREASON", "ZALG_LIST", "BRAIN_CHECKER", "CURRENCY_API",
-                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER"]
+                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER"
+                        "MONGO_URI"]
 
         self.bots = clients
 
@@ -196,8 +203,8 @@ class RaphielgangConfig():
             " ͡",
         ]]
         self.BRAIN_CHECKER = []
-        self.is_mongo_alive = lambda: False
-        self.is_redis_alive = lambda: False
+        self.is_mongo_alive = lambda: self.MONGO_URI is not None
+        self.is_redis_alive = lambda: self.REDIS.ping()
         self.CURRENCY_API = None
         self.SPOTIFY_USERNAME = None
         self.SPOTIFY_PASS = None
@@ -209,15 +216,48 @@ class RaphielgangConfig():
         # And some for "AliHasan7671"
         self.LOGGER_GROUP = 0
         self.HELPER = {}  # What is this even?
+
+        # Databases
+        def is_mongo_alive(self):
+            if not self.db_enabled:
+                return False
+            try:
+                return self.MONGOCLIENT.ismongos
+            except pymongo.errors.ServerSelectionTimeoutError:
+                return False
+        self.is_mongo_alive = is_mongo_alive
+        def is_redis_alive(self):
+            if not self.db_enabled:
+                return False
+            try:
+                self.REDIS.ping()
+            except redis.exceptions.ConnectionError:
+                return False
+            else:
+                return True
+        self.is_redis_alive = is_redis_alive
         # pylint: enable=C0103
 
         self.__passthrus = []
+        self.mongoclient = None
 
     @property
     def bot(self):
         if not len(self.__passthrus):
             self.__passthrus += [MarkdownBotPassthrough(self.bots[0] if len(self.bots) else None)]
         return self.__passthrus[0]
+    @property
+    def MONGOCLIENT(self):
+        if self.MONGO_URI is not None and self.mongoclient is None:
+            self.mongoclient = pymongo.MongoClient(self.MONGO_URI, 27017, serverSelectionTimeoutMS=1)
+        return self.mongoclient
+    @property
+    def MONGO(self):
+        if self.MONGOCLIENT is not None:
+            return self.MONGOCLIENT.userbot
+    @property
+    def REDIS(self):
+        return redis.StrictRedis(host='localhost', port=6379, db=0)
 
     async def client_ready(self, client):
         self.bots += [client]

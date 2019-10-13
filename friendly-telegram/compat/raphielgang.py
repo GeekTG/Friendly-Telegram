@@ -246,15 +246,18 @@ class RaphielgangConfig():
         if not len(self.__passthrus):
             self.__passthrus += [MarkdownBotPassthrough(self.bots[0] if len(self.bots) else None)]
         return self.__passthrus[0]
+
     @property
     def MONGOCLIENT(self):
         if self.MONGO_URI is not None and self.mongoclient is None:
             self.mongoclient = pymongo.MongoClient(self.MONGO_URI, 27017, serverSelectionTimeoutMS=1)
         return self.mongoclient
+
     @property
     def MONGO(self):
         if self.MONGOCLIENT is not None:
             return self.MONGOCLIENT.userbot
+
     @property
     def REDIS(self):
         return redis.StrictRedis(host='localhost', port=6379, db=0)

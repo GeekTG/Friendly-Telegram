@@ -18,6 +18,17 @@ import json
 import asyncio
 
 
+class NotifyingFuture(asyncio.Future):
+    def __init__(self, *args, **kwargs):
+        self.__to_notify_on_await = kwargs.pop("on_await", None)
+        super().__init__(*args, **kwargs)
+
+    def __await__(self):
+        if callable(self.__to_notify_on_await):
+            self.__to_notify_on_await()
+        return super().__await__()
+
+
 # Not thread safe, use the event loop!
 class Database():
     def __init__(self, backend):
@@ -69,9 +80,15 @@ class Database():
         if self._pending is not None and not self._pending.cancelled():
             self._pending.cancel()
         if self._sync_future is None or self._sync_future.done():
-            self._sync_future = asyncio.Future()
+            self._sync_future = NotifyingFuture(on_await=self._cancel_then_set)
         self._pending = asyncio.ensure_future(_wait_then_do(10, self._set))  # Delay database ops by 10s
         return self._sync_future
+
+    def _cancel_then_set(self):
+        if self._pending is not None and not self._pending.cancelled():
+            self._pending.cancel()
+        self._pending = asyncio.ensure_future(self._set())
+        # Restart the task, but without the delay, because someone is waiting for us
 
     async def _set(self):
         if self._noop:

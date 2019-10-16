@@ -31,3 +31,5 @@ hachoir
 gitpython
 # Lydia
 coffeehouse
+# UrbanDictionary
+urbandict

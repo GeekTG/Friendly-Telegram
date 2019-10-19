@@ -103,7 +103,7 @@ fi
 
 echo "Installing..." > ftg-install.log
 
-if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
+if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; then
   PKGMGR="apt-get install -y"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments

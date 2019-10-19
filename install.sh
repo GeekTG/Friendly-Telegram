@@ -120,6 +120,20 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
     apt-get update 2>>ftg-install.log >>ftg-install.log  # Not essential
   fi
   PYVER="3"
+if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
+  PKGMGR="pacman -Sy"
+  if [ ! "$(whoami)" = "root" ]; then
+    # Relaunch as root, preserving arguments
+    if command -v sudo >/dev/null; then
+      endspin "Restarting as root..."
+      echo "Relaunching" >>ftg-install.log
+      sudo "$SHELL" -c '$SHELL <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+      exit $?
+    else
+      PKGMGR="true"
+    fi
+  fi
+  PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
   spin
   apt-get update 2>>ftg-install.log >>ftg-install.log

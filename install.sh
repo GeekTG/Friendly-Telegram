@@ -120,7 +120,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
     apt-get update 2>>ftg-install.log >>ftg-install.log  # Not essential
   fi
   PYVER="3"
-if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
+elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
   PKGMGR="pacman -Sy"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments

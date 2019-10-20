@@ -36,7 +36,7 @@ def get_cmd_name(pattern):
         # That seems to be the normal command prefix
         pattern = pattern[2:]
     else:
-        logger.error("Unable to register for non-command-based outgoing messages, pattern=%s", pattern)
+        logger.info("Unable to register for non-command-based outgoing messages, pattern=%s", pattern)
         return False
     # Find first non-alpha character and get all chars before it
     i = 0
@@ -45,7 +45,7 @@ def get_cmd_name(pattern):
         i += 1
         cmd = pattern[:i]
     if not cmd:
-        logger.error("Unable to identify command correctly, i=%d, pattern=%s", i, pattern)
+        logger.info("Unable to identify command correctly, i=%d, pattern=%s", i, pattern)
         return False
     return cmd
 

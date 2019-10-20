@@ -121,6 +121,8 @@ class UniborgClient:
                 if use_unknown:
                     self._unknowns += [commandhandler]
                 else:
+                    if commandhandler.__doc__ is None:
+                        commandhandler.__doc__ = "Undocumented external command"
                     self._commands[cmd] = commandhandler
             elif event.incoming:
                 @wraps(func)

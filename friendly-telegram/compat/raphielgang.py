@@ -320,6 +320,7 @@ class RaphielgangEvents():
             self.commands["raphcmd" + str(self.instance_id)] = self._unknown_command
 
         def _unknown_command(self, message):
+            """A command that could not be understood by the compat system, you must put the raw command after."""
             message.message = message.message[len("raphcmd" + str(self.instance_id)) + 1:]
             return asyncio.gather(*[uk(message, "") for uk in self.unknowns])
 
@@ -368,6 +369,8 @@ class RaphielgangEvents():
                     if use_unknown:
                         self.unknowns += [commandhandler]
                     else:
+                        if commandhandler.__doc__ is None:
+                            commandhandler.__doc__ = "Undocumented external command"
                         self.commands[cmd] = commandhandler  # Add to list of commands so we can call later
                 elif kwargs.get("incoming", False):
                     # Watcher-based thing

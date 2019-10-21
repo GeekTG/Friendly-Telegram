@@ -36,7 +36,7 @@ foreach ($release in $ret) {
 }
 if ([string]::IsNullOrEmpty($asset_id)) {
     Write-Error "Unable to locate Git"
-    exit
+
 }
 $download_url = "https://api.github.com/repos/git-for-windows/git/releases/assets/" + $asset_id
 Write-Output("Downloading Git...")

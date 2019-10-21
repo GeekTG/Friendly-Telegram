@@ -106,7 +106,7 @@ async def handle_command(modules, db, event):
         logging.debug("Message is blacklisted")
         return
     if len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
-            and message.message != len(message.message) * prefix:
+            and message.message != len(message.message) // len(prefix) * prefix:
         # Allow escaping commands using .'s
         await message.edit(utils.escape_html(message.message[len(prefix):]))
     logging.debug(message)

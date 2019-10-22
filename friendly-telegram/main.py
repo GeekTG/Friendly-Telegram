@@ -91,7 +91,9 @@ logging.captureWarnings(True)
 async def handle_command(modules, db, event):
     """Handle all commands"""
     prefix = db.get(__name__, "command_prefix", False) or "."  # Empty string evaluates to False, so the `or` activates
-    if not (hasattr(event, "message") and getattr(event.message, "message", "")[0:len(prefix)] == prefix):
+    if not hasattr(event, "message") or getattr(event.message, "message", "") == "":
+        return
+    if event.message.message[0:len(prefix)] != prefix:
         return
     logging.debug("Incoming command!")
     if not event.message:

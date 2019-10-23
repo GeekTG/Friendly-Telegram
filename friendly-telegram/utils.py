@@ -65,7 +65,11 @@ def get_chat_id(message):
     chat = message.to_id
     if isinstance(chat, PeerUser):
         return message.chat_id
-    attrs = vars(chat)
+    return get_entity_id(chat)
+
+
+def get_entity_id(entity):
+    attrs = vars(entity)
     if len(attrs) != 1:
         return None
     return next(iter(attrs.values()))

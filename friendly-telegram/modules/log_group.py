@@ -18,7 +18,8 @@
 
 import logging
 
-from telethon.tl.types import MessageEntityHashtag, MessageEntityBold, MessageEntityCode, MessageEntityMentionName
+from telethon.tl.types import MessageEntityHashtag, MessageEntityBold
+from telethon.tl.types import MessageEntityCode, MessageEntityMentionName, InputPeerUser
 
 from .. import loader
 
@@ -37,27 +38,6 @@ class LoggerMod(loader.Module):
 
     async def _log(self, type, group, affected_uids, data):
         """Logs an operation to the group"""
-        message = "#"
-        message += type
-        entities = [MessageEntityHashtag(0, len(message)), MessageEntityBold(0, len(message))]
-        if affected_uids:
-            message += " in "
-            for user in affected_uids:
-                try:
-                    await self._client.get_input_entity(user)
-                except ValueError:
-                    entities.append(MessageEntityCode(len(message), len(str(user))))
-                else:
-                    entities.append(MessageEntityMentionName(len(message), len(str(user)), user))
-                message += str(user) + ", "
-            message = message[:-2]
-        if group:
-            message += " in "
-            entities.append(MessageEntityCode(len(message), len(str(group))))
-            message += str(group)
-        if data:
-            message += "\n\n" + data
-        logger.debug(message)
         chat = None
         if self.config["LOG_ID"]:
             try:
@@ -68,10 +48,49 @@ class LoggerMod(loader.Module):
                     if dialog.id == self.config["LOG_ID"] or abs(dialog.id + 1000000000000) == self.config["LOG_ID"]:
                         chat = dialog.entity
                         break
-            if chat is None:
-                logger.debug("chat not found")
+        if chat is None:
+            logger.debug("chat not found")
+            return
+        message = "#" + type.upper()
+        entities = [MessageEntityHashtag(0, len(message)), MessageEntityBold(0, len(message))]
+        if affected_uids:
+            message += " "
+            for user in affected_uids:
+                try:
+                    user_entity = await self._client.get_input_entity(user)
+                except ValueError:
+                    entities.append(MessageEntityCode(len(message), len(str(user))))
+                    message += str(user)
+                else:
+                    if isinstance(user_entity, InputPeerUser):
+                        entities.append(MessageEntityMentionName(len(message),
+                                        len(str(user_entity.user_id)), user_entity.user_id))
+                        message += str(user_entity.user_id)
+                    else:
+                        print(user_entity, user)
+                        entities.append(MessageEntityCode(len(message), len(str(user))))
+                        message += str(user)
+                message += ", "
+            message = message[:-2]
+        if group:
+            message += " in "
+            try:
+                group_entity = await self._client.get_input_entity(group)
+            except ValueError:
+                entities.append(MessageEntityCode(len(message), len(str(group))))
+                message += str(group)
             else:
-                await self._client.send_message(chat, message, parse_mode=lambda m: (m, entities))
+                if isinstance(group_entity, InputPeerUser):
+                    entities.append(MessageEntityMentionName(len(message),
+                                    len(str(group_entity.user_id)), group_entity.user_id))
+                    message += str(group_entity.user_id)
+                else:
+                    entities.append(MessageEntityCode(len(message), len(str(group))))
+                    message += str(group)
+        if data:
+            message += "\n\n" + data
+        logger.debug(message)
+        await self._client.send_message(chat, message, parse_mode=lambda m: (m, entities))
 
     async def client_ready(self, client, db):
         self._client = client

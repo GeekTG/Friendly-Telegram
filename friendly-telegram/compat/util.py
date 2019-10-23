@@ -57,7 +57,6 @@ class MarkdownBotPassthrough():
     def __init__(self, under):
         if isinstance(getattr(under, "message", None), str):
             self.__text = markdown.unparse(under.message, under.entities)
-        else:
         self.__under = under
 
     def __edit(self, *args, **kwargs):

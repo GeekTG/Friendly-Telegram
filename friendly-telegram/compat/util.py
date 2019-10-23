@@ -16,6 +16,8 @@
 
 import logging
 
+from telethon.extensions import markdown
+
 logger = logging.getLogger(__name__)
 
 COMMAND_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_"
@@ -53,6 +55,9 @@ def get_cmd_name(pattern):
 class MarkdownBotPassthrough():
     """Passthrough class that forces markdown mode"""
     def __init__(self, under):
+        if isinstance(getattr(under, "message", None), str):
+            self.__text = markdown.unparse(under.message, under.entities)
+        else:
         self.__under = under
 
     def __edit(self, *args, **kwargs):
@@ -73,6 +78,9 @@ class MarkdownBotPassthrough():
             kwargs.update(parse_mode="Markdown")
         return self.__under.send_message(*args, **kwargs)
 
+    async def __get_reply_message(self, *args, **kwargs):
+        return type(self)(await self.__under.get_reply_message(*args, **kwargs))
+
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
@@ -80,6 +88,10 @@ class MarkdownBotPassthrough():
             return self.__edit
         if name == "send_message":
             return self.__send_message
+        if name == "text":
+            return self.__text
+        if name == "get_reply_message":
+            return self.__get_reply_message
         if name == "client":
             return type(self)(self.__under.client)  # Recurse
         return getattr(self.__under, name)

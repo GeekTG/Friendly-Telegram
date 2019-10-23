@@ -82,13 +82,12 @@ class CoreMod(loader.Module):
         alias, cmd = args
         ret = self.allmodules.add_alias(alias, cmd)
         if ret:
-            self.db.set(__name__, "aliases", {**self.db.get(__name__, "aliases"), alias: cmd})
+            self._db.set(__name__, "aliases", {**self._db.get(__name__, "aliases"), alias: cmd})
             await utils.answer(message, _("Alias created. Access it with <code>{}</code>").format(alias))
         else:
             await utils.answer(message, _("Command <code>{}</code> does not exist").format(cmd))
 
     async def _client_ready2(self, client, db):
-        self.db = db
         ret = {}
         for alias, cmd in db.get(__name__, "aliases", {}).items():
             if self.allmodules.add_alias(alias, cmd):

@@ -46,7 +46,7 @@ class RaphielgangConfig():
                         "lastfm", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
                         "GDRIVE_FOLDER_ID", "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG",
                         "ENABLE_KILLME", "CMD_HELP", "AFKREASON", "ZALG_LIST", "BRAIN_CHECKER", "CURRENCY_API",
-                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER"
+                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER",
                         "MONGO_URI", "GENIUS_API_TOKEN"]
 
         self.bots = clients

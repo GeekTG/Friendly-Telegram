@@ -119,6 +119,8 @@ async def handle_command(modules, db, event):
     except ValueError as e:
         await message.edit("Invalid Syntax: " + str(e))
         return
+    if not message.message:
+        return  # Message is just the prefix
     command = message.message.split(maxsplit=1)[0]
     logging.debug(command)
     coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one

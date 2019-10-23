@@ -18,10 +18,10 @@
 
 import logging
 
-from telethon.tl.types import MessageEntityHashtag, MessageEntityBold
+from telethon.tl.types import MessageEntityHashtag, MessageEntityBold, InputPeerSelf
 from telethon.tl.types import MessageEntityCode, MessageEntityMentionName, InputPeerUser
 
-from .. import loader
+from .. import loader, utils
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,27 @@ class LoggerMod(loader.Module):
     def __init__(self):
         self.config = loader.ModuleConfig("LOG_ID", None, _("Chat ID where logs are saved"))
         self.name = _("Logger")
+
+    async def append_entity(self, id, entities, message):
+        fail = True
+        try:
+            entity = await self._client.get_input_entity(id)
+        except ValueError:
+            pass
+        else:
+            if isinstance(entity, InputPeerSelf):
+                entity = await self._client.get_me(True)
+            if isinstance(entity, InputPeerUser):
+                fail = False
+                entities.append(MessageEntityMentionName(len(message),
+                                len(str(entity.user_id)), entity.user_id))
+                message += str(entity.user_id)
+        if fail:
+            if not isinstance(id, int):
+                id = utils.get_entity_id(id)
+            entities.append(MessageEntityCode(len(message), len(str(id))))
+            message += str(id)
+        return message
 
     async def _log(self, type, group, affected_uids, data):
         """Logs an operation to the group"""
@@ -56,37 +77,12 @@ class LoggerMod(loader.Module):
         if affected_uids:
             message += " "
             for user in affected_uids:
-                try:
-                    user_entity = await self._client.get_input_entity(user)
-                except ValueError:
-                    entities.append(MessageEntityCode(len(message), len(str(user))))
-                    message += str(user)
-                else:
-                    if isinstance(user_entity, InputPeerUser):
-                        entities.append(MessageEntityMentionName(len(message),
-                                        len(str(user_entity.user_id)), user_entity.user_id))
-                        message += str(user_entity.user_id)
-                    else:
-                        print(user_entity, user)
-                        entities.append(MessageEntityCode(len(message), len(str(user))))
-                        message += str(user)
+                message = await self.append_entity(user, entities, message)
                 message += ", "
             message = message[:-2]
         if group:
             message += " in "
-            try:
-                group_entity = await self._client.get_input_entity(group)
-            except ValueError:
-                entities.append(MessageEntityCode(len(message), len(str(group))))
-                message += str(group)
-            else:
-                if isinstance(group_entity, InputPeerUser):
-                    entities.append(MessageEntityMentionName(len(message),
-                                    len(str(group_entity.user_id)), group_entity.user_id))
-                    message += str(group_entity.user_id)
-                else:
-                    entities.append(MessageEntityCode(len(message), len(str(group))))
-                    message += str(group)
+            message = await self.append_entity(group, entities, message)
         if data:
             message += "\n\n" + data
         logger.debug(message)

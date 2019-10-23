@@ -20,13 +20,14 @@ import logging
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 
-from .raphielgang import RaphielgangConfig, RaphielgangEvents
+from .raphielgang import RaphielgangConfig, RaphielgangEvents, RaphielgangDatabase
 from .uniborg import UniborgUtil, Uniborg
 
 
 # When a name is matched, the import is overriden, and our custom object is returned
 MODULES = {"userbot": RaphielgangConfig, "userbot.events": RaphielgangEvents,
-           "uniborg": Uniborg, "uniborg.util": UniborgUtil}
+           "userbot.modules": RaphielgangConfig, "userbot.modules.dbhelper": RaphielgangDatabase, "uniborg": Uniborg,
+           "uniborg.util": UniborgUtil}
 
 
 class BotCompat(MetaPathFinder, Loader):  # pylint: disable=W0223 # It's wrong - https://kutt.it/hkjRb9

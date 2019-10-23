@@ -47,7 +47,7 @@ class RaphielgangConfig():
                         "GDRIVE_FOLDER_ID", "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG",
                         "ENABLE_KILLME", "CMD_HELP", "AFKREASON", "ZALG_LIST", "BRAIN_CHECKER", "CURRENCY_API",
                         "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER",
-                        "MONGO_URI", "GENIUS_API_TOKEN"]
+                        "MONGO_URI", "GENIUS_API_TOKEN", "FORCE_REDIS_AVAIL", "FORCE_MONGO_AVAIL"]
 
         self.bots = clients
 
@@ -218,19 +218,24 @@ class RaphielgangConfig():
         self.LOGGER_GROUP = 0
         self.HELPER = {}  # What is this even?
 
+        self.FORCE_REDIS_AVAIL = False
+        self.FORCE_MONGO_AVAIL = False
+
         # Databases
-        def is_mongo_alive(self):
-            if not self.db_enabled:
+        def is_mongo_alive():
+            if self.FORCE_MONGO_AVAIL:
+                return True
+            if self.MONGO_URI is None:
                 return False
             try:
-                return self.MONGOCLIENT.ismongos
+                return self.MONGOCLIENT.ismongos is not None
             except pymongo.errors.ServerSelectionTimeoutError:
                 return False
         self.is_mongo_alive = is_mongo_alive
 
-        def is_redis_alive(self):
-            if not self.db_enabled:
-                return False
+        def is_redis_alive():
+            if self.FORCE_REDIS_AVAIL:
+                return True
             try:
                 self.REDIS.ping()
             except redis.exceptions.ConnectionError:
@@ -420,4 +425,16 @@ class RaphielgangEvents():
     async def client_ready(self, client):
         pass
 
-# I just finished writing this. Please, someone, help me!
+
+class RaphielgangDatabase:
+    @staticmethod
+    def __new__(cls, *args, **kwargs):
+        try:
+            from . import dbhelper
+        except ImportError:
+            return super().__new__(cls)
+        else:
+            return dbhelper
+
+    def __init__(self, clients):
+        pass

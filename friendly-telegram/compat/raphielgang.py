@@ -361,8 +361,8 @@ class RaphielgangEvents():
                         logger.debug("Command triggered")
                         # Framework strips prefix, give them a generic one
                         message.message = pre + message.message
-                        match = re.match(kwargs.get("pattern", ".*"), message.message, re.I)
-                        if match:
+                        match = re.match(kwargs.get("pattern", r"^\b$"), message.message, re.I)
+                        if "pattern" not in kwargs or match:
                             logger.debug("and matched")
                             event = MarkdownBotPassthrough(message)
                             # Try to emulate the expected format for an event
@@ -384,8 +384,8 @@ class RaphielgangEvents():
                     @wraps(func)
                     def subwatcher(message):
                         """Closure to execute watcher when handler activated and regex matched"""
-                        match = re.match(message.message, kwargs.get("pattern", ".*"), re.I)
-                        if match:
+                        match = re.match(message.message, kwargs.get("pattern", r"^\b$"), re.I)
+                        if "pattern" not in kwargs or match:
                             event = message
                             # Try to emulate the expected format for an event
                             event = MarkdownBotPassthrough(message)

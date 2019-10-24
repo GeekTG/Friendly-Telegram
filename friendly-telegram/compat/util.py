@@ -55,8 +55,6 @@ def get_cmd_name(pattern):
 class MarkdownBotPassthrough():
     """Passthrough class that forces markdown mode"""
     def __init__(self, under):
-        if isinstance(getattr(under, "message", None), str):
-            self.__text = markdown.unparse(under.message, under.entities)
         self.__under = under
 
     def __edit(self, *args, **kwargs):
@@ -78,7 +76,9 @@ class MarkdownBotPassthrough():
         return self.__under.send_message(*args, **kwargs)
 
     async def __get_reply_message(self, *args, **kwargs):
-        return type(self)(await self.__under.get_reply_message(*args, **kwargs))
+        ret = await self.__under.get_reply_message(*args, **kwargs)
+        ret.text = markdown.unparse(ret.message, ret.entities)
+        return ret
 
     def __getattr__(self, name):
         if name in self.__dict__:
@@ -87,8 +87,6 @@ class MarkdownBotPassthrough():
             return self.__edit
         if name == "send_message":
             return self.__send_message
-        if name == "text":
-            return self.__text
         if name == "get_reply_message":
             return self.__get_reply_message
         if name == "client":

@@ -77,7 +77,8 @@ class MarkdownBotPassthrough():
 
     async def __get_reply_message(self, *args, **kwargs):
         ret = await self.__under.get_reply_message(*args, **kwargs)
-        ret.text = markdown.unparse(ret.message, ret.entities)
+        if ret is not None:
+            ret.text = markdown.unparse(ret.message, ret.entities)
         return ret
 
     def __getattr__(self, name):

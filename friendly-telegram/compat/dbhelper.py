@@ -1,4 +1,4 @@
-# This file is copied verbatim from https://raw.githubusercontent.com/MyPaperPlane/Telegram-UserBot/ff2c9598a006d000ee83467c5c88d33f0def68b3/userbot/modules/dbhelper.py
+# This file is copied verbatim from https://kutt.it/8EL9Ol
 # The author said "Ye."
 
 from userbot import MONGO, REDIS

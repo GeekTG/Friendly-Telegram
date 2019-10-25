@@ -183,7 +183,7 @@ def get_phones(arguments):
                                                  os.listdir(os.path.dirname(utils.get_base_dir())))))
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku
-    if authtoken:
+    if authtoken and not arguments.setup:
         try:
             authtoken = json.loads(authtoken)
         except json.decoder.JSONDecodeError:

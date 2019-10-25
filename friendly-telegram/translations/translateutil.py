@@ -62,7 +62,7 @@ class UsageFinder(ast.NodeVisitor):
                                                 and isinstance(node.args[0].value, str))):
                 self._output += [node.args[0].s]
             else:
-                print("W: Could not process " + ast.dump(node))
+                print("W: Could not process " + ast.dump(node))  # noqa: T001
 
     def get_output(self):
         return self._output

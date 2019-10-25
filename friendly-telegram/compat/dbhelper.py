@@ -374,7 +374,6 @@ async def remove_chat_fban(chatid):
 
 async def is_fban(chatid):
     if not MONGO.fban.find_one({"chatid": chatid}):
-        print("FAILED on fed")
         return False
     else:
         return True
@@ -389,7 +388,6 @@ async def get_gban():
 
 async def add_chat_gban(chatid):
     if await is_gban(chatid) is True:
-        print("FAILED")
         return False
     else:
         MONGO.gban.insert_one({'chatid': chatid})

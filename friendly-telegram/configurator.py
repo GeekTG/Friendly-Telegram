@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+# flake8: noqa: T001
+
 """Configuration menu, providing interface for users to control internals"""
 
 import locale

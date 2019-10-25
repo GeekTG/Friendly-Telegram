@@ -247,7 +247,7 @@ def main():
                                                     + (("-" + phone) if phone else "")), api_token.ID,
                                        api_token.HASH, connection_retries=None).start(phone)]
         except sqlite3.OperationalError as ex:
-            print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)
+            print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)  # noqa: T001
                   + ": this is probably your fault. Try checking that this is the only instance running and "
                   "that the session is not copied. If that doesn't help, delete the file named '"
                   "friendly-telegram" + (("-" + phone) if phone else "") + ".session'")
@@ -257,7 +257,8 @@ def main():
             run_config({})
             return
         except PhoneNumberInvalidError:
-            print("Please check the phone number. Use international format (+XX...) and don't put spaces in it.")
+            print("Please check the phone number. Use international format (+XX...)"  # noqa: T001
+                  " and don't put spaces in it.")
             continue
         clients[-1].phone = phone  # so we can format stuff nicer in configurator
 
@@ -265,7 +266,7 @@ def main():
         key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
         from . import heroku
         heroku.publish(clients, key, api_token)
-        print("Installed to heroku successfully! Type .help in Telegram for help.")
+        print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         return
 
     loops = [amain(client, clients, arguments.setup) for client in clients]
@@ -299,7 +300,6 @@ async def amain(client, allclients, setup=False):
             handler.setLevel(50)
             pdb = run_config(pdb, getattr(client, "phone", "Unknown Number"), modules)
             if pdb is None:
-                print("Factory reset triggered...")
                 await client(DeleteChannelRequest(db.db))
                 return
             try:
@@ -313,7 +313,7 @@ async def amain(client, allclients, setup=False):
         logging.info("Loading logging config...")
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        babelfish = Translator(["en"])  # TODO
+        babelfish = Translator(db.get(__name__, "language", ["en"]))
 
         modules = loader.Modules()
         modules.register_all(babelfish)
@@ -326,5 +326,5 @@ async def amain(client, allclients, setup=False):
                                  events.NewMessage(outgoing=True, forwards=False))
         client.add_event_handler(functools.partial(handle_command, modules, db),
                                  events.MessageEdited(outgoing=True, forwards=False))
-        print("Started for " + str((await client.get_me(True)).user_id))
+        print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
         await client.run_until_disconnected()

@@ -79,7 +79,7 @@ class UpdaterMod(loader.Module):
         try:
             repo = Repo(os.path.dirname(utils.get_base_dir()))
             origin = repo.remote("origin")
-            r = await utils.run_sync(origin.pull)
+            r = origin.pull()
             new_commit = repo.head.commit
             for info in r:
                 if info.old_commit:
@@ -90,28 +90,28 @@ class UpdaterMod(loader.Module):
         except git.exc.InvalidGitRepositoryError:
             repo = Repo.init(os.path.dirname(utils.get_base_dir()))
             origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
-            await utils.run_sync(origin.fetch)
+            origin.fetch()
             repo.create_head('master', origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
             with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
                 old_reqs = f.read()
-            await utils.run_sync(repo.heads.master.checkout, True)
+            repo.heads.master.checkout(True)
             with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
                 new_reqs = f.read()
             return old_reqs != new_reqs
 
-    async def req_common(self):
+    def req_common(self):
         # Now we have downloaded new code, install requirements
         try:
-            (await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install", "-r",
-                                                  os.path.join(os.path.dirname(utils.get_base_dir()),
-                                                               "requirements.txt"), "--user")).wait()
+            subprocess.run([sys.executable, "-m", "pip", "install", "-r",
+                            os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "--user"])
         except subprocess.CalledProcessError:
             logger.exception("Req install failed")
 
     async def updatecmd(self, message):
         """Downloads userbot updates"""
-        msg = await message.edit(_("Downloading updates..."))
+        # We don't really care about asyncio at this point, as we are shutting down
+        await message.edit(_("Downloading updates..."))
         req_update = await self.download_common()
         message = await message.client.send_file(message.chat_id, SHUTDOWN,
                                                  caption=_("Installing updates..."), voice_note=True)
@@ -120,7 +120,7 @@ class UpdaterMod(loader.Module):
         if heroku_key:
             from .. import heroku
             await self.prerestart_common(message)
-            await utils.run_sync(heroku.publish, self.allclients, heroku_key)
+            heroku.publish(self.allclients, heroku_key)
             # If we pushed, this won't return. If the push failed, we will get thrown at.
             # So this only happens when remote is already up to date (remote is heroku, where we are running)
             self._db.set(__name__, "selfupdatechat", None)
@@ -129,7 +129,7 @@ class UpdaterMod(loader.Module):
             await message.delete()
         else:
             if req_update:
-                await self.req_common()
+                self.req_common()
             await self.restart_common(message)
 
     async def client_ready(self, client, db):

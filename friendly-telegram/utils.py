@@ -139,17 +139,18 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):  # 
 
 def _fix_entities(ent, cont_msg, initial=False):
     for entity in ent:
-        entity.offset -= 4096
-        if initial:
-            entity.offset += len(cont_msg)
-        else:
+        if not initial:
+            entity.offset -= len(cont_msg)
             entity.length += len(cont_msg)
-        if entity.offset + entity.length > 0:
-            if entity.offset < 0:
-                entity.offset = entity.offset + 4096
-                entity.length = entity.length - 4096
-        elif entity.offset < 0:
-            entity.length = 0  # We don't need this one, it doesn't reach.
+        if entity.offset + entity.length - 4096 < 0:
+            entity.offset = 0
+            entity.length = 0  # It's useless
+            continue
+        already_done = max(4096 - entity.offset, 0)
+        print("already", already_done)
+        entity.offset = max(entity.offset - 4096, 0)
+        entity.length -= already_done
+        entity.offset += len(cont_msg)
 
 
 async def answer(message, response, **kwargs):
@@ -160,8 +161,10 @@ async def answer(message, response, **kwargs):
         txt, ent = html.parse(response)
         await message.edit(html.unparse(txt[:4096], ent))
         txt = txt[4096:]
+        print([(repr(e), e.offset, e.length) for e in ent])
         _fix_entities(ent, cont_msg, True)
         while len(txt) > 0:
+            print([(repr(e), e.offset, e.length) for e in ent], html.unparse(cont_msg + txt[:4096], ent))
             txt = cont_msg + txt
             message.message = txt[:4096]
             message.entities = ent

@@ -111,7 +111,7 @@ class UpdaterMod(loader.Module):
     async def updatecmd(self, message):
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
-        await message.edit(_("Downloading updates..."))
+        msg = await message.edit(_("Downloading updates..."))
         req_update = await self.download_common()
         message = await message.client.send_file(message.chat_id, SHUTDOWN,
                                                  caption=_("Installing updates..."), voice_note=True)

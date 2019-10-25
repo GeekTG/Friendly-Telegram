@@ -49,6 +49,9 @@ def _safe_input(*args, **kwargs):
         print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
         print("Goodbye.")
         sys.exit(1)
+    except KeyboardInterrupt:
+        print()
+        return None
 
 
 class TDialog():
@@ -72,6 +75,8 @@ class TDialog():
             i += 1
         while True:
             inp = _safe_input("Please enter your selection as a number, or 0 to cancel: ")
+            if inp is None:
+                inp = 0
             try:
                 inp = int(inp)
                 if inp == 0:
@@ -88,7 +93,7 @@ class TDialog():
         print(query)
         print()
         inp = _safe_input("Please enter your response, or type nothing to cancel: ")
-        if inp == "":
+        if inp == "" or inp is None:
             return (self.NOT_OK, "Cancelled")
         return (self.OK, inp)
 
@@ -105,14 +110,14 @@ class TDialog():
 
     def yesno(self, question):
         """Ask yes or no, default to no"""
-        return self.OK if _safe_input(question + "y/N").lower() == "y" else self.NOT_OK
+        return self.OK if (_safe_input(question + " (y/N): ") or "").lower() == "y" else self.NOT_OK
 
 
 TITLE = ""
 
 try:
-    DIALOG = Dialog(dialog="dialog", autowidgetsize=True)
-    locale.setlocale(locale.LC_ALL, '')
+    DIALOG = Dialog(dialog="dialo", autowidgetsize=True)
+    locale.setlocale(locale.LC_ALL, "")
 except (ExecutableNotFound, locale.Error):
     # Fall back to a terminal based configurator.
     DIALOG = TDialog()

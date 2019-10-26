@@ -71,7 +71,7 @@ if [ ! x"" = x"$DYNO" ]; then
   spin
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
-  echo "python-3.7.4" > runtime.txt
+  echo "python-3.7.5" > runtime.txt
   echo "pip" > requirements.txt
   spin
   STACK=heroku-18 bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \

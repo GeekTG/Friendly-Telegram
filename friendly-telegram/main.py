@@ -179,7 +179,7 @@ def parse_arguments():
 def get_phones(arguments):
     """Get phones from the --token, --phone, and environment"""
     phones = set(arguments.phone if arguments.phone else [])
-    phones.update(map(lambda f: f[18:-8], filter(lambda f: f[:19] == "friendly-telegram-+" and f[-8:] == ".session",
+    phones.update(map(lambda f: f[18:-8], filter(lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
                                                  os.listdir(os.path.dirname(utils.get_base_dir())))))
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku

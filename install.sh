@@ -16,23 +16,29 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+if [ ! -n "$BASH" ]; then
+  echo "Non-bash shell detected, fixing..."
+  bash -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+  exit $?
+fi
+
 # Modified version of https://stackoverflow.com/a/3330834/5509575
 sp='/-\|'
 spin() {
-    printf '\b%.1s' "$sp"
-    sp=${sp#?}${sp%???}
+  printf '\b%.1s' "$sp"
+  sp=${sp#?}${sp%???}
 }
 endspin() {
-    printf '\r%s\n' "$@"
+  printf '\r%s\n' "$@"
 }
 
 errorin() {
-    endspin "$@"
-    cat ../ftg-install.log
+  endspin "$@"
+  cat ../ftg-install.log
 }
 errorout() {
-    endspin "$@"
-    cat ftg-install.log
+  endspin "$@"
+  cat ftg-install.log
 }
 
 # Banner generated with following command:
@@ -40,19 +46,19 @@ errorout() {
 # Ugly, I know.
 
 banner() {
-    clear
-    clear
-    printf '%s\n' "   ___    _             ____    "
-    printf '%s\n' "  / _/___(_)__ ___  ___/ / /_ __"
-    printf '%s\n' " / _/ __/ / -_) _ \\/ _  / / // /"
-    printf '%s\n' "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
-    printf '%s\n' "                         /___/  "
-    printf '%s\n' "  __      __                      "
-    printf '%s\n' " / /____ / /__ ___ ________ ___ _ "
-    printf '%s\n' "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
-    printf '%s\n' "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
-    printf '%s\n' "             /___/                "
-    printf '%s\n' ""
+  clear
+  clear
+  printf '%s\n' "   ___    _             ____    "
+  printf '%s\n' "  / _/___(_)__ ___  ___/ / /_ __"
+  printf '%s\n' " / _/ __/ / -_) _ \\/ _  / / // /"
+  printf '%s\n' "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
+  printf '%s\n' "                         /___/  "
+  printf '%s\n' "  __      __                      "
+  printf '%s\n' " / /____ / /__ ___ ________ ___ _ "
+  printf '%s\n' "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
+  printf '%s\n' "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
+  printf '%s\n' "             /___/                "
+  printf '%s\n' ""
 }
 
 ##############################################################################
@@ -64,6 +70,11 @@ printf '%s' "Installing now...  "
 ##############################################################################
 
 spin
+
+touch ftg-install.log
+if [ ! x"$SUDO_USER" = x"" ]; then
+  chown "$SUDO_USER:" ftg-install.log
+fi
 
 if [ ! x"" = x"$DYNO" ]; then
   # We are running in a heroku dyno, time to get ugly!
@@ -110,7 +121,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
     if command -v sudo >/dev/null; then
       endspin "Restarting as root..."
       echo "Relaunching" >>ftg-install.log
-      sudo "$SHELL" -c '$SHELL <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+      sudo "$BASH" -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
       exit $?
     else
       PKGMGR="true"
@@ -127,7 +138,7 @@ elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; the
     if command -v sudo >/dev/null; then
       endspin "Restarting as root..."
       echo "Relaunching" >>ftg-install.log
-      sudo "$SHELL" -c '$SHELL <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+      sudo "$BASH" -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
       exit $?
     else
       PKGMGR="true"

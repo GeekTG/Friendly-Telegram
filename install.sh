@@ -58,7 +58,7 @@ banner() {
 ##############################################################################
 
 banner
-printf '%s\n' "The process takes around 1-3 minutes"
+printf '%s\n' "The process takes around 3-7 minutes"
 printf '%s' "Installing now...  "
 
 ##############################################################################

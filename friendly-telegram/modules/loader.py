@@ -163,7 +163,7 @@ class LoaderMod(loader.Module):
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
-            uid = name
+            uid = name.replace(".", "_")  # Prevent error of bad package
         module_name = "friendly-telegram.modules." + uid
         try:
             module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin), origin=origin))

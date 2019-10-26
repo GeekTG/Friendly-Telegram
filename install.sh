@@ -67,14 +67,14 @@ spin
 
 if [ ! x"" = x"$DYNO" ]; then
   # We are running in a heroku dyno, time to get ugly!
-  git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
+  git clone https://github.com/heroku/heroku-buildpack-python 2>>ftg-install.log >>ftg-install.log || { endspin "Bootstrap download failed!"; exit 1; }
   spin
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
   echo "python-3.7.5" > runtime.txt
   echo "pip" > requirements.txt
   spin
-  STACK=heroku-18 bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
+  STACK=heroku-18 bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env 2>>ftg-install.log >>ftg-install.log || \
       { endspin "Bootstrap install failed!"; exit 1; }
   spin
   rm -rf .cache

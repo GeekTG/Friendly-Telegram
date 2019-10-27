@@ -33,7 +33,7 @@ from .. import loader
 logger = logging.getLogger(__name__)
 
 
-class UniborgClient:
+class UniborgClient(MarkdownBotPassthrough):
     instance_count = 0
 
     class __UniborgShimMod__Base(loader.Module):
@@ -51,6 +51,7 @@ class UniborgClient:
 
         async def client_ready(self, client, db):
             self._client = client
+            self._borg.__under = client
 
     def registerfunc(self, cb):
         self._wrapper = type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self)

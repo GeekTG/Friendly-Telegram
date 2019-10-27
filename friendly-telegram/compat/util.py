@@ -69,6 +69,18 @@ class MarkdownBotPassthrough():
             kwargs.update(parse_mode="Markdown")
         return self.__under.send_message(*args, **kwargs)
 
+    def __reply(self, *args, **kwargs):
+        if "parse_mode" not in kwargs:
+            logger.debug("Forcing markdown for send_message")
+            kwargs.update(parse_mode="Markdown")
+        return self.__under.reply(*args, **kwargs)
+
+    def __respond(self, *args, **kwargs):
+        if "parse_mode" not in kwargs:
+            logger.debug("Forcing markdown for send_message")
+            kwargs.update(parse_mode="Markdown")
+        return self.__under.respond(*args, **kwargs)
+
     def __send_file(self, *args, **kwargs):
         if "parse_mode" not in kwargs:
             logger.debug("Forcing markdown for send_file")
@@ -88,6 +100,10 @@ class MarkdownBotPassthrough():
             return self.__edit
         if name == "send_message":
             return self.__send_message
+        if name == "reply":
+            return self.__reply
+        if name == "respond":
+            return self.__respond
         if name == "get_reply_message":
             return self.__get_reply_message
         if name == "client":

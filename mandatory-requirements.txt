@@ -7,8 +7,10 @@ pythondialog
 # Heroku
 heroku3
 gitpython
-# translations
+# Translations
 babel
+# Eval
+meval
 
 ## Modules
 # Lyrics

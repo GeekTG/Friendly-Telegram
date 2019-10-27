@@ -194,7 +194,7 @@ class Modules():
                     mod.config[conf] = modcfg[conf]
                 else:
                     try:
-                        mod.config[conf] = os.environ[conf]
+                        mod.config[conf] = os.environ[mod.__module__ + "." + conf]
                         logging.debug("Loaded config key %s from environment", conf)
                     except KeyError:
                         logging.debug("No config value for %s", conf)

@@ -57,7 +57,9 @@ class PythonMod(loader.Module):
                                .format(utils.escape_html(utils.get_args_raw(message)),
                                        utils.escape_html(exc)))
             return
-        ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
+        if isinstance(it, list):
+            it = [repr(thing) for thing in it]
+        ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(repr(it)))
         await utils.answer(message, ret)
 
     async def execcmd(self, message):

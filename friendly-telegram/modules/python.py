@@ -49,7 +49,7 @@ class PythonMod(loader.Module):
            Evaluates python code"""
         ret = _("Evaluated expression:\n<code>{}</code>\nReturn value:\n<code>{}</code>")
         try:
-            it = await meval(utils.get_args_raw(message), **await self.getattrs(message))
+            it = await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
@@ -64,7 +64,7 @@ class PythonMod(loader.Module):
         """.aexec <expression>
            Executes python code"""
         try:
-            await meval(utils.get_args_raw(message), **await self.getattrs(message))
+            await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))

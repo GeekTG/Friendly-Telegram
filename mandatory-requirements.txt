@@ -10,7 +10,7 @@ gitpython
 # Translations
 babel
 # Eval
-meval
+meval >= 2.0
 
 ## Modules
 # Lyrics

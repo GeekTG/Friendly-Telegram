@@ -34,3 +34,5 @@ gitpython
 coffeehouse
 # UrbanDictionary
 urbandict
+# Google Search
+search-engine-parser >= 0.5.3

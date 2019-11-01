@@ -112,7 +112,7 @@ class UniborgClient(MarkdownBotPassthrough):
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
                         # Put it off as long as possible so event handlers register
-                        sys.modules[self._module].__dict__["borg"] = self._wrapper._client
+                        sys.modules[self._module].__dict__["borg"] = MarkdownBotPassthrough(self._wrapper._client)
 
                         return func(event2)
                         # Return a coroutine

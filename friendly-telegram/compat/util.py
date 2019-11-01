@@ -57,35 +57,35 @@ class MarkdownBotPassthrough():
     def __init__(self, under):
         self.__under = under
 
-    def __edit(self, *args, **kwargs):
+    async def __edit(self, *args, **kwargs):
         if "parse_mode" not in kwargs:
             logger.debug("Forcing markdown for edit")
             kwargs.update(parse_mode="Markdown")
-        return type(self)(self.__under.edit(*args, **kwargs))
+        return type(self)(await self.__under.edit(*args, **kwargs))
 
-    def __send_message(self, *args, **kwargs):
+    async def __send_message(self, *args, **kwargs):
         if "parse_mode" not in kwargs:
             logger.debug("Forcing markdown for send_message")
             kwargs.update(parse_mode="Markdown")
-        return type(self)(self.__under.send_message(*args, **kwargs))
+        return type(self)(await self.__under.send_message(*args, **kwargs))
 
-    def __reply(self, *args, **kwargs):
+    async def __reply(self, *args, **kwargs):
         if "parse_mode" not in kwargs:
             logger.debug("Forcing markdown for send_message")
             kwargs.update(parse_mode="Markdown")
-        return type(self)(self.__under.reply(*args, **kwargs))
+        return type(self)(await self.__under.reply(*args, **kwargs))
 
-    def __respond(self, *args, **kwargs):
+    async def __respond(self, *args, **kwargs):
         if "parse_mode" not in kwargs:
             logger.debug("Forcing markdown for send_message")
             kwargs.update(parse_mode="Markdown")
-        return type(self)(self.__under.respond(*args, **kwargs))
+        return type(self)(await self.__under.respond(*args, **kwargs))
 
-    def __send_file(self, *args, **kwargs):
+    async def __send_file(self, *args, **kwargs):
         if "parse_mode" not in kwargs:
             logger.debug("Forcing markdown for send_file")
             kwargs.update(parse_mode="Markdown")
-        return type(self)(self.__under.send_message(*args, **kwargs))
+        return type(self)(await self.__under.send_message(*args, **kwargs))
 
     async def __get_reply_message(self, *args, **kwargs):
         ret = await self.__under.get_reply_message(*args, **kwargs)

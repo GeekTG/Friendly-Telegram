@@ -93,6 +93,17 @@ class MarkdownBotPassthrough():
             ret.text = markdown.unparse(ret.message, ret.entities)
         return type(self)(ret)
 
+    async def __download_media(self, *args, **kwargs):
+        args = list(args)
+        for arg in range(len(args)):
+            if isinstance(args[arg], type(self)):
+                args[arg] = args[arg].__under
+        for arg in kwargs:
+            if isinstance(kwargs[arg], type(self)):
+                kwargs[arg] = kwargs[arg].__under
+        print(args, kwargs)
+        return await self.__under.download_media(*args, **kwargs)
+
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
@@ -106,6 +117,8 @@ class MarkdownBotPassthrough():
             return self.__respond
         if name == "get_reply_message":
             return self.__get_reply_message
+        if name == "download_media":
+            return self.__download_media
         if name == "client":
             return type(self)(self.__under.client)  # Recurse
         return getattr(self.__under, name)

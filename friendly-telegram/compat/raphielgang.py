@@ -343,7 +343,7 @@ class RaphielgangEvents():
                 if not self._setup_complete:
                     self.module = func.__module__
                     self._setup_complete = True
-                if kwargs.get("outgoing", False):
+                if kwargs.get("outgoing", False) or not kwargs.get("incoming", False):
                     # Command-based thing
                     use_unknown = False
                     if "pattern" not in kwargs.keys():
@@ -396,7 +396,7 @@ class RaphielgangEvents():
                         return asyncio.gather()
                     self.watchers += [subwatcher]  # Add to list of watchers so we can call later.
                 else:
-                    logger.error("event not incoming or outgoing")
+                    logger.error("event not incoming or outgoing or neither or both")
                     return func
                 return func
             self.instance_id = kwargs["__instance_number"]

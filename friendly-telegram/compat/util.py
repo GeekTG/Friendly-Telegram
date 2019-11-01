@@ -101,7 +101,6 @@ class MarkdownBotPassthrough():
         for arg in kwargs:
             if isinstance(kwargs[arg], type(self)):
                 kwargs[arg] = kwargs[arg].__under
-        print(args, kwargs)
         return await self.__under.download_media(*args, **kwargs)
 
     def __getattr__(self, name):

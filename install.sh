@@ -175,7 +175,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   spin
   $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev 2>>ftg-install.log >>ftg-install.log
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential libxslt 2>>ftg-install.log >>ftg-install.log
+  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv 2>>ftg-install.log >>ftg-install.log
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   $PKGMGR jpeg webp 2>>ftg-install.log >>ftg-install.log
 fi

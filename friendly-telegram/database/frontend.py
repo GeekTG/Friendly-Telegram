@@ -46,7 +46,7 @@ class Database():
         # always return that from set(). However, if someone decides to await set() much later
         # than when they called set(), it will already be finished. Luckily, we return a future,
         # not a reference to _sync_future, so it will be the correct future, and set_result will
-        # already have been called. Simple, right?
+        # not already have been called. Simple, right?
 
     async def init(self):
         if self._noop:
@@ -67,6 +67,14 @@ class Database():
         self._loading = False
         self._waiter.set()
 
+    def save(self):
+        if self._pending is not None and not self._pending.cancelled():
+            self._pending.cancel()
+        if self._sync_future is None or self._sync_future.done():
+            self._sync_future = NotifyingFuture(on_await=self._cancel_then_set)
+        self._pending = asyncio.ensure_future(_wait_then_do(10, self._set))  # Delay database ops by 10s
+        return self._sync_future
+
     def get(self, owner, key, default=None):
         try:
             return self._db[owner][key]
@@ -74,15 +82,8 @@ class Database():
             return default
 
     def set(self, owner, key, value):
-        if self._loading:
-            self._waiter.wait()
         self._db.setdefault(owner, {})[key] = value
-        if self._pending is not None and not self._pending.cancelled():
-            self._pending.cancel()
-        if self._sync_future is None or self._sync_future.done():
-            self._sync_future = NotifyingFuture(on_await=self._cancel_then_set)
-        self._pending = asyncio.ensure_future(_wait_then_do(10, self._set))  # Delay database ops by 10s
-        return self._sync_future
+        return self.save()
 
     def _cancel_then_set(self):
         if self._pending is not None and not self._pending.cancelled():
@@ -94,6 +95,8 @@ class Database():
         if self._noop:
             self._sync_future.set_result(True)
             return
+        if self._loading:
+            await self._waiter.wait()
         try:
             await self._backend.do_upload(json.dumps(self._db))
         except Exception as e:

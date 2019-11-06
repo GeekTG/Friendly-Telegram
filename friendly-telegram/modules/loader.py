@@ -38,13 +38,12 @@ def register(cb):  # pylint: disable=C0116
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
     """Load a python module/file from a string"""
-    def __init__(self, data, origin, package):
+    def __init__(self, data, origin):
         if isinstance(data, str):
             self.data = data.encode("utf-8")
         else:
             self.data = data
         self.origin = origin
-        self.package = package
 
     def get_code(self, fullname):
         source = self.get_source(fullname)
@@ -54,10 +53,6 @@ class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, imp
 
     def get_filename(self, fullname):
         return self.origin
-
-    def exec_module(self, module):
-        module.__package__ = self.package
-        return super().exec_module(module)
 
     def get_data(self, filename):  # pylint: disable=W0221,W0613
         # W0613 is not fixable, we are overriding
@@ -168,12 +163,10 @@ class LoaderMod(loader.Module):
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
-            uid = name  # Prevent error of bad package
+            uid = name.replace(".", "_")  # Prevent error of bad package
         module_name = "friendly-telegram.modules." + uid
         try:
-            module = importlib.util.module_from_spec(ModuleSpec(module_name,
-                                                                StringLoader(doc, origin, __package__),
-                                                                origin=origin))
+            module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin), origin=origin))
             sys.modules[module_name] = module
             module.borg = uniborg.UniborgClient(module_name)
             module._ = _

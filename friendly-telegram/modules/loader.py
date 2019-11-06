@@ -60,6 +60,28 @@ class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, imp
         return self.data
 
 
+def unescape_percent(text):
+    i = 0
+    ln = len(text)
+    is_handling_percent = False
+    out = ""
+    while i < ln:
+        char = text[i]
+        if char == "%" and not is_handling_percent:
+            is_handling_percent = True
+            i += 1
+            continue
+        if char == "d" and is_handling_percent:
+            out += "."
+            is_handling_percent = False
+            i += 1
+            continue
+        out += char
+        is_handling_percent = False
+        i += 1
+    return out
+
+
 class LoaderMod(loader.Module):
     """Loads modules"""
     def __init__(self):
@@ -163,7 +185,7 @@ class LoaderMod(loader.Module):
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
-            uid = name
+            uid = name.replace("%", "%%").replace(".", "%d")
         module_name = "friendly-telegram.modules." + uid
         try:
             module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin), origin=origin))
@@ -213,7 +235,7 @@ class LoaderMod(loader.Module):
         without_prefix = []
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod
-            without_prefix += [mod[len("friendly-telegram.modules."):]]
+            without_prefix += [unescape_percent(mod[len("friendly-telegram.modules."):])]
         it = set(self._db.get(__name__, "loaded_modules", [])).difference(without_prefix)
         self._db.set(__name__, "loaded_modules", list(it))
         it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)

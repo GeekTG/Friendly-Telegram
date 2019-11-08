@@ -65,12 +65,15 @@ class HelpMod(loader.Module):
         else:
             reply = "<b>" + _("Available Modules:") + "</b>"
             for mod in self.allmodules.modules:
-                reply += "\n\n  <code>" + (_("{}</code> has 1 command available")
-                                           .format(mod.name) if len(mod.commands) == 1
-                                           else _("{}</code> has {} commands available")
-                                           .format(mod.name, len(mod.commands)))
+                reply += _("\n• <b>{}</b> ({})").format(mod.name, len(mod.commands))
+                first = True
                 for cmd in mod.commands:
-                    reply += f"\n    <code>{cmd}</code>"
+                    if first:
+                        reply += f"\n  <code>{cmd}"
+                        first = False
+                    else:
+                        reply += f", {cmd}"
+                reply += "</code>"
         await utils.answer(message, reply)
 
     async def supportcmd(self, message):

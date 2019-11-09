@@ -69,6 +69,8 @@ class Module():
 
 class Modules():
     """Stores all registered modules"""
+    instances = []
+
     def __init__(self):
         self.commands = {}
         self.aliases = {}
@@ -76,6 +78,8 @@ class Modules():
         self.watchers = []
         self._compat_layer = None
         self._log_handlers = []
+        self.instances.append(self)
+        self.client = None
 
     def register_all(self, babelfish):
         """Load all modules in the module directory"""
@@ -152,6 +156,8 @@ class Modules():
         """Complete registration of instance"""
         # Mainly for the Help module
         instance.allmodules = self
+        # And for Remote
+        instance.allloaders = self.instances
         instance.log = self.log  # Like botlog from PP
         for module in self.modules:
             if module.__class__.__name__ == instance.__class__.__name__:
@@ -206,6 +212,7 @@ class Modules():
 
     async def send_ready(self, client, db, allclients):
         """Send all data to all modules"""
+        self.client = client
         await self._compat_layer.client_ready(client)
         try:
             for mod in self.modules:

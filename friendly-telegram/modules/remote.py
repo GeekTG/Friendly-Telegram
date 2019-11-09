@@ -39,16 +39,11 @@ def register(cb):
 
 class RemoteMod(loader.Module):
     """Operate on other accounts"""
-    instances = {}
-
     def __init__(self):
         self.config = loader.ModuleConfig("ACCOUNT_NAME", None, "What to call this account in .remote commands")
         self.name = _("Remote Control")
         self.commands = {"remote": self.remote_command}
         self.allmodules = None
-
-    async def client_ready(self, client, db):
-        self.instances[client] = self
 
     async def remote_command(self, message):
         """Execute remote command"""
@@ -114,7 +109,13 @@ class RemoteMod(loader.Module):
         if len(args) < 1:
             await message.edit(_("<code>What command should be executed?</code>"))
             return
-        await self.instances[client].allmodules.dispatch(args[0], message)
+        for loader in self.allloaders:
+            if loader.client is client:
+                break
+                # This will always be fulfilled at some point
+        logger.debug(args)
+        msg = await client.send_message(args[0], message)
+        await loader.dispatch(args[1], msg)
 
     async def rawcmd(self, client, args, message):
         if len(args) < 1:

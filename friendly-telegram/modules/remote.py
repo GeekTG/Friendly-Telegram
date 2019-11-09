@@ -114,7 +114,7 @@ class RemoteMod(loader.Module):
                 break
                 # This will always be fulfilled at some point
         logger.debug(args)
-        message.message = " ".join(args)
+        message.message = " ".join(args[1:])
         msg = await message.client.send_message(args[0], message)
         await load.dispatch(args[1], msg)
 

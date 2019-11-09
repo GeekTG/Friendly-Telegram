@@ -114,7 +114,7 @@ class RemoteMod(loader.Module):
                 break
                 # This will always be fulfilled at some point
         logger.debug(args)
-        msg = await client.send_message(args[0], message)
+        msg = await message.client.send_message(args[0], message)
         await loader.dispatch(args[1], msg)
 
     async def rawcmd(self, client, args, message):

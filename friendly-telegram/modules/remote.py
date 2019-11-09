@@ -109,13 +109,14 @@ class RemoteMod(loader.Module):
         if len(args) < 1:
             await message.edit(_("<code>What command should be executed?</code>"))
             return
-        for loader in self.allloaders:
-            if loader.client is client:
+        for load in self.allloaders:
+            if load.client is client:
                 break
                 # This will always be fulfilled at some point
         logger.debug(args)
+        message.message = " ".join(args)
         msg = await message.client.send_message(args[0], message)
-        await loader.dispatch(args[1], msg)
+        await load.dispatch(args[1], msg)
 
     async def rawcmd(self, client, args, message):
         if len(args) < 1:

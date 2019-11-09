@@ -25,6 +25,7 @@ import subprocess
 import asyncio
 from base64 import b64decode
 import io
+import uuid
 
 import git
 from git import Repo
@@ -54,8 +55,13 @@ class UpdaterMod(loader.Module):
 
     async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
-        await asyncio.gather(self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message)),
-                             self._db.set(__name__, "selfupdatemsg", message.id))
+        check = str(uuid.uuid4())
+        await self._db.set(__name__, "selfupdatecheck", check)
+        await asyncio.sleep(3)
+        if self._db.get(__name__, "selfupdatecheck", "") != check:
+            raise ValueError("An update is already in progress!")
+        self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
+        await self._db.set(__name__, "selfupdatemsg", message.id)
 
     async def restart_common(self, message):
         await self.prerestart_common(message)

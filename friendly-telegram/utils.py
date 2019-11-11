@@ -22,7 +22,7 @@ import asyncio
 import functools
 import shlex
 
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName
 from telethon.extensions import html
 
 from . import __main__
@@ -181,3 +181,24 @@ async def answer(message, response, **kwargs):
                                                   reply_to=message.reply_to_msg_id, **kwargs)]
             await message.delete()
     return ret
+
+
+async def get_target(message, arg_no=0):
+    if any(isinstance(ent, MessageEntityMentionName) for ent in (message.entities or [])):
+        e = sorted(filter(lambda x: isinstance(x, MessageEntityMentionName),
+                          message.entities), key=lambda x: x.offset)[0]
+        return e.user_id
+    elif len(get_args(message)) > arg_no:
+        user = get_args(message)[arg_no]
+    elif message.is_reply:
+        return (await message.get_reply_message()).from_id
+    elif hasattr(message.to_id, "user_id"):
+        user = message.to_id.user_id
+    else:
+        return None
+    try:
+        ent = await message.client.get_entity(user)
+    except ValueError:
+        return user
+    else:
+        return getattr(ent, "user_id", user)

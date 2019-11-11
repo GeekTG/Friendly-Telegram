@@ -34,7 +34,7 @@ from telethon.tl.functions.channels import DeleteChannelRequest
 from . import utils, loader
 
 
-from .database import backend, frontend
+from .database import backend, local_backend, frontend
 from .translations.core import Translator
 
 importlib.import_module(".modules", __package__)  # Required on 3.5 only
@@ -167,6 +167,7 @@ def parse_arguments():
     parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--translate", action="store_true")
+    parser.add_argument("--local-db", dest="local", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == 'win32':
@@ -273,7 +274,7 @@ def main():
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         return
 
-    loops = [amain(client, clients, arguments.setup) for client in clients]
+    loops = [amain(client, clients, arguments.setup, arguments.local) for client in clients]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
                                                    logging.error("Exception on event loop! %s", x["message"],
@@ -281,14 +282,15 @@ def main():
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
 
-async def amain(client, allclients, setup=False):
+async def amain(client, allclients, setup=False, local=False):
     """Entrypoint for async init, run once for each user"""
     async with client:
         client.parse_mode = "HTML"
         await client.start()
         [handler] = logging.getLogger().handlers
+        dbc = local_backend.LocalBackend if local else backend.CloudBackend
         if setup:
-            db = backend.CloudBackend(client)
+            db = dbc(client)
             await db.init(lambda e: None)
             jdb = await db.do_download()
             try:
@@ -311,7 +313,7 @@ async def amain(client, allclients, setup=False):
             except MessageNotModifiedError:
                 pass
             return
-        db = frontend.Database(backend.CloudBackend(client))
+        db = frontend.Database(dbc(client))
         await db.init()
         logging.debug("got db")
         logging.info("Loading logging config...")

@@ -3,5 +3,6 @@
 friendly-telegram/api_token.py
 friendly-telegram*.session
 friendly-telegram*.session-journal
+database-*.json
 *.swp
 .setup_complete

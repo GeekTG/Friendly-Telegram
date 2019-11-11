@@ -97,7 +97,7 @@ class UpdaterMod(loader.Module):
             repo = Repo.init(os.path.dirname(utils.get_base_dir()))
             origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
             origin.fetch()
-            repo.create_head('master', origin.refs.master)
+            repo.create_head("master", origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
             with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
                 old_reqs = f.read()

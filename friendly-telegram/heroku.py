@@ -44,7 +44,7 @@ def publish(clients, key, api_token=None):
         if api_token is None:
             logging.error("%r", {app: repr(app.config) for app in heroku.apps()})
             raise RuntimeError("Could not identify app!")
-        app = heroku.create_app(stack_id_or_name='heroku-18', region_id_or_name="us")
+        app = heroku.create_app(stack_id_or_name="heroku-18", region_id_or_name="us")
     config = app.config()
     config["authorization_strings"] = data
     config["heroku_api_token"] = key
@@ -58,7 +58,7 @@ def publish(clients, key, api_token=None):
         remote.set_url(url)
     else:
         remote = repo.create_remote("heroku", url)
-    remote.push(refspec='HEAD:refs/heads/master')
+    remote.push(refspec="HEAD:refs/heads/master")
     logging.debug("We are still alive. Enabling dyno.")
     app.scale_formation_process("worker", 1)
 
@@ -71,7 +71,7 @@ def get_repo():
         repo = Repo.init(os.path.dirname(utils.get_base_dir()))
         origin = repo.create_remote("origin", "https://github.com/friendly-telegram/friendly-telegram")
         origin.fetch()
-        repo.create_head('master', origin.refs.master)
+        repo.create_head("master", origin.refs.master)
         repo.heads.master.set_tracking_branch(origin.refs.master)
         repo.heads.master.checkout(True)
     return repo

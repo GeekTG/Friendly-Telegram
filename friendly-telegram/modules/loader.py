@@ -49,7 +49,7 @@ class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, imp
         source = self.get_source(fullname)
         if source is None:
             return None
-        return compile(source, self.origin, 'exec', dont_inherit=True)
+        return compile(source, self.origin, "exec", dont_inherit=True)
 
     def get_filename(self, fullname):
         return self.origin

@@ -267,7 +267,7 @@ class RaphielgangConfig():
 
     @property
     def REDIS(self):
-        return redis.StrictRedis(host='localhost', port=6379, db=0)
+        return redis.StrictRedis(host="localhost", port=6379, db=0)
 
     async def client_ready(self, client):
         self.bots += [client]

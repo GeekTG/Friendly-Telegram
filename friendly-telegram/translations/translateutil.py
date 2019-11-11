@@ -22,7 +22,7 @@ from .. import loader, utils
 
 
 def ui():
-    mods = filter(lambda x: (len(x) > 3 and x[-3:] == '.py'),
+    mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py"),
                   os.listdir(os.path.join(utils.get_base_dir(), loader.MODULES_NAME)))
     finder = UsageFinder()
     for mod in mods:

@@ -38,7 +38,7 @@ class TestMod(loader.Module):
 
     async def pingcmd(self, message):
         """Does nothing"""
-        await message.edit(_('Pong'))
+        await message.edit(_("Pong"))
 
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""
@@ -60,9 +60,9 @@ class TestMod(loader.Module):
             # It's not an int. Maybe it's a loglevel
             lvl = getattr(logging, args[0].upper(), None)
         if lvl is None:
-            await message.edit(_('<code>Invalid loglevel. Please refer to </code>'
-                                 + '<a href="https://docs.python.org/3/library/logging.html#logging-levels">'
-                                 + 'the docs</a><code>.</code>'))
+            await message.edit(_("<code>Invalid loglevel. Please refer to </code>"
+                                 + "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
+                                 + "the docs</a><code>.</code>"))
             return
         await message.edit(_("<code>Uploading logs...</code>"))
         [handler] = logging.getLogger().handlers

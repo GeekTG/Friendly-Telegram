@@ -25,7 +25,7 @@ import telethon
 
 from .. import loader, utils
 
-tlfuns = dict(filter(lambda mod: mod[1].__module__.startswith('telethon.tl.functions'),
+tlfuns = dict(filter(lambda mod: mod[1].__module__.startswith("telethon.tl.functions"),
                      itertools.chain.from_iterable([inspect.getmembers(mod[1], inspect.isclass)
                                                     for mod in inspect.getmembers(telethon.tl.functions,
                                                                                   inspect.ismodule)])))

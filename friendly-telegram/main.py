@@ -170,7 +170,7 @@ def parse_arguments():
     parser.add_argument("--local-db", dest="local", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         # Subprocess support; not needed in 3.8 but not harmful
         asyncio.set_event_loop(asyncio.ProactorEventLoop())
 

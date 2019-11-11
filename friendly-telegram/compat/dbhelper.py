@@ -1,6 +1,8 @@
 # This file is copied verbatim from https://kutt.it/8EL9Ol
 # The author said "Ye."
 
+# flake8: noqa: Q000
+
 from userbot import MONGO, REDIS
 
 

@@ -120,6 +120,8 @@ class LoaderMod(loader.Module):
             else:
                 raise
         self._db.set(__name__, "chosen_preset", args[0])
+        self._db.set(__name__, "loaded_modules", [])
+        self._db.set(__name__, "unloaded_modules", [])
         await utils.answer(message, _("Preset loaded"))
 
     async def _get_modules_to_load(self):

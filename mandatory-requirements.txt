@@ -33,6 +33,6 @@ gitpython
 # Lydia
 coffeehouse
 # UrbanDictionary
-urbandict
+asyncurban
 # Google Search
 search-engine-parser >= 0.5.3

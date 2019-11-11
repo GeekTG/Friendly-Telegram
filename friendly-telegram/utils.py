@@ -22,7 +22,7 @@ import asyncio
 import functools
 import shlex
 
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User
 from telethon.extensions import html
 
 from . import __main__
@@ -199,6 +199,7 @@ async def get_target(message, arg_no=0):
     try:
         ent = await message.client.get_entity(user)
     except ValueError:
-        return user
+        return None
     else:
-        return getattr(ent, "user_id", user)
+        if isinstance(ent, User):
+            return ent.id

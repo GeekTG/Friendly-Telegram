@@ -203,16 +203,19 @@ def get_phones(arguments):
 
 def get_api_token():
     """Get API Token from disk or environment"""
-    try:
-        from . import api_token
-    except ImportError:
+    while True:
         try:
-            api_token = collections.namedtuple("api_token", ["ID", "HASH"])(os.environ["api_id"],
-                                                                            os.environ["api_hash"])
-        except KeyError:
-            run_config({})
-            return None
-    return api_token
+            from . import api_token
+        except ImportError:
+            try:
+                api_token = collections.namedtuple("api_token", ["ID", "HASH"])(os.environ["api_id"],
+                                                                                os.environ["api_hash"])
+            except KeyError:
+                run_config({})
+            else:
+                return api_token
+        else:
+            return api_token
 
 
 def main():

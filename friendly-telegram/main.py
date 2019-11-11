@@ -28,7 +28,7 @@ import shlex
 
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
-from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError
+from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
 from telethon.tl.functions.channels import DeleteChannelRequest
 
 from . import utils, loader
@@ -256,7 +256,7 @@ def main():
                   "that the session is not copied. If that doesn't help, delete the file named '"
                   "friendly-telegram" + (("-" + phone) if phone else "") + ".session'")
             continue
-        except ValueError:
+        except (ValueError, ApiIdInvalidError):
             # Bad API hash/ID
             run_config({})
             return

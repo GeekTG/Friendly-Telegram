@@ -32,6 +32,22 @@ endspin() {
   printf '\r%s\n' "$@"
 }
 
+runin() {
+  # Runs the arguments and spins once per line of stdout (tee'd to logfile), also piping stderr to logfile
+  { "$@" 2>>../ftg-install.log || return $?; } | while read -r line; do
+    spin
+    printf "%s\n" "$line" >> ../ftg-install.log
+  done
+}
+
+runout() {
+  # Runs the arguments and spins once per line of stdout (tee'd to logfile), also piping stderr to logfile
+  { "$@" 2>>ftg-install.log || return $?; } | while read -r line; do
+    spin
+    printf "%s\n" "$line" >> ftg-install.log
+  done
+}
+
 errorin() {
   endspin "$@"
   cat ../ftg-install.log
@@ -78,16 +94,13 @@ fi
 
 if [ ! x"" = x"$DYNO" ]; then
   # We are running in a heroku dyno, time to get ugly!
-  git clone https://github.com/heroku/heroku-buildpack-python 2>>ftg-install.log >>ftg-install.log || { endspin "Bootstrap download failed!"; exit 1; }
-  spin
+  runout git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
   echo "python-3.7.5" > runtime.txt
   echo "pip" > requirements.txt
-  spin
-  STACK=heroku-18 bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env 2>>ftg-install.log >>ftg-install.log || \
+  STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
       { endspin "Bootstrap install failed!"; exit 1; }
-  spin
   rm -rf .cache
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
@@ -127,8 +140,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
       PKGMGR="true"
     fi
   else
-    spin
-    apt-get update 2>>ftg-install.log >>ftg-install.log  # Not essential
+    runout apt-get update  # Not essential
   fi
   PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
@@ -146,13 +158,11 @@ elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; the
   fi
   PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-  spin
-  apt-get update 2>>ftg-install.log >>ftg-install.log
+  runout apt-get update
   PKGMGR="apt-get install -y"
   PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   if ! command -v brew >/dev/null; then
-    spin
     ruby <(curl -fsSk https://raw.github.com/mxcl/homebrew/go)
   fi
   PKGMGR="brew install"
@@ -161,28 +171,22 @@ else
   endspin "Unrecognised OS. Please follow https://friendly-telegram.github.io/installing_advanced"
   exit 1
 fi
-spin
 
 ##############################################################################
 
-$PKGMGR "python$PYVER" git >>ftg-install.log || { errorout "Core install failed."; exit 2; }
-spin
+runout $PKGMGR "python$PYVER" git || { errorout "Core install failed."; exit 2; }
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
-  $PKGMGR "python$PYVER-dev" 2>>ftg-install.log >>ftg-install.log
-  spin
-  $PKGMGR "python$PYVER-pip" 2>>ftg-install.log >>ftg-install.log
-  spin
-  $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev 2>>ftg-install.log >>ftg-install.log
+  runout $PKGMGR "python$PYVER-dev"
+  runout $PKGMGR "python$PYVER-pip"
+  runout $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-  $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv 2>>ftg-install.log >>ftg-install.log
+  runout $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-  $PKGMGR jpeg webp 2>>ftg-install.log >>ftg-install.log
+  runout $PKGMGR jpeg webp
 fi
-spin
 
-$PKGMGR neofetch dialog 2>>ftg-install.log >>ftg-install.log
-spin
+runout $PKGMGR neofetch dialog
 
 ##############################################################################
 
@@ -196,17 +200,14 @@ fi
 # shellcheck disable=SC2086
 ${SUDO_CMD}rm -rf friendly-telegram
 # shellcheck disable=SC2086
-${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram 2>>ftg-install.log >>ftg-install.log || { errorout "Clone failed."; exit 3; }
-spin
+runout ${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { errorout "Clone failed."; exit 3; }
 cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user 2>>../ftg-install.log >>../ftg-install.log
+runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip install -r optional-requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || true
-spin
+runin ${SUDO_CMD}"python$PYVER" -m pip install -r optional-requirements.txt --user --no-warn-script-location --disable-pip-version-check || true
 # shellcheck disable=SC2086
-${SUDO_CMD}"python$PYVER" -m pip install -r mandatory-requirements.txt --user --no-warn-script-location --disable-pip-version-check 2>>../ftg-install.log >>../ftg-install.log || { errorin "Requirements failed!"; exit 4; }
-spin
+runin ${SUDO_CMD}"python$PYVER" -m pip install -r mandatory-requirements.txt --user --no-warn-script-location --disable-pip-version-check || { errorin "Requirements failed!"; exit 4; }
 touch .setup_complete
 endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log

@@ -117,6 +117,12 @@ class Database():
             self._loading = False
             self._waiter.set()
 
+    async def store_asset(self, message):
+        return await self._backend.store_asset(message)
+
+    async def fetch_asset(self, message):
+        return await self._backend.fetch_asset(message)
+
 
 async def _wait_then_do(time, task, *args, **kwargs):
     await asyncio.sleep(time)

@@ -49,3 +49,9 @@ class LocalBackend():
         async with self._lock:
             self._file.seek(0)
             self._file.write(data)
+
+    async def store_asset(self, message):
+        pass
+
+    async def fetch_asset(self, id):
+        return None

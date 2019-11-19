@@ -23,6 +23,7 @@ import functools
 import shlex
 
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User
+from telethon.tl.custom.message import Message
 from telethon.extensions import html
 
 from . import __main__
@@ -172,6 +173,10 @@ async def answer(message, response, **kwargs):
             txt = txt[4096:]
             _fix_entities(ent, cont_msg)
             ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
+    elif isinstance(response, Message):
+        await message.edit("<code>Loading message...</code>")
+        ret = [await message.respond(response)]
+        await message.delete()
     else:
         if message.media is not None:
             await message.edit(file=response, **kwargs)

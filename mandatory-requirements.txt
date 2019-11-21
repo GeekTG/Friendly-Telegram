@@ -11,6 +11,8 @@ gitpython
 babel
 # Eval
 meval >= 2.2
+# Web
+aiohttp_jinja2
 
 ## Modules
 # Lyrics

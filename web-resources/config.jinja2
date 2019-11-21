@@ -1,0 +1,128 @@
+{% set ns = namespace(module_number=0) %}
+{% set ns2 = namespace(module_number=0) %}
+
+{% extends "base.jinja2" %}
+
+{% block head %}
+  <style>
+    td,th {
+      word-wrap: break-all;
+      word-break: break-word;
+      white-space: normal;
+      min-width: 10rem;
+    }
+    // https://stackoverflow.com/a/40679770/5509575
+    .table-responsive {
+      min-height: .01%;
+      overflow-x: auto;
+    }
+    @media screen and (max-width: 767px) {
+      .table-responsive {
+        width: 100%;
+        margin-bottom: 15px;
+        overflow-y: hidden;
+        -ms-overflow-style: -ms-autohiding-scrollbar;
+        border: 1px solid #ddd;
+      }
+      .table-responsive > .table {
+        margin-bottom: 0;
+      }
+      .table-responsive > .table > thead > tr > th,
+      .table-responsive > .table > tbody > tr > th,
+      .table-responsive > .table > tfoot > tr > th,
+      .table-responsive > .table > thead > tr > td,
+      .table-responsive > .table > tbody > tr > td,
+      .table-responsive > .table > tfoot > tr > td {
+        white-space: nowrap;
+      }
+      .table-responsive > .table-bordered {
+          border: 0;
+      }
+      .table-responsive > .table-bordered > thead > tr > th:first-child,
+      .table-responsive > .table-bordered > tbody > tr > th:first-child,
+      .table-responsive > .table-bordered > tfoot > tr > th:first-child,
+      .table-responsive > .table-bordered > thead > tr > td:first-child,
+      .table-responsive > .table-bordered > tbody > tr > td:first-child,
+      .table-responsive > .table-bordered > tfoot > tr > td:first-child {
+        border-left: 0;
+      }
+      .table-responsive > .table-bordered > thead > tr > th:last-child,
+      .table-responsive > .table-bordered > tbody > tr > th:last-child,
+      .table-responsive > .table-bordered > tfoot > tr > th:last-child,
+      .table-responsive > .table-bordered > thead > tr > td:last-child,
+      .table-responsive > .table-bordered > tbody > tr > td:last-child,
+      .table-responsive > .table-bordered > tfoot > tr > td:last-child {
+        border-right: 0;
+      }
+      .table-responsive > .table-bordered > tbody > tr:last-child > th,
+      .table-responsive > .table-bordered > tfoot > tr:last-child > th,
+      .table-responsive > .table-bordered > tbody > tr:last-child > td,
+      .table-responsive > .table-bordered > tfoot > tr:last-child > td {
+        border-bottom: 0;
+      }
+    }
+  </style>
+  <script src="{{ static('config.js') }}"></script>
+{% endblock %}
+
+{% block title %}
+Friendly-Telegram
+{% endblock %}
+
+{% block content %}
+<div class="mdl-card__title">
+  <h3 class="mdl-card__title-text">Configuration</h3>
+</div>
+<div class="mdl-card__supporting-text">
+  Here you can modify most settings that are supported in Friendly-Telegram
+  {% for module in modules %}
+    <br>
+    {% set ns.module_number = ns.module_number + 1 %}
+    <a href="#module_{{ ns.module_number }}">{{ module.name }}</a>
+  {% endfor %}
+</div>
+{% endblock %}
+
+
+{% block after %}
+  {% for module in modules %}
+    <br>
+    {% set ns2.module_number = ns2.module_number + 1 %}
+    <div class="mdl-card mdl-shadow--2dp padded" style="width: 100%;" id="module_{{ ns2.module_number }}">
+      <div class="mdl-card__title">
+        <h4 class="mdl-card__title-text">{{ module.name }}</h3>
+      </div>
+      <div class="mdl-cad__supporting-text" style="width:100%;">
+        <p>{{ module|getdoc }}
+        <br>
+        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive" style="width: 100%; display: block; table-layout: adaptive;">
+          <thead>
+            <tr>
+              <th class="mdl-data-table__cell--non-numeric">Key</th>
+              <th class="mdl-data-table__cell--non-numeric">Documentation</th>
+              <th class="mdl-data-table__cell--non-numeric">Default</th>
+              <th class="mdl-data-table__cell--non-numeric">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key in module.config %}
+              <tr>
+                <td class="mdl-data-table__cell--non-numeric">{{ key }}</td>
+                <td class="mdl-data-table__cell--non-numeric">{{ module.config.getdoc(key) }}</td>
+                <td class="mdl-data-table__cell--non-numeric">{{ module.config.getdef(key)|ascii }}</td>
+                <td class="mdl-data-table__cell--non-numeric">
+                  <form action="#module_{{ ns2.module_number }}">
+                    <div class="mdl-textfield mdl-js-textfield">
+                      <input class="mdl-textfield__input" type="text" data-modulenum="{{ ns2.module_number }}" data-configkey="{{ key }}" data-defaultvalue="{{ module.config.getdef(key)|ascii }}" data-currentvalue="{{ module.config[key]|ascii }}" id="input_{{ ns2.module_number }}_{{ key }}" value="{{ module.config[key]|ascii }}" onchange="setConfig(this);">
+                      <label class="mdl-textfield__label" for="input_{{ ns2.module_number }}_{{ key }}">{{ module.config.getdef(key)|ascii }}</label>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}

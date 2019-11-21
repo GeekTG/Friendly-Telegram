@@ -36,6 +36,7 @@ from . import utils, loader
 
 from .database import backend, local_backend, frontend
 from .translations.core import Translator
+from .web import core
 
 importlib.import_module(".modules", __package__)  # Required on 3.5 only
 
@@ -274,7 +275,9 @@ def main():
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         return
 
-    loops = [amain(client, clients, arguments.setup, arguments.local) for client in clients]
+    web = core.Web()
+
+    loops = [amain(client, clients, web, arguments.setup, arguments.local) for client in clients]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
                                                    logging.error("Exception on event loop! %s", x["message"],
@@ -282,7 +285,7 @@ def main():
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
 
-async def amain(client, allclients, setup=False, local=False):
+async def amain(client, allclients, web, setup=False, local=False):
     """Entrypoint for async init, run once for each user"""
     async with client:
         client.parse_mode = "HTML"
@@ -331,4 +334,6 @@ async def amain(client, allclients, setup=False, local=False):
         client.add_event_handler(functools.partial(handle_command, modules, db),
                                  events.NewMessage(outgoing=True, forwards=False))
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
+        await web.add_loader(client, modules, db)
+        await web.start_if_ready(len(allclients))
         await client.run_until_disconnected()

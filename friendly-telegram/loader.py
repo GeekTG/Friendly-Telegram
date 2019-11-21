@@ -34,21 +34,28 @@ class ModuleConfig(dict):
         i = 0
         keys = []
         values = []
+        defaults = []
         docstrings = []
         for entry in entries:
             if i % 3 == 0:
                 keys.append(entry)
             elif i % 3 == 1:
                 values.append(entry)
+                defaults.append(entry)
             else:
                 docstrings.append(entry)
             i += 1
         super().__init__(zip(keys, values))
-        self.docstrings = dict(zip(keys, docstrings))
+        self._docstrings = dict(zip(keys, docstrings))
+        self._defaults = dict(zip(keys, defaults))
 
     def getdoc(self, key):
         """Get the documentation by key"""
-        return self.docstrings[key]
+        return self._docstrings[key]
+
+    def getdef(self, key):
+        """Get the default value by key"""
+        return self._defaults[key]
 
 
 class Module():
@@ -184,12 +191,12 @@ class Modules():
                     logging.warning("invalid alias")
         return None
 
-    def send_config(self, db):
+    def send_config(self, db, skip_hook=False):
         """Configure modules"""
         for mod in self.modules:
-            self.send_config_one(mod, db)
+            self.send_config_one(mod, db, skip_hook)
 
-    def send_config_one(self, mod, db):  # pylint: disable=R0201
+    def send_config_one(self, mod, db, skip_hook=False):  # pylint: disable=R0201
         """Send config to single instance"""
         if hasattr(mod, "config"):
             modcfg = db.get(mod.__module__, "__config__", {})
@@ -204,7 +211,10 @@ class Modules():
                         logging.debug("Loaded config key %s from environment", conf)
                     except KeyError:
                         logging.debug("No config value for %s", conf)
+                        mod.config[conf] = mod.config.getdef(conf)
             logging.debug(mod.config)
+        if skip_hook:
+            return
         try:
             mod.config_complete()
         except Exception:

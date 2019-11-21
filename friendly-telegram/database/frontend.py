@@ -30,8 +30,9 @@ class NotifyingFuture(asyncio.Future):
 
 
 # Not thread safe, use the event loop!
-class Database():
+class Database(dict):
     def __init__(self, backend):
+        super().__init__()
         self._noop = backend is None
         self._backend = backend
         self._pending = None
@@ -50,7 +51,6 @@ class Database():
 
     async def init(self):
         if self._noop:
-            self._db = {}
             self._loading = False
             self._waiter.set()
             return
@@ -58,12 +58,10 @@ class Database():
         db = await self._backend.do_download()
         if db is not None:
             try:
-                self._db = json.loads(db)
+                self.update(**json.loads(db))
             except Exception:
                 # Don't worry if its corrupted. Just set it to {} and let it be fixed on next upload
-                self._db = {}
-        else:
-            self._db = {}
+                pass
         self._loading = False
         self._waiter.set()
 
@@ -77,12 +75,12 @@ class Database():
 
     def get(self, owner, key, default=None):
         try:
-            return self._db[owner][key]
+            return self[owner][key]
         except KeyError:
             return default
 
     def set(self, owner, key, value):
-        self._db.setdefault(owner, {})[key] = value
+        super().setdefault(owner, {})[key] = value
         return self.save()
 
     def _cancel_then_set(self):
@@ -98,7 +96,7 @@ class Database():
         if self._loading:
             await self._waiter.wait()
         try:
-            await self._backend.do_upload(json.dumps(self._db))
+            await self._backend.do_upload(json.dumps(self))
         except Exception as e:
             self._sync_future.set_exception(e)
         self._sync_future.set_result(True)
@@ -112,7 +110,8 @@ class Database():
             if self._pending is not None:
                 self._pending.cancel()
             db = await self._backend.do_download()
-            self._db = json.loads(db)
+            self.clear()
+            self.update(**json.loads(db))
         finally:
             self._loading = False
             self._waiter.set()

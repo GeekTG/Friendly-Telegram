@@ -26,6 +26,7 @@ import hashlib
 from base64 import b64encode
 import time
 import os
+import ast
 
 
 @web.middleware
@@ -106,6 +107,10 @@ class Web:
         mid, key, value = int(data["mid"]), data["key"], data["value"]
         mod = self.loaders_clients_dbs[uid][0].modules[mid]
         if value:
+            try:
+                value = ast.literal_eval(value)
+            except (ValueError, SyntaxError):
+                pass
             self.loaders_clients_dbs[uid][2].setdefault(mod.__module__, {}).setdefault("__config__", {})[key] = value
         else:
             try:

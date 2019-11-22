@@ -25,6 +25,7 @@ import telethon
 import hashlib
 from base64 import b64encode
 import time
+import os
 
 
 @web.middleware
@@ -77,7 +78,7 @@ class Web:
     async def start(self):
         runner = web.AppRunner(self.app)
         await runner.setup()
-        site = web.TCPSite(runner, None, 8080)
+        site = web.TCPSite(runner, None, os.environ.get("PORT", 8080))
         return asyncio.ensure_future(site.start())
 
     async def add_loader(self, client, loader, db):

@@ -169,6 +169,7 @@ def parse_arguments():
     parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--translate", action="store_true")
     parser.add_argument("--local-db", dest="local", action="store_true")
+    parser.add_argument("--web-only", dest="web_only", action="store_true")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -277,7 +278,7 @@ def main():
 
     web = core.Web()
 
-    loops = [amain(client, clients, web, arguments.setup, arguments.local) for client in clients]
+    loops = [amain(client, clients, web, arguments.setup, arguments.local, arguments.web_only) for client in clients]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
                                                    logging.error("Exception on event loop! %s", x["message"],
@@ -285,7 +286,7 @@ def main():
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
 
-async def amain(client, allclients, web, setup=False, local=False):
+async def amain(client, allclients, web, setup=False, local=False, web_only=False):
     """Entrypoint for async init, run once for each user"""
     async with client:
         client.parse_mode = "HTML"
@@ -329,10 +330,11 @@ async def amain(client, allclients, web, setup=False, local=False):
 
         modules.send_config(db)
         await modules.send_ready(client, db, allclients)
-        client.add_event_handler(functools.partial(handle_incoming, modules, db),
-                                 events.NewMessage(incoming=True))
-        client.add_event_handler(functools.partial(handle_command, modules, db),
-                                 events.NewMessage(outgoing=True, forwards=False))
+        if not web_only:
+            client.add_event_handler(functools.partial(handle_incoming, modules, db),
+                                     events.NewMessage(incoming=True))
+            client.add_event_handler(functools.partial(handle_command, modules, db),
+                                     events.NewMessage(outgoing=True, forwards=False))
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
         await web.add_loader(client, modules, db)
         await web.start_if_ready(len(allclients))

@@ -154,11 +154,7 @@ def _fix_entities(ent, cont_msg, initial=False):
 
 
 async def answer(message, response, **kwargs):
-    """Use this to give the response to a command
-       Passing a str, it sends the message, possibly split over several messages if asfile==True. Destructive if poss.
-       If you pass a Message, it replies with it. Non-destructive
-       Otherwise, it sends the file. Destructive
-       """
+    """Use this to give the response to a command"""
     cont_msg = "[continued]\n"
     ret = [message]
     if isinstance(response, str) and not kwargs.get("asfile", False):
@@ -178,15 +174,14 @@ async def answer(message, response, **kwargs):
             _fix_entities(ent, cont_msg)
             ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
     elif isinstance(response, Message):
+        await message.edit("<code>Loading message...</code>")
         ret = [await message.respond(response)]
+        await message.delete()
     else:
         if message.media is not None:
-            if message.from_id == (await message.client.get_me(True)).user_id:
-                await message.edit(file=response, **kwargs)
-            else:
-                await message.reply(file=response, **kwargs)
+            await message.edit(file=response, **kwargs)
         else:
-            await message.edit("<code>Loading media...</code>")  # Fails silently when you didn't send the message
+            await message.edit("<code>Loading media...</code>")
             ret = [await message.client.send_file(message.chat_id, response,
                                                   reply_to=message.reply_to_msg_id, **kwargs)]
             await message.delete()

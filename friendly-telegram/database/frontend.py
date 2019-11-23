@@ -49,6 +49,9 @@ class Database(dict):
         # not a reference to _sync_future, so it will be the correct future, and set_result will
         # not already have been called. Simple, right?
 
+    def __repr__(self):
+        return object.__repr__(self)
+
     async def init(self):
         if self._noop:
             self._loading = False

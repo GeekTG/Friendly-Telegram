@@ -194,7 +194,7 @@ def get_phones(arguments):
             logging.warning("authtoken invalid")
             authtoken = False
 
-    if arguments.tokens and not authtoken:
+    if arguments.setup or (arguments.tokens and not authtoken):
         authtoken = {}
     if arguments.tokens:
         for token in arguments.tokens:

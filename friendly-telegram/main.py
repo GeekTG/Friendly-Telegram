@@ -300,6 +300,7 @@ async def amain(client, allclients, web, arguments):
                 pdb = {}
             modules = loader.Modules()
             babelfish = Translator([])
+            await babelfish.init(client)
             modules.register_all(babelfish)
             fdb = frontend.Database(None)
             await fdb.init()

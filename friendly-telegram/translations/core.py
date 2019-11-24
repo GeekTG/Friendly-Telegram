@@ -16,6 +16,7 @@
 
 import logging
 import json
+import telethon
 from telethon.tl.types import MessageEntityHashtag
 
 from babel import negotiate_locale
@@ -36,9 +37,9 @@ class Translator:
         for pack in self._packs:
             try:
                 [message] = await client.get_messages(pack, 1)
-            except ValueError:
+            except (ValueError, telethon.errors.rpcerrorlist.ChannelPrivateError):
                 # There is no message with matching magic
-                logger.warning("No translation pack found for %d", pack)
+                logger.warning("No translation pack found for %d", pack, exc_info=True)
                 continue
             if not message.document:
                 logger.info("Last message in translation pack %d has no document")

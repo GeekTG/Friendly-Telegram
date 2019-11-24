@@ -133,11 +133,11 @@ Friendly-Telegram
       <div class="mdl-cad__supporting-text" style="width:100%;">
         <p>{{ module|getdoc }}
         <br>
-        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive" style="width: 100%; display: block; table-layout: adaptive;">
+        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive" style="width: 100%; display: block; table-layout: fixed;">
           <thead>
             <tr>
-              <th class="mdl-data-table__cell--non-numeric">Key</th>
-              <th class="mdl-data-table__cell--non-numeric">Value</th>
+              <th class="mdl-data-table__cell--non-numeric" style="width: 25%;">Key</th>
+              <th class="mdl-data-table__cell--non-numeric" style="width: 75%;">Value</th>
             </tr>
           </thead>
           <tbody>
@@ -146,8 +146,8 @@ Friendly-Telegram
                 <td class="mdl-data-table__cell--non-numeric">{{ key }}</td>
                 <td class="mdl-data-table__cell--non-numeric">
                   <form action="#module_{{ ns2.module_number }}">
-                    <div class="mdl-textfield mdl-js-textfield">
-                      <input class="mdl-textfield__input translation-input" type="text" data-module="{{ module.__module__ }}" data-stringkey="{{ key }}" data-currentvalue="{{ module.strings[key] }}" id="input_{{ ns2.module_number }}_{{ key }}" value="{{ module.strings[key] }}" onchange="setString(this);">
+                    <div class="mdl-textfield mdl-js-textfield" style="width: 100%;">
+                      <textarea class="mdl-textfield__input translation-input" type="text" data-module="{{ module.__module__ }}" data-stringkey="{{ key }}" data-currentvalue="{{ module.strings[key] }}" id="input_{{ ns2.module_number }}_{{ key }}" onchange="setString(this);">{{ module.strings[key] }}</textarea>
                       <label class="mdl-textfield__label" for="input_{{ ns2.module_number }}_{{ key }}">{{ module.strings[key] }}</label>
                     </div>
                   </form>

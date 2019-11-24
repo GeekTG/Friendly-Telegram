@@ -22,10 +22,37 @@ import os
 import logging
 import sys
 import asyncio
+import functools
+import inspect
 
 from . import utils
 
 MODULES_NAME = "modules"
+
+
+def translateable_docstring(cls):
+    logging.debug("hello")
+
+    @functools.wraps(cls.config_complete)
+    def config_complete(self, *args, **kwargs):
+        for command, func in get_commands(cls).items():
+
+            @functools.wraps(func)
+            def replacement(*args, **kwargs):
+                return func(self, *args, **kwargs)
+            replacement.__doc__ = self.strings["_cmd_doc_" + command]
+            setattr(self, command, replacement)
+        self.__doc__ = self.strings["_cls_doc"]
+        return self.config_complete._old_(self, *args, **kwargs)
+    config_complete._old_ = cls.config_complete
+    cls.config_complete = config_complete
+    for command, func in get_commands(cls).items():
+        cls.strings["_cmd_doc_" + command] = inspect.getdoc(func)
+    cls.strings["_cls_doc"] = inspect.getdoc(cls)
+    return cls
+
+
+tds = translateable_docstring  # Shorter name for modules to use
 
 
 class ModuleConfig(dict):
@@ -51,7 +78,11 @@ class ModuleConfig(dict):
 
     def getdoc(self, key):
         """Get the documentation by key"""
-        return self._docstrings[key]
+        ret = self._docstrings[key]
+        if callable(ret):
+            ret = ret()
+            self._docstrings[key] = ret
+        return ret
 
     def getdef(self, key):
         """Get the default value by key"""
@@ -72,6 +103,12 @@ class Module():
     # Called after client_ready, for internal use only. Must not be used by non-core modules
     async def _client_ready2(self, client, db):
         pass
+
+
+def get_commands(mod):
+    # https://stackoverflow.com/a/34452/5509575
+    return {method_name[:-3]: getattr(mod, method_name) for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"}
 
 
 class Modules():
@@ -223,19 +260,17 @@ class Modules():
         self.client = client
         await self._compat_layer.client_ready(client)
         try:
-            await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
+            await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients, True) for mod in self.modules])
         except Exception:
             logging.exception("Failed to send mod init complete signal")
 
-    async def send_ready_one(self, mod, client, db, allclients, core=True):
+    async def send_ready_one(self, mod, client, db, allclients, core=False):
         mod.allclients = allclients
         await mod.client_ready(client, db)
         if core:
             await mod._client_ready2(client, db)  # pylint: disable=W0212
         if not hasattr(mod, "commands"):
-            # https://stackoverflow.com/a/34452/5509575
-            mod.commands = {method_name[:-3]: getattr(mod, method_name) for method_name in dir(mod)
-                            if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"}
+            mod.commands = get_commands(mod)
 
         self.register_commands(mod)
         self.register_watcher(mod)

@@ -26,8 +26,18 @@ def register(cb):
 class CoreMod(loader.Module):
     """Control core userbot settings"""
     def __init__(self):
-        self.name = _("Settings")
-        self.allmodules = None
+        self.strings = {"name": "Settings",
+                        "too_many_args": "<code>Too many args</code>",
+                        "blacklisted": "<code>Chat {} blacklisted from userbot</code>",
+                        "unblacklisted": "<code>Chat {} unblacklisted from userbot</code>",
+                        "what_prefix": "<code>What should the prefix be set to?</code>",
+                        "prefix_set": ("<b>Command prefix updated. Type </b><code>{newprefix}setprefix {oldprefix}"
+                                       "</code><b> to change it back</b>"),
+                        "alias_created": "Alias created. Access it with <code>{}</code>",
+                        "no_command": "Command <code>{}</code> does not exist"}
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def client_ready(self, client, db):
         self._db = db
@@ -35,7 +45,7 @@ class CoreMod(loader.Module):
     async def blacklistcommon(self, message):
         args = utils.get_args(message)
         if len(args) > 1:
-            await message.edit(_("<code>Too many args</code>"))
+            await utils.answer(message, self.strings["too_many_args"])
             return
         id = None
         if len(args) == 1:
@@ -52,7 +62,7 @@ class CoreMod(loader.Module):
            Blacklist the bot from operating somewhere"""
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [id])
-        await message.edit(_("<code>Chat {} blacklisted from userbot</code>").format(id))
+        await utils.answer(message, self.strings["blacklisted"].format(id))
 
     async def unblacklistcmd(self, message):
         """.unblacklist [id]
@@ -60,19 +70,18 @@ class CoreMod(loader.Module):
         id = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats",
                      list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([id])))
-        await message.edit(_("<code>Chat {} unblacklisted from userbot</code>").format(id))
+        await utils.answer(message, self.strings["unblacklisted"].format(id))
 
     async def setprefixcmd(self, message):
         """Sets command prefix"""
         args = utils.get_args(message)
         if len(args) != 1:
-            return await message.edit(_("<code>What should the prefix be set to?</code>"))
+            await utils.answer(message, self.strings["what_prefix"])
+            return
         oldprefix = self._db.get(main.__name__, "command_prefix", ".")
         self._db.set(main.__name__, "command_prefix", args[0])
-        await utils.answer(message, _("<b>Command prefix updated. "
-                                      + "Type </b><code>{newprefix}setprefix {oldprefix}</code><b> "
-                                      + "to change it back</b>")
-                           .format(newprefix=args[0], oldprefix=oldprefix))
+        await utils.answer(message, self.strings["prefix_set"].format(newprefix=utils.escape_html(args[0]),
+                                                                      oldprefix=utils.escape_html(oldprefix)))
 
     async def addaliascmd(self, message):
         """Set an alias for a command"""
@@ -83,9 +92,9 @@ class CoreMod(loader.Module):
         ret = self.allmodules.add_alias(alias, cmd)
         if ret:
             self._db.set(__name__, "aliases", {**self._db.get(__name__, "aliases"), alias: cmd})
-            await utils.answer(message, _("Alias created. Access it with <code>{}</code>").format(alias))
+            await utils.answer(message, self.strings["alias_created"].format(utils.escape_html(alias)))
         else:
-            await utils.answer(message, _("Command <code>{}</code> does not exist").format(cmd))
+            await utils.answer(message, self.strings["no_command"].format(utils.escape_html(cmd)))
 
     async def _client_ready2(self, client, db):
         ret = {}

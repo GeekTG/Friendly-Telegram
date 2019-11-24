@@ -33,12 +33,24 @@ def register(cb):
 class TestMod(loader.Module):
     """Self-tests"""
     def __init__(self):
-        self.name = _("Tester")
-        self.allmodules = None
+        self.strings = {"name": "Tester",
+                        "pong": "Pong",
+                        "bad_loglevel": "<code>Invalid loglevel. Please refer to </code>"
+                        "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
+                        "the docs</a><code>.</code>",
+                        "set_loglevel": "<code>Please specify verbosity as an integer or string</code>",
+                        "uploading_logs": "<code>Uploading logs...</code>",
+                        "no_logs": "<code>You don't have any logs at verbosity {}.</code>",
+                        "logs_filename": "ftg-logs.txt",
+                        "logs_caption": "<code>friendly-telegram logs with verbosity {}",
+                        "suspend_invalid_time": "<code>Invalid time to suspend</code>"}
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def pingcmd(self, message):
         """Does nothing"""
-        await message.edit(_("Pong"))
+        await message.edit(self.strings["pong"])
 
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""
@@ -52,7 +64,7 @@ class TestMod(loader.Module):
            Dumps logs. Loglevels below WARNING may contain personal info."""
         args = utils.get_args(message)
         if not len(args) == 1:
-            await message.edit("<code>Please specify verbosity as an integer or string</code>")
+            await message.edit(self.strings["set_loglevel"])
             return
         try:
             lvl = int(args[0])
@@ -60,20 +72,17 @@ class TestMod(loader.Module):
             # It's not an int. Maybe it's a loglevel
             lvl = getattr(logging, args[0].upper(), None)
         if lvl is None:
-            await message.edit(_("<code>Invalid loglevel. Please refer to </code>"
-                                 + "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
-                                 + "the docs</a><code>.</code>"))
+            await message.edit(self.strings["bad_loglevel"])
             return
-        await message.edit(_("<code>Uploading logs...</code>"))
+        await message.edit(self.strings["uploading_logs"])
         [handler] = logging.getLogger().handlers
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-8")
         if not len(logs) > 0:
-            await message.edit(_("<code>You don't have any logs at verbosity {}.</code>").format(lvl))
+            await message.edit(self.strings["no_logs"].format(lvl))
             return
         logs = BytesIO(logs)
-        logs.name = _("ftg-logs.txt")
-        await message.client.send_file(message.to_id, logs, caption=_("<code>friendly-telegram logs with verbosity {}")
-                                       .format(lvl))
+        logs.name = self.strings["logs_filename"]
+        await message.client.send_file(message.to_id, logs, caption=self.strings["logs_caption"].format(lvl))
         await message.delete()
 
     async def suspendcmd(self, message):
@@ -82,11 +91,9 @@ class TestMod(loader.Module):
         # Blocks asyncio event loop, preventing ANYTHING happening (except multithread ops,
         # but they will be blocked on return).
         try:
-            logger.info("Good Night")
             time.sleep(int(utils.get_args_raw(message)))
-            logger.info("Good Morning")
         except ValueError:
-            await message.edit(_("<code>Invalid time to suspend</code>"))
+            await message.edit(self.strings["suspend_invalid_time"])
 
     async def client_ready(self, client, db):
         self.client = client

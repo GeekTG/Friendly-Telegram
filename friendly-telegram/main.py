@@ -167,7 +167,6 @@ def parse_arguments():
     parser.add_argument("--phone", "-p", action="append")
     parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
-    parser.add_argument("--translate", action="store_true")
     parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
     arguments = parser.parse_args()
@@ -225,11 +224,6 @@ def main():
     """Main entrypoint"""
     arguments = parse_arguments()
 
-    if arguments.translate:
-        from .translations import translateutil
-        translateutil.ui()
-        return
-
     clients = []
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token()
@@ -278,7 +272,7 @@ def main():
 
     web = core.Web()
 
-    loops = [amain(client, clients, web, arguments.setup, arguments.local, arguments.web_only) for client in clients]
+    loops = [amain(client, clients, web, arguments) for client in clients]
 
     asyncio.get_event_loop().set_exception_handler(lambda _, x:
                                                    logging.error("Exception on event loop! %s", x["message"],
@@ -286,8 +280,11 @@ def main():
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
 
 
-async def amain(client, allclients, web, setup=False, local=False, web_only=False):
+async def amain(client, allclients, web, arguments):
     """Entrypoint for async init, run once for each user"""
+    setup = arguments.setup
+    local = arguments.local
+    web_only = arguments.web_only
     async with client:
         client.parse_mode = "HTML"
         await client.start()
@@ -323,12 +320,13 @@ async def amain(client, allclients, web, setup=False, local=False, web_only=Fals
         logging.info("Loading logging config...")
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        babelfish = Translator(db.get(__name__, "language", ["en"]))
+        babelfish = Translator(db.get(__name__, "langpacks", []), db.get(__name__, "language", ["en"]))
+        await babelfish.init(client)
 
         modules = loader.Modules()
         modules.register_all(babelfish)
 
-        modules.send_config(db)
+        modules.send_config(db, babelfish)
         await modules.send_ready(client, db, allclients)
         if not web_only:
             client.add_event_handler(functools.partial(handle_incoming, modules, db),

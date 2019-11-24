@@ -14,41 +14,63 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from .. import utils
-
 import logging
-import os
 import json
+from telethon.tl.types import MessageEntityHashtag
 
 from babel import negotiate_locale
 
 logger = logging.getLogger(__name__)
 
 
+MAGIC = "#ftgtrnsl1"
+
+
 class Translator:
-    def __init__(self, languages=["en"]):
-        path = os.path.join(os.path.dirname(utils.get_base_dir()), "translations")
-        try:
-            files = filter(lambda x: len(x) > 5 and x[-5:] == ".json", os.listdir(path))
-        except FileNotFoundError:
-            logger.exception("Unable to list %s", path)
-            files = []
-        self._data = {}
-        for translation_file in files:
-            try:
-                with open(os.path.join(path, translation_file), "r") as f:
-                    self._data.update(**json.loads(f.read()))
-            except json.decoder.JSONDecodeError:
-                logger.exception("Unable to decode %s", os.path.join(path, translation_file))
+    def __init__(self, packs, languages=["en"]):
+        self._packs = packs
         self._languages = languages
+
+    async def init(self, client):
+        self._data = {}
+        for pack in self._packs:
+            try:
+                [message] = await client.get_messages(pack, 1)
+            except ValueError:
+                # There is no message with matching magic
+                logger.warning("No translation pack found for %d", pack)
+                continue
+            if not message.document:
+                logger.info("Last message in translation pack %d has no document")
+            found = False
+            for ent in filter(lambda x: isinstance(x, MessageEntityHashtag), message.entities or []):
+                if message.message[ent.offset:ent.offset + ent.length] == MAGIC:
+                    logger.debug("Got translation message")
+                    found = True
+                    break
+            if not found:
+                logger.info("Didn't find translation hashtags")
+                continue
+            try:
+                ndata = json.loads((await message.download_media(bytes)).decode("utf-8"))
+            except (json.decoder.JSONDecodeError, UnicodeDecodeError):
+                logger.exception("Unable to decode %s", pack, exc_info=True)
+                continue
+            try:
+                self._data.setdefault(ndata["language"], {}).update(ndata["data"])
+            except KeyError:
+                logger.exception("Translation pack follows wrong format")
 
     def set_preferred_languages(self, languages):
         self._languages = languages
 
-    def gettext(self, english_text):
+    def getkey(self, key):
         locales = []
         for locale, strings in self._data.items():
-            if english_text in strings:
+            if key in strings:
                 locales += [locale]
         locale = negotiate_locale(self._languages, locales)
-        return self._data.get(locale, {}).get(english_text, english_text)
+        return self._data.get(locale, {}).get(key, False)
+
+    def gettext(self, english_text):
+        return self.getkey(english_text) or english_text

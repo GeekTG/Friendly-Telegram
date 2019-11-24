@@ -121,13 +121,6 @@ class Modules():
         """Register single module instance"""
         if not issubclass(type(instance), Module):
             logging.error("Not a subclass %s", repr(instance.__class__))
-        if not hasattr(instance, "commands"):
-            # https://stackoverflow.com/a/34452/5509575
-            instance.commands = {method_name[:-3]: getattr(instance, method_name) for method_name in dir(instance)
-                                 if callable(getattr(instance, method_name)) and method_name[-3:] == "cmd"}
-
-        self.register_commands(instance)
-        self.register_watcher(instance)
         self.complete_registration(instance)
 
     def register_commands(self, instance):
@@ -191,12 +184,12 @@ class Modules():
                     logging.warning("invalid alias")
         return None
 
-    def send_config(self, db, skip_hook=False):
+    def send_config(self, db, babel, skip_hook=False):
         """Configure modules"""
         for mod in self.modules:
-            self.send_config_one(mod, db, skip_hook)
+            self.send_config_one(mod, db, babel, skip_hook)
 
-    def send_config_one(self, mod, db, skip_hook=False):  # pylint: disable=R0201
+    def send_config_one(self, mod, db, babel=None, skip_hook=False):  # pylint: disable=R0201
         """Send config to single instance"""
         if hasattr(mod, "config"):
             modcfg = db.get(mod.__module__, "__config__", {})
@@ -213,6 +206,11 @@ class Modules():
                         logging.debug("No config value for %s", conf)
                         mod.config[conf] = mod.config.getdef(conf)
             logging.debug(mod.config)
+        if hasattr(mod, "strings"):
+            for key, value in mod.strings.items():
+                new = babel.getkey(mod.__module__ + "." + key)
+                if new is not False:
+                    mod.strings[key] = new
         if skip_hook:
             return
         try:
@@ -225,12 +223,22 @@ class Modules():
         self.client = client
         await self._compat_layer.client_ready(client)
         try:
-            for mod in self.modules:
-                mod.allclients = allclients
-            await asyncio.gather(*[mod.client_ready(client, db) for mod in self.modules])
-            await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
+            await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
         except Exception:
             logging.exception("Failed to send mod init complete signal")
+
+    async def send_ready_one(self, mod, client, db, allclients, core=True):
+        mod.allclients = allclients
+        await mod.client_ready(client, db)
+        if core:
+            await mod._client_ready2(client, db)  # pylint: disable=W0212
+        if not hasattr(mod, "commands"):
+            # https://stackoverflow.com/a/34452/5509575
+            mod.commands = {method_name[:-3]: getattr(mod, method_name) for method_name in dir(mod)
+                            if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"}
+
+        self.register_commands(mod)
+        self.register_watcher(mod)
 
     def unload_module(self, classname):
         """Remove module and all stuff from it"""

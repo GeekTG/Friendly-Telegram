@@ -152,7 +152,7 @@ class CloudBackend():
         try:
             for r in await asyncio.gather(*ops, return_exceptions=True):
                 if isinstance(r, MessageNotModifiedError):
-                    logging.warning("db not modified", exc_info=r)
+                    logging.debug("db not modified", exc_info=r)
                 elif isinstance(r, Exception):
                     raise r  # Makes more sense to raise even for MessageEditTimeExpiredError
                 elif not isinstance(r, Message):

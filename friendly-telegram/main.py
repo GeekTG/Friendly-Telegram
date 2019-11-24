@@ -299,10 +299,11 @@ async def amain(client, allclients, web, arguments):
             except (json.decoder.JSONDecodeError, TypeError):
                 pdb = {}
             modules = loader.Modules()
-            modules.register_all(Translator([]))
-            fdb = frontend.Database(None)
+            babelfish = Translator([])
+            modules.register_all(babelfish)
+            fdb = frontend.Database(None, babelfish)
             await fdb.init()
-            modules.send_config(fdb)
+            modules.send_config(fdb, babel)
             await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
             handler.setLevel(50)
             pdb = run_config(pdb, getattr(client, "phone", "Unknown Number"), modules)

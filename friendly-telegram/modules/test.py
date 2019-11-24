@@ -30,20 +30,20 @@ def register(cb):
     cb(TestMod())
 
 
+@loader.tds
 class TestMod(loader.Module):
     """Self-tests"""
-    def __init__(self):
-        self.strings = {"name": "Tester",
-                        "pong": "Pong",
-                        "bad_loglevel": "<code>Invalid loglevel. Please refer to </code>"
-                        "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
-                        "the docs</a><code>.</code>",
-                        "set_loglevel": "<code>Please specify verbosity as an integer or string</code>",
-                        "uploading_logs": "<code>Uploading logs...</code>",
-                        "no_logs": "<code>You don't have any logs at verbosity {}.</code>",
-                        "logs_filename": "ftg-logs.txt",
-                        "logs_caption": "<code>friendly-telegram logs with verbosity {}",
-                        "suspend_invalid_time": "<code>Invalid time to suspend</code>"}
+    strings = {"name": "Tester",
+               "pong": "Pong",
+               "bad_loglevel": ("<code>Invalid loglevel. Please refer to </code>"
+                                "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
+                                "the docs</a><code>.</code>"),
+               "set_loglevel": "<code>Please specify verbosity as an integer or string</code>",
+               "uploading_logs": "<code>Uploading logs...</code>",
+               "no_logs": "<code>You don't have any logs at verbosity {}.</code>",
+               "logs_filename": "ftg-logs.txt",
+               "logs_caption": "<code>friendly-telegram logs with verbosity {}",
+               "suspend_invalid_time": "<code>Invalid time to suspend</code>"}
 
     def config_complete(self):
         self.name = self.strings["name"]

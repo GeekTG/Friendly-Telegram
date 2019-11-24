@@ -23,18 +23,19 @@ def register(cb):
     cb(CoreMod())
 
 
+@loader.tds
 class CoreMod(loader.Module):
     """Control core userbot settings"""
-    def __init__(self):
-        self.strings = {"name": "Settings",
-                        "too_many_args": "<code>Too many args</code>",
-                        "blacklisted": "<code>Chat {} blacklisted from userbot</code>",
-                        "unblacklisted": "<code>Chat {} unblacklisted from userbot</code>",
-                        "what_prefix": "<code>What should the prefix be set to?</code>",
-                        "prefix_set": ("<b>Command prefix updated. Type </b><code>{newprefix}setprefix {oldprefix}"
-                                       "</code><b> to change it back</b>"),
-                        "alias_created": "Alias created. Access it with <code>{}</code>",
-                        "no_command": "Command <code>{}</code> does not exist"}
+    strings = {"name": "Settings",
+               "too_many_args": "<code>Too many args</code>",
+               "blacklisted": "<code>Chat {} blacklisted from userbot</code>",
+               "unblacklisted": "<code>Chat {} unblacklisted from userbot</code>",
+               "what_prefix": "<code>What should the prefix be set to?</code>",
+               "prefix_set": ("<b>Command prefix updated. Type </b><code>{newprefix}setprefix {oldprefix}"
+                              "</code><b> to change it back</b>"),
+               "alias_created": "Alias created. Access it with <code>{}</code>",
+               "no_command": "Command <code>{}</code> does not exist",
+               "alias_args": "You must provide a message and the alias for it"}
 
     def config_complete(self):
         self.name = self.strings["name"]
@@ -87,7 +88,8 @@ class CoreMod(loader.Module):
         """Set an alias for a command"""
         args = utils.get_args(message)
         if len(args) != 2:
-            return await message.edit(_("You must provide a message and the alias for it"))
+            await utils.answer(message, self.strings["alias_args"])
+            return
         alias, cmd = args
         ret = self.allmodules.add_alias(alias, cmd)
         if ret:

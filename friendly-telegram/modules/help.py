@@ -30,13 +30,24 @@ def register(cb):
     cb(HelpMod())
 
 
+@loader.tds
 class HelpMod(loader.Module):
     """Provides this help message"""
-    def __init__(self):
-        super().__init__()
-        self.name = _("Help")
-        self.allmodules = None
-        self.client = None
+    strings = {"name": "Help",
+               "bad_module": "<code>Invalid module name specified</code>",
+               "single_mod_header": "<b>Help for</b> <code>{}</code>:",
+               "single_cmd": "\n• <code>{}</code>\n",
+               "undoc_cmd": "There is no documentation for this command",
+               "all_header": "Available Modules:",
+               "mod_tmpl": "\n• <b>{}</b> ({})",
+               "first_cmd_tmpl": "\n  <code>{}",
+               "cmd_tmpl": ", {}",
+               "footer": ("\n\nYou can <b>read more</b> about most commands "
+                          "<a href='https://friendly-telegram.github.io'>here</a>"),
+               "joined": "<code>Joined to</code> <a href='https://t.me/friendlytgbot'>support chat</a>"}
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def helpcmd(self, message):
         """.help [module]"""
@@ -47,39 +58,39 @@ class HelpMod(loader.Module):
                 if mod.name.lower() == args.lower():
                     module = mod
             if module is None:
-                await message.edit("<code>" + _("Invalid module name specified") + "</code>")
+                await utils.answer(message, self.strings["bad_module"])
                 return
-            # Translate the format specification and the module seperately
-            reply = "<b>" + _("Help for</b> <code>{}</code>:").format(utils.escape_html(_(module.name))) + "\n  "
+            # Translate the format specification and the module separately
+            reply = self.strings["single_mod_header"].format(utils.escape_html(module.name))
             if module.__doc__:
-                reply += utils.escape_html(inspect.cleandoc(module.__doc__))
+                reply += "\n" + utils.escape_html(inspect.cleandoc(module.__doc__))
             else:
                 logger.warning("Module %s is missing docstring!", module)
             for name, fun in module.commands.items():
-                reply += f"\n  <code>{name}</code>\n"
+                reply += self.strings["single_cmd"].format(name)
                 if fun.__doc__:
-                    reply += utils.escape_html("\n".join(["    " + x for x in
-                                                          _(inspect.cleandoc(fun.__doc__)).splitlines()]))
+                    reply += utils.escape_html(fun.__doc__)
                 else:
-                    reply += _("There is no documentation for this command")
+                    reply += self.strings["undoc_cmd"]
         else:
-            reply = "<b>" + _("Available Modules:") + "</b>"
+            reply = self.strings["all_header"]
             for mod in self.allmodules.modules:
-                reply += _("\n• <b>{}</b> ({})").format(mod.name, len(mod.commands))
+                reply += self.strings["mod_tmpl"].format(mod.name, len(mod.commands))
                 first = True
                 for cmd in mod.commands:
                     if first:
-                        reply += f"\n  <code>{cmd}"
+                        reply += self.strings["first_cmd_tmpl"].format(cmd)
                         first = False
                     else:
-                        reply += f", {cmd}"
+                        reply += self.strings["cmd_tmpl"].format(cmd)
                 reply += "</code>"
+        reply += self.strings["footer"]
         await utils.answer(message, reply)
 
     async def supportcmd(self, message):
         """Joins the support chat"""
         await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
-        await message.edit(_("<code>Joined to</code> <a href='https://t.me/friendlytgbot'>support chat</a>"))
+        await utils.answer(message, self.strings["joined"])
 
     async def client_ready(self, client, db):
         self.client = client

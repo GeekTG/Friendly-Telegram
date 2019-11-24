@@ -82,15 +82,30 @@ def unescape_percent(text):
     return out
 
 
+@loader.tds
 class LoaderMod(loader.Module):
     """Loads modules"""
+    strings = {"name": "Loader",
+               "repo_config_doc": "Fully qualified URL to a module repo",
+               "avail_header": "<b>Available official modules from repo</b>",
+               "select_preset": "<code>Please select a preset</code>",
+               "no_preset": "<code>Preset not found</code>",
+               "preset_loaded": "<code>Preset loaded</code>",
+               "no_module": "<code>Module not available in repo.</code>",
+               "no_file": "<code>File not found</code>",
+               "provide_module": "<code>Provide a module to load</code>",
+               "bad_unicode": "<code>Invalid Unicode formatting in module</code>",
+               "load_failed": "<code>Loading failed. See logs for details</code>",
+               "loaded": "<code>Module loaded.</code>",
+               "no_class": "<code>What class needs to be unloaded?</code>",
+               "unloaded": "<code>Module unloaded.</code>",
+               "not_unloaded": "<code>Module not unloaded.</code>"}
+
     def __init__(self):
         super().__init__()
-        self.name = _("Loader")
         self.config = loader.ModuleConfig("MODULES_REPO",
                                           "https://raw.githubusercontent.com/friendly-telegram/modules-repo/master",
-                                          "Fully qualified URL to a module repo")
-        self.allmodules = None
+                                          lambda: self.strings["repo_config_doc"])
         self._pending_setup = []
 
     async def dlmodcmd(self, message):
@@ -102,27 +117,26 @@ class LoaderMod(loader.Module):
                              list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0]])))
         else:
             text = utils.escape_html("\n".join(await self.get_repo_list("full")))
-            await utils.answer(message, "<b>" + _("Available official modules from repo")
-                               + "</b>\n<code>" + text + "</code>")
+            await utils.answer(message, "<b>" + self.strings["avail_header"] + "</b>\n<code>" + text + "</code>")
 
     async def dlpresetcmd(self, message):
         """Set preset. Defaults to full"""
         args = utils.get_args(message)
         if not args:
-            await utils.answer(message, _("Please select a preset"))
+            await utils.answer(message, self.strings["select_preset"])
             return
         try:
             await self.get_repo_list(args[0])
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
-                await utils.answer(message, _("Preset not found"))
+                await utils.answer(message, self.strings["no_preset"])
                 return
             else:
                 raise
         self._db.set(__name__, "chosen_preset", args[0])
         self._db.set(__name__, "loaded_modules", [])
         self._db.set(__name__, "unloaded_modules", [])
-        await utils.answer(message, _("Preset loaded"))
+        await utils.answer(message, self.strings["preset_loaded"])
 
     async def _get_modules_to_load(self):
         todo = await self.get_repo_list(self._db.get(__name__, "chosen_preset", None))
@@ -145,7 +159,7 @@ class LoaderMod(loader.Module):
         r = await utils.run_sync(requests.get, url)
         if r.status_code == 404:
             if message is not None:
-                await message.edit(_("<b>Module not available in repo.</b>"))
+                await utils.answer(message, self.strings["no_module"])
             return False
         r.raise_for_status()
         return await self.load_module(r.content, message, module_name, url)
@@ -164,10 +178,10 @@ class LoaderMod(loader.Module):
                     with open(path, "rb") as f:
                         doc = f.read()
                 except FileNotFoundError:
-                    await message.edit(_("<code>File not found</code>"))
+                    await utils.answer(message, self.strings["no_file"])
                     return
             else:
-                await message.edit(_("<code>Provide a module to load</code>"))
+                await utils.answer(message, self.strings["provide_module"])
                 return
         else:
             path = None
@@ -176,7 +190,7 @@ class LoaderMod(loader.Module):
         try:
             doc = doc.decode("utf-8")
         except UnicodeDecodeError:
-            await message.edit(_("<code>Invalid Unicode formatting in module</code>"))
+            await utils.answer(message, self.strings["bad_unicode"])
             return
         if path is not None:
             await self.load_module(doc, message, origin=path)
@@ -198,11 +212,11 @@ class LoaderMod(loader.Module):
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")
             if message is not None:
-                await message.edit(_("<code>Loading failed. See logs for details</code>"))
+                await utils.answer(message, self.strings["load_failed"])
             return False
         if "register" not in vars(module):
             if message is not None:
-                await message.edit(_("<code>Module did not expose correct API"))
+                await utils.answer(message, self.strings["load_failed"])
             logging.error("Module does not have register(), it has " + repr(vars(module)))
             return False
         try:
@@ -214,10 +228,10 @@ class LoaderMod(loader.Module):
         except Exception:
             logger.exception("Module threw")
             if message is not None:
-                await message.edit(_("<code>Module crashed.</code>"))
+                await utils.answer(message, self.strings["load_failed"])
             return False
         if message is not None:
-            await message.edit(_("<code>Module loaded.</code>"))
+            await utils.answer(message, self.strings["loaded"])
         return True
 
     def register_and_configure(self, instance):
@@ -229,7 +243,7 @@ class LoaderMod(loader.Module):
         """Unload module by class name"""
         args = utils.get_args(message)
         if not args:
-            await message.edit(_("<code>What class needs to be unloaded?</code>"))
+            await utils.answer(message, self.strings["what_class"])
             return
         clazz = args[0]
         worked = self.allmodules.unload_module(clazz)
@@ -242,9 +256,9 @@ class LoaderMod(loader.Module):
         it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)
         self._db.set(__name__, "unloaded_modules", list(it))
         if worked:
-            await message.edit(_("<code>Module unloaded.</code>"))
+            await utils.answer(message, self.strings["unloaded"])
         else:
-            await message.edit(_("<code>Nothing was unloaded.</code>"))
+            await utils.answer(message, self.strings["not_unloaded"])
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()

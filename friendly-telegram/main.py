@@ -301,9 +301,9 @@ async def amain(client, allclients, web, arguments):
             modules = loader.Modules()
             babelfish = Translator([])
             modules.register_all(babelfish)
-            fdb = frontend.Database(None, babelfish)
+            fdb = frontend.Database(None)
             await fdb.init()
-            modules.send_config(fdb, babel)
+            modules.send_config(fdb, babelfish)
             await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
             handler.setLevel(50)
             pdb = run_config(pdb, getattr(client, "phone", "Unknown Number"), modules)

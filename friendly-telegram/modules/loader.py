@@ -108,6 +108,9 @@ class LoaderMod(loader.Module):
                                           lambda: self.strings["repo_config_doc"])
         self._pending_setup = []
 
+    def config_complete(self):
+        self.name = self.strings["name"]
+
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)

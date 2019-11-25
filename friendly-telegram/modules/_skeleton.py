@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import logging
 
 from .. import loader, utils
@@ -27,14 +28,22 @@ def register(cb):
     cb(YourMod())
 
 
+@loader.tds
 class YourMod(loader.Module):
-    """Description for module"""
+    """Description for module"""  # Translateable due to @loader.tds
+    strings = {"cfg_doc": "This is what is said, you can edit me with the configurator",
+               "name": "A Name",
+               "after_sleep": "We have finished sleeping!"}
+
     def __init__(self):
-        self.config = loader.ModuleConfig("CONFIG_STRING", _("hello"),
-                                          "This is what is said, you can edit me with the configurator")
-        self.name = _("A Name")
+        self.config = loader.ModuleConfig("CONFIG_STRING", "hello", lambda: self.strings["cfg_doc"])
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def examplecmd(self, message):
-        """Does something when you type .example"""
+        """Does something when you type .example (hence, named examplecmd)"""
         logger.debug("We logged something!")
         await utils.answer(message, self.config["CONFIG_STRING"])
+        await asyncio.sleep(5)  # Never use time.sleep
+        await utils.answer(message, self.strings["after_sleep"])

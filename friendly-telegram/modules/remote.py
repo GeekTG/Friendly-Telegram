@@ -37,29 +37,41 @@ def register(cb):
     cb(RemoteMod())
 
 
+@loader.tds
 class RemoteMod(loader.Module):
     """Operate on other accounts"""
-    def __init__(self):
-        self.config = loader.ModuleConfig("ACCOUNT_NAME", None, "What to call this account in .remote commands")
-        self.name = _("Remote Control")
-        self.commands = {"remote": self.remote_command}
-        self.allmodules = None
+    strings = {"name": "Remote Control",
+               "account_cfg_doc": "What to call this account in .remote commands",
+               "what_account": "<code>What account and operation should be performed?</code>",
+               "bad_command": "<code>Invalid command</code>",
+               "bad_account": "<code>Invalid account</code>",
+               "what_client_command": "<code>What custom client command should be executed?</code>",
+               "bad_client_command": "<code>That custom client command does not exist!</code>",
+               "what_ftg_command": "<code>What command should be executed?</code>",
+               "what_raw_command": "<code>What raw MTProto command should be executed?</code>",
+               "bad_raw_command": "<code>Invalid MTProto function</code>"}
 
-    async def remote_command(self, message):
+    def __init__(self):
+        self.config = loader.ModuleConfig("ACCOUNT_NAME", None, lambda: self.strings["account_cfg_doc"])
+
+    def config_complete(self):
+        self.name = self.strings["name"]
+
+    async def remotecmd(self, message):
         """Execute remote command"""
         # Validation
         args = utils.get_args(message)
         if len(args) < 2:
-            await message.edit(_("<code>What account and operation should be performed?</code>"))
+            await utils.answer(message, self.strings["what_account"])
             return
         account = args[0].strip()
-        command = getattr(self, args[1] + "cmd", None)
+        command = getattr(self, args[1] + "_command", None)
         if not callable(command):
-            await message.edit(_("<code>Invalid command</code>"))
+            await utils.answer(message, self.strings["bad_command"])
             return
         account = await self.find_account(account)
         if account is None:
-            await message.edit(_("<code>Invalid account</code>"))
+            await utils.answer(message, self.strings["bad_account"])
             return
         await command(account, args[2:], message)
 
@@ -85,16 +97,16 @@ class RemoteMod(loader.Module):
                 return client
 
     # Commands
-    async def sendcmd(self, client, args, message):
+    async def send_command(self, client, args, message):
         await client.send_message(args[0], " ".join(args[1:]))
 
-    async def customcmd(self, client, args, message):
+    async def custom_command(self, client, args, message):
         if len(args) < 1:
-            await message.edit(_("<code>What custom client command should be executed?</code>"))
+            await utils.answer(message, self.strings["what_client_command"])
             return
         cmd = getattr(client, args[0], None)
         if not callable(cmd):
-            await message.edit(_("<code>That custom client command does not exist!</code>"))
+            await utils.answer(message, self.strings["bad_client_command"])
             return
         fargs = []
         for arg in args[1:]:
@@ -105,9 +117,9 @@ class RemoteMod(loader.Module):
         logger.debug(fargs)
         await cmd(*fargs)
 
-    async def cmdcmd(self, client, args, message):
+    async def cmd_command(self, client, args, message):
         if len(args) < 1:
-            await message.edit(_("<code>What command should be executed?</code>"))
+            await utils.answer(message, self.strings["what_ftg_command"])
             return
         for load in self.allloaders:
             if load.client is client:
@@ -118,12 +130,12 @@ class RemoteMod(loader.Module):
         msg = await message.client.send_message(args[0], message)
         await load.dispatch(args[1], msg)
 
-    async def rawcmd(self, client, args, message):
+    async def raw_command(self, client, args, message):
         if len(args) < 1:
-            await message.edit(_("<code>What raw MTProto command should be executed?</code>"))
+            await utils.answer(message, self.strings["what_raw_command"])
             return
         if not args[0] in tlfuns.keys():
-            await message.edit(_("<code>Invalid MTProto function</code>"))
+            await utils.answer(message, self.strings["bad_raw_command"])
             return
         func = tlfuns[args[0]]
         await client(func())

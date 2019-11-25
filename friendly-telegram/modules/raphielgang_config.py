@@ -31,13 +31,16 @@ def register(cb):
 
 class RaphielgangConfig(loader.Module):
     """Stores configuration for Raphielgang modules"""
+    strings = {"name": "Raphielgang Configuration Placeholder",
+               "cfg_doc": "External configuration item"}
+
     def __init__(self):
         self.config = filter(lambda x: len(x) and x.upper() == x, userbot.__all__)
-        self.config = loader.ModuleConfig(*itertools.chain.from_iterable([(x, None, "External configuration item")
+        self.config = loader.ModuleConfig(*itertools.chain.from_iterable([(x, None, lambda: self.strings["cfg_doc"])
                                                                           for x in self.config]))
-        self.name = _("Raphielgang Configuration Placeholder")
 
     def config_complete(self):
+        self.name = self.strings["name"]
         for key, value in self.config.items():
             if value is not None:
                 setattr(userbot, key, value)

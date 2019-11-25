@@ -36,9 +36,13 @@ def register(cb):
 
 class PythonMod(loader.Module):
     """Python stuff"""
-    def __init__(self):
-        self.name = _("Python")
-        self.allmodules = None
+    strings = {"name": "Python",
+               "evaluated": "Evaluated expression:\n<code>{}</code>\nReturn value:\n<code>{}</code>",
+               "evaluate_fail": "Failed to evaluate expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>",
+               "execute_fail": "Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>"}
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def client_ready(self, client, db):
         self.client = client
@@ -47,30 +51,28 @@ class PythonMod(loader.Module):
     async def evalcmd(self, message):
         """.eval <expression>
            Evaluates python code"""
-        ret = _("Evaluated expression:\n<code>{}</code>\nReturn value:\n<code>{}</code>")
+        ret = self.strings["evaluated"]
         try:
             it = await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-            await utils.answer(message, _("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
-                               .format(utils.escape_html(utils.get_args_raw(message)),
-                                       utils.escape_html(exc)))
+            await utils.answer(message, self.strings["evaluate_fail"]
+                               .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
         ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
         await utils.answer(message, ret)
 
     async def execcmd(self, message):
-        """.aexec <expression>
+        """.exec <expression>
            Executes python code"""
         try:
             await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-            await utils.answer(message, _("Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>")
-                               .format(utils.escape_html(utils.get_args_raw(message)),
-                                       utils.escape_html(exc)))
+            await utils.answer(message, self.strings["execute_fail"]
+                               .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
 
     async def getattrs(self, message):

@@ -32,9 +32,14 @@ def register(cb):
 
 class LoggerMod(loader.Module):
     """Description for module"""
+    strings = {"name": "Logger",
+               "log_id_cfg": "Chat ID where logs are saved"}
+
     def __init__(self):
-        self.config = loader.ModuleConfig("LOG_ID", None, _("Chat ID where logs are saved"))
-        self.name = _("Logger")
+        self.config = loader.ModuleConfig("LOG_ID", None, lambda: self.strings["log_id_cfg"])
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def append_entity(self, id, entities, message):
         fail = True

@@ -41,17 +41,33 @@ def register(cb):
 
 class UpdaterMod(loader.Module):
     """Updates itself"""
+    strings = {"name": "Updater",
+               "origin_cfg_doc": "Git origin URL, for where to update from",
+               "restarting_caption": "<b>Restarting...</b>",
+               "downloading": "<b>Downloading updates...</b>",
+               "downloaded": ("<b>Downloaded successfully.\nPlease type</b> "
+                              "<code>.restart</code> <b>to restart the bot.</b>"),
+               "already_updated": "<b>Already up to date!</b>",
+               "installing": "<b>Installing updates...</b>",
+               "success": "<b>Restart successful!</b>",
+               "success_meme": "<b>Restart failed successfully‽",
+               "heroku_warning": ("Heroku API key has not been set. Update was successful but updates will "
+                                  "reset every time the bot restarts.")}
+
     def __init__(self):
         self.config = loader.ModuleConfig("GIT_ORIGIN_URL",
-                                          "https://github.com/friendly-telegram/friendly-telegram", "Git origin")
-        self.name = _("Updater")
+                                          "https://github.com/friendly-telegram/friendly-telegram",
+                                          lambda x: self.strings["origin_cfg_doc"])
+
+    def config_complete(self):
+        self.name = self.strings["name"]
 
     async def restartcmd(self, message):
         """Restarts the userbot"""
         logger.debug(self._me)
         logger.debug(self.allclients)
         await self.restart_common((await utils.answer(message, SHUTDOWN, voice_note=True,
-                                                      caption=_("Restarting...")))[0])
+                                                      caption=self.strings["restarting_caption"]))[0])
 
     async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
@@ -77,9 +93,9 @@ class UpdaterMod(loader.Module):
 
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
-        await message.edit(_("Downloading updates..."))
+        await utils.answer(message, self.strings["downloading"])
         await self.download_common()
-        await message.edit(_("Downloaded successfully.\nPlease type <code>.restart</code> to restart the bot."))
+        await utils.answer(message, self.strings["downloaded"])
 
     async def download_common(self):
         try:
@@ -99,15 +115,12 @@ class UpdaterMod(loader.Module):
             origin.fetch()
             repo.create_head("master", origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
-            with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
-                old_reqs = f.read()
             repo.heads.master.checkout(True)
-            with open(os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "r") as f:
-                new_reqs = f.read()
-            return old_reqs != new_reqs
+            return False  # Heroku never needs to install dependencies because we redeploy
 
     def req_common(self):
         # Now we have downloaded new code, install requirements
+        logger.debug("Installing new requirements...")
         try:
             subprocess.run([sys.executable, "-m", "pip", "install", "-r",
                             os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "--user"])
@@ -117,11 +130,11 @@ class UpdaterMod(loader.Module):
     async def updatecmd(self, message):
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
-        msg = await message.edit(_("Downloading updates..."))
+        msgs = await utils.answer(message, self.strings["downloading"])
         req_update = await self.download_common()
         message = await message.client.send_file(message.chat_id, SHUTDOWN,
-                                                 caption=_("Installing updates..."), voice_note=True)
-        await msg.delete()
+                                                 caption=self.strings["installing"], voice_note=True)
+        await asyncio.gather(*[msg.delete() for msg in msgs])
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
             from .. import heroku
@@ -131,7 +144,8 @@ class UpdaterMod(loader.Module):
             # So this only happens when remote is already up to date (remote is heroku, where we are running)
             self._db.set(__name__, "selfupdatechat", None)
             self._db.set(__name__, "selfupdatemsg", None)
-            await message.client.send_file(message.chat_id, STARTUP, voice_note=True, caption=_("Already up-to-date!"))
+            await message.client.send_file(message.chat_id, STARTUP, voice_note=True,
+                                           caption=self.strings["already_updated"])
             await message.delete()
         else:
             if req_update:
@@ -152,11 +166,10 @@ class UpdaterMod(loader.Module):
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = _("Heroku API key has not been set. "
-                    + "Update was successful but updates will reset every time the bot restarts.")
+            msg = self.strings["heroku_warning"]
         else:
             logger.debug("Self update successful! Edit message")
-            msg = _("Restart successful!") if random.randint(0, 10) != 0 else _("Restart failed successfully‽")
+            msg = self.strings["success"] if random.randint(0, 10) != 0 else self.strings["success_meme"]
         await client.send_file(self._db.get(__name__, "selfupdatechat"), STARTUP, caption=msg, voice_note=True)
         await client.delete_messages(self._db.get(__name__, "selfupdatechat"),
                                      [self._db.get(__name__, "selfupdatemsg")])

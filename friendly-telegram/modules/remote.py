@@ -42,14 +42,14 @@ class RemoteMod(loader.Module):
     """Operate on other accounts"""
     strings = {"name": "Remote Control",
                "account_cfg_doc": "What to call this account in .remote commands",
-               "what_account": "<code>What account and operation should be performed?</code>",
-               "bad_command": "<code>Invalid command</code>",
-               "bad_account": "<code>Invalid account</code>",
-               "what_client_command": "<code>What custom client command should be executed?</code>",
-               "bad_client_command": "<code>That custom client command does not exist!</code>",
-               "what_ftg_command": "<code>What command should be executed?</code>",
-               "what_raw_command": "<code>What raw MTProto command should be executed?</code>",
-               "bad_raw_command": "<code>Invalid MTProto function</code>"}
+               "what_account": "<b>What account and operation should be performed?</b>",
+               "bad_command": "<b>Invalid command</b>",
+               "bad_account": "<b>Invalid account</b>",
+               "what_client_command": "<b>What custom client command should be executed?</b>",
+               "bad_client_command": "<b>That custom client command does not exist!</b>",
+               "what_ftg_command": "<b>What command should be executed?</b>",
+               "what_raw_command": "<b>What raw MTProto command should be executed?</b>",
+               "bad_raw_command": "<b>Invalid MTProto function</b>"}
 
     def __init__(self):
         self.config = loader.ModuleConfig("ACCOUNT_NAME", None, lambda: self.strings["account_cfg_doc"])

@@ -34,17 +34,17 @@ def register(cb):
 class HelpMod(loader.Module):
     """Provides this help message"""
     strings = {"name": "Help",
-               "bad_module": "<code>Invalid module name specified</code>",
+               "bad_module": "<b>Invalid module name specified</b>",
                "single_mod_header": "<b>Help for</b> <code>{}</code>:",
                "single_cmd": "\n• <code>{}</code>\n",
                "undoc_cmd": "There is no documentation for this command",
-               "all_header": "Available Modules:",
+               "all_header": "<b>Available Modules:</b>",
                "mod_tmpl": "\n• <b>{}</b> ({})",
                "first_cmd_tmpl": "\n  <code>{}",
                "cmd_tmpl": ", {}",
                "footer": ("\n\nYou can <b>read more</b> about most commands "
                           "<a href='https://friendly-telegram.github.io'>here</a>"),
-               "joined": "<code>Joined to</code> <a href='https://t.me/friendlytgbot'>support chat</a>"}
+               "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support chat</a>"}
 
     def config_complete(self):
         self.name = self.strings["name"]

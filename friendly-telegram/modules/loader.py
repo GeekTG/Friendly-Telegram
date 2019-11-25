@@ -88,18 +88,18 @@ class LoaderMod(loader.Module):
     strings = {"name": "Loader",
                "repo_config_doc": "Fully qualified URL to a module repo",
                "avail_header": "<b>Available official modules from repo</b>",
-               "select_preset": "<code>Please select a preset</code>",
-               "no_preset": "<code>Preset not found</code>",
-               "preset_loaded": "<code>Preset loaded</code>",
-               "no_module": "<code>Module not available in repo.</code>",
-               "no_file": "<code>File not found</code>",
-               "provide_module": "<code>Provide a module to load</code>",
-               "bad_unicode": "<code>Invalid Unicode formatting in module</code>",
-               "load_failed": "<code>Loading failed. See logs for details</code>",
-               "loaded": "<code>Module loaded.</code>",
-               "no_class": "<code>What class needs to be unloaded?</code>",
-               "unloaded": "<code>Module unloaded.</code>",
-               "not_unloaded": "<code>Module not unloaded.</code>"}
+               "select_preset": "<b>Please select a preset</b>",
+               "no_preset": "<b>Preset not found</b>",
+               "preset_loaded": "<b>Preset loaded</b>",
+               "no_module": "<b>Module not available in repo.</b>",
+               "no_file": "<b>File not found</b>",
+               "provide_module": "<b>Provide a module to load</b>",
+               "bad_unicode": "<b>Invalid Unicode formatting in module</b>",
+               "load_failed": "<b>Loading failed. See logs for details</b>",
+               "loaded": "<b>Module loaded.</b>",
+               "no_class": "<b>What class needs to be unloaded?</b>",
+               "unloaded": "<b>Module unloaded.</b>",
+               "not_unloaded": "<b>Module not unloaded.</b>"}
 
     def __init__(self):
         super().__init__()

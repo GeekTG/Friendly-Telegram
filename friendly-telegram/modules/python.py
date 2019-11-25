@@ -38,9 +38,11 @@ def register(cb):
 class PythonMod(loader.Module):
     """Python stuff"""
     strings = {"name": "Python",
-               "evaluated": "Evaluated expression:\n<code>{}</code>\nReturn value:\n<code>{}</code>",
-               "evaluate_fail": "Failed to evaluate expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>",
-               "execute_fail": "Failed to execute expression:\n<code>{}</code>\n\nDue to:\n<code>{}</code>"}
+               "evaluated": "<b>Evaluated expression:</b>\n<code>{}</code>\n<b>Return value:</b>\n<code>{}</code>",
+               "evaluate_fail": ("<b>Failed to evaluate expression:</b>\n<code>{}</code>"
+                                 "\n\n<b>Due to</b>:\n<code>{}</code>"),
+               "execute_fail": ("<b>Failed to execute expression:</b>\n<code>{}</code>"
+                                "\n\n<b>Due to:</b>\n<code>{}</code>")}
 
     def config_complete(self):
         self.name = self.strings["name"]

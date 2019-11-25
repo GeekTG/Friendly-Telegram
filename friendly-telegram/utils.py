@@ -174,14 +174,14 @@ async def answer(message, response, **kwargs):
             _fix_entities(ent, cont_msg)
             ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
     elif isinstance(response, Message):
-        await message.edit("<code>Loading message...</code>")
+        await message.edit("<b>Loading message...</b>")
         ret = [await message.respond(response, **kwargs)]
         await message.delete()
     else:
         if message.media is not None:
             await message.edit(file=response, **kwargs)
         else:
-            await message.edit("<code>Loading media...</code>")
+            await message.edit("<b>Loading media...</b>")
             ret = [await message.client.send_file(message.chat_id, response,
                                                   reply_to=message.reply_to_msg_id, **kwargs)]
             await message.delete()

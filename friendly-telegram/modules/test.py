@@ -35,15 +35,15 @@ class TestMod(loader.Module):
     """Self-tests"""
     strings = {"name": "Tester",
                "pong": "Pong",
-               "bad_loglevel": ("<code>Invalid loglevel. Please refer to </code>"
+               "bad_loglevel": ("<b>Invalid loglevel. Please refer to </b>"
                                 "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
-                                "the docs</a><code>.</code>"),
-               "set_loglevel": "<code>Please specify verbosity as an integer or string</code>",
-               "uploading_logs": "<code>Uploading logs...</code>",
-               "no_logs": "<code>You don't have any logs at verbosity {}.</code>",
+                                "the docs</a><b>.</b>"),
+               "set_loglevel": "<b>Please specify verbosity as an integer or string</b>",
+               "uploading_logs": "<b>Uploading logs...</b>",
+               "no_logs": "<b>You don't have any logs at verbosity {}.</b>",
                "logs_filename": "ftg-logs.txt",
-               "logs_caption": "<code>friendly-telegram logs with verbosity {}",
-               "suspend_invalid_time": "<code>Invalid time to suspend</code>"}
+               "logs_caption": "friendly-telegram logs with verbosity {}",
+               "suspend_invalid_time": "<b>Invalid time to suspend</b>"}
 
     def config_complete(self):
         self.name = self.strings["name"]

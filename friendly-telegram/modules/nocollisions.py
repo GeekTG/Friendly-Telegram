@@ -34,7 +34,7 @@ def register(cb):
 class NoCollisionsMod(loader.Module):
     """Makes sure only 1 userbot is running at a time"""
     strings = {"name": "Anti-collisions",
-               "killed": "<code>All userbots killed</code>"}
+               "killed": "<b>All userbots killed</b>"}
 
     def config_complete(self):
         self.name = self.strings["name"]

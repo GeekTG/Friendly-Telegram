@@ -27,15 +27,18 @@ def register(cb):
 class CoreMod(loader.Module):
     """Control core userbot settings"""
     strings = {"name": "Settings",
-               "too_many_args": "<code>Too many args</code>",
-               "blacklisted": "<code>Chat {} blacklisted from userbot</code>",
-               "unblacklisted": "<code>Chat {} unblacklisted from userbot</code>",
-               "what_prefix": "<code>What should the prefix be set to?</code>",
-               "prefix_set": ("<b>Command prefix updated. Type </b><code>{newprefix}setprefix {oldprefix}"
-                              "</code><b> to change it back</b>"),
-               "alias_created": "Alias created. Access it with <code>{}</code>",
-               "no_command": "Command <code>{}</code> does not exist",
-               "alias_args": "You must provide a message and the alias for it"}
+               "too_many_args": "<b>Too many args</b>",
+               "blacklisted": "<b>Chat {} blacklisted from userbot</b>",
+               "unblacklisted": "<b>Chat {} unblacklisted from userbot</b>",
+               "what_prefix": "<b>What should the prefix be set to?</b>",
+               "prefix_set": ("<b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}"
+                              "</code> <b>to change it back</b>"),
+               "alias_created": "<b>Alias created. Access it with</b> <code>{}</code>",
+               "no_command": "<b>Command</b> <code>{}</code> <b>does not exist</b>",
+               "alias_args": "<b>You must provide a command and the alias for it</b>",
+               "delalias_args": "<b>You must provide the alias name</b>",
+               "alias_removed": "<b>Alias</b> <code>{}</code> <b>removed.",
+               "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>"}
 
     def config_complete(self):
         self.name = self.strings["name"]
@@ -97,6 +100,22 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings["alias_created"].format(utils.escape_html(alias)))
         else:
             await utils.answer(message, self.strings["no_command"].format(utils.escape_html(cmd)))
+
+    async def delaliascmd(self, message):
+        """Remove an alias for a command"""
+        args = utils.get_args(message)
+        if len(args) != 1:
+            await utils.answer(message, self.strings["delalias_args"])
+            return
+        alias = args[0]
+        ret = self.allmodules.remove_alias(alias)
+        if ret:
+            current = self._db.get(__name__, "aliases")
+            del current[alias]
+            self._db.set(__name__, "aliases", current)
+            await utils.answer(message, self.strings["alias_removed"].format(utils.escape_html(alias)))
+        else:
+            await utils.answer(message, self.strings["no_alias"].format(utils.escape_html(alias)))
 
     async def _client_ready2(self, client, db):
         ret = {}

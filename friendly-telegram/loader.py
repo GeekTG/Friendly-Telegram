@@ -248,6 +248,7 @@ class Modules():
                     mod.strings[key] = new
         if skip_hook:
             return
+        mod.babel = babel
         try:
             mod.config_complete()
         except Exception:

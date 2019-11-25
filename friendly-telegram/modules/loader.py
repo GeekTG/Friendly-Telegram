@@ -239,7 +239,7 @@ class LoaderMod(loader.Module):
 
     def register_and_configure(self, instance):
         self.allmodules.register_module(instance)
-        self.allmodules.send_config_one(instance, self._db)
+        self.allmodules.send_config_one(instance, self._db, self.babel)
         self._pending_setup.append(self.allmodules.send_ready_one(instance, self._client, self._db, self.allclients))
 
     async def unloadmodcmd(self, message):

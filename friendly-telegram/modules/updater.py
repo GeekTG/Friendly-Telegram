@@ -58,7 +58,7 @@ class UpdaterMod(loader.Module):
     def __init__(self):
         self.config = loader.ModuleConfig("GIT_ORIGIN_URL",
                                           "https://github.com/friendly-telegram/friendly-telegram",
-                                          lambda x: self.strings["origin_cfg_doc"])
+                                          lambda: self.strings["origin_cfg_doc"])
 
     def config_complete(self):
         self.name = self.strings["name"]

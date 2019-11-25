@@ -30,6 +30,7 @@ def register(cb):
     cb(NoCollisionsMod())
 
 
+@loader.tds
 class NoCollisionsMod(loader.Module):
     """Makes sure only 1 userbot is running at a time"""
     strings = {"name": "Anti-collisions",

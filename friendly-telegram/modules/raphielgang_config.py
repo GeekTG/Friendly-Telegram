@@ -29,6 +29,7 @@ def register(cb):
     cb(RaphielgangConfig())
 
 
+@loader.tds
 class RaphielgangConfig(loader.Module):
     """Stores configuration for Raphielgang modules"""
     strings = {"name": "Raphielgang Configuration Placeholder",

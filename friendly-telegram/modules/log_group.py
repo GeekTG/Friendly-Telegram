@@ -30,6 +30,7 @@ def register(cb):
     cb(LoggerMod())
 
 
+@loader.tds
 class LoggerMod(loader.Module):
     """Description for module"""
     strings = {"name": "Logger",

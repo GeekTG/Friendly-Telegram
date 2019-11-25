@@ -34,6 +34,7 @@ def register(cb):
     cb(PythonMod())
 
 
+@loader.tds
 class PythonMod(loader.Module):
     """Python stuff"""
     strings = {"name": "Python",

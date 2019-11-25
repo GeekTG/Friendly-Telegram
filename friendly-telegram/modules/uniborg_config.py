@@ -29,6 +29,7 @@ def register(cb):
     cb(UniborgConfig())
 
 
+@loader.tds
 class UniborgConfig(loader.Module):
     """Stores configuration for Uniborg modules"""
     strings = {"name": "Uniborg configuration placeholder",

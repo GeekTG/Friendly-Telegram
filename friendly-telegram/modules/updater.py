@@ -39,6 +39,7 @@ def register(cb):
     cb(UpdaterMod())
 
 
+@loader.tds
 class UpdaterMod(loader.Module):
     """Updates itself"""
     strings = {"name": "Updater",

@@ -266,13 +266,14 @@ class Modules():
     async def send_ready_one(self, mod, client, db, allclients, core=False):
         mod.allclients = allclients
         await mod.client_ready(client, db)
-        if core:
-            await mod._client_ready2(client, db)  # pylint: disable=W0212
         if not hasattr(mod, "commands"):
             mod.commands = get_commands(mod)
 
         self.register_commands(mod)
         self.register_watcher(mod)
+
+        if core:
+            await mod._client_ready2(client, db)  # pylint: disable=W0212
 
     def unload_module(self, classname):
         """Remove module and all stuff from it"""

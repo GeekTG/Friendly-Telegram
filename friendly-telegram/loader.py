@@ -260,6 +260,7 @@ class Modules():
         await self._compat_layer.client_ready(client)
         try:
             await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients, True) for mod in self.modules])
+            await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
         except Exception:
             logging.exception("Failed to send mod init complete signal")
 
@@ -271,9 +272,6 @@ class Modules():
 
         self.register_commands(mod)
         self.register_watcher(mod)
-
-        if core:
-            await mod._client_ready2(client, db)  # pylint: disable=W0212
 
     def unload_module(self, classname):
         """Remove module and all stuff from it"""

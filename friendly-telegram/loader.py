@@ -31,8 +31,6 @@ MODULES_NAME = "modules"
 
 
 def translateable_docstring(cls):
-    logging.debug("hello")
-
     @functools.wraps(cls.config_complete)
     def config_complete(self, *args, **kwargs):
         for command, func in get_commands(cls).items():

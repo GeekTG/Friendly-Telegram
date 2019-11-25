@@ -175,7 +175,7 @@ async def answer(message, response, **kwargs):
             ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
     elif isinstance(response, Message):
         await message.edit("<code>Loading message...</code>")
-        ret = [await message.respond(response)]
+        ret = [await message.respond(response, **kwargs)]
         await message.delete()
     else:
         if message.media is not None:

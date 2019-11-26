@@ -92,8 +92,8 @@ if [ ! x"$SUDO_USER" = x"" ]; then
   chown "$SUDO_USER:" ftg-install.log
 fi
 
-if [ ! x"" = x"$DYNO" ]; then
-  # We are running in a heroku dyno, time to get ugly!
+if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
+  # We are running in a heroku dyno without python, time to get ugly!
   runout git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
@@ -109,7 +109,8 @@ if [ -d "friendly-telegram/friendly-telegram" ]; then
   cd friendly-telegram || { endspin "Failed to chdir"; exit 6; }
   DIR_CHANGED="yes"
 fi
-if [ -f ".setup_complete" ]; then
+if [ -f ".setup_complete" ] || [ -f "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
+  # If ftg is already installed by this script, or its in Heroku and installed
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
     PYVER="3"

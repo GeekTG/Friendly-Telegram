@@ -109,7 +109,7 @@ if [ -d "friendly-telegram/friendly-telegram" ]; then
   cd friendly-telegram || { endspin "Failed to chdir"; exit 6; }
   DIR_CHANGED="yes"
 fi
-if [ -f ".setup_complete" ] || [ -f "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
+if [ -f ".setup_complete" ] || [ -d "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
   # If ftg is already installed by this script, or its in Heroku and installed
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then

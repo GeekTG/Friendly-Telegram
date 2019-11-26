@@ -41,6 +41,8 @@ class UniborgClient(MarkdownBotPassthrough):
             super().__init__()
             self._borg = borg
             self.commands = borg._commands
+            for func in self.commands.values():
+                func.__self__ = self
             self.name = "UniBorg" + str(self._borg.instance_id)
             self.__module__ = borg._module
             self._client = None

@@ -306,6 +306,8 @@ class RaphielgangEvents():
                 self.instance_id = inspect.getmro(type(self))[1].instance_count  # pylint: disable=E1101 # See above
                 self._events = events_instance
                 self.commands = events_instance.commands
+                for func in self.commands.values():
+                    func.__self__ = self
                 self.name = "RaphielGang" + str(self.instance_id)
                 self.unknowns = events_instance.unknowns
                 self.__module__ = events_instance.module

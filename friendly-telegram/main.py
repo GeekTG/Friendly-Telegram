@@ -105,7 +105,10 @@ async def handle_command(modules, db, event):
         return
     message = utils.censor(event.message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    if utils.get_chat_id(message) in blacklist_chats or message.from_id is None:
+    whitelist_chats = db.get(__name__, "whitelist_chats", [])
+    whitelist_modules = db.get(__name__, "whitelist_modules", [])
+    if utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and utils.get_chat_id(message) not in
+                                                         whitelist_chats) or message.from_id is None:
         logging.debug("Message is blacklisted")
         return
     if len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
@@ -124,10 +127,18 @@ async def handle_command(modules, db, event):
         return  # Message is just the prefix
     command = message.message.split(maxsplit=1)[0]
     logging.debug(command)
-    coro = modules.dispatch(command, message)  # modules.dispatch is not a coro, but returns one
-    if coro is not None:
+    txt, func = modules.dispatch(command, message)
+    message.message = txt + message.message[len(command):]
+    if func is not None:
+        if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
+            logging.debug("Command is blacklisted in chat")
+            return
+        if whitelist_modules and not (str(utils.get_chat_id(message)) + "."
+                                      + func.__self__.__module__ in whitelist_modules):
+            logging.debug("Command is not whitelisted in chat")
+            return
         try:
-            await coro
+            await func(message)
         except Exception as e:
             logging.exception("Command failed")
             try:
@@ -142,14 +153,23 @@ async def handle_incoming(modules, db, event):
     """Handle all incoming messages"""
     logging.debug("Incoming message!")
     message = utils.censor(event.message)
-    logging.debug(message)
     blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    if utils.get_chat_id(message) in blacklist_chats:
+    whitelist_chats = db.get(__name__, "whitelist_chats", [])
+    whitelist_modules = db.get(__name__, "whitelist_modules", [])
+    if utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and utils.get_chat_id(message) not in
+                                                         whitelist_chats) or message.from_id is None:
         logging.debug("Message is blacklisted")
         return
-    for fun in modules.watchers:
+    for func in modules.watchers:
+        if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
+            logging.debug("Command is blacklisted in chat")
+            return
+        if whitelist_modules and not (str(utils.get_chat_id(message)) + "."
+                                      + func.__self__.__module__ in whitelist_modules):
+            logging.debug("Command is not whitelisted in chat")
+            return
         try:
-            await fun(message)
+            await func(message)
         except Exception:
             logging.exception("Error running watcher")
 

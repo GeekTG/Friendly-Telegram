@@ -48,33 +48,37 @@ class CoreMod(loader.Module):
 
     async def blacklistcommon(self, message):
         args = utils.get_args(message)
-        if len(args) > 1:
+        if len(args) > 2:
             await utils.answer(message, self.strings["too_many_args"])
             return
-        id = None
-        if len(args) == 1:
+        chatid = None
+        module = None
+        if len(args) >= 1:
             try:
-                id = int(args[0])
+                chatid = int(args[0])
             except ValueError:
-                pass
-        if id is None:
-            id = utils.get_chat_id(message)
-        return id
+                module = args[0]
+        if len(args) == 2:
+            module = args[1]
+        if chatid is None:
+            chatid = utils.get_chat_id(message)
+        module = self.allmodules.get_classname(module)
+        return str(chatid) + "." + module if module else chatid
 
     async def blacklistcmd(self, message):
         """.blacklist [id]
            Blacklist the bot from operating somewhere"""
-        id = await self.blacklistcommon(message)
-        self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [id])
-        await utils.answer(message, self.strings["blacklisted"].format(id))
+        chatid = await self.blacklistcommon(message)
+        self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [chatid])
+        await utils.answer(message, self.strings["blacklisted"].format(chatid))
 
     async def unblacklistcmd(self, message):
         """.unblacklist [id]
            Unblacklist the bot from operating somewhere"""
-        id = await self.blacklistcommon(message)
+        chatid = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats",
-                     list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([id])))
-        await utils.answer(message, self.strings["unblacklisted"].format(id))
+                     list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])))
+        await utils.answer(message, self.strings["unblacklisted"].format(chatid))
 
     async def setprefixcmd(self, message):
         """Sets command prefix"""

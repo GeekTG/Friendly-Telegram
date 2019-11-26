@@ -202,22 +202,14 @@ class Modules():
 
     def dispatch(self, command, message):
         """Dispatch command to appropriate module"""
-        logging.debug(self.commands)
-        logging.debug(self.aliases)
-        for com in self.commands:
-            if command.lower() == com:
-                logging.debug("found command")
-                return self.commands[com](message)  # Returns a coroutine
-        for alias in self.aliases:
-            if alias.lower() == command.lower():
-                logging.debug("found alias")
-                com = self.aliases[alias]
-                try:
-                    message.message = com + message.message[len(command):]
-                    return self.commands[com](message)
-                except KeyError:
-                    logging.warning("invalid alias")
-        return None
+        try:
+            return command, self.commands[command]
+        except KeyError:
+            try:
+                cmd = self.aliases[command]
+                return cmd, self.commands[cmd]
+            except KeyError:
+                return command, None
 
     def send_config(self, db, babel, skip_hook=False):
         """Configure modules"""
@@ -273,6 +265,12 @@ class Modules():
         self.register_commands(mod)
         self.register_watcher(mod)
 
+    def get_classname(self, name):
+        for module in reversed(self.modules):
+            if name in (module.name, module.__class__.__module__):
+                return module.__class__.__module__
+        return name
+
     def unload_module(self, classname):
         """Remove module and all stuff from it"""
         worked = []
@@ -305,13 +303,13 @@ class Modules():
         """Make an alias"""
         if cmd not in self.commands.keys():
             return False
-        self.aliases[alias] = cmd
+        self.aliases[alias.lower().strip()] = cmd
         return True
 
     def remove_alias(self, alias):
         """Remove an alias"""
         try:
-            del self.aliases[alias]
+            del self.aliases[alias.lower().strip()]
         except KeyError:
             return False
         return True

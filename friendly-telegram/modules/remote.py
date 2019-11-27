@@ -128,7 +128,8 @@ class RemoteMod(loader.Module):
         logger.debug(args)
         message.message = " ".join(args[1:])
         msg = await message.client.send_message(args[0], message)
-        await load.dispatch(args[1], msg)
+        msg.message, func = load.dispatch(msg.message)
+        await func(msg)
 
     async def raw_command(self, client, args, message):
         if len(args) < 1:

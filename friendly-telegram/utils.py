@@ -58,7 +58,7 @@ def get_args_split_by(message, sep):
     """Split args with a specific sep"""
     raw = get_args_raw(message)
     mess = raw.split(sep)
-    return [section.strip() for section in mess]
+    return [section.strip() for section in mess if section]
 
 
 def get_chat_id(message):

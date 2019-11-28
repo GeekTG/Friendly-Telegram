@@ -200,7 +200,7 @@ class Modules():
                 self.modules.remove(module)
         self.modules += [instance]
 
-    def dispatch(self, command, message):
+    def dispatch(self, command):
         """Dispatch command to appropriate module"""
         try:
             return command, self.commands[command]

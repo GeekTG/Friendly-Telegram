@@ -127,7 +127,7 @@ async def handle_command(modules, db, event):
         return  # Message is just the prefix
     command = message.message.split(maxsplit=1)[0]
     logging.debug(command)
-    txt, func = modules.dispatch(command, message)
+    txt, func = modules.dispatch(command)
     message.message = txt + message.message[len(command):]
     if func is not None:
         if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:

@@ -168,8 +168,7 @@ class Modules():
                         instance.commands[command].__self__.__class__.__name__ \
                         != self.commands[command].__self__.__class__.__name__:
                     logging.error("Duplicate command %s", command)
-                    continue
-                logging.debug("Replacing command for update %r", self.commands[command])
+                logging.debug("Replacing command for %r", self.commands[command])
             if not instance.commands[command].__doc__:
                 logging.warning("Missing docs for %s", command)
             self.commands.update({command.lower(): instance.commands[command]})

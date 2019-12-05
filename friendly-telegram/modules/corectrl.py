@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .. import loader, main, utils
+import telethon
 
 
 def register(cb):
@@ -38,13 +39,17 @@ class CoreMod(loader.Module):
                "alias_args": "<b>You must provide a command and the alias for it</b>",
                "delalias_args": "<b>You must provide the alias name</b>",
                "alias_removed": "<b>Alias</b> <code>{}</code> <b>removed.",
-               "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>"}
+               "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>",
+               "no_pack": "<b>What translation pack should be added?</b>",
+               "bad_pack": "<b>Invalid translation pack specified</b>",
+               "trnsl_saved": "<b>Translation pack added</b>"}
 
     def config_complete(self):
         self.name = self.strings["name"]
 
     async def client_ready(self, client, db):
         self._db = db
+        self._client = client
 
     async def blacklistcommon(self, message):
         args = utils.get_args(message)
@@ -120,6 +125,31 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings["alias_removed"].format(utils.escape_html(alias)))
         else:
             await utils.answer(message, self.strings["no_alias"].format(utils.escape_html(alias)))
+
+    async def addtrnslcmd(self, message):
+        """Add a translation pack
+           .addtrnsl <pack>
+           Restart required after use"""
+        args = utils.get_args(message)
+        if len(args) != 1:
+            await utils.answer(message, self.strings["no_pack"])
+            return
+        pack = args[0]
+        try:
+            pack = int(pack)
+        except ValueError:
+            pass
+        try:
+            pack = await self._client.get_entity(pack)
+        except ValueError:
+            await utils.answer(message, self.strings["bad_pack"])
+            return
+        if isinstance(pack, telethon.tl.types.Channel) and not pack.megagroup:
+            self._db[main.__name__]["langpacks"].append(pack.id)
+            self._db.save()
+            await utils.answer(message, self.strings["trnsl_saved"])
+        else:
+            await utils.answer(message, self.strings["bad_pack"])
 
     async def _client_ready2(self, client, db):
         ret = {}

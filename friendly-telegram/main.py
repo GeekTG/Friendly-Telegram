@@ -260,7 +260,26 @@ def main():
                 return
             clients[-1].phone = phone  # for consistency
     if len(clients) == 0 and len(phones) == 0:
-        phones = [input("Please enter your phone: ")]
+        try:
+            phones = [input("Please enter your phone: ")]
+        except EOFError:
+            print()
+            print("=" * 30)
+            print()
+            print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
+            print()
+            print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
+            print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
+            print()
+            print("In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!")
+            print("You should remove the forked repo, and read https://friendly-telegram.github.io")
+            print()
+            print("If you're not using heroku, then you are using a non-interactive prompt but "
+                  "you have not got a session configured, meaning authentication to Telegram is impossible.")
+            print()
+            print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
+            print("Goodbye.")
+            sys.exit(1)
     for phone in phones:
         try:
             clients += [TelegramClient(StringSession() if arguments.heroku else

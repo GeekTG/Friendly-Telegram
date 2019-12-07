@@ -145,7 +145,7 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings["bad_pack"])
             return
         if isinstance(pack, telethon.tl.types.Channel) and not pack.megagroup:
-            self._db[main.__name__]["langpacks"].append(pack.id)
+            self._db.setdefault(main.__name__, {}).setdefault("langpacks", []).append(pack.id)
             self._db.save()
             await utils.answer(message, self.strings["trnsl_saved"])
         else:

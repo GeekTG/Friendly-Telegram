@@ -53,12 +53,14 @@ class UpdaterMod(loader.Module):
                "success": "<b>Restart successful!</b>",
                "success_meme": "<b>Restart failed successfully‽",
                "heroku_warning": ("Heroku API key has not been set. Update was successful but updates will "
-                                  "reset every time the bot restarts.")}
+                                  "reset every time the bot restarts."),
+               "audio_cfg_doc": "Whether Windows XP sounds should be played during restart"}
 
     def __init__(self):
         self.config = loader.ModuleConfig("GIT_ORIGIN_URL",
                                           "https://github.com/friendly-telegram/friendly-telegram",
-                                          lambda: self.strings["origin_cfg_doc"])
+                                          lambda: self.strings["origin_cfg_doc"],
+                                          "AUDIO", True, lambda: self.strings["audio_cfg_doc"])
 
     def config_complete(self):
         self.name = self.strings["name"]
@@ -67,8 +69,12 @@ class UpdaterMod(loader.Module):
         """Restarts the userbot"""
         logger.debug(self._me)
         logger.debug(self.allclients)
-        await self.restart_common((await utils.answer(message, SHUTDOWN, voice_note=True,
-                                                      caption=self.strings["restarting_caption"]))[0])
+        if self.config["AUDIO"]:
+            msg = (await utils.answer(message, SHUTDOWN, voice_note=True,
+                                      caption=self.strings["restarting_caption"]))[0]
+        else:
+            msg = (await utils.answer(message, self.strings["restarting_caption"]))[0]
+        await self.restart_common(msg)
 
     async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
@@ -133,8 +139,11 @@ class UpdaterMod(loader.Module):
         # We don't really care about asyncio at this point, as we are shutting down
         msgs = await utils.answer(message, self.strings["downloading"])
         req_update = await self.download_common()
-        message = await message.client.send_file(message.chat_id, SHUTDOWN,
-                                                 caption=self.strings["installing"], voice_note=True)
+        if self.config["AUDIO"]:
+            message = await message.client.send_file(message.chat_id, SHUTDOWN,
+                                                     caption=self.strings["installing"], voice_note=True)
+        else:
+            message = (await utils.answer(message, self.strings["installing"]))[0]
         await asyncio.gather(*[msg.delete() for msg in msgs])
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
@@ -145,9 +154,12 @@ class UpdaterMod(loader.Module):
             # So this only happens when remote is already up to date (remote is heroku, where we are running)
             self._db.set(__name__, "selfupdatechat", None)
             self._db.set(__name__, "selfupdatemsg", None)
-            await message.client.send_file(message.chat_id, STARTUP, voice_note=True,
-                                           caption=self.strings["already_updated"])
-            await message.delete()
+            if self.config["AUDIO"]:
+                await message.client.send_file(message.chat_id, STARTUP, voice_note=True,
+                                               caption=self.strings["already_updated"])
+                await message.delete()
+            else:
+                await utils.answer(message, self.strings["already_updated"])
         else:
             if req_update:
                 self.req_common()
@@ -171,9 +183,13 @@ class UpdaterMod(loader.Module):
         else:
             logger.debug("Self update successful! Edit message")
             msg = self.strings["success"] if random.randint(0, 10) != 0 else self.strings["success_meme"]
-        await client.send_file(self._db.get(__name__, "selfupdatechat"), STARTUP, caption=msg, voice_note=True)
-        await client.delete_messages(self._db.get(__name__, "selfupdatechat"),
-                                     [self._db.get(__name__, "selfupdatemsg")])
+        if self.config["AUDIO"]:
+            await client.send_file(self._db.get(__name__, "selfupdatechat"), STARTUP, caption=msg, voice_note=True)
+            await client.delete_messages(self._db.get(__name__, "selfupdatechat"),
+                                         [self._db.get(__name__, "selfupdatemsg")])
+        else:
+            await client.edit_message(self._db.get(__name__, "selfupdatechat"),
+                                      self._db.get(__name__, "selfupdatemsg"), msg)
 
 
 def restart(*args):

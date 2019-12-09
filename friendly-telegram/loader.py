@@ -232,7 +232,7 @@ class Modules():
                         logging.debug("No config value for %s", conf)
                         mod.config[conf] = mod.config.getdef(conf)
             logging.debug(mod.config)
-        if hasattr(mod, "strings"):
+        if hasattr(mod, "strings") and babel is not None:
             for key, value in mod.strings.items():
                 new = babel.getkey(mod.__module__ + "." + key)
                 if new is not False:

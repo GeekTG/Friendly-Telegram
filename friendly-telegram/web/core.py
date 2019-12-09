@@ -125,7 +125,7 @@ class Web:
                 del self.client_data[uid][2].setdefault(mod.__module__, {}).setdefault("__config__", {})[key]
             except KeyError:
                 pass
-        self.client_data[uid][0].send_config_one(mod, self.client_data[uid][2], True)
+        self.client_data[uid][0].send_config_one(mod, self.client_data[uid][2], skip_hook=True)
         self.client_data[uid][2].save()
         return web.Response()
 

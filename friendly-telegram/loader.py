@@ -202,11 +202,11 @@ class Modules():
     def dispatch(self, command):
         """Dispatch command to appropriate module"""
         try:
-            return command, self.commands[command]
+            return command, self.commands[command.lower()]
         except KeyError:
             try:
-                cmd = self.aliases[command]
-                return cmd, self.commands[cmd]
+                cmd = self.aliases[command.lower()]
+                return cmd, self.commands[cmd.lower()]
             except KeyError:
                 return command, None
 

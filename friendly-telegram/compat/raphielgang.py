@@ -307,7 +307,10 @@ class RaphielgangEvents():
                 self._events = events_instance
                 self.commands = events_instance.commands
                 for func in self.commands.values():
-                    func.__self__ = self
+                    if hasattr(func, "__self__"):
+                        func.__self__.__module__ = events_instance.module
+                    else:
+                        func.__self__ = self
                 self.name = "RaphielGang" + str(self.instance_id)
                 self.unknowns = events_instance.unknowns
                 self.__module__ = events_instance.module

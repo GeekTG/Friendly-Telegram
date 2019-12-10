@@ -15,6 +15,8 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
+import functools
+import inspect
 
 from telethon.extensions import markdown
 
@@ -57,73 +59,108 @@ class MarkdownBotPassthrough():
     def __init__(self, under):
         self.__under = under
 
-    async def __edit(self, *args, **kwargs):
-        if "parse_mode" not in kwargs:
-            logger.debug("Forcing markdown for edit")
-            kwargs.update(parse_mode="Markdown")
-        return type(self)(await self.__under.edit(*args, **kwargs))
+    def __function(self, func, *args, **kwargs):
+        for i, arg in enumerate(args):
+            if isinstance(arg, type(self)):
+                args[i] = arg.__under
+        for key, arg in kwargs.items():
+            if isinstance(arg, type(self)):
+                kwargs[key] = arg.__under
+        kwargs["parse_mode"] = "markdown"
+        try:
+            ret = func(*args, **kwargs)
+        except TypeError:
+            del kwargs["parse_mode"]
+            ret = func(*args, **kwargs)
+        return self.__convert(ret)
 
-    async def __send_message(self, *args, **kwargs):
-        if "parse_mode" not in kwargs:
-            logger.debug("Forcing markdown for send_message")
-            kwargs.update(parse_mode="Markdown")
-        return type(self)(await self.__under.send_message(*args, **kwargs))
+    def __convert(self, ret):
+        if inspect.isawaitable(ret):
+            async def wrapper():
+                return self.__convert(await ret)
+            return wrapper()
+        if isinstance(ret, list):
+            for i, thing in enumerate(ret):
+                ret[i] = self.__convert(thing)
+        elif ret.__class__.__module__.startswith("telethon"):
+            ret = MarkdownBotPassthrough(ret)
+            if hasattr(ret, "text"):
+                logger.debug("%r(%s) %r(%s)", ret.entities, type(ret.entities), ret.message, type(ret.message))
+                ret.text = markdown.unparse(ret.message, ret.entities)
+        return ret
 
-    async def __reply(self, *args, **kwargs):
-        if "parse_mode" not in kwargs:
-            logger.debug("Forcing markdown for send_message")
-            kwargs.update(parse_mode="Markdown")
-        return type(self)(await self.__under.reply(*args, **kwargs))
+    def __del__(self):
+        del self.__under
 
-    async def __respond(self, *args, **kwargs):
-        if "parse_mode" not in kwargs:
-            logger.debug("Forcing markdown for send_message")
-            kwargs.update(parse_mode="Markdown")
-        return type(self)(await self.__under.respond(*args, **kwargs))
+    def __repr__(self):
+        return repr(self.__under)
 
-    async def __send_file(self, *args, **kwargs):
-        if "parse_mode" not in kwargs:
-            logger.debug("Forcing markdown for send_file")
-            kwargs.update(parse_mode="Markdown")
-        return type(self)(await self.__under.send_message(*args, **kwargs))
+    def __str__(self):
+        return str(self.__under)
 
-    async def __get_reply_message(self, *args, **kwargs):
-        ret = await self.__under.get_reply_message(*args, **kwargs)
-        if ret is not None:
-            ret.text = markdown.unparse(ret.message, ret.entities)
-        return type(self)(ret)
+    def __bytes__(self):
+        return bytes(self.__under)
 
-    async def __download_media(self, *args, **kwargs):
-        args = list(args)
-        for arg in range(len(args)):
-            if isinstance(args[arg], type(self)):
-                args[arg] = args[arg].__under
-        for arg in kwargs:
-            if isinstance(kwargs[arg], type(self)):
-                kwargs[arg] = kwargs[arg].__under
-        return await self.__under.download_media(*args, **kwargs)
+    def __format__(self):
+        return format(self.__under)
+
+    def __hash__(self):
+        return hash(self.__under)
+
+    def __bool__(self):
+        return bool(self.__under)
+
+    def __dir__(self):
+        return dir(self.__under)
+
+    def __call__(self, *args, **kwargs):
+        return self.__under(*args, **kwargs)
+
+    def __len__(self):
+        return len(self.__under)
+
+    def __iter__(self):
+        return iter(self.__under)
+
+    def __reversed__(self):
+        return reversed(self.__under)
+
+    def __contains__(self, other):
+        return other in self.__under
+
+    def __enter__(self, *args, **kwargs):
+        try:
+            return self.__under.__enter__(*args, **kwargs)
+        except AttributeError:
+            return super().__enter__(*args, **kwargs)
+
+    def __exit__(self, *args, **kwargs):
+        try:
+            return self.__under.__exit__(*args, **kwargs)
+        except AttributeError:
+            return super().__exit__(*args, **kwargs)
+
+    def __aenter__(self, *args, **kwargs):
+        try:
+            return self.__under.__aenter__(*args, **kwargs)
+        except AttributeError:
+            return super().__aenter__(*args, **kwargs)
+
+    def __aexit__(self, *args, **kwargs):
+        try:
+            return self.__under.__aexit__(*args, **kwargs)
+        except AttributeError:
+            return super().__aexit__(*args, **kwargs)
 
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
-        if name == "edit":
-            return self.__edit
-        if name == "send_message":
-            return self.__send_message
-        if name == "reply":
-            return self.__reply
-        if name == "respond":
-            return self.__respond
-        if name == "get_reply_message":
-            return self.__get_reply_message
-        if name == "download_media":
-            return self.__download_media
-        if name == "client":
-            return type(self)(self.__under.client)  # Recurse
-        return getattr(self.__under, name)
+        ret = getattr(self.__under, name)
+        if callable(ret):
+            ret = functools.partial(self.__function, ret)
+        else:
+            ret = self.__convert(ret)
+        return ret
 
     def __setattr__(self, name, value):
         self.__dict__[name] = value
-
-    def __call__(self, *args, **kwargs):
-        return self.__under.__call__(*args, **kwargs)

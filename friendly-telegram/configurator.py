@@ -60,10 +60,14 @@ class TDialog():
     OK = True
     NOT_OK = False
 
+    def __init__(self):
+        self._title = ""
+
     # Similar interface to pythondialog
     def menu(self, title, choices):
         """Print a menu and get a choice"""
 
+        print(self._title)
         print()
         print()
         print(title)
@@ -88,6 +92,7 @@ class TDialog():
     def inputbox(self, query):
         """Get a text input of the query"""
 
+        print(self._title)
         print()
         print()
         print(query)
@@ -100,23 +105,27 @@ class TDialog():
     def msgbox(self, msg):
         """Print some info"""
 
+        print(self._title)
         print()
         print()
         print(msg)
         return self.OK
 
     def set_background_title(self, title):
-        """Do nothing"""
+        """Set the internal variable"""
+        self._title = title
 
     def yesno(self, question):
         """Ask yes or no, default to no"""
+        print(self._title)
+        print()
         return self.OK if (_safe_input(question + " (y/N): ") or "").lower() == "y" else self.NOT_OK
 
 
 TITLE = ""
 
 try:
-    DIALOG = Dialog(dialog="dialo", autowidgetsize=True)
+    DIALOG = Dialog(dialog="dialog", autowidgetsize=True)
     locale.setlocale(locale.LC_ALL, "")
 except (ExecutableNotFound, locale.Error):
     # Fall back to a terminal based configurator.

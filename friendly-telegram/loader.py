@@ -233,6 +233,7 @@ class Modules():
                         mod.config[conf] = mod.config.getdef(conf)
             logging.debug(mod.config)
         if hasattr(mod, "strings") and babel is not None:
+            mod.strings = mod.strings.copy()  # For users with many accounts with diff. translations
             for key, value in mod.strings.items():
                 new = babel.getkey(mod.__module__ + "." + key)
                 if new is not False:

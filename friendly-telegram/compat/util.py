@@ -60,6 +60,8 @@ class MarkdownBotPassthrough():
         self.__under = under
 
     def __function(self, func, *args, **kwargs):
+        args = list(args)
+        kwargs = dict(kwargs)
         for i, arg in enumerate(args):
             if isinstance(arg, type(self)):
                 args[i] = arg.__under

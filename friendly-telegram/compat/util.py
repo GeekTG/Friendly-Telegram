@@ -116,7 +116,7 @@ class MarkdownBotPassthrough():
         return dir(self.__under)
 
     def __call__(self, *args, **kwargs):
-        return self.__under(*args, **kwargs)
+        return self.__function(self.__under, *args, **kwargs)
 
     def __len__(self):
         return len(self.__under)
@@ -158,7 +158,7 @@ class MarkdownBotPassthrough():
         if name in self.__dict__:
             return self.__dict__[name]
         ret = getattr(self.__under, name)
-        if callable(ret):
+        if inspect.isfunction(ret):
             ret = functools.partial(self.__function, ret)
         else:
             ret = self.__convert(ret)

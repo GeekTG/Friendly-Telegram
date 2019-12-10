@@ -77,7 +77,7 @@ class MarkdownBotPassthrough():
         return self.__convert(ret)
 
     def __convert(self, ret):
-        if inspect.isawaitable(ret):
+        if inspect.iscoroutine(ret):
             async def wrapper():
                 return self.__convert(await ret)
             return wrapper()

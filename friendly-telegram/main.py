@@ -144,9 +144,9 @@ async def handle_command(modules, db, event):
         except Exception as e:
             logging.exception("Command failed")
             try:
-                await message.edit("<code>Request failed! Request was " + message.message
-                                   + ". Please report it in the support group (`.support`) "
-                                   + "with the logs (`.logs error`)</code>")
+                await message.edit("<b>Request failed! Request was</b> <code>" + utils.escape_html(message.message)
+                                   + "</code><b>. Please report it in the support group (</b><code>{0}support</code>"
+                                   "<b>) along with the logs (</b><code>{0}logs error</code><b>)</b>".format(prefix))
             finally:
                 raise e
 
@@ -191,6 +191,7 @@ def parse_arguments():
     parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
+    parser.add_argument("--no-web", dest="web", action="store_false")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -311,7 +312,7 @@ def main():
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         return
 
-    web = core.Web()
+    web = core.Web() if arguments.web else None
 
     loops = [amain(client, clients, web, arguments) for client in clients]
 
@@ -377,6 +378,7 @@ async def amain(client, allclients, web, arguments):
             client.add_event_handler(functools.partial(handle_command, modules, db),
                                      events.NewMessage(outgoing=True, forwards=False))
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
-        await web.add_loader(client, modules, db)
-        await web.start_if_ready(len(allclients))
+        if web:
+            await web.add_loader(client, modules, db)
+            await web.start_if_ready(len(allclients))
         await client.run_until_disconnected()

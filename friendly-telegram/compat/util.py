@@ -29,14 +29,14 @@ def get_cmd_name(pattern):
     """Get the first word out of a regex, hoping that it is easy to parse"""
     # Find command string: ugly af :)
     logger.debug(pattern)
-    if pattern == "(?i)":
+    if pattern.startswith("(?i)"):
         pattern = pattern[4:]
-    if pattern[0] == "^":
+    if pattern.startswith("^"):
         pattern = pattern[1:]
-    if pattern[0] == ".":
+    if pattern.startswith("."):
         # That seems to be the normal command prefix
         pattern = pattern[1:]
-    elif pattern[:2] == r"\.":
+    elif pattern.startswith(r"\."):
         # That seems to be the normal command prefix
         pattern = pattern[2:]
     else:
@@ -68,7 +68,7 @@ class MarkdownBotPassthrough():
         for key, arg in kwargs.items():
             if isinstance(arg, type(self)):
                 kwargs[key] = arg.__under
-        kwargs["parse_mode"] = "markdown"
+        kwargs.setdefault("parse_mode", "markdown")
         try:
             ret = func(*args, **kwargs)
         except TypeError:
@@ -84,11 +84,12 @@ class MarkdownBotPassthrough():
         if isinstance(ret, list):
             for i, thing in enumerate(ret):
                 ret[i] = self.__convert(thing)
-        elif ret.__class__.__module__.startswith("telethon"):
+        elif getattr(getattr(getattr(ret, "__self__", ret),
+                             "__class__", None), "__module__", "").startswith("telethon"):
             ret = MarkdownBotPassthrough(ret)
             if hasattr(ret, "text"):
                 logger.debug("%r(%s) %r(%s)", ret.entities, type(ret.entities), ret.message, type(ret.message))
-                ret.text = markdown.unparse(ret.message, ret.entities)
+                ret.text = markdown.unparse(ret.message, [x.__under for x in ret.entities or []])
         return ret
 
     def __del__(self):

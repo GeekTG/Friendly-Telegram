@@ -372,7 +372,7 @@ class RaphielgangEvents():
                             event = MarkdownBotPassthrough(message)
                             # Try to emulate the expected format for an event
                             event.pattern_match = match
-                            event.message = MarkdownBotPassthrough(message)
+                            event.message = message
                             return func(event)  # Return a coroutine
                         else:
                             logger.debug("but not matched " + message.message + " / " + kwargs.get("pattern", "None"))

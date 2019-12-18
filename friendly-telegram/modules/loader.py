@@ -149,7 +149,7 @@ class LoaderMod(loader.Module):
 
     async def get_repo_list(self, preset=None):
         if preset is None:
-            preset = "full"
+            preset = "minimal"
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()
         return set(filter(lambda x: x, r.text.split("\n")))

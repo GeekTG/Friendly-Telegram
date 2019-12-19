@@ -155,6 +155,18 @@ class MarkdownBotPassthrough():
         except AttributeError:
             return super().__aexit__(*args, **kwargs)
 
+    def __aiter__(self, *args, **kwargs):
+        try:
+            return self.__under.__aiter__(*args, **kwargs)
+        except AttributeError:
+            return super().__aiter__(*args, **kwargs)
+
+    def __iter__(self, *args, **kwargs):
+        try:
+            return self.__under.__iter__(*args, **kwargs)
+        except AttributeError:
+            return super().__iter__(*args, **kwargs)
+
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]

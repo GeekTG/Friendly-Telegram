@@ -258,7 +258,10 @@ class Modules():
 
     async def send_ready_one(self, mod, client, db, allclients, core=False):
         mod.allclients = allclients
-        await mod.client_ready(client, db)
+        try:
+            await mod.client_ready(client, db)
+        except Exception:
+            logging.exception("Failed to send mod init complete signal for %r", mod)
         if not hasattr(mod, "commands"):
             mod.commands = get_commands(mod)
 

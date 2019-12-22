@@ -15,7 +15,6 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import functools
 import inspect
 
 from telethon.extensions import markdown
@@ -74,6 +73,16 @@ class MarkdownBotPassthrough():
         except TypeError:
             del kwargs["parse_mode"]
             ret = func(*args, **kwargs)
+        else:
+            if inspect.iscoroutine(ret):
+                async def wrapper():
+                    try:
+                        ret2 = await ret
+                    except TypeError:
+                        del kwargs["parse_mode"]
+                        ret2 = await func(*args, **kwargs)
+                    return self.__convert(ret2)
+                return wrapper()
         return self.__convert(ret)
 
     def __convert(self, ret):
@@ -164,12 +173,7 @@ class MarkdownBotPassthrough():
     def __getattr__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
-        ret = getattr(self.__under, name)
-        if inspect.isfunction(ret):
-            ret = functools.partial(self.__function, ret)
-        else:
-            ret = self.__convert(ret)
-        return ret
+        return self.__convert(getattr(self.__under, name))
 
     def __setattr__(self, name, value):
         self.__dict__[name] = value

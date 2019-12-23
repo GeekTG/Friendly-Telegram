@@ -38,7 +38,15 @@ from . import utils, loader
 
 from .database import backend, local_backend, frontend
 from .translations.core import Translator
-from .web import core
+
+try:
+    from .web import core
+except ImportError:
+    web_available = False
+    logging.error("Unable to import web")
+else:
+    web_available = True
+
 
 importlib.import_module(".modules", __package__)  # Required on 3.5 only
 
@@ -312,7 +320,10 @@ def main():
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         return
 
-    web = core.Web() if arguments.web else None
+    if web_available:
+        web = core.Web() if arguments.web else None
+    else:
+        web = None
 
     loops = [amain(client, clients, web, arguments) for client in clients]
 

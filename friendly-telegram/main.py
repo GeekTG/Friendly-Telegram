@@ -26,6 +26,7 @@ import functools
 import collections
 import sqlite3
 import importlib
+import signal
 import shlex
 
 from telethon import TelegramClient, events
@@ -201,6 +202,7 @@ def parse_arguments():
     parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
     parser.add_argument("--no-web", dest="web", action="store_false")
+    parser.add_argument("--heroku-web-internal", dest="heroku_web_internal", action="store_true", help="This is for internal use only. If you use it, things will go wrong.")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -250,6 +252,11 @@ def get_api_token():
                 return api_token
         else:
             return api_token
+
+
+def sigterm(signum, handler):
+    # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
+    sys.exit(143)  # SIGTERM + 128
 
 
 def main():
@@ -321,9 +328,14 @@ def main():
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         return
 
+    if arguments.heroku_web_internal:
+        signal.signal(signal.SIGTERM, sigterm)
+
     if web_available:
         web = core.Web() if arguments.web else None
     else:
+        if arguments.heroku_web_internal:
+            raise RuntimeError("Web required but unavailable")
         web = None
 
     loops = [amain(client, clients, web, arguments) for client in clients]

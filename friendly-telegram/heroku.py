@@ -29,23 +29,9 @@ from . import utils
 
 def publish(clients, key, api_token=None):
     """Push to heroku"""
-    data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
-    heroku = heroku3.from_key(key)
     logging.debug("Configuring heroku...")
-    app = None
-    for poss_app in heroku.apps():
-        config = poss_app.config()
-        if "authorization_strings" not in config:
-            continue
-        if (api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH)):
-            app = poss_app
-            break
-    if app is None:
-        if api_token is None:
-            logging.error("%r", {app: repr(app.config) for app in heroku.apps()})
-            raise RuntimeError("Could not identify app!")
-        app = heroku.create_app(stack_id_or_name="heroku-18", region_id_or_name="us")
-    config = app.config()
+    data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
+    app, config = get_app(clients, key, api_token)
     config["authorization_strings"] = data
     config["heroku_api_token"] = key
     if api_token is not None:
@@ -60,7 +46,28 @@ def publish(clients, key, api_token=None):
         remote = repo.create_remote("heroku", url)
     remote.push(refspec="HEAD:refs/heads/master")
     logging.debug("We are still alive. Enabling dyno.")
-    app.scale_formation_process("worker", 1)
+    app.scale_formation_process("web", 1)
+
+
+def get_app(clients, key, api_token=None, create_new=True, full_match=False):
+    heroku = heroku3.from_key(key)
+    app = None
+    for poss_app in heroku.apps():
+        config = poss_app.config()
+        if "authorization_strings" not in config:
+            continue
+        if (api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH)):
+            if full_match and config["authorization_strings"] != os.environ["authorization_strings"]:
+                continue
+            app = poss_app
+            break
+    if app is None:
+        if api_token is None or not create_new:
+            logging.error("%r", {app: repr(app.config) for app in heroku.apps()})
+            raise RuntimeError("Could not identify app!")
+        app = heroku.create_app(stack_id_or_name="heroku-18", region_id_or_name="us")
+        config = app.config()
+    return app, config
 
 
 def get_repo():

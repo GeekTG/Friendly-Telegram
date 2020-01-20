@@ -23,6 +23,7 @@ from git import Repo
 from git.exc import InvalidGitRepositoryError
 from telethon.sessions import StringSession
 import heroku3
+import requests
 
 from . import utils
 
@@ -32,7 +33,11 @@ def publish(clients, key, api_token=None):
     logging.debug("Configuring heroku...")
     data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
     app, config = get_app(clients, key, api_token)
-    app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
+    try:
+        app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code != 404:
+            raise
     config["authorization_strings"] = data
     config["heroku_api_token"] = key
     if api_token is not None:

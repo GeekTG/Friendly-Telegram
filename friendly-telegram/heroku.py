@@ -32,6 +32,7 @@ def publish(clients, key, api_token=None):
     logging.debug("Configuring heroku...")
     data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
     app, config = get_app(clients, key, api_token)
+    app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
     config["authorization_strings"] = data
     config["heroku_api_token"] = key
     if api_token is not None:
@@ -46,7 +47,6 @@ def publish(clients, key, api_token=None):
         remote = repo.create_remote("heroku", url)
     remote.push(refspec="HEAD:refs/heads/master")
     logging.debug("We are still alive. Enabling dyno.")
-    app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
     app.scale_formation_process("web", 1)
 
 

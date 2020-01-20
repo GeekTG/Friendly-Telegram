@@ -79,6 +79,16 @@
         border-bottom: 0;
       }
     }
+
+    .config-input {
+      width: 100%;
+    }
+    .config-col {
+      width: 25%;
+    }
+    .mdl-data-table th.row-header {
+      vertical-align: middle;
+    }
   </style>
   <script src="{{ static('config.js') }}"></script>
 {% endblock %}
@@ -113,25 +123,31 @@ Friendly-Telegram
       <div class="mdl-cad__supporting-text" style="width:100%;">
         <p>{{ module|getdoc }}
         <br>
-        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive" style="width: 100%; display: block; table-layout: adaptive;">
+        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive" style="width: 100%; display: block; table-layout: fixed;">
+          <colgroup>
+            <col class="config-col">
+            <col class="config-col">
+            <col class="config-col">
+            <col class="config-col">
+          </colgroup>
           <thead>
             <tr>
-              <th class="mdl-data-table__cell--non-numeric">Key</th>
-              <th class="mdl-data-table__cell--non-numeric">Documentation</th>
-              <th class="mdl-data-table__cell--non-numeric">Default</th>
-              <th class="mdl-data-table__cell--non-numeric">Value</th>
+              <th class="mdl-data-table__cell--non-numeric col">Key</th>
+              <th class="mdl-data-table__cell--non-numeric col">Documentation</th>
+              <th class="mdl-data-table__cell--non-numeric col">Default</th>
+              <th class="mdl-data-table__cell--non-numeric col">Value</th>
             </tr>
           </thead>
           <tbody>
             {% for key in module.config %}
               <tr>
-                <td class="mdl-data-table__cell--non-numeric">{{ key }}</td>
-                <td class="mdl-data-table__cell--non-numeric">{{ module.config.getdoc(key) }}</td>
-                <td class="mdl-data-table__cell--non-numeric">{{ module.config.getdef(key)|ascii }}</td>
-                <td class="mdl-data-table__cell--non-numeric">
+                <th class="mdl-data-table__cell--non-numeric col row-header" scope="row">{{ key }}</td>
+                <td class="mdl-data-table__cell--non-numeric col">{{ module.config.getdoc(key) }}</td>
+                <td class="mdl-data-table__cell--non-numeric col">{{ module.config.getdef(key)|ascii }}</td>
+                <td class="mdl-data-table__cell--non-numeric col">
                   <form action="#module_{{ ns2.module_number }}">
                     <div class="mdl-textfield mdl-js-textfield">
-                      <input class="mdl-textfield__input" type="text" data-modulenum="{{ ns2.module_number }}" data-configkey="{{ key }}" data-defaultvalue="{{ module.config.getdef(key)|ascii }}" data-currentvalue="{{ module.config[key]|ascii }}" id="input_{{ ns2.module_number }}_{{ key }}" value="{{ module.config[key]|ascii }}" onchange="setConfig(this);">
+                      <textarea class="mdl-textfield__input" type="text" rows="1" data-modulenum="{{ ns2.module_number }}" data-configkey="{{ key }}" data-defaultvalue="{{ module.config.getdef(key)|ascii }}" data-currentvalue="{{ module.config[key]|ascii }}" id="input_{{ ns2.module_number }}_{{ key }}" value="{{ module.config[key]|ascii }}" onchange="setConfig(this);"></textarea>
                       <label class="mdl-textfield__label" for="input_{{ ns2.module_number }}_{{ key }}">{{ module.config.getdef(key)|ascii }}</label>
                     </div>
                   </form>

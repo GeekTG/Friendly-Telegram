@@ -46,6 +46,7 @@ def publish(clients, key, api_token=None):
         remote = repo.create_remote("heroku", url)
     remote.push(refspec="HEAD:refs/heads/master")
     logging.debug("We are still alive. Enabling dyno.")
+    app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
     app.scale_formation_process("web", 1)
 
 

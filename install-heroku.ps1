@@ -44,7 +44,11 @@ Invoke-WebRequest -Uri $download_url -OutFile (Join-Path $env:TEMP "git-scm-inst
 Write-Output("Installing Git...")
 Start-Process (Join-Path $env:TEMP "git-scm-installer.exe") @("/VERYSILENT"; "/NORESTART"; "/NOCANCEL"; "/SP-"; "/CURRENTUSER"; "/NOCLOSEAPPLICATIONS"; "/NORESTARTAPPLICATIONS"; '/COMPONENTS=""') -Wait
 Write-Output("Done")
+
+# https://stackoverflow.com/a/31845512
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 git clone https://github.com/friendly-telegram/friendly-telegram
+
 Set-Location friendly-telegram
 python -m pip install -r optional-requirements.txt
 python -m pip install -r mandatory-requirements.txt

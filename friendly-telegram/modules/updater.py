@@ -51,7 +51,7 @@ class UpdaterMod(loader.Module):
                "already_updated": "<b>Already up to date!</b>",
                "installing": "<b>Installing updates...</b>",
                "success": "<b>Restart successful!</b>",
-               "success_meme": "<b>Restart failed successfully‽",
+               "success_meme": "<b>Restart failed successfully‽</b>",
                "heroku_warning": ("Heroku API key has not been set. Update was successful but updates will "
                                   "reset every time the bot restarts."),
                "audio_cfg_doc": "Whether Windows XP sounds should be played during restart"}

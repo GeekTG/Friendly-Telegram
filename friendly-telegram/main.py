@@ -280,6 +280,8 @@ def main():
             loop.run_until_complete(web.start())
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
+            if arguments.heroku_web_internal:
+                arguments.heroku = True
         else:
             run_config({})
 

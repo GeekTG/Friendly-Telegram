@@ -30,7 +30,7 @@ import signal
 import shlex
 
 from telethon import TelegramClient, events
-from telethon.sessions import StringSession
+from telethon.sessions import StringSession, SQLiteSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
 from telethon.tl.functions.channels import DeleteChannelRequest
 
@@ -61,7 +61,7 @@ class MemoryHandler(logging.Handler):
         self.capacity = capacity
         self.buffer = []
         self.handledbuffer = []
-        self.lvl = logging.WARNING
+        self.lvl = logging.WARNING  # Default loglevel
 
     def setLevel(self, level):
         self.lvl = level
@@ -244,10 +244,10 @@ def get_api_token():
             from . import api_token
         except ImportError:
             try:
-                api_token = collections.namedtuple("api_token", ["ID", "HASH"])(os.environ["api_id"],
+                api_token = collections.namedtuple("api_token", ("ID", "HASH"))(os.environ["api_id"],
                                                                                 os.environ["api_hash"])
             except KeyError:
-                run_config({})
+                return None
             else:
                 return api_token
         else:
@@ -262,12 +262,26 @@ def sigterm(signum, handler):
 def main():
     """Main entrypoint"""
     arguments = parse_arguments()
+    loop = asyncio.get_event_loop()
 
     clients = []
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token()
+
+    if web_available:
+        web = core.Web(api_token=api_token) if arguments.web else None
+    else:
+        if arguments.heroku_web_internal:
+            raise RuntimeError("Web required but unavailable")
+        web = None
+
     if api_token is None:
-        return
+        if web:
+            loop.run_until_complete(web.start())
+            loop.run_until_complete(web.wait_for_api_token_setup())
+            api_token = web.api_token
+        else:
+            run_config({})
 
     if authtoken:
         for phone, token in authtoken.items():
@@ -278,27 +292,44 @@ def main():
                 run_config({})
                 return
             clients[-1].phone = phone  # for consistency
-    if len(clients) == 0 and len(phones) == 0:
-        try:
-            phones = [input("Please enter your phone: ")]
-        except EOFError:
-            print()
-            print("=" * 30)
-            print()
-            print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
-            print()
-            print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
-            print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
-            print()
-            print("In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!")
-            print("You should remove the forked repo, and read https://friendly-telegram.github.io")
-            print()
-            print("If you're not using heroku, then you are using a non-interactive prompt but "
-                  "you have not got a session configured, meaning authentication to Telegram is impossible.")
-            print()
-            print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
-            print("Goodbye.")
-            sys.exit(1)
+    if not clients and not phones:
+        if web:
+            if not web.running.is_set():
+                loop.run_until_complete(web.start())
+            loop.run_until_complete(web.wait_for_clients_setup())
+            clients = web.clients
+            for client in clients:
+                if arguments.heroku:
+                    session = StringSession()
+                else:
+                    session = SQLiteSession(os.path.join(os.path.dirname(utils.get_base_dir()),
+                                                         "friendly-telegram-" + client.phone))
+                session.set_dc(client.session.dc_id, client.session.server_address, client.session.port)
+                session.auth_key = client.session.auth_key
+                if not arguments.heroku:
+                    session.save()
+                client.session = session
+        else:
+            try:
+                phones = [input("Please enter your phone: ")]
+            except EOFError:
+                print()
+                print("=" * 30)
+                print()
+                print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
+                print()
+                print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
+                print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
+                print()
+                print("In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!")
+                print("You should remove the forked repo, and read https://friendly-telegram.github.io")
+                print()
+                print("If you're not using heroku, then you are using a non-interactive prompt but "
+                      "you have not got a session configured, meaning authentication to Telegram is impossible.")
+                print()
+                print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
+                print("Goodbye.")
+                sys.exit(1)
     for phone in phones:
         try:
             clients += [TelegramClient(StringSession() if arguments.heroku else
@@ -331,19 +362,11 @@ def main():
     if arguments.heroku_web_internal:
         signal.signal(signal.SIGTERM, sigterm)
 
-    if web_available:
-        web = core.Web() if arguments.web else None
-    else:
-        if arguments.heroku_web_internal:
-            raise RuntimeError("Web required but unavailable")
-        web = None
-
     loops = [amain(client, clients, web, arguments) for client in clients]
 
-    asyncio.get_event_loop().set_exception_handler(lambda _, x:
-                                                   logging.error("Exception on event loop! %s", x["message"],
-                                                                 exc_info=x["exception"]))
-    asyncio.get_event_loop().run_until_complete(asyncio.gather(*loops))
+    loop.set_exception_handler(lambda _, x:
+                               logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
+    loop.run_until_complete(asyncio.gather(*loops))
 
 
 async def amain(client, allclients, web, arguments):
@@ -368,7 +391,7 @@ async def amain(client, allclients, web, arguments):
             babelfish = Translator([])
             await babelfish.init(client)
             modules.register_all(babelfish)
-            fdb = frontend.Database(None)
+            fdb = frontend.Database(dbc(client), True)
             await fdb.init()
             modules.send_config(fdb, babelfish)
             await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup

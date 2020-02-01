@@ -31,9 +31,9 @@ class NotifyingFuture(asyncio.Future):
 
 # Not thread safe, use the event loop!
 class Database(dict):
-    def __init__(self, backend):
+    def __init__(self, backend, noop=False):
         super().__init__()
-        self._noop = backend is None
+        self._noop = noop or backend is None
         self._backend = backend
         self._pending = None
         self._loading = True

@@ -1,0 +1,142 @@
+<!--
+    Friendly Telegram (telegram userbot)
+    Copyright (C) 2018-2019 The Authors
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+{% extends "base.jinja2" %}
+
+{% block head %}
+  <script src="{{ static('initial_root.js') }}"></script>
+{% endblock %}
+
+{% block title %}
+  Friendly-Telegram
+{% endblock %}
+
+{% block content %}
+  <div class="mdl-card__title">
+    <h3 class="mdl-card__title-text">Welcome to the Friendly-Telegram web interface</h3>
+  </div>
+  <div class="mdl-card__supporting-text">
+    Here you can configure various features of Friendly-Telegram, as well as access debugging tools and status reports
+    <br>
+    You are currently in initial configuration mode.
+  </div>
+{% endblock %}
+
+{% block after %}
+  <br>
+  <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+    <div class="mdl-card__title">
+      <h3 class="mdl-card__title-text">Telegram API</h3>
+    </div>
+    <div class="mdl-card__supporting-text">
+      {% if api_done %}
+        Your Telegram API configuration is already completed. Please proceed to the next step.
+      {% endif %}
+      In this section you must enter the API Hash and ID from <a href="https://my.telegram.org">the Telegram website</a>
+      <form action="#">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="number" pattern="[0-9]+" id="api_id">
+          <label class="mdl-textfield__label" for="api_id">API ID</label>
+          <span class="mdl-textfield__error">Input is not a number!</span>
+        </div>
+        <br>
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="text" pattern="[0-9a-f]{32}" id="api_hash" onchange="setApi(this);">
+          <label class="mdl-textfield__label" for="api_hash">API hash</label>
+          <span class="mdl-textfield__error">Input is not a valid hash!</span>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <br>
+  <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+    <div class="mdl-card__title">
+      <h3 class="mdl-card__title-text">Telegram Authentication</h3>
+    </div>
+    <div class="mdl-card__supporting-text">
+      {% if tg_done %}
+        Your Telegram Authentication is already completed. Please login.
+      {% endif %}
+      In this section you must enter the One-Time-Password you will receive from the Telegram Service account.
+      Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
+      <br><br>
+      <form action="#">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="phone" pattern="\+[0-9]{6,}" id="phone">
+          <label class="mdl-textfield__label" for="phone">Phone</label>
+          <span class="mdl-textfield__error" id="phoneerror">Phone number can't possibly be correct</span>
+        </div>
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="sendCode(document.getElementById('phone'));">
+          Send Code
+        </button>
+        <br>
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="finishLogin();">
+          Done
+        </button>
+      </form>
+    </div>
+  </div>  
+
+
+  <dialog class="mdl-dialog" id="codeentry">
+    <h4 class="mdl-dialog__title">Enter Code</h4>
+    <div class="mdl-dialog__content">
+      <p>
+        Please enter the code sent to your <a id="savedmsgslink">Saved Messages</a> in Telegram
+      </p>
+
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code" oninput="codeChanged();">
+        <label class="mdl-textfield__label" for="code">Code</label>
+        <span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
+      </div>
+    </div>
+    <div class="mdl-dialog__actions">
+      <button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
+    </div>
+  </dialog>
+
+
+  <dialog class="mdl-dialog" id="passwordentry">
+    <h4 class="mdl-dialog__title">Enter your Cloud Password</h4>
+    <div class="mdl-dialog__content">
+      <p>
+        Please enter your two-factor-authentication password for Telegram
+      </p>
+
+      <div class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="password" pattern=".+" id="password">
+        <label class="mdl-textfield__label" for="password">Password</label>
+        <span class="mdl-textfield__error" id="passworderror">Password cannot be blank</span>
+      </div>
+    </div>
+    <div class="mdl-dialog__actions">
+      <button class="mdl-button" onclick="codeChanged();">Submit</button>
+      <button class="mdl-button" onclick="cancelPasswordInput();">Cancel</button>
+    </div>
+  </dialog>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
+  <script>
+    'use strict';
+    dialogPolyfill.registerDialog(document.getElementById("codeentry"));
+    dialogPolyfill.registerDialog(document.getElementById("passwordentry"));
+  </script>
+{% endblock %}

@@ -195,12 +195,12 @@ def api_config():
     """Request API config from user and set"""
     code, hash_value = DIALOG.inputbox("Enter your API Hash")
     if code == DIALOG.OK:
-        if len(hash_value) != 32 or not all(it in string.hexdigits for it in hash_value):
+        if len(hash_value) != 32 or any(it not in string.hexdigits for it in hash_value):
             DIALOG.msgbox("Invalid hash")
             return
         string1 = 'HASH = "' + hash_value + '"'
         code, id_value = DIALOG.inputbox("Enter your API ID")
-        if len(id_value) == 0 or not all(it in string.digits for it in id_value):
+        if not id_value or any(it not in string.digits for it in id_value):
             DIALOG.msgbox("Invalid ID")
             return
         string2 = 'ID = "' + id_value + '"'

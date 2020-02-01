@@ -23,8 +23,8 @@ from .. import heroku
 
 
 class Web:
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         if "heroku_api_token" in os.environ:
             # This is called before asyncio is even set up. We can only use sync methods which is fine.
             api_token = collections.namedtuple("api_token", ["ID", "HASH"])(os.environ["api_id"],

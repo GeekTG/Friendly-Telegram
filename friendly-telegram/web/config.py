@@ -21,8 +21,8 @@ import aiohttp_jinja2
 
 
 class Web:
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.app.router.add_get("/config", self.config)
         self.app.router.add_put("/setConfig", self.set_config)
 

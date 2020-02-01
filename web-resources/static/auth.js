@@ -41,9 +41,7 @@ function sendCodeSuccess(uid) {
   'use strict';
   window.selectedUid = uid;
   document.getElementById("savedmsgslink").href = "tg://user?id=" + uid;
-  try {
-    document.getElementById("codeentry").showModal();
-  } catch(unused) {}
+  document.getElementById("codeentry").showModal();
 }
 
 function cancelCodeInput() {
@@ -51,10 +49,9 @@ function cancelCodeInput() {
   document.getElementById("codeentry").close();
 }
 
-function codeChanged() {
+function codeChanged(elem) {
   'use strict';
   const errorElem = document.getElementById("codeerror");
-  const elem = document.getElementById("code");
   const newCode = elem.value;
   if (newCode.length > 0) {
     errorElem.style = ""; // Set by MDL
@@ -85,6 +82,10 @@ function codeChanged() {
               document.cookie = "secret=" + secret;
               document.getElementById("codeentry").close();
               window.location.replace("/");
+            })
+            .catch(function(error) {
+              console.log(error);
+              codeError(elem, errorElem, "Network error");
             });
           }
         })

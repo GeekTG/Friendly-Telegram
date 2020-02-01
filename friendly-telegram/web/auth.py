@@ -24,19 +24,20 @@ from base64 import b64encode
 
 
 class Web:
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._uid_to_code = {}
         self._secret_to_uid = {}
         self.app.router.add_get("/auth", self.auth)
         self.app.router.add_post("/sendCode", self.send_code)
         self.app.router.add_post("/code", self.check_code)
+        self.app.router.add_get("/logOut", self.log_out)
 
     @aiohttp_jinja2.template("auth.jinja2")
     async def auth(self, request):
         if await self.check_user(request) is not None:
             return web.Response(status=302, headers={"Location": "/"})  # Already authenticated
-        return {"users": self.client_data.keys()}
+        return {"users": self.client_data.keys(), "clients": bool(self.client_data)}
 
     async def send_code(self, request):
         uid = int(await request.text())
@@ -69,7 +70,7 @@ class Web:
             del self._uid_to_code[uid]
             secret = secrets.token_urlsafe()
             asyncio.ensure_future(asyncio.shield(self._clear_secret(secret)))
-            self._secret_to_uid[secret] = uid
+            self._secret_to_uid[secret] = uid  # If they just signed in, they automatically are authenticated
             return web.Response(text=secret)
         else:
             return web.Response(status=401)
@@ -84,3 +85,10 @@ class Web:
     async def check_user(self, request):
         await asyncio.sleep(0.5)
         return self._secret_to_uid.get(request.cookies.get("secret", None), None)
+
+    async def log_out(self, request):
+        try:
+            del self._secret_to_uid[request.cookies["secret"]]
+        except KeyError:
+            pass
+        return web.Response(status=302, headers={"Location": "/auth"})

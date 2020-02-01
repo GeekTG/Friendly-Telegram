@@ -20,11 +20,10 @@ import collections
 import jinja2
 import inspect
 import asyncio
-import telethon
 import time
 import os
 
-from . import auth, translate, config, heroku
+from . import initial_setup, root, auth, translate, config, heroku
 
 
 def ratelimit(get_storage):
@@ -55,33 +54,38 @@ def ratelimit(get_storage):
     return ratelimit_middleware
 
 
-class Web(auth.Web, translate.Web, config.Web, heroku.Web):
-    def __init__(self):
+class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, heroku.Web):
+    def __init__(self, **kwargs):
+        self.runner = None
+        self.running = asyncio.Event()
+        self.ready = asyncio.Event()
         self.client_data = {}
         self._ratelimit_data = collections.defaultdict(dict)
         self.app = web.Application(middlewares=[ratelimit(lambda f: self._ratelimit_data[f])])
         aiohttp_jinja2.setup(self.app, filters={"getdoc": inspect.getdoc, "ascii": ascii},
                              loader=jinja2.FileSystemLoader("web-resources"))
         self.app["static_root_url"] = "/static"
-        self.app.router.add_get("/", self.root)
-        super().__init__()
+        super().__init__(**kwargs)
         self.app.router.add_static("/static/", "web-resources/static")
 
-    def start_if_ready(self, total_count):
-        return asyncio.gather(asyncio.gather()) if total_count > len(self.client_data) else self.start()
+    async def start_if_ready(self, total_count):
+        if total_count <= len(self.client_data):
+            if not self.running.is_set():
+                await self.start()
+            self.ready.set()
 
     async def start(self):
-        runner = web.AppRunner(self.app)
-        await runner.setup()
-        site = web.TCPSite(runner, None, os.environ.get("PORT", 8080))
-        return asyncio.ensure_future(site.start())
+        self.runner = web.AppRunner(self.app)
+        await self.runner.setup()
+        site = web.TCPSite(self.runner, None, os.environ.get("PORT", 8080))
+        await site.start()
+        self.running.set()
+
+    async def stop(self):
+        await self.runner.shutdown()
+        await self.runner.cleanup()
+        self.running.clear()
+        self.ready.clear()
 
     async def add_loader(self, client, loader, db):
         self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
-
-    @aiohttp_jinja2.template("root.jinja2")
-    async def root(self, request):
-        uid = await self.check_user(request)
-        if uid is None:
-            return web.Response(status=302, headers={"Location": "/auth"})  # They gotta sign in.
-        return {"uid": uid, "name": telethon.utils.get_display_name(await self.client_data[uid][1].get_me())}

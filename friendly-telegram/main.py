@@ -280,8 +280,6 @@ def main():
             loop.run_until_complete(web.start())
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
-            if arguments.heroku_web_internal:
-                arguments.heroku = True
         else:
             run_config({})
 
@@ -299,6 +297,7 @@ def main():
             if not web.running.is_set():
                 loop.run_until_complete(web.start())
             loop.run_until_complete(web.wait_for_clients_setup())
+            arguments.heroku = web.heroku_api_token
             clients = web.clients
             for client in clients:
                 if arguments.heroku:
@@ -355,10 +354,17 @@ def main():
         clients[-1].phone = phone  # so we can format stuff nicer in configurator
 
     if arguments.heroku:
-        key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
+        if isinstance(arguments.heroku, str):
+            key = arguments.heroku
+        else:
+            key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
         from . import heroku
-        heroku.publish(clients, key, api_token)
+        app = heroku.publish(clients, key, api_token)
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
+        if web:
+            web.redirect_url = app.web_url
+            web.ready.set()
+            loop.run_until_complete(web.root_redirected.wait())
         return
 
     if arguments.heroku_web_internal:

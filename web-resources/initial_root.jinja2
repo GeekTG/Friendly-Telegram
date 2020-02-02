@@ -85,10 +85,39 @@
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="sendCode(document.getElementById('phone'));">
           Send Code
         </button>
+      </form>
+    </div>
+  </div>  
+  
+  <br>
+  <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+    <div class="mdl-card__title">
+      <h3 class="mdl-card__title-text">Save Changes</h3>
+    </div>
+    <div class="mdl-card__supporting-text">
+      In this section you can choose to enter the Heroku API Token from <a href="https://dashboard.heroku.com/account">the Heroku dashboard</a>
+      Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
+      {% if heroku_token %}
+        This token has already been configured, and only needs to be changed if you changed your Heroku account password.
+        Click Continue to save all settings to Heroku.
+      {% endif %}
+      <br>
+      If you do not want to deploy to Heroku, then simply click the Continue button to skip.
+      <br><br>
+      <form action="#">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="password" pattern="[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}" id="heroku" value="{{ heroku_token or "" }}">
+          <label class="mdl-textfield__label" for="heroku">Heroku API Token</label>
+          <span class="mdl-textfield__error" id="herokuerror">Invalid API Token</span>
+        </div>
         <br>
         <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="finishLogin();">
-          Done
+          Continue
         </button>
+        <div id="heroku_progress" style="display: none;">
+          <br>
+          <div class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+        </div>
       </form>
     </div>
   </div>  

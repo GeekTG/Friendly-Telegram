@@ -69,12 +69,12 @@ function codeChanged(elem) {
         .then(function(response) {
           if (!response.ok) {
             if (response.status == 401) {
-              codeError(elem, errorElem, "Code invalid");
+              codeError(elem, "Code invalid");
             } else if (response.status == 404) {
-              codeError(elem, errorElem, "Code expired");
+              codeError(elem, "Code expired");
               beginAuthFlow(window.selectedUid);
             } else {
-              codeError(elem, errorElem, "Server error");
+              codeError(elem, "Server error");
             }
           } else {
             response.text()
@@ -85,24 +85,25 @@ function codeChanged(elem) {
             })
             .catch(function(error) {
               console.log(error);
-              codeError(elem, errorElem, "Network error");
+              codeError(elem, "Network error");
             });
           }
         })
         .catch(function(error) {
           console.log(error);
-          codeError(elem, errorElem, "Network error");
+          codeError(elem, "Network error");
         });
       }
     );
   }
 }
 
-function codeError(elem, errorElem, message) {
+function codeError(elem, message) {
   'use strict';
   elem.innerText = "";
-  errorElem.innerText = message;
-  errorElem.style.visibility = "visible";
   elem.disabled = false;
-  elem.style.color = "inherit";
+  document.getElementById("snackbar").MaterialSnackbar.showSnackbar({
+    message: message,
+    timeout: 2000});
+
 }

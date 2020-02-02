@@ -56,7 +56,7 @@ function setApiDone(elem) {
 
 function sendCode(elem) {
   'use strict';
-  fetch("/sendTgCode", {method: "POST", body: elem.value})
+  fetch("/sendTgCode", {method: "POST", body: elem.value, credentials: "include"})
   .then(function(response) {
     if (!response.ok) {
       console.log(response);
@@ -106,8 +106,8 @@ function cancelPasswordInput() {
 
 function codeChanged() {
   'use strict';
-  const errorElem = document.getElementById("codeerror");
   const elem = document.getElementById("code")
+  const errorElem = document.getElementById("codeerror")
   const newCode = elem.value;
   const password = document.getElementById("password").value;
   if (newCode.length > 0) {
@@ -120,12 +120,12 @@ function codeChanged() {
   }
   if (newCode.length == 5 || password.length > 0) {
     elem.disabled = true;
-    fetch("/tgCode", {method: "POST", body: elem.value + "\n" + document.getElementById("phone").value + "\n" + password})
+    fetch("/tgCode", {method: "POST", body: elem.value + "\n" + document.getElementById("phone").value + "\n" + password, credentials: "include"})
     .then(function(response) {
       if (!response.ok) {
         console.log(response);
         if (response.status == 403) {
-          codeError(elem, errorElem, "Code invalid");
+          codeError(elem, "Code invalid");
         } else if (response.status == 401) {
           // Code correct, 2FA required
           cancelCodeInput();
@@ -135,7 +135,7 @@ function codeChanged() {
           cancelCodeInput();
           cancelPasswordInput();
         } else {
-          codeError(elem, errorElem, "Server error");
+          codeError(elem, "Server error");
         }
       } else {
         response.text()
@@ -143,32 +143,35 @@ function codeChanged() {
           document.cookie = "secret=" + secret;
           cancelCodeInput();
           cancelPasswordInput();
+          codeError(elem, "Logged In")
         })
         .catch(function(error) {
           console.log(error);
-          codeError(elem, errorElem, "Network error");
+          codeError(elem, "Network error");
         });
       }
     })
     .catch(function(error) {
       console.log(error);
-      codeError(elem, errorElem, "Network error");
+      codeError(elem, "Network error");
     });
   }
 }
 
-function codeError(elem, errorElem, message) {
+function codeError(elem, message) {
   'use strict';
   elem.innerText = "";
-  errorElem.innerText = message;
-  errorElem.style.visibility = "visible";
   elem.disabled = false;
-  elem.style.color = "inherit";
+  document.getElementById("snackbar").MaterialSnackbar.showSnackbar({
+    message: message,
+    timeout: 2000});
 }
 
 function finishLogin() {
   'use strict';
-  fetch("/finishLogin", {method: "POST"})
+  const elem = document.getElementById("heroku");
+  document.getElementById("heroku_progress").style.display = "block";
+  fetch("/finishLogin", {method: "POST", body: elem.value, credentials: "include"})
   .then(function(response) {
     if (!response.ok) {
       finishLoginFailed();
@@ -184,6 +187,7 @@ function finishLogin() {
 
 function finishLoginFailed() {
   'use strict';
+  document.getElementById("heroku_progress").style.display = "none";
   document.getElementById("snackbar").MaterialSnackbar.showSnackbar({
     message: "Failed to complete login",
     timeout: 2000});

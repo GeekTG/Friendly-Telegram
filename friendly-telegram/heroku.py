@@ -53,6 +53,7 @@ def publish(clients, key, api_token=None):
     remote.push(refspec="HEAD:refs/heads/master")
     logging.debug("We are still alive. Enabling dyno.")
     app.scale_formation_process("web", 1)
+    return app
 
 
 def get_app(clients, key, api_token=None, create_new=True, full_match=False):

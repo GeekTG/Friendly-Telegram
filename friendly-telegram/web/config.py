@@ -30,7 +30,7 @@ class Web:
     async def config(self, request):
         uid = await self.check_user(request)
         if uid is None:
-            return web.Response(status=302, headers={"Location": "/auth"})  # They gotta sign in.
+            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         return {"modules": self.client_data[uid][0].modules}
 
     async def set_config(self, request):

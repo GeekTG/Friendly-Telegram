@@ -91,4 +91,4 @@ class Web:
             del self._secret_to_uid[request.cookies["secret"]]
         except KeyError:
             pass
-        return web.Response(status=302, headers={"Location": "/auth"})
+        return web.Response(status=302, headers={"Location": "/"})

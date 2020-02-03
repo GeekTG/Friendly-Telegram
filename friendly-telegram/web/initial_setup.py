@@ -43,6 +43,7 @@ class Web:
         self.clients = []
         self.clients_set = asyncio.Event()
         self.root_redirected = asyncio.Event()
+        self._pending_secret_to_uid = {}
 
     async def root(self, request):
         if self.clients_set.is_set():
@@ -57,7 +58,7 @@ class Web:
     @aiohttp_jinja2.template("initial_root.jinja2")
     async def initial_setup(self, request):
         if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/auth"})  # They gotta sign in.
+            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         return {"api_done": self.api_token is not None, "tg_done": bool(self.client_data),
                 "heroku_token": self.heroku_api_token}
 
@@ -69,7 +70,7 @@ class Web:
 
     async def set_tg_api(self, request):
         if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/auth"})  # They gotta sign in.
+            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         text = await request.text()
         if len(text) < 36:
             return web.Response(status=400)
@@ -85,7 +86,7 @@ class Web:
 
     async def send_tg_code(self, request):
         if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/auth"})  # They gotta sign in.
+            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         text = await request.text()
         phone = telethon.utils.parse_phone(text)
         if not phone:
@@ -99,7 +100,7 @@ class Web:
 
     async def tg_code(self, request):
         if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/auth"})  # They gotta sign in.
+            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         text = await request.text()
         if len(text) < 6:
             return web.Response(status=400)
@@ -134,7 +135,7 @@ class Web:
         client.phone = "+" + user.phone
         self.clients.append(client)
         secret = secrets.token_urlsafe()
-        self._secret_to_uid[secret] = user.id
+        self._pending_secret_to_uid[secret] = user.id
         return web.Response(text=secret)
 
     async def finish_login(self, request):
@@ -147,5 +148,6 @@ class Web:
             self.heroku_api_token = text
         else:
             self.heroku_api_token = None
+        self._secret_to_uid.update(self._pending_secret_to_uid)
         self.clients_set.set()
         return web.Response()

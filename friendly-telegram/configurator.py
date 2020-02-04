@@ -198,12 +198,12 @@ def api_config():
         if len(hash_value) != 32 or any(it not in string.hexdigits for it in hash_value):
             DIALOG.msgbox("Invalid hash")
             return
-        string1 = 'HASH = "' + hash_value + '"'
+        string1 = "HASH = \"" + hash_value + "\""
         code, id_value = DIALOG.inputbox("Enter your API ID")
         if not id_value or any(it not in string.digits for it in id_value):
             DIALOG.msgbox("Invalid ID")
             return
-        string2 = 'ID = "' + id_value + '"'
+        string2 = "ID = \"" + id_value + "\""
         with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as file:
             file.write(string1 + "\n" + string2 + "\n")
         DIALOG.msgbox("API Token and ID set.")

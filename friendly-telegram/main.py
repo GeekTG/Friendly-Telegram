@@ -14,8 +14,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# flake8: noqa: T001
-
 import logging
 import os
 import sys
@@ -202,7 +200,8 @@ def parse_arguments():
     parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
     parser.add_argument("--no-web", dest="web", action="store_false")
-    parser.add_argument("--heroku-web-internal", dest="heroku_web_internal", action="store_true", help="This is for internal use only. If you use it, things will go wrong.")
+    parser.add_argument("--heroku-web-internal", dest="heroku_web_internal", action="store_true",
+                        help="This is for internal use only. If you use it, things will go wrong.")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -259,7 +258,7 @@ def sigterm(signum, handler):
     sys.exit(143)  # SIGTERM + 128
 
 
-def main():
+def main():  # noqa: C901
     """Main entrypoint"""
     arguments = parse_arguments()
     loop = asyncio.get_event_loop()
@@ -277,6 +276,7 @@ def main():
 
     if api_token is None:
         if web:
+            print("Web mode ready for configuration")  # noqa: T001
             loop.run_until_complete(web.start())
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
@@ -295,6 +295,7 @@ def main():
     if not clients and not phones:
         if web:
             if not web.running.is_set():
+                print("Web mode ready for configuration")  # noqa: T001
                 loop.run_until_complete(web.start())
             loop.run_until_complete(web.wait_for_clients_setup())
             arguments.heroku = web.heroku_api_token
@@ -314,22 +315,25 @@ def main():
             try:
                 phones = [input("Please enter your phone: ")]
             except EOFError:
-                print()
-                print("=" * 30)
-                print()
-                print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
-                print()
-                print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
-                print("To deploy to heroku, go to https://friendly-telegram.github.io/heroku to learn more")
-                print()
-                print("In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!")
-                print("You should remove the forked repo, and read https://friendly-telegram.github.io")
-                print()
-                print("If you're not using heroku, then you are using a non-interactive prompt but "
-                      "you have not got a session configured, meaning authentication to Telegram is impossible.")
-                print()
-                print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
-                print("Goodbye.")
+                print()  # noqa: T001
+                print("=" * 30)  # noqa: T001
+                print()  # noqa: T001
+                print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")  # noqa: T001
+                print()  # noqa: T001
+                print("It is likely that you tried to deploy to heroku - "  # noqa: T001
+                      "you cannot do this via the web interface.")
+                print("To deploy to heroku, go to "  # noqa: T001
+                      "https://friendly-telegram.github.io/heroku to learn more")
+                print()  # noqa: T001
+                print("In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!")  # noqa: T001
+                print("You should remove the forked repo, and read https://friendly-telegram.github.io")  # noqa: T001
+                print()  # noqa: T001
+                print("If you're not using heroku, then you are using a non-interactive prompt but "  # noqa: T001
+                      "you have not got a session configured, meaning authentication to Telegram is "
+                      "impossible.")  # noqa: T001
+                print()  # noqa: T001
+                print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")  # noqa: T001
+                print("Goodbye.")  # noqa: T001
                 sys.exit(1)
     for phone in phones:
         try:

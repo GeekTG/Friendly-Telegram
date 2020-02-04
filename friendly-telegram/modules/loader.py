@@ -210,7 +210,7 @@ class LoaderMod(loader.Module):
             module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin), origin=origin))
             sys.modules[module_name] = module
             module.borg = uniborg.UniborgClient(module_name)
-            module._ = _
+            module._ = _  # noqa: F821
             module.__spec__.loader.exec_module(module)
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")

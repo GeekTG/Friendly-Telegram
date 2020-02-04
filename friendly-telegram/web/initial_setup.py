@@ -79,7 +79,7 @@ class Web:
         if any(c not in string.hexdigits for c in api_hash) or any(c not in string.digits for c in api_id):
             return web.Response(status=400)
         with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as f:
-            f.write("HASH = '" + api_hash + "'\nID = '" + api_id + "'\n")
+            f.write("HASH = \"" + api_hash + "\"\nID = \"" + api_id + "\"\n")
         self.api_token = collections.namedtuple("api_token", ("ID", "HASH"))(api_id, api_hash)
         self.api_set.set()
         return web.Response()

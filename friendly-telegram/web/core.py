@@ -57,6 +57,7 @@ def ratelimit(get_storage):
 class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, heroku.Web):
     def __init__(self, **kwargs):
         self.runner = None
+        self.port = None
         self.running = asyncio.Event()
         self.ready = asyncio.Event()
         self.client_data = {}
@@ -77,7 +78,8 @@ class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, hero
     async def start(self):
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        site = web.TCPSite(self.runner, None, os.environ.get("PORT", 8080))
+        self.port = os.environ.get("PORT", 8080)
+        site = web.TCPSite(self.runner, None, self.port)
         await site.start()
         self.running.set()
 

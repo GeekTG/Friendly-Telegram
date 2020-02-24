@@ -145,7 +145,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
   fi
   PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
-  PKGMGR="pacman -Sy"
+  PKGMGR="pacman -Sy --noconfirm"
   if [ ! "$(whoami)" = "root" ]; then
     # Relaunch as root, preserving arguments
     if command -v sudo >/dev/null; then

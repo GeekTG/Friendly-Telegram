@@ -33,7 +33,7 @@ hachoir
 # Updater
 gitpython
 # Lydia
-coffeehouse >= 2.1.0
+coffeehouse >= 2.2.0
 # UrbanDictionary
 asyncurban
 # Google Search

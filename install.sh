@@ -18,7 +18,7 @@
 
 if [ ! -n "$BASH" ]; then
   echo "Non-bash shell detected, fixing..."
-  bash -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+  bash -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://kutt.it/ftgi) '"$*"
   exit $?
 fi
 
@@ -135,7 +135,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
     if command -v sudo >/dev/null; then
       endspin "Restarting as root..."
       echo "Relaunching" >>ftg-install.log
-      sudo "$BASH" -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+      sudo "$BASH" -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://kutt.it/ftgi) '"$*"
       exit $?
     else
       PKGMGR="true"
@@ -151,7 +151,7 @@ elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; the
     if command -v sudo >/dev/null; then
       endspin "Restarting as root..."
       echo "Relaunching" >>ftg-install.log
-      sudo "$BASH" -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://git.io/JeOXn) '"$*"
+      sudo "$BASH" -c '. <('"$(command -v curl >/dev/null && echo 'curl -Ls' || echo 'wget -qO-')"' https://kutt.it/ftgi) '"$*"
       exit $?
     else
       PKGMGR="true"
@@ -169,7 +169,7 @@ elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   PKGMGR="brew install"
   PYVER="3"
 else
-  endspin "Unrecognised OS. Please follow https://friendly-telegram.github.io/installing_advanced"
+  endspin "Unrecognised OS. Please follow https://friendly-telegram.gitlab.io/installing_advanced"
   exit 1
 fi
 
@@ -201,7 +201,7 @@ fi
 # shellcheck disable=SC2086
 ${SUDO_CMD}rm -rf friendly-telegram
 # shellcheck disable=SC2086
-runout ${SUDO_CMD}git clone https://github.com/friendly-telegram/friendly-telegram || { errorout "Clone failed."; exit 3; }
+runout ${SUDO_CMD}git clone https://gitlab.com/friendly-telegram/friendly-telegram || { errorout "Clone failed."; exit 3; }
 cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user

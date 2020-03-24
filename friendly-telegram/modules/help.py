@@ -46,7 +46,7 @@ class HelpMod(loader.Module):
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
                "footer": ("\n\nYou can <b>read more</b> about most commands "
-                          "<a href='https://friendly-telegram.github.io'>here</a>"),
+                          "<a href='https://friendly-telegram.gitlab.io'>here</a>"),
                "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support chat</a>"}
 
     def config_complete(self):

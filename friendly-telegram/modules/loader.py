@@ -104,7 +104,7 @@ class LoaderMod(loader.Module):
     def __init__(self):
         super().__init__()
         self.config = loader.ModuleConfig("MODULES_REPO",
-                                          "https://raw.githubusercontent.com/friendly-telegram/modules-repo/master",
+                                          "https://gitlab.com/friendly-telegram/modules-repo/-/raw/master",
                                           lambda: self.strings["repo_config_doc"])
         self._pending_setup = []
 

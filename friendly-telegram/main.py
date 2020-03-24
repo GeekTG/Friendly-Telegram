@@ -327,12 +327,12 @@ def main():  # noqa: C901
                 print("It is likely that you tried to deploy to heroku - "  # noqa: T001
                       "you cannot do this via the web interface.")
                 print("To deploy to heroku, go to "  # noqa: T001
-                      "https://friendly-telegram.github.io/heroku to learn more")
+                      "https://friendly-telegram.gitlab.io/heroku to learn more")
                 print()  # noqa: T001
                 print("In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!")  # noqa: T001
-                print("You should remove the forked repo, and read https://friendly-telegram.github.io")  # noqa: T001
+                print("You should remove the forked repo, and read https://friendly-telegram.gitlab.io")  # noqa: T001
                 print()  # noqa: T001
-                print("If you're not using heroku, then you are using a non-interactive prompt but "  # noqa: T001
+                print("If you're not using Heroku, then you are using a non-interactive prompt but "  # noqa: T001
                       "you have not got a session configured, meaning authentication to Telegram is "
                       "impossible.")  # noqa: T001
                 print()  # noqa: T001

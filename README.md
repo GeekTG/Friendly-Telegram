@@ -16,6 +16,3 @@ They can be found [here](https://friendly-telegram.gitlab.io).
 We also have a dedicated Telegram support group. Got any doubts or issues while setting-up? Shoot 'em here! **Please read the docs first** though, to make sure your question isn't already answered!
 
 [FTG Support Group](https://t.me/friendlytgbot "Telegram").
-
-[![Core Lint Status](https://github.com/friendly-telegram/friendly-telegram/workflows/Lint/badge.svg)](https://github.com/friendly-telegram/friendly-telegram/actions "Core Lint Status")
-[![Modules Lint Status](https://github.com/friendly-telegram/modules-repo/workflows/Lint/badge.svg)](https://github.com/friendly-telegram/modules-repo/actions "Modules Lint Status")

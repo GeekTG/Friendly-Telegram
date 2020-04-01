@@ -246,7 +246,7 @@ class LoaderMod(loader.Module):
         """Unload module by class name"""
         args = utils.get_args(message)
         if not args:
-            await utils.answer(message, self.strings["what_class"])
+            await utils.answer(message, self.strings["no_class"])
             return
         clazz = args[0]
         worked = self.allmodules.unload_module(clazz)

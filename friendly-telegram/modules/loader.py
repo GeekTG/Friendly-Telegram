@@ -24,12 +24,16 @@ import urllib
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
 
+import re
 import requests
 
 from .. import loader, utils
 from ..compat import uniborg
 
 logger = logging.getLogger(__name__)
+
+VALID_URL = "[-[\]_.~:/?#@!$&'()*+,;%=a-zA-Z0-9]+"
+VALID_PIP_PACKAGES = re.compile("\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*".format(url=VALID_URL))
 
 
 def register(cb):  # pylint: disable=C0116
@@ -99,7 +103,10 @@ class LoaderMod(loader.Module):
                "loaded": "<b>Module loaded.</b>",
                "no_class": "<b>What class needs to be unloaded?</b>",
                "unloaded": "<b>Module unloaded.</b>",
-               "not_unloaded": "<b>Module not unloaded.</b>"}
+               "not_unloaded": "<b>Module not unloaded.</b>",
+               "requirements_failed": "<b>Requirements installation failed</b>",
+               "requirements_installing": "<b>Installing requirements...</b>",
+               "requirements_restart": "<b>Requirements installed, but a restart is required</b>"}
 
     def __init__(self):
         super().__init__()
@@ -165,7 +172,7 @@ class LoaderMod(loader.Module):
                 await utils.answer(message, self.strings["no_module"])
             return False
         r.raise_for_status()
-        return await self.load_module(r.content, message, module_name, url)
+        return await self.load_module(r.content.decode("utf-8"), message, module_name, url)
 
     async def loadmodcmd(self, message):
         """Loads the module file"""
@@ -200,18 +207,47 @@ class LoaderMod(loader.Module):
         else:
             await self.load_module(doc, message)
 
-    async def load_module(self, doc, message, name=None, origin="<string>"):
+    async def load_module(self, doc, message, name=None, origin="<string>", did_requirements=False):
+        requirements = []
+        for line in doc.split("\n"):
+            requirement = VALID_PIP_PACKAGES.fullmatch(line)
+            if not requirement:
+                continue
+            requirements = [x.strip() for x in requirement[1].split(" ")]
+        requirements = filter(lambda x: x and not (x[0] == "-" or x[0] == "_" or x[0] == "."), requirements)
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
             uid = name.replace("%", "%%").replace(".", "%d")
         module_name = "friendly-telegram.modules." + uid
         try:
-            module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin), origin=origin))
-            sys.modules[module_name] = module
-            module.borg = uniborg.UniborgClient(module_name)
-            module._ = _  # noqa: F821
-            module.__spec__.loader.exec_module(module)
+            try:
+                module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin),
+                                                                    origin=origin))
+                sys.modules[module_name] = module
+                module.borg = uniborg.UniborgClient(module_name)
+                module._ = _  # noqa: F821
+                module.__spec__.loader.exec_module(module)
+            except ImportError:
+                logger.exception("Module loading failed, attemping dependency installation")
+                # Let's try to reinstall dependencies
+                requirements = list(requirements)
+                logger.debug("Installing requirements: %r", requirements)
+                if not requirements:
+                    raise  # we don't know what to install
+                await utils.answer(message, self.strings["requirements_installing"])
+                pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip",
+                                                           "install", "--upgrade", "--user", *requirements)
+                rc = await pip.wait()
+                if rc != 0:
+                    await utils.answer(message, self.strings["requirements_failed"])
+                    return False
+                elif not did_requirements:
+                    importlib.invalidate_caches()
+                    return await self.load_module(doc, message, name, origin, True)  # Try again
+                else:
+                    await utils.answer(message, self.strings["requirements_restart"])
+                    return False
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")
             if message is not None:
@@ -220,7 +256,7 @@ class LoaderMod(loader.Module):
         if "register" not in vars(module):
             if message is not None:
                 await utils.answer(message, self.strings["load_failed"])
-            logging.error("Module does not have register(), it has " + repr(vars(module)))
+            logger.error("Module does not have register(), it has " + repr(vars(module)))
             return False
         try:
             try:

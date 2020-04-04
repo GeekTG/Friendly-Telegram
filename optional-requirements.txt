@@ -1,4 +1,0 @@
-cryptg
-
-cairosvg
-Pillow >= 6.1.0

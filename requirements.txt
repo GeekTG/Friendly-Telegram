@@ -1,2 +1,21 @@
--r optional-requirements.txt
--r mandatory-requirements.txt
+# Telegram connection
+telethon >= 1.10.6
+
+# Compatibility for 3.5
+future-fstrings
+
+# Config
+pythondialog
+
+# Heroku & Updater
+heroku3
+gitpython
+
+# Translations
+babel
+
+# Eval
+meval >= 2.4
+
+# Web
+aiohttp_jinja2

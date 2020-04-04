@@ -32,7 +32,7 @@ from ..compat import uniborg
 
 logger = logging.getLogger(__name__)
 
-VALID_URL = "[-[\]_.~:/?#@!$&'()*+,;%=a-zA-Z0-9]+"
+VALID_URL = "[-[\]_.~:/?#@!$&'()*+,;%<=>a-zA-Z0-9]+"
 VALID_PIP_PACKAGES = re.compile("\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*".format(url=VALID_URL))
 
 

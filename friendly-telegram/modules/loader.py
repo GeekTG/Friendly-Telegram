@@ -235,18 +235,21 @@ class LoaderMod(loader.Module):
                 logger.debug("Installing requirements: %r", requirements)
                 if not requirements:
                     raise  # we don't know what to install
-                await utils.answer(message, self.strings["requirements_installing"])
+                if message is not None:
+                    await utils.answer(message, self.strings["requirements_installing"])
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip",
                                                            "install", "--upgrade", "--user", *requirements)
                 rc = await pip.wait()
                 if rc != 0:
-                    await utils.answer(message, self.strings["requirements_failed"])
+                    if message is not None:
+                        await utils.answer(message, self.strings["requirements_failed"])
                     return False
                 elif not did_requirements:
                     importlib.invalidate_caches()
                     return await self.load_module(doc, message, name, origin, True)  # Try again
                 else:
-                    await utils.answer(message, self.strings["requirements_restart"])
+                    if message is not None:
+                        await utils.answer(message, self.strings["requirements_restart"])
                     return False
         except Exception:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")

@@ -202,6 +202,8 @@ def parse_arguments():
     parser.add_argument("--no-web", dest="web", action="store_false")
     parser.add_argument("--heroku-web-internal", dest="heroku_web_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
+    parser.add_argument("--heroku-deps-internal", dest="heroku_deps_internal", action="store_true",
+                        help="This is for internal use only. If you use it, things will go wrong.")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -421,7 +423,7 @@ async def amain(client, allclients, web, arguments):
             except MessageNotModifiedError:
                 pass
             return
-        db = frontend.Database(dbc(client))
+        db = frontend.Database(dbc(client), arguments.heroku_deps_internal)
         await db.init()
         logging.debug("got db")
         logging.info("Loading logging config...")
@@ -435,6 +437,9 @@ async def amain(client, allclients, web, arguments):
 
         modules.send_config(db, babelfish)
         await modules.send_ready(client, db, allclients)
+        if arguments.heroku_deps_internal:
+            # Loader has installed all dependencies
+            return  # We are done
         if not web_only:
             client.add_event_handler(functools.partial(handle_incoming, modules, db),
                                      events.NewMessage(incoming=True))

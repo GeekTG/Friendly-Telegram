@@ -33,16 +33,12 @@ def publish(clients, key, api_token=None):
     logging.debug("Configuring heroku...")
     data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
     app, config = get_app(clients, key, api_token)
-    try:
-        app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code != 404:
-            raise
     config["authorization_strings"] = data
     config["heroku_api_token"] = key
     if api_token is not None:
         config["api_id"] = api_token.ID
         config["api_hash"] = api_token.HASH
+    app.update_buildpacks(["https://github.com/heroku/heroku-buildpack-python", "https://gitlab.com/friendly-telegram/heroku-buildpack"])
     repo = get_repo()
     url = app.git_url.replace("https://", "https://api:" + key + "@")
     if "heroku" in repo.remotes:
@@ -52,6 +48,7 @@ def publish(clients, key, api_token=None):
         remote = repo.create_remote("heroku", url)
     remote.push(refspec="HEAD:refs/heads/master")
     logging.debug("We are still alive. Enabling dyno.")
+    app.scale_formation_process("web", 0)  # force web to restart, preventing idling
     app.scale_formation_process("web", 1)
     return app
 

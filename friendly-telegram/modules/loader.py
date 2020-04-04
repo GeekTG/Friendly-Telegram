@@ -20,12 +20,12 @@ import sys
 import uuid
 import asyncio
 import urllib
+import os
+import re
+import requests
 
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
-
-import re
-import requests
 
 from .. import loader, utils
 from ..compat import uniborg
@@ -238,7 +238,7 @@ class LoaderMod(loader.Module):
                 if message is not None:
                     await utils.answer(message, self.strings["requirements_installing"])
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip",
-                                                           "install", "--upgrade", "--user", *requirements)
+                                                           "install", "--upgrade", *([] if os.environ.get("PIP_TARGET", None) else ["--user"]), *requirements)
                 rc = await pip.wait()
                 if rc != 0:
                     if message is not None:

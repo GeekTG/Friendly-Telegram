@@ -50,7 +50,6 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";"
 git clone https://gitlab.com/friendly-telegram/friendly-telegram
 
 Set-Location friendly-telegram
-python -m pip install -r optional-requirements.txt
-python -m pip install -r mandatory-requirements.txt
+python -m pip install -r requirements.txt
 python -m friendly-telegram
 python -m friendly-telegram --heroku # Stopgap

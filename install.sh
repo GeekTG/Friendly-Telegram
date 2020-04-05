@@ -206,9 +206,7 @@ cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user
 # shellcheck disable=SC2086
-runin ${SUDO_CMD}"python$PYVER" -m pip install -r optional-requirements.txt --user --no-warn-script-location --disable-pip-version-check || true
-# shellcheck disable=SC2086
-runin ${SUDO_CMD}"python$PYVER" -m pip install -r mandatory-requirements.txt --user --no-warn-script-location --disable-pip-version-check || { errorin "Requirements failed!"; exit 4; }
+runin ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || { errorin "Requirements failed!"; exit 4; }
 touch .setup_complete
 endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log

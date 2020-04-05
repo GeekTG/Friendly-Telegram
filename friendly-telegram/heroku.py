@@ -23,7 +23,6 @@ from git import Repo
 from git.exc import InvalidGitRepositoryError
 from telethon.sessions import StringSession
 import heroku3
-import requests
 
 from . import utils
 
@@ -38,7 +37,8 @@ def publish(clients, key, api_token=None):
     if api_token is not None:
         config["api_id"] = api_token.ID
         config["api_hash"] = api_token.HASH
-    app.update_buildpacks(["https://github.com/heroku/heroku-buildpack-python", "https://gitlab.com/friendly-telegram/heroku-buildpack"])
+    app.update_buildpacks(["https://github.com/heroku/heroku-buildpack-python",
+                           "https://gitlab.com/friendly-telegram/heroku-buildpack"])
     repo = get_repo()
     url = app.git_url.replace("https://", "https://api:" + key + "@")
     if "heroku" in repo.remotes:

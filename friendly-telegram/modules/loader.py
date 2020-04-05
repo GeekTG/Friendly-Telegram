@@ -238,7 +238,9 @@ class LoaderMod(loader.Module):
                 if message is not None:
                     await utils.answer(message, self.strings["requirements_installing"])
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip",
-                                                           "install", "--upgrade", *([] if os.environ.get("PIP_TARGET", None) else ["--user"]), *requirements)
+                                                           "install", "--upgrade",
+                                                           *[] if "PIP_TARGET" in os.environ else ["--user"],
+                                                           *requirements)
                 rc = await pip.wait()
                 if rc != 0:
                     if message is not None:

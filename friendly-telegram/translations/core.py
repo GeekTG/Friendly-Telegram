@@ -45,7 +45,7 @@ class Translator:
                 logger.info("Last message in translation pack %d has no document")
             found = False
             for ent in filter(lambda x: isinstance(x, MessageEntityHashtag), message.entities or []):
-                if message.message[ent.offset:ent.offset + ent.length] == MAGIC:
+                if message.message[ent.offset:ent.offset + ent.length] == MAGIC and message.file:
                     logger.debug("Got translation message")
                     found = True
                     break

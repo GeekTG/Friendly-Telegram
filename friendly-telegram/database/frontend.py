@@ -53,7 +53,7 @@ class Database(dict):
         return object.__repr__(self)
 
     async def init(self):
-        if self._noop:
+        if self._backend is None:
             self._loading = False
             self._waiter.set()
             return

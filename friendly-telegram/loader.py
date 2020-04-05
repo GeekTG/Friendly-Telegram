@@ -123,15 +123,16 @@ class Modules():
         self.instances.append(self)
         self.client = None
 
-    def register_all(self, babelfish):
+    def register_all(self, babelfish, mods=None):
         """Load all modules in the module directory"""
         if self._compat_layer is None:
             from .compat import uniborg
             from . import compat  # Avoid circular import
             self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
-        mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
-                      os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
+        if not mods:
+            mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
+                          os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
         logging.debug(mods)
         for mod in mods:
             try:

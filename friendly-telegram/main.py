@@ -433,7 +433,7 @@ async def amain(client, allclients, web, arguments):
         await babelfish.init(client)
 
         modules = loader.Modules()
-        modules.register_all(babelfish)
+        modules.register_all(babelfish, None if not arguments.heroku_deps_internal else ["loader.py"])
 
         modules.send_config(db, babelfish)
         await modules.send_ready(client, db, allclients)

@@ -232,7 +232,7 @@ class LoaderMod(loader.Module):
                 if did_requirements:
                     if message is not None:
                         await utils.answer(message, self.strings["requirements_restart"])
-                    return False
+                    return True  # save to database despite failure, so it will work after restart
                 if message is not None:
                     await utils.answer(message, self.strings["requirements_installing"])
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install",

@@ -101,9 +101,6 @@ class MarkdownBotPassthrough():
                 ret.text = markdown.unparse(ret.message, [x.__under for x in ret.entities or []])
         return ret
 
-    def __del__(self):
-        del self.__under
-
     def __repr__(self):
         return repr(self.__under)
 

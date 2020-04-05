@@ -33,7 +33,7 @@ from ..compat import uniborg
 logger = logging.getLogger(__name__)
 
 VALID_URL = r"[-[\]_.~:/?#@!$&'()*+,;%<=>a-zA-Z0-9]+"
-VALID_PIP_PACKAGES = re.compile(r"\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*".format(url=VALID_URL))
+VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*$".format(url=VALID_URL), re.MULTILINE)
 
 
 def register(cb):  # pylint: disable=C0116
@@ -208,13 +208,6 @@ class LoaderMod(loader.Module):
             await self.load_module(doc, message)
 
     async def load_module(self, doc, message, name=None, origin="<string>", did_requirements=False):
-        requirements = []
-        for line in doc.split("\n"):
-            requirement = VALID_PIP_PACKAGES.fullmatch(line)
-            if not requirement:
-                continue
-            requirements = [x.strip() for x in requirement[1].split(" ")]
-        requirements = filter(lambda x: x and not (x[0] == "-" or x[0] == "_" or x[0] == "."), requirements)
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
@@ -229,9 +222,10 @@ class LoaderMod(loader.Module):
                 module._ = _  # noqa: F821
                 module.__spec__.loader.exec_module(module)
             except ImportError:
-                logger.exception("Module loading failed, attemping dependency installation")
+                logger.info("Module loading failed, attemping dependency installation", exc_info=True)
                 # Let's try to reinstall dependencies
-                requirements = list(requirements)
+                requirements = list(filter(lambda x: x and x[0] not in ("-", "_", "."),
+                                           map(str.strip, VALID_PIP_PACKAGES.search(doc)[1].split(" "))))
                 logger.debug("Installing requirements: %r", requirements)
                 if not requirements:
                     raise  # we don't know what to install
@@ -241,8 +235,8 @@ class LoaderMod(loader.Module):
                     return False
                 if message is not None:
                     await utils.answer(message, self.strings["requirements_installing"])
-                pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip",
-                                                           "install", "--upgrade",
+                pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install",
+                                                           "--upgrade", "-q", "--disable-pip-version-check",
                                                            *[] if "PIP_TARGET" in os.environ else ["--user"],
                                                            *requirements)
                 rc = await pip.wait()

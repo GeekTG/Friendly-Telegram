@@ -89,7 +89,7 @@ class UpdaterMod(loader.Module):
 
     async def restart_common(self, message):
         await self.prerestart_common(message)
-        atexit.register(functools.partial(restart, *sys.argv))
+        atexit.register(functools.partial(restart, *sys.argv[1:]))
         [handler] = logging.getLogger().handlers
         handler.setLevel(logging.CRITICAL)
         for client in self.allclients:
@@ -194,7 +194,7 @@ class UpdaterMod(loader.Module):
 
 
 def restart(*argv):
-    os.execl(sys.executable, sys.executable, *argv)
+    os.execl(sys.executable, sys.executable, "-m", os.path.relpath(utils.get_base_dir()), *argv)
 
 
 ###################################################################################

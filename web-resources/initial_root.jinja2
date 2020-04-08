@@ -48,7 +48,7 @@
         Your Telegram API configuration is already completed. Please proceed to the next step.
       {% endif %}
       In this section you must enter the API Hash and ID from <a href="https://my.telegram.org">the Telegram website</a>
-      <form action="#">
+      <form onsubmit="return false;">
         <div class="mdl-textfield mdl-js-textfield">
           <input class="mdl-textfield__input" type="number" pattern="[0-9]+" id="api_id">
           <label class="mdl-textfield__label" for="api_id">API ID</label>
@@ -76,7 +76,7 @@
       In this section you must enter the One-Time-Password you will receive from the Telegram Service account.
       Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
       <br><br>
-      <form action="#">
+      <form onsubmit="return false;">
         <div class="mdl-textfield mdl-js-textfield">
           <input class="mdl-textfield__input" type="phone" pattern="\+[0-9]{6,}" id="phone">
           <label class="mdl-textfield__label" for="phone">Phone</label>
@@ -104,7 +104,7 @@
       <br>
       If you do not want to deploy to Heroku, then simply click the Continue button to skip.
       <br><br>
-      <form action="#">
+      <form onsubmit="return false;">
         <div class="mdl-textfield mdl-js-textfield">
           <input class="mdl-textfield__input" type="password" pattern="[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}" id="heroku" value="{{ heroku_token or "" }}">
           <label class="mdl-textfield__label" for="heroku">Heroku API Token</label>

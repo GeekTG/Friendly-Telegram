@@ -100,13 +100,13 @@ Friendly-Telegram
       Export data
     </button>
   </a>
-  <form action="#">
+  <form onsubmit="return false;">
     <div class="mdl-textfield mdl-js-textfield">
       <input class="mdl-textfield__input" type="text" id="lang-code" onchange="setLanguage(this);" value="en">
       <label class="mdl-textfield__label" for="lang-code">ISO 639-1 language code</label>
     </div>
   </form>
-  <form action="#">
+  <form onsubmit="return false;">
     <input type="file" id="import" onchange="loadTranslations(this.files[0]);" style="display: none;" accept="application/json">
     <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" onclick="document.getElementById('import').click();">
       Import data

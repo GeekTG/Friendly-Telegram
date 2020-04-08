@@ -17,6 +17,7 @@
 import logging
 import os
 import sys
+import atexit
 import argparse
 import asyncio
 import json
@@ -32,7 +33,7 @@ from telethon.sessions import StringSession, SQLiteSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
 from telethon.tl.functions.channels import DeleteChannelRequest
 
-from . import utils, loader
+from . import utils, loader, heroku
 
 
 from .database import backend, local_backend, frontend
@@ -255,7 +256,13 @@ def get_api_token():
             return api_token
 
 
-def sigterm(signum, handler):
+def sigterm(app, signum, handler):
+    if app is not None:
+        dyno = os.environ["DYNO"]
+        if dyno == "web":
+            if app.process_formation()["web"].quantity:
+                # If we are just idling, start the worker, but otherwise shutdown gracefully
+                app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1)
     # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
 
@@ -286,6 +293,19 @@ def main():  # noqa: C901
             api_token = web.api_token
         else:
             run_config({})
+
+    if os.environ.get("DYNO", False) or arguments.heroku_web_internal or arguments.heroku_deps_internal:
+        app, config = heroku.get_app(os.environ["authorization_strings"],
+                                     os.environ["heroku_api_token"], api_token, False, True)
+    if arguments.heroku_web_internal:
+        app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
+        signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
+    elif arguments.heroku_deps_internal:
+        app.scale_formation_process("web", 0)
+        app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
+        atexit.register(functools.partial(app.scale_formation_process, "web", 1))
+    elif os.environ.get("DYNO", False):
+        signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
 
     if authtoken:
         for phone, token in authtoken.items():
@@ -368,7 +388,6 @@ def main():  # noqa: C901
             key = arguments.heroku
         else:
             key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
-        from . import heroku
         app = heroku.publish(clients, key, api_token)
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         if web:
@@ -376,9 +395,6 @@ def main():  # noqa: C901
             web.ready.set()
             loop.run_until_complete(web.root_redirected.wait())
         return
-
-    if arguments.heroku_web_internal:
-        signal.signal(signal.SIGTERM, sigterm)
 
     loops = [amain(client, clients, web, arguments) for client in clients]
 

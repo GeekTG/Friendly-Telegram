@@ -27,11 +27,11 @@ import heroku3
 from . import utils
 
 
-def publish(clients, key, api_token=None):
+def publish(clients, key, api_token=None, create_new=True, full_match=False):
     """Push to heroku"""
     logging.debug("Configuring heroku...")
     data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
-    app, config = get_app(clients, key, api_token)
+    app, config = get_app(data, key, api_token, create_new, full_match)
     config["authorization_strings"] = data
     config["heroku_api_token"] = key
     if api_token is not None:
@@ -53,7 +53,7 @@ def publish(clients, key, api_token=None):
     return app
 
 
-def get_app(clients, key, api_token=None, create_new=True, full_match=False):
+def get_app(authorization_strings, key, api_token=None, create_new=True, full_match=False):
     heroku = heroku3.from_key(key)
     app = None
     for poss_app in heroku.apps():
@@ -61,7 +61,7 @@ def get_app(clients, key, api_token=None, create_new=True, full_match=False):
         if "authorization_strings" not in config:
             continue
         if (api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH)):
-            if full_match and config["authorization_strings"] != os.environ["authorization_strings"]:
+            if full_match and config["authorization_strings"] != authorization_strings:
                 continue
             app = poss_app
             break

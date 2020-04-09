@@ -260,7 +260,7 @@ def get_api_token():
 def sigterm(app, signum, handler):
     if app is not None:
         dyno = os.environ["DYNO"]
-        if dyno == "web":
+        if dyno.startswith("web"):
             if app.process_formation()["web"].quantity:
                 # If we are just idling, start the worker, but otherwise shutdown gracefully
                 app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1)

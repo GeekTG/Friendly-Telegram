@@ -295,24 +295,25 @@ def main():  # noqa: C901
         else:
             run_config({})
 
-    if os.environ.get("DYNO", False) or arguments.heroku_web_internal or arguments.heroku_deps_internal:
-        app, config = heroku.get_app(os.environ["authorization_strings"],
-                                     os.environ["heroku_api_token"], api_token, False, True)
-    if arguments.heroku_web_internal:
-        app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
-        signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
-    elif arguments.heroku_deps_internal:
-        try:
-            app.scale_formation_process("web", 0)
+    if os.environ.get("authorization_strings", False):
+        if os.environ.get("DYNO", False) or arguments.heroku_web_internal or arguments.heroku_deps_internal:
+            app, config = heroku.get_app(os.environ["authorization_strings"],
+                                         os.environ["heroku_api_token"], api_token, False, True)
+        if arguments.heroku_web_internal:
             app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code != 404:
-                # The dynos don't exist on the very first deployment, so don't try to scale
-                raise
-        else:
-            atexit.register(functools.partial(app.scale_formation_process, "web", 1))
-    elif os.environ.get("DYNO", False):
-        signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
+            signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
+        elif arguments.heroku_deps_internal:
+            try:
+                app.scale_formation_process("web", 0)
+                app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code != 404:
+                    # The dynos don't exist on the very first deployment, so don't try to scale
+                    raise
+            else:
+                atexit.register(functools.partial(app.scale_formation_process, "web", 1))
+        elif os.environ.get("DYNO", False):
+            signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
 
     if authtoken:
         for phone, token in authtoken.items():

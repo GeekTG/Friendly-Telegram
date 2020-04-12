@@ -204,7 +204,7 @@ ${SUDO_CMD}rm -rf friendly-telegram
 runout ${SUDO_CMD}git clone https://gitlab.com/friendly-telegram/friendly-telegram || { errorout "Clone failed."; exit 3; }
 cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
-runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip --user
+runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip setuptools wheel --user
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || { errorin "Requirements failed!"; exit 4; }
 touch .setup_complete

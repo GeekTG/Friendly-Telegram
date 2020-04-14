@@ -7,3 +7,5 @@ database-*.json
 *.swp
 .setup_complete
 .tox
+.idea/
+venv/

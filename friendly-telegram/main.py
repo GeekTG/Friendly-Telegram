@@ -294,7 +294,8 @@ def main():  # noqa: C901
             api_token = web.api_token
         else:
             run_config({})
-            return main()
+            importlib.clear_caches()
+            api_token = get_api_token()
 
     if os.environ.get("authorization_strings", False):
         if os.environ.get("DYNO", False) or arguments.heroku_web_internal or arguments.heroku_deps_internal:

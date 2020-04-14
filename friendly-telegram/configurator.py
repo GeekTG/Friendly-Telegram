@@ -124,11 +124,14 @@ class TDialog():
 
 TITLE = ""
 
-try:
-    DIALOG = Dialog(dialog="dialog", autowidgetsize=True)
-    locale.setlocale(locale.LC_ALL, "")
-except (ExecutableNotFound, locale.Error):
-    # Fall back to a terminal based configurator.
+if sys.stdout.isatty():
+    try:
+        DIALOG = Dialog(dialog="dialog", autowidgetsize=True)
+        locale.setlocale(locale.LC_ALL, "")
+    except (ExecutableNotFound, locale.Error):
+        # Fall back to a terminal based configurator.
+        DIALOG = TDialog()
+else:
     DIALOG = TDialog()
 
 

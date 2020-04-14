@@ -251,10 +251,7 @@ def get_api_token():
                                                                                 os.environ["api_hash"])
             except KeyError:
                 return None
-            else:
-                return api_token
-        else:
-            return api_token
+        return api_token
 
 
 def sigterm(app, signum, handler):
@@ -284,7 +281,7 @@ def main():  # noqa: C901
             raise RuntimeError("Web required but unavailable")
         web = None
 
-    if api_token is None:
+    while api_token is None:
         if web:
             loop.run_until_complete(web.start())
             print("Web mode ready for configuration")  # noqa: T001

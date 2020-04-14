@@ -38,7 +38,8 @@ def publish(clients, key, api_token=None, create_new=True, full_match=False):
         config["api_id"] = api_token.ID
         config["api_hash"] = api_token.HASH
     app.update_buildpacks(["https://github.com/heroku/heroku-buildpack-python",
-                           "https://gitlab.com/friendly-telegram/heroku-buildpack"])
+                           "https://gitlab.com/friendly-telegram/heroku-buildpack"]
+                          + app)
     repo = get_repo()
     url = app.git_url.replace("https://", "https://api:" + key + "@")
     if "heroku" in repo.remotes:

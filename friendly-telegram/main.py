@@ -27,6 +27,7 @@ import sqlite3
 import importlib
 import signal
 import shlex
+import time
 import requests
 
 from telethon import TelegramClient, events
@@ -206,6 +207,8 @@ def parse_arguments():
                         help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-deps-internal", dest="heroku_deps_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
+    parser.add_argument("--heroku-restart-internal", dest="heroku_restart_internal", action="store_true",
+                        help="This is for internal use only. If you use it, things will go wrong.")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -261,6 +264,11 @@ def sigterm(app, signum, handler):
             if app.process_formation()["web"].quantity:
                 # If we are just idling, start the worker, but otherwise shutdown gracefully
                 app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1)
+        elif dyno.startswith("restarter"):
+            if app.process_formation()["restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK"].quantity:
+                # If this dyno is restarting, it means we should start the web dyno
+                app.batch_scale_formation_processes({"web": 1, "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
+                                                     "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0})
     # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
 
@@ -310,7 +318,12 @@ def main():  # noqa: C901
                     # The dynos don't exist on the very first deployment, so don't try to scale
                     raise
             else:
-                atexit.register(functools.partial(app.scale_formation_process, "web", 1))
+                atexit.register(functools.partial(app.scale_formation_process,
+                                                  "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1))
+        elif arguments.heroku_restart_internal:
+            signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
+            while True:
+                time.sleep(60)
         elif os.environ.get("DYNO", False):
             signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
 

@@ -30,7 +30,7 @@ from . import utils
 MODULES_NAME = "modules"
 
 
-def translateable_docstring(cls):
+def translatable_docstring(cls):
     @functools.wraps(cls.config_complete)
     def config_complete(self, *args, **kwargs):
         for command, func in get_commands(cls).items():
@@ -50,7 +50,7 @@ def translateable_docstring(cls):
     return cls
 
 
-tds = translateable_docstring  # Shorter name for modules to use
+tds = translatable_docstring  # Shorter name for modules to use
 
 
 class ModuleConfig(dict):

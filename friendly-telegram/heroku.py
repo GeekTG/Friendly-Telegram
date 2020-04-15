@@ -61,7 +61,7 @@ def get_app(authorization_strings, key, api_token=None, create_new=True, full_ma
         config = poss_app.config()
         if "authorization_strings" not in config:
             continue
-        if (api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH)):
+        if api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH):
             if full_match and config["authorization_strings"] != authorization_strings:
                 continue
             app = poss_app

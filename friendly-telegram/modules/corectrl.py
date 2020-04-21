@@ -42,7 +42,9 @@ class CoreMod(loader.Module):
                "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>",
                "no_pack": "<b>What translation pack should be added?</b>",
                "bad_pack": "<b>Invalid translation pack specified</b>",
-               "trnsl_saved": "<b>Translation pack added</b>"}
+               "trnsl_saved": "<b>Translation pack added</b>",
+               "packs_cleared": "<b>Translations cleared</b>",
+               "lang_set": "<b>Language changed</b>"}
 
     def config_complete(self):
         self.name = self.strings["name"]
@@ -150,6 +152,20 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings["trnsl_saved"])
         else:
             await utils.answer(message, self.strings["bad_pack"])
+
+    async def cleartrnslcmd(self, message):
+        """Remove all translation packs"""
+        self._db.set(main.__name__, "langpacks", [])
+        await utils.answer(message, self.strings["packs_cleared"])
+
+    async def setlangcmd(self, message):
+        """Change the preferred language used for translations
+           Specify the language as space separated list of ISO 639-1 language codes in order of preference (e.g. fr en)
+           With no parameters, all translations are disabled
+           Restart required after use"""
+        langs = utils.get_args(message)
+        self._db.set(main.__name__, "language", langs)
+        await utils.answer(message, self.strings["lang_set"])
 
     async def _client_ready2(self, client, db):
         ret = {}

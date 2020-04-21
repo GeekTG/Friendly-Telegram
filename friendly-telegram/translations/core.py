@@ -39,10 +39,10 @@ class Translator:
                 [message] = await client.get_messages(pack, 1)
             except (ValueError, telethon.errors.rpcerrorlist.ChannelPrivateError):
                 # There is no message with matching magic
-                logger.warning("No translation pack found for %d", pack, exc_info=True)
+                logger.warning("No translation pack found for %r", pack, exc_info=True)
                 continue
             if not message.document:
-                logger.info("Last message in translation pack %d has no document")
+                logger.info("Last message in translation pack %r has no document", pack)
             found = False
             for ent in filter(lambda x: isinstance(x, MessageEntityHashtag), message.entities or []):
                 if message.message[ent.offset:ent.offset + ent.length] == MAGIC and message.file:

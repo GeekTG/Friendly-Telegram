@@ -247,7 +247,7 @@ class LoaderMod(loader.Module):
                 else:
                     importlib.invalidate_caches()
                     return await self.load_module(doc, message, name, origin, True)  # Try again
-        except Exception:  # That's okay because it might try to exit or something, who knows.
+        except BaseException:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")
             if message is not None:
                 await utils.answer(message, self.strings["load_failed"])

@@ -469,6 +469,11 @@ async def amain(client, allclients, web, arguments):
         await babelfish.init(client)
 
         modules = loader.Modules()
+
+        if web and not arguments.heroku_deps_internal:
+            await web.add_loader(client, modules, db)
+            await web.start_if_ready(len(allclients))
+
         modules.register_all(babelfish, None if not arguments.heroku_deps_internal else ["loader.py"])
 
         modules.send_config(db, babelfish)
@@ -482,7 +487,4 @@ async def amain(client, allclients, web, arguments):
             client.add_event_handler(functools.partial(handle_command, modules, db),
                                      events.NewMessage(outgoing=True, forwards=False))
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
-        if web:
-            await web.add_loader(client, modules, db)
-            await web.start_if_ready(len(allclients))
         await client.run_until_disconnected()

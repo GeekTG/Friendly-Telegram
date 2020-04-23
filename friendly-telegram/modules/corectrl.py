@@ -167,6 +167,7 @@ class CoreMod(loader.Module):
         langs = utils.get_args(message)
         self._db.set(main.__name__, "language", langs)
         await utils.answer(message, self.strings["lang_set"])
+
     async def cleardbcmd(self, message):
         """Clears the entire database, effectively performing a factory reset"""
         self._db.clear()

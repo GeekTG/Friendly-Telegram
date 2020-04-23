@@ -61,7 +61,7 @@ class CoreMod(loader.Module):
             return
         chatid = None
         module = None
-        if len(args) >= 1:
+        if args:
             try:
                 chatid = int(args[0])
             except ValueError:

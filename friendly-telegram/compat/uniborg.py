@@ -166,6 +166,8 @@ class UniborgUtil:
             if len(args) != 1:
                 raise TypeError("Takes exactly 0 or 1 args")
             kwargs["pattern"] = args[0]
+        else:
+            kwargs.setdefault("pattern", ".*")
         if not (kwargs["pattern"].startswith(".") or kwargs["pattern"].startswith(r"\.")):
             kwargs["pattern"] = r"\." + kwargs["pattern"]
         if not ("incoming" in kwargs.keys() or "outgoing" in kwargs.keys()):

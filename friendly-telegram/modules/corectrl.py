@@ -44,7 +44,8 @@ class CoreMod(loader.Module):
                "bad_pack": "<b>Invalid translation pack specified</b>",
                "trnsl_saved": "<b>Translation pack added</b>",
                "packs_cleared": "<b>Translations cleared</b>",
-               "lang_set": "<b>Language changed</b>"}
+               "lang_set": "<b>Language changed</b>",
+               "db_cleared": "<b>Dataase cleared</b>"}
 
     def config_complete(self):
         self.name = self.strings["name"]
@@ -166,6 +167,11 @@ class CoreMod(loader.Module):
         langs = utils.get_args(message)
         self._db.set(main.__name__, "language", langs)
         await utils.answer(message, self.strings["lang_set"])
+    async def cleardbcmd(self, message):
+        """Clears the entire database, effectively performing a factory reset"""
+        self._db.clear()
+        await self._db.save()
+        await utils.answer(message, self.strings["db_cleared"])
 
     async def _client_ready2(self, client, db):
         ret = {}

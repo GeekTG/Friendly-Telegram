@@ -22,6 +22,7 @@ import telethon
 
 from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
 from telethon.tl.types import Message
+from telethon.tl.custom import Message as CustomMessage
 from telethon.errors.rpcerrorlist import MessageEditTimeExpiredError, MessageNotModifiedError
 
 logger = logging.getLogger(__name__)
@@ -168,7 +169,9 @@ class CloudBackend():
             self._assets = await self._find_asset_channel()
         if not self._assets:
             self._assets = await self._make_asset_channel()
-        return (await self._client.send_message(self._assets, message)).id
+        return ((await self._client.send_message(self._assets, message)).id
+                if isinstance(message, (Message, CustomMessage)) else
+                (await self._client.send_message(self._assets, file=message, force_document=True)).id)
 
     async def fetch_asset(self, id):
         if not self._assets:

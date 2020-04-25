@@ -125,7 +125,7 @@ class RemoteMod(loader.Module):
                 # This will always be fulfilled at some point
         logger.debug(args)
         message.message = " ".join(args[1:])
-        msg = await message.client.send_message(args[0], message)
+        msg = await client.send_message(args[0], message)
         msg.message, func = load.dispatch(msg.message)
         await func(msg)
 

@@ -126,7 +126,7 @@ class RemoteMod(loader.Module):
         logger.debug(args)
         message.message = " ".join(args[1:])
         msg = await client.send_message(args[0], message)
-        msg.message, func = load.dispatch(msg.message)
+        _, func = load.dispatch(msg.message.split(" ")[0])
         await func(msg)
 
     async def raw_command(self, client, args, message):

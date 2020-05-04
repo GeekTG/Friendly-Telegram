@@ -27,7 +27,7 @@ try:
     import pymongo
     import redis
 except ImportError:
-    logging.debug("Unable to load SQL database modules for compat")
+    logging.debug("Unable to load database modules for compat")
 
 from .. import loader
 from .util import get_cmd_name, MarkdownBotPassthrough

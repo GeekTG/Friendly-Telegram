@@ -19,7 +19,7 @@
 """Initial entrypoint"""
 
 import sys
-if sys.version_info < (3, 6, 0):  # Minimum version - asyncio got major revamp and so did importlib
+if sys.version_info < (3, 6, 0):
     print("Error: you must use at least Python version 3.6.0")
 else:
     if sys.version_info >= (3, 9, 0):
@@ -32,6 +32,7 @@ else:
         except ModuleNotFoundError:
             print("Error: you have not installed all dependencies correctly.")
             print("Please install all dependencies from requirements.txt")
+            raise
         else:
             if __name__ == '__main__':
                 main.main()  # Execute main function

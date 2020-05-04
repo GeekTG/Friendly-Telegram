@@ -34,12 +34,10 @@ def translatable_docstring(cls):
     @functools.wraps(cls.config_complete)
     def config_complete(self, *args, **kwargs):
         for command, func in get_commands(cls).items():
-
-            @functools.wraps(func)
-            def replacement(*args, **kwargs):
-                return func(self, *args, **kwargs)
-            replacement.__doc__ = self.strings["_cmd_doc_" + command]
-            # setattr(self, command + "cmd", replacement)
+            try:
+                func.__doc__ = self.strings["_cmd_doc_" + command]
+            except AttributeError:
+                func.__func__.__doc__ = self.strings["_cmd_doc_" + command]
         self.__doc__ = self.strings["_cls_doc"]
         return self.config_complete._old_(self, *args, **kwargs)
     config_complete._old_ = cls.config_complete

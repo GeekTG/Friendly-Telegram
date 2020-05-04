@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 VALID_URL = r"[-[\]_.~:/?#@!$&'()*+,;%<=>a-zA-Z0-9]+"
 VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*$".format(url=VALID_URL), re.MULTILINE)
+USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
 
 
 def register(cb):  # pylint: disable=C0116
@@ -237,7 +238,7 @@ class LoaderMod(loader.Module):
                     await utils.answer(message, self.strings["requirements_installing"])
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install",
                                                            "--upgrade", "-q", "--disable-pip-version-check",
-                                                           *[] if "PIP_TARGET" in os.environ else ["--user"],
+                                                           *["--user"] if USER_INSTALL else [],
                                                            *requirements)
                 rc = await pip.wait()
                 if rc != 0:

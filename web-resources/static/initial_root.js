@@ -14,8 +14,9 @@
 //    You should have received a copy of the GNU Affero General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function setApi(elem) {
+function setApi() {
   'use strict';
+  const elem = document.getElementById("api_hash");
   if (elem.classList.contains("is-invalid")) {
     return;
   }

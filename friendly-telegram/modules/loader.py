@@ -233,6 +233,7 @@ class LoaderMod(loader.Module):
                     await utils.answer(message, self.strings("requirements_installing", message))
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install",
                                                            "--upgrade", "-q", "--disable-pip-version-check",
+                                                           "--no-warn-script-location",
                                                            *["--user"] if USER_INSTALL else [],
                                                            *requirements)
                 rc = await pip.wait()

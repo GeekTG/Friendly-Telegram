@@ -1,11 +1,13 @@
 *__pycache__
 *.pyc
 friendly-telegram/api_token.py
-friendly-telegram*.session
-friendly-telegram*.session-journal
+friendly-telegram*.session*
 database-*.json
 *.swp
 .setup_complete
 .tox
 .idea/
 venv/
+data/
+translations/
+api_token.txt

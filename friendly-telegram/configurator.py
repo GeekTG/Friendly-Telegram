@@ -181,7 +181,7 @@ def module_config(mod):
     return True
 
 
-def run(database, phone, init, mods):
+def run(database, data_root, phone, init, mods):
     """Launch configurator"""
     global DB, MODULES, TITLE
     DB = database
@@ -189,26 +189,24 @@ def run(database, phone, init, mods):
     TITLE = "Userbot Configuration for {}"
     TITLE = TITLE.format(phone)
     DIALOG.set_background_title(TITLE)
-    while main_config(init):
+    while main_config(init, data_root):
         pass
     return DB
 
 
-def api_config():
+def api_config(data_root):
     """Request API config from user and set"""
     code, hash_value = DIALOG.inputbox("Enter your API Hash")
     if code == DIALOG.OK:
         if len(hash_value) != 32 or any(it not in string.hexdigits for it in hash_value):
             DIALOG.msgbox("Invalid hash")
             return
-        string1 = "HASH = \"" + hash_value + "\""
         code, id_value = DIALOG.inputbox("Enter your API ID")
         if not id_value or any(it not in string.digits for it in id_value):
             DIALOG.msgbox("Invalid ID")
             return
-        string2 = "ID = \"" + id_value + "\""
-        with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as file:
-            file.write(string1 + "\n" + string2 + "\n")
+        with open(os.path.join(data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt"), "w") as file:
+            file.write(id_value + "\n" + hash_value)
         DIALOG.msgbox("API Token and ID set.")
 
 
@@ -230,10 +228,10 @@ def factory_reset_check():
         DB = None
 
 
-def main_config(init):
+def main_config(init, data_root):
     """Main menu"""
     if init:
-        return api_config()
+        return api_config(data_root)
     choices = [("API Token and ID", "Configure API Token and ID"),
                ("Modules", "Modular configuration"),
                ("Logging", "Configure debug output"),
@@ -243,7 +241,7 @@ def main_config(init):
         if tag == "Modules":
             modules_config()
         if tag == "API Token and ID":
-            api_config()
+            api_config(data_root)
         if tag == "Logging":
             logging_config()
         if tag == "Factory reset":

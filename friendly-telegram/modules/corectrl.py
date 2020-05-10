@@ -47,7 +47,7 @@ class CoreMod(loader.Module):
                "trnsl_saved": "<b>Translation pack added</b>",
                "packs_cleared": "<b>Translations cleared</b>",
                "lang_set": "<b>Language changed</b>",
-               "db_cleared": "<b>Dataase cleared</b>"}
+               "db_cleared": "<b>Database cleared</b>"}
 
     async def client_ready(self, client, db):
         self._db = db

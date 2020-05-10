@@ -31,6 +31,7 @@ class Web:
     def __init__(self, **kwargs):
         self.heroku_api_token = os.environ.get("heroku_api_token")
         self.api_token = kwargs.pop("api_token")
+        self.data_root = kwargs.pop("data_root")
         self.redirect_url = None
         super().__init__(**kwargs)
         self.app.router.add_get("/initialSetup", self.initial_setup)
@@ -78,8 +79,8 @@ class Web:
         api_hash = text[:32]
         if any(c not in string.hexdigits for c in api_hash) or any(c not in string.digits for c in api_id):
             return web.Response(status=400)
-        with open(os.path.join(utils.get_base_dir(), "api_token.py"), "w") as f:
-            f.write("HASH = \"" + api_hash + "\"\nID = \"" + api_id + "\"\n")
+        with open(os.path.join(self.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt"), "w") as f:
+            f.write(api_id + "\n" + api_hash)
         self.api_token = collections.namedtuple("api_token", ("ID", "HASH"))(api_id, api_hash)
         self.api_set.set()
         return web.Response()

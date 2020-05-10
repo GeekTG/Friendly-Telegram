@@ -16,13 +16,15 @@
 
 import asyncio
 import json
+import os
 
 from .backend import CloudBackend
 
 
 class LocalBackend():
-    def __init__(self, client):
+    def __init__(self, client, data_root):
         self._client = client
+        self._data_root = data_root
         self._id = None
         self._file = None
         self._lock = asyncio.Lock()
@@ -31,7 +33,8 @@ class LocalBackend():
     async def init(self, trigger_refresh):
         await self._cloud_db.init(None)
         self._id = (await self._client.get_me(True)).user_id
-        self._filename = "database-{}.json".format(self._id)
+        self._filename = os.path.join(self._data_root or os.path.dirname(utils.get_base_dir()),
+                                      "database-{}.json".format(self._id))
         try:
             self._file = open(self._filename, "r+")
         except FileNotFoundError:

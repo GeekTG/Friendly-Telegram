@@ -50,10 +50,10 @@ else:
     web_available = True
 
 
-def run_config(db, phone=None, modules=None):
+def run_config(db, data_root, phone=None, modules=None):
     """Load configurator.py"""
     from . import configurator
-    return configurator.run(db, phone, phone is None, modules)
+    return configurator.run(db, data_root, phone, phone is None, modules)
 
 
 def parse_arguments():
@@ -70,8 +70,14 @@ def parse_arguments():
                         help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-deps-internal", dest="heroku_deps_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
+    parser.add_argument("--docker-deps-internal", dest="docker_deps_internal", action="store_true",
+                        help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-restart-internal", dest="heroku_restart_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
+    parser.add_argument("--data-root", dest="data_root", default="",
+                        help="Root path to store session files in (must include trailing slash)")
+    parser.add_argument("--no-auth", dest="no_auth", action="store_true",
+                        help="Disable authentication and API token input, exitting if needed")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -86,7 +92,7 @@ def get_phones(arguments):
     phones = set(arguments.phone if arguments.phone else [])
     phones.update(map(lambda f: f[18:-8],
                       filter(lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
-                             os.listdir(os.path.dirname(utils.get_base_dir())))))
+                             os.listdir(arguments.data_root or os.path.dirname(utils.get_base_dir())))))
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku
     if authtoken and not arguments.setup:
@@ -106,18 +112,21 @@ def get_phones(arguments):
     return phones, authtoken
 
 
-def get_api_token():
+def get_api_token(arguments):
     """Get API Token from disk or environment"""
-    while True:
+    api_token_type = collections.namedtuple("api_token", ("ID", "HASH"))
+    try:
+        with open(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt")) as f:
+            api_token = api_token_type(*[line.strip() for line in f.readlines()])
+    except FileNotFoundError:
         try:
             from . import api_token
         except ImportError:
             try:
-                api_token = collections.namedtuple("api_token", ("ID", "HASH"))(os.environ["api_id"],
-                                                                                os.environ["api_hash"])
+                api_token = api_token_type(os.environ["api_id"], os.environ["api_hash"])
             except KeyError:
-                return None
-        return api_token
+                api_token = None
+    return api_token
 
 
 def sigterm(app, signum, handler):
@@ -143,16 +152,18 @@ def main():  # noqa: C901
 
     clients = []
     phones, authtoken = get_phones(arguments)
-    api_token = get_api_token()
+    api_token = get_api_token(arguments)
 
     if web_available:
-        web = core.Web(api_token=api_token) if arguments.web else None
+        web = core.Web(data_root=arguments.data_root, api_token=api_token) if arguments.web else None
     else:
         if arguments.heroku_web_internal:
             raise RuntimeError("Web required but unavailable")
         web = None
 
     while api_token is None:
+        if arguments.no_auth:
+            return
         if web:
             loop.run_until_complete(web.start())
             print("Web mode ready for configuration")  # noqa: T001
@@ -161,9 +172,9 @@ def main():  # noqa: C901
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
         else:
-            run_config({})
+            run_config({}, arguments.data_root)
             importlib.invalidate_caches()
-            api_token = get_api_token()
+            api_token = get_api_token(arguments)
 
     if os.environ.get("authorization_strings", False):
         if os.environ.get("DYNO", False) or arguments.heroku_web_internal or arguments.heroku_deps_internal:
@@ -196,10 +207,12 @@ def main():  # noqa: C901
                 clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
                                            connection_retries=None).start(phone)]
             except ValueError:
-                run_config({})
+                run_config({}, arguments.data_root)
                 return
             clients[-1].phone = phone  # for consistency
     if not clients and not phones:
+        if arguments.no_auth:
+            return
         if web:
             if not web.running.is_set():
                 loop.run_until_complete(web.start())
@@ -213,7 +226,7 @@ def main():  # noqa: C901
                 if arguments.heroku:
                     session = StringSession()
                 else:
-                    session = SQLiteSession(os.path.join(os.path.dirname(utils.get_base_dir()),
+                    session = SQLiteSession(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()),
                                                          "friendly-telegram-" + client.phone))
                 session.set_dc(client.session.dc_id, client.session.server_address, client.session.port)
                 session.auth_key = client.session.auth_key
@@ -248,8 +261,8 @@ def main():  # noqa: C901
         if arguments.heroku:
             session = StringSession()
         else:
-            session = os.path.join(os.path.dirname(utils.get_base_dir()),
-                                   "friendly-telegram" + (("-" + phone.split(":", maxsplit=1)[0]) if phone else ""))
+            session = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "friendly-telegram"
+                                   + (("-" + phone.split(":", maxsplit=1)[0]) if phone else ""))
         try:
             client = TelegramClient(session, api_token.ID, api_token.HASH, connection_retries=None)
             if ":" in phone:
@@ -268,7 +281,7 @@ def main():  # noqa: C901
             continue
         except (ValueError, ApiIdInvalidError):
             # Bad API hash/ID
-            run_config({})
+            run_config({}, arguments.data_root)
             return
         except PhoneNumberInvalidError:
             print("Please check the phone number. Use international format (+XX...)"  # noqa: T001
@@ -309,9 +322,8 @@ async def amain(client, allclients, web, arguments):
         if is_bot:
             local = True
         [handler] = logging.getLogger().handlers
-        dbc = local_backend.LocalBackend if local else backend.CloudBackend
+        db = local_backend.LocalBackend(client, arguments.data_root) if local else backend.CloudBackend(client)
         if setup:
-            db = dbc(client)
             await db.init(lambda e: None)
             jdb = await db.do_download()
             try:
@@ -319,7 +331,7 @@ async def amain(client, allclients, web, arguments):
             except (json.decoder.JSONDecodeError, TypeError):
                 pdb = {}
             modules = loader.Modules()
-            babelfish = Translator([])
+            babelfish = Translator([], [], arguments.data_root)
             await babelfish.init(client)
             modules.register_all(babelfish)
             fdb = frontend.Database(dbc(client), True)
@@ -327,7 +339,7 @@ async def amain(client, allclients, web, arguments):
             modules.send_config(fdb, babelfish)
             await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
             handler.setLevel(50)
-            pdb = run_config(pdb, getattr(client, "phone", "Unknown Number"), modules)
+            pdb = run_config(pdb, arguments.data_root, getattr(client, "phone", "Unknown Number"), modules)
             if pdb is None:
                 await client(DeleteChannelRequest(db.db))
                 return
@@ -336,26 +348,27 @@ async def amain(client, allclients, web, arguments):
             except MessageNotModifiedError:
                 pass
             return
-        db = frontend.Database(dbc(client), arguments.heroku_deps_internal)
+        db = frontend.Database(db, arguments.heroku_deps_internal or arguments.docker_deps_internal)
         await db.init()
         logging.debug("got db")
         logging.info("Loading logging config...")
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        babelfish = Translator(db.get(__name__, "langpacks", []), db.get(__name__, "language", ["en"]))
+        babelfish = Translator(db.get(__name__, "langpacks", []), db.get(__name__, "language", ["en"]), arguments.data_root)
         await babelfish.init(client)
 
         modules = loader.Modules()
 
-        if web and not arguments.heroku_deps_internal:
+        if web and not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
             await web.add_loader(client, modules, db)
             await web.start_if_ready(len(allclients))
 
-        modules.register_all(babelfish, None if not arguments.heroku_deps_internal else ["loader.py"])
+        modules.register_all(babelfish, None if not (arguments.heroku_deps_internal or
+                                                     arguments.docker_deps_internal) else ["loader.py"])
 
         modules.send_config(db, babelfish)
         await modules.send_ready(client, db, allclients)
-        if arguments.heroku_deps_internal:
+        if arguments.heroku_deps_internal or arguments.docker_deps_internal:
             # Loader has installed all dependencies
             return  # We are done
         if not web_only:

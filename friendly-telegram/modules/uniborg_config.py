@@ -23,23 +23,19 @@ from ..compat import uniborg
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(UniborgConfig())
-
-
 @loader.tds
-class UniborgConfig(loader.Module):
+class UniborgConfigMod(loader.Module):
     """Stores configuration for Uniborg modules"""
     strings = {"name": "Uniborg configuration placeholder",
                "cfg_doc": "External configuration item"}
 
     def __init__(self):
         self.config = filter(lambda x: len(x) and x.upper() == x, uniborg.UniborgConfig.__all__)
-        self.config = loader.ModuleConfig(*itertools.chain.from_iterable([(x, None, lambda: self.strings["cfg_doc"])
+        self.config = loader.ModuleConfig(*itertools.chain.from_iterable([(x, None,
+                                                                           lambda m: self.strings("cfg_doc", m))
                                                                           for x in self.config]))
 
     def config_complete(self):
-        self.name = self.strings["name"]
         for key, value in self.config.items():
             if value is not None:
                 setattr(uniborg.UniborgConfig, key, value)

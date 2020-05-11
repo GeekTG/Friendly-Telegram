@@ -106,7 +106,7 @@ Friendly-Telegram
   {% for module in modules %}
     <br>
     {% set ns.module_number = ns.module_number + 1 %}
-    <a href="#module_{{ ns.module_number }}">{{ module.name }}</a>
+    <a href="#module_{{ ns.module_number }}">{{ module.strings["name"] }}</a>
   {% endfor %}
 </div>
 {% endblock %}
@@ -118,10 +118,10 @@ Friendly-Telegram
     {% set ns2.module_number = ns2.module_number + 1 %}
     <div class="mdl-card mdl-shadow--2dp padded" style="width: 100%;" id="module_{{ ns2.module_number }}">
       <div class="mdl-card__title">
-        <h4 class="mdl-card__title-text">{{ module.name }}</h3>
+        <h4 class="mdl-card__title-text">{{ module.strings["name"] }}</h4>
       </div>
       <div class="mdl-cad__supporting-text" style="width:100%;">
-        <p>{{ module|getdoc }}
+        <p>{{ module|getdoc }}</p>
         <br>
         <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive" style="width: 100%; display: block; table-layout: fixed;">
           <colgroup>

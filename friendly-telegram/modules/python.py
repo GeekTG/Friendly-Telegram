@@ -42,28 +42,27 @@ class PythonMod(loader.Module):
                "execute_fail": ("<b>Failed to execute expression:</b>\n<code>{}</code>"
                                 "\n\n<b>Due to:</b>\n<code>{}</code>")}
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
     async def client_ready(self, client, db):
         self.client = client
         self.db = db
 
+    @loader.owner
     async def evalcmd(self, message):
         """.eval <expression>
            Evaluates python code"""
-        ret = self.strings["evaluated"]
+        ret = self.strings("evaluated", message)
         try:
             it = await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-            await utils.answer(message, self.strings["evaluate_fail"]
+            await utils.answer(message, self.strings("evaluate_fail", message)
                                .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
         ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
         await utils.answer(message, ret)
 
+    @loader.owner
     async def execcmd(self, message):
         """.exec <expression>
            Executes python code"""
@@ -72,7 +71,7 @@ class PythonMod(loader.Module):
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-            await utils.answer(message, self.strings["execute_fail"]
+            await utils.answer(message, self.strings("execute_fail", message)
                                .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
 

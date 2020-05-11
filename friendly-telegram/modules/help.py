@@ -38,64 +38,74 @@ class HelpMod(loader.Module):
                "single_cmd": "\n• <code><u>{}</u></code>\n",
                "undoc_cmd": "There is no documentation for this command",
                "all_header": ("<b>Help for</b> <a href='https://t.me/friendlytgbot'>Friendly-Telegram</a>\n"
-                              "For more help on how to use a command, type <code>.help &lt;module name&gt;</code>\n\n"
+                              "For more help on how to use a command, type <code>{}help &lt;module name&gt;</code>\n\n"
                               "<b>Available Modules:</b>"),
                "mod_tmpl": "\n• <b>{}</b>",
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
                "footer": ("\n\nYou can <b>read more</b> about most commands "
                           "<a href='https://friendly-telegram.gitlab.io'>here</a>"),
-               "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support chat</a>"}
+               "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support chat</a>",
+               "join": "<b>Join the</b> <a href='https://t.me/friendlytgbot'>support chat</a>"}
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
+    @loader.unrestricted
     async def helpcmd(self, message):
         """.help [module]"""
         args = utils.get_args_raw(message)
         if args:
             module = None
             for mod in self.allmodules.modules:
-                if mod.name.lower() == args.lower():
+                if mod.strings("name", message).lower() == args.lower():
                     module = mod
             if module is None:
-                await utils.answer(message, self.strings["bad_module"])
+                await utils.answer(message, self.strings("bad_module", message))
                 return
             # Translate the format specification and the module separately
-            reply = self.strings["single_mod_header"].format(utils.escape_html(module.name),
-                                                             utils.escape_html(self.db.get(main.__name__,
-                                                                                           "command_prefix",
-                                                                                           False) or "."))
+            reply = self.strings("single_mod_header", message).format(utils.escape_html(module.strings("name",
+                                                                                                       message)),
+                                                                      utils.escape_html((self.db.get(main.__name__,
+                                                                                                     "command_prefix",
+                                                                                                     False) or ".")[0]))
             if module.__doc__:
                 reply += "\n" + "\n".join("  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
             else:
                 logger.warning("Module %s is missing docstring!", module)
-            for name, fun in module.commands.items():
-                reply += self.strings["single_cmd"].format(name)
+            commands = {name: func for name, func in module.commands.items()
+                        if await self.allmodules.check_security(message, func)}
+            for name, fun in commands.items():
+                reply += self.strings("single_cmd", message).format(name)
                 if fun.__doc__:
                     reply += utils.escape_html("\n".join("  " + t for t in inspect.getdoc(fun).split("\n")))
                 else:
-                    reply += self.strings["undoc_cmd"]
+                    reply += self.strings("undoc_cmd", message)
         else:
-            reply = self.strings["all_header"]
+            reply = self.strings("all_header", message).format(utils.escape_html((self.db.get(main.__name__,
+                                                                                              "command_prefix",
+                                                                                              False) or ".")[0]))
             for mod in self.allmodules.modules:
-                reply += self.strings["mod_tmpl"].format(mod.name)
+                reply += self.strings("mod_tmpl", message).format(mod.strings("name", message))
                 first = True
-                for cmd in mod.commands:
+                commands = [name for name, func in mod.commands.items()
+                            if await self.allmodules.check_security(message, func)]
+                for cmd in commands:
                     if first:
-                        reply += self.strings["first_cmd_tmpl"].format(cmd)
+                        reply += self.strings("first_cmd_tmpl", message).format(cmd)
                         first = False
                     else:
-                        reply += self.strings["cmd_tmpl"].format(cmd)
+                        reply += self.strings("cmd_tmpl", message).format(cmd)
                 reply += "</code>"
-        reply += self.strings["footer"]
+        reply += self.strings("footer", message)
         await utils.answer(message, reply)
 
     async def supportcmd(self, message):
         """Joins the support chat"""
-        await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
-        await utils.answer(message, self.strings["joined"])
+        if not self.is_bot and self.allmodules.check_security(message, loader.OWNER | loader.SUDO):
+            await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
+            await utils.answer(message, self.strings("joined", message))
+        else:
+            await utils.answer(message, self.strings("join", message))
 
     async def client_ready(self, client, db):
         self.client = client
+        self.is_bot = await client.is_bot()
         self.db = db

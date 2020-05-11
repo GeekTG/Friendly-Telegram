@@ -43,12 +43,10 @@ class TestMod(loader.Module):
                "logs_caption": "friendly-telegram logs with verbosity {}",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>"}
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
+    @loader.unrestricted
     async def pingcmd(self, message):
         """Does nothing"""
-        await message.edit(self.strings["pong"])
+        await utils.answer(message, self.strings("pong", message))
 
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""
@@ -62,27 +60,26 @@ class TestMod(loader.Module):
            Dumps logs. Loglevels below WARNING may contain personal info."""
         args = utils.get_args(message)
         if not len(args) == 1:
-            await message.edit(self.strings["set_loglevel"])
+            await utils.answer(message, self.strings("set_loglevel", message))
             return
         try:
             lvl = int(args[0])
         except ValueError:
             # It's not an int. Maybe it's a loglevel
             lvl = getattr(logging, args[0].upper(), None)
-        if lvl is None:
-            await message.edit(self.strings["bad_loglevel"])
+        if not isinstance(lvl, int):
+            await utils.answer(message, self.strings("bad_loglevel", message))
             return
-        await message.edit(self.strings["uploading_logs"])
         [handler] = logging.getLogger().handlers
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-8")
         if not len(logs) > 0:
-            await message.edit(self.strings["no_logs"].format(lvl))
+            await utils.answer(message, self.strings("no_logs", message).format(lvl))
             return
         logs = BytesIO(logs)
-        logs.name = self.strings["logs_filename"]
-        await message.client.send_file(message.to_id, logs, caption=self.strings["logs_caption"].format(lvl))
-        await message.delete()
+        logs.name = self.strings("logs_filename", message)
+        await utils.answer(message, logs, caption=self.strings("logs_caption", message).format(lvl))
 
+    @loader.owner
     async def suspendcmd(self, message):
         """.suspend <time>
            Suspends the bot for N seconds"""
@@ -91,7 +88,7 @@ class TestMod(loader.Module):
         try:
             time.sleep(int(utils.get_args_raw(message)))
         except ValueError:
-            await message.edit(self.strings["suspend_invalid_time"])
+            await utils.answer(message, self.strings("suspend_invalid_time", message))
 
     async def client_ready(self, client, db):
         self.client = client

@@ -42,7 +42,7 @@ def register(cb):
 class UpdaterMod(loader.Module):
     """Updates itself"""
     strings = {"name": "Updater",
-               "origin_cfg_doc": "Git origin URL, for where to update from",
+               "source": "<b>Read the source code from</b> <a href='{}'>here</a>",
                "restarting_caption": "<b>Restarting...</b>",
                "downloading": "<b>Downloading updates...</b>",
                "downloaded": ("<b>Downloaded successfully.\nPlease type</b> "
@@ -53,26 +53,23 @@ class UpdaterMod(loader.Module):
                "success_meme": "<b>Restart failed successfully‽</b>",
                "heroku_warning": ("Heroku API key has not been set. Update was successful but updates will "
                                   "reset every time the bot restarts."),
+               "origin_cfg_doc": "Git origin URL, for where to update from",
                "audio_cfg_doc": "Whether Windows XP sounds should be played during restart"}
 
     def __init__(self):
         self.config = loader.ModuleConfig("GIT_ORIGIN_URL",
                                           "https://gitlab.com/friendly-telegram/friendly-telegram",
-                                          lambda: self.strings["origin_cfg_doc"],
-                                          "AUDIO", True, lambda: self.strings["audio_cfg_doc"])
+                                          lambda m: self.strings("origin_cfg_doc", m),
+                                          "AUDIO", True, lambda m: self.strings("audio_cfg_doc", m))
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
+    @loader.owner
     async def restartcmd(self, message):
         """Restarts the userbot"""
-        logger.debug(self._me)
-        logger.debug(self.allclients)
         if self.config["AUDIO"]:
             msg = (await utils.answer(message, SHUTDOWN, voice_note=True,
-                                      caption=self.strings["restarting_caption"]))[0]
+                                      caption=self.strings("restarting_caption", message)))[0]
         else:
-            msg = (await utils.answer(message, self.strings["restarting_caption"]))[0]
+            msg = (await utils.answer(message, self.strings("restarting_caption", message)))[0]
         await self.restart_common(msg)
 
     async def prerestart_common(self, message):
@@ -97,11 +94,12 @@ class UpdaterMod(loader.Module):
                 await client.disconnect()
         await message.client.disconnect()
 
+    @loader.owner
     async def downloadcmd(self, message):
         """Downloads userbot updates"""
-        await utils.answer(message, self.strings["downloading"])
+        message = await utils.answer(message, self.strings("downloading", message))
         await self.download_common()
-        await utils.answer(message, self.strings["downloaded"])
+        await utils.answer(message, self.strings("downloaded", message))
 
     async def download_common(self):
         try:
@@ -133,17 +131,18 @@ class UpdaterMod(loader.Module):
         except subprocess.CalledProcessError:
             logger.exception("Req install failed")
 
+    @loader.owner
     async def updatecmd(self, message):
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
-        msgs = await utils.answer(message, self.strings["downloading"])
+        msgs = await utils.answer(message, self.strings("downloading", message))
         req_update = await self.download_common()
         if self.config["AUDIO"]:
             message = await message.client.send_file(message.chat_id, SHUTDOWN,
-                                                     caption=self.strings["installing"], voice_note=True)
+                                                     caption=self.strings("installing", message), voice_note=True)
             await asyncio.gather(*[msg.delete() for msg in msgs])
         else:
-            message = (await utils.answer(message, self.strings["installing"]))[0]
+            message = (await utils.answer(message, self.strings("installing", message)))[0]
         heroku_key = os.environ.get("heroku_api_token")
         if heroku_key:
             from .. import heroku
@@ -155,14 +154,19 @@ class UpdaterMod(loader.Module):
             self._db.set(__name__, "selfupdatemsg", None)
             if self.config["AUDIO"]:
                 await message.client.send_file(message.chat_id, STARTUP, voice_note=True,
-                                               caption=self.strings["already_updated"])
+                                               caption=self.strings("already_updated", message))
                 await message.delete()
             else:
-                await utils.answer(message, self.strings["already_updated"])
+                await utils.answer(message, self.strings("already_updated", message))
         else:
             if req_update:
                 self.req_common()
             await self.restart_common(message)
+
+    @loader.unrestricted
+    async def sourcecmd(self, message):
+        """Links the source code of this project"""
+        await utils.answer(message, self.strings("source", message).format(self.config["GIT_ORIGIN_URL"]))
 
     async def client_ready(self, client, db):
         self._db = db
@@ -178,10 +182,10 @@ class UpdaterMod(loader.Module):
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
         if herokufail:
             logger.warning("heroku token not set")
-            msg = self.strings["heroku_warning"]
+            msg = self.strings("heroku_warning")
         else:
             logger.debug("Self update successful! Edit message")
-            msg = self.strings["success"] if random.randint(0, 10) != 0 else self.strings["success_meme"]
+            msg = self.strings("success") if random.randint(0, 10) != 0 else self.strings["success_meme"]
         if self.config["AUDIO"]:
             await client.send_file(self._db.get(__name__, "selfupdatechat"), STARTUP, caption=msg, voice_note=True)
             await client.delete_messages(self._db.get(__name__, "selfupdatechat"),

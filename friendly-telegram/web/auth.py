@@ -18,9 +18,13 @@ import asyncio
 from aiohttp import web
 import aiohttp_jinja2
 import hashlib
+import os
 import secrets
+import logging
 
 from base64 import b64encode
+
+from .. import security
 
 
 class Web:
@@ -42,17 +46,30 @@ class Web:
     async def send_code(self, request):
         uid = int(await request.text())
         if uid in self._uid_to_code.keys():
-            return web.Response()
+            return web.Response(body=self._uid_to_code[uid][1].decode("utf-8"))
         code = secrets.randbelow(100000)
         asyncio.ensure_future(asyncio.shield(self._clear_code(uid)))
-        self._uid_to_code[uid] = b64encode(hashlib.scrypt((str(code).zfill(5) + str(uid)).encode("utf-8"),
-                                                          salt="friendlytgbot".encode("utf-8"),
-                                                          n=16384, r=8, p=1, dklen=64)).decode("utf-8")
-        await self.client_data[uid][1].send_message("me", "Your code is <code>{:05d}</code>\nDo <b>not</b> "
-                                                          "share this code with anyone, even is they say they are"
-                                                          " from friendly-telegram.\nThe code will expire in "
-                                                          "2 minutes.".format(code))
-        return web.Response()
+        salt = b64encode(os.urandom(16))
+        msg = ("Your code is <code>{:05d}</code>\nDo <b>not</b> share this code with anyone!\n"
+               "The code will expire in 2 minutes.".format(code))
+        owners = self.client_data[uid][2].get(security.__name__, "owner", None)
+        if not await self.client_data[uid][1].is_bot():
+            await self.client_data[uid][1].send_message("me", msg)
+        elif owners:
+            for owner in owners:
+                try:
+                    await self.client_data[uid][1].send_message(owner, msg)
+                except Exception:
+                    logging.warning("Failed to send code to owner", exc_info=True)
+                    # Couldn't send the code, print instead
+                    print(msg)  # noqa: T001
+        else:
+            # Who to send code to? No idea.
+            print(msg)  # noqa: T001
+        self._uid_to_code[uid] = (b64encode(hashlib.scrypt((str(code).zfill(5) + str(uid)).encode("utf-8"),
+                                                           salt=salt, n=16384, r=8, p=1, dklen=64)).decode("utf-8"),
+                                  salt)
+        return web.Response(body=salt.decode("utf-8"))
 
     async def _clear_code(self, uid):
         await asyncio.sleep(120)  # Codes last 2 minutes, or whenever they are used
@@ -66,8 +83,16 @@ class Web:
         uid = int(uid)
         if uid not in self._uid_to_code:
             return web.Response(status=404)
-        if self._uid_to_code[uid] == code:
+        if self._uid_to_code[uid][0] == code:
             del self._uid_to_code[uid]
+            if "DYNO" in os.environ:
+                # Trust the X-Forwarded-For on Heroku, because all requests are proxied
+                source = request.headers["X-Forwarded-For"]
+            else:  # TODO allow other proxies to be supported
+                source = request.transport.get_extra_info("peername")
+                if source is not None:
+                    source = source[0]
+            await self.client_data[uid][0].log("new_login", data=str(source))
             secret = secrets.token_urlsafe()
             asyncio.ensure_future(asyncio.shield(self._clear_secret(secret)))
             self._secret_to_uid[secret] = uid  # If they just signed in, they automatically are authenticated

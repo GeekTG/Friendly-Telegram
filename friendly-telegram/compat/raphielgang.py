@@ -284,7 +284,7 @@ class RaphielgangConfig():
 # Please don't refactor this class. Even while writing it only God knew how it worked.
 
 
-__hours_wasted_here = 5
+__hours_wasted_here = 6
 
 
 # // don't touch
@@ -311,7 +311,7 @@ class RaphielgangEvents():
                         func.__self__.__module__ = events_instance.module
                     else:
                         func.__self__ = self
-                self.name = "RaphielGang" + str(self.instance_id)
+                self.strings = {"name": "RaphielGang" + str(self.instance_id)}
                 self.unknowns = events_instance.unknowns
                 self.__module__ = events_instance.module
 
@@ -336,11 +336,10 @@ class RaphielgangEvents():
             return asyncio.gather(*[uk(message, "") for uk in self.unknowns])
 
         def register(self, *args, **kwargs):  # noqa: C901 # legacy code that works fine
-            if len(args) >= 1:
+            if len(args) == 1 and args[0] is True:
                 # This is the register() function in normal ftg modules
                 # Create a fake type, instantiate it with our own self
-                args[0](type("RaphielgangShim__" + self.module, (self.__RaphielgangShimMod__Base,), dict())(self))
-                return
+                return type("RaphielgangShim__" + self.module, (self.__RaphielgangShimMod__Base,), dict())(self)
 
             def subreg(func):  # ALWAYS return func.
                 logger.debug(kwargs)
@@ -408,13 +407,12 @@ class RaphielgangEvents():
             return subreg
 
     def register(self, *args, **kwargs):
-        if len(args) == 2:
-            logger.debug("Register2 for %s", args[1])
-            self.instances[args[1]].register(args[0])  # Passthrough if we have enough info
-            logger.debug("Completed register2")
+        if len(args) == 1:
+            logger.debug("Register for %s", args[0])
+            return self.instances[args[0]].register(True)  # Passthrough if we have enough info
         elif len(args) != 0:
             logger.error(args)
-            raise TypeError("Takes exactly 2 or 0 params")
+            raise TypeError("Takes at most one parameter")
 
         def subreg(func):
             if func.__module__ not in self.instances:

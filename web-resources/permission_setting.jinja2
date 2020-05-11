@@ -1,0 +1,82 @@
+<!--
+    Friendly Telegram (telegram userbot)
+    Copyright (C) 2018-2019 The Authors
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-owner__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-owner__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(OWNER, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Owner</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-sudo__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-sudo__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(SUDO, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Sudo</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-support__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-support__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(SUPPORT, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Support</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-owner__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-owner__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_OWNER, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Owner</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin-add-admins__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin-add-admins__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN_ADD_ADMINS, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin (add admins)</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin-change-info__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin-change-info__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN_CHANGE_INFO, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin (change info)</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin-ban-users__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin-ban-users__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN_BAN_USERS, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin (ban users)</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin-delete-messages__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin-delete-messages__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN_DELETE_MESSAGES, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin (delete messages)</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin-pin-messages__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin-pin-messages__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN_PIN_MESSAGES, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin (pin messages)</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin-invite-users__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin-invite-users__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN_INVITE_USERS, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin (invite users)</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-admin__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-admin__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_ADMIN, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Admin</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-group-member__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-group-member__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(GROUP_MEMBER, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Group Member</span>
+      </label>
+      <br><br>
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-pm__{{ ns2.module_number }}.{{ command_name }}">
+        <input type="checkbox" data-mid="{{ ns2.module_number }}" data-func="{{ command_name }}" id="switch-pm__{{ ns2.module_number }}.{{ command_name }}" class="mdl-switch__input" {{ checked(PM, command, name(command)) }} onclick="updatePermissionSwitch(this);">
+        <span class="mdl-switch__label">Private Messages</span>
+      </label>

@@ -27,6 +27,8 @@ else:
     if __package__ != "friendly-telegram":  # In case they did python __main__.py
         print("Error: you cannot run this as a script; you must execute as a package")
     else:
+        from . import log
+        log.init()
         try:
             from . import main
         except ModuleNotFoundError:

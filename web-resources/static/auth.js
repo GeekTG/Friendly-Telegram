@@ -14,6 +14,8 @@
 //    You should have received a copy of the GNU Affero General Public License
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+var salt = "";
+
 function beginAuthFlow(uid) {
   'use strict';
   fetch("/sendCode", {method: "POST", body: uid})
@@ -21,7 +23,10 @@ function beginAuthFlow(uid) {
     if (!response.ok) {
       sendCodeFailed();
     } else {
-      sendCodeSuccess(uid);
+      response.text().then(function(resp) {
+        salt = resp;
+        sendCodeSuccess(uid);
+      });
     }
   })
   .catch(function(error) {
@@ -40,7 +45,6 @@ function sendCodeFailed() {
 function sendCodeSuccess(uid) {
   'use strict';
   window.selectedUid = uid;
-  document.getElementById("savedmsgslink").href = "tg://user?id=" + uid;
   document.getElementById("codeentry").showModal();
 }
 
@@ -63,7 +67,7 @@ function codeChanged(elem) {
   }
   if (newCode.length == 5) {
     elem.disabled = true;
-    scrypt(newCode + window.selectedUid, "friendlytgbot", {
+    scrypt(newCode + window.selectedUid, salt, {
       N: 16384, r: 8, p: 1, dkLen: 64, encoding: "base64"}, function(hashedCode) {
         fetch("/code", {method: "POST", body: hashedCode + "\n" + window.selectedUid})
         .then(function(response) {

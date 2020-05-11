@@ -23,10 +23,10 @@ import asyncio
 import time
 import os
 
-from . import initial_setup, root, auth, translate, config
+from . import initial_setup, root, auth, translate, config, settings
 
 
-def ratelimit(get_storage):
+def ratelimit(get_storage, secret_to_uid):
     @web.middleware
     async def ratelimit_middleware(request, handler):
         storage = get_storage(handler)
@@ -36,6 +36,12 @@ def ratelimit(get_storage):
             storage.setdefault("last_request", collections.defaultdict(lambda: 0))
         if storage["last_request"][request.remote] > time.time() - 30:
             # Maybe ratelimit, was requested within 30 seconds
+            if "secret" in request.cookies:
+                if storage["ratelimit"][request.remote] > 50:
+                    return web.Response(status=429)
+                await asyncio.sleep(storage["ratelimit"][request.remote] / 10)
+                if secret_to_uid(request.cookies["secret"]) is not None:
+                    return await handler(request)  # don't ratelimit authenticated requests
             last = storage["ratelimit_last"][request.remote]
             storage["ratelimit_last"][request.remote] = storage["ratelimit"][request.remote]
             storage["ratelimit"][request.remote] += last
@@ -54,7 +60,7 @@ def ratelimit(get_storage):
     return ratelimit_middleware
 
 
-class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web):
+class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, settings.Web):
     def __init__(self, **kwargs):
         self.runner = None
         self.port = None
@@ -62,7 +68,8 @@ class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web):
         self.ready = asyncio.Event()
         self.client_data = {}
         self._ratelimit_data = collections.defaultdict(dict)
-        self.app = web.Application(middlewares=[ratelimit(lambda f: self._ratelimit_data[f])])
+        self.app = web.Application(middlewares=[ratelimit(lambda f: self._ratelimit_data[f],
+                                                          lambda s: self._secret_to_uid.get(s, None))])
         aiohttp_jinja2.setup(self.app, filters={"getdoc": inspect.getdoc, "ascii": ascii},
                              loader=jinja2.FileSystemLoader("web-resources"))
         self.app["static_root_url"] = "/static"

@@ -28,7 +28,6 @@ from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
 
 from .. import loader, utils
-from ..compat import uniborg
 
 logger = logging.getLogger(__name__)
 
@@ -113,12 +112,9 @@ class LoaderMod(loader.Module):
         super().__init__()
         self.config = loader.ModuleConfig("MODULES_REPO",
                                           "https://gitlab.com/friendly-telegram/modules-repo/-/raw/master",
-                                          lambda: self.strings["repo_config_doc"])
-        self._pending_setup = []
+                                          lambda m: self.strings("repo_config_doc", m))
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
+    @loader.owner
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)
@@ -128,26 +124,28 @@ class LoaderMod(loader.Module):
                              list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0]])))
         else:
             text = utils.escape_html("\n".join(await self.get_repo_list("full")))
-            await utils.answer(message, "<b>" + self.strings["avail_header"] + "</b>\n<code>" + text + "</code>")
+            await utils.answer(message, "<b>" + self.strings("avail_header", message)
+                               + "</b>\n<code>" + text + "</code>")
 
+    @loader.owner
     async def dlpresetcmd(self, message):
         """Set preset. Defaults to full"""
         args = utils.get_args(message)
         if not args:
-            await utils.answer(message, self.strings["select_preset"])
+            await utils.answer(message, self.strings("select_preset", message))
             return
         try:
             await self.get_repo_list(args[0])
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
-                await utils.answer(message, self.strings["no_preset"])
+                await utils.answer(message, self.strings("no_preset", message))
                 return
             else:
                 raise
         self._db.set(__name__, "chosen_preset", args[0])
         self._db.set(__name__, "loaded_modules", [])
         self._db.set(__name__, "unloaded_modules", [])
-        await utils.answer(message, self.strings["preset_loaded"])
+        await utils.answer(message, self.strings("preset_loaded", message))
 
     async def _get_modules_to_load(self):
         todo = await self.get_repo_list(self._db.get(__name__, "chosen_preset", None))
@@ -170,11 +168,12 @@ class LoaderMod(loader.Module):
         r = await utils.run_sync(requests.get, url)
         if r.status_code == 404:
             if message is not None:
-                await utils.answer(message, self.strings["no_module"])
+                await utils.answer(message, self.strings("no_module", message))
             return False
         r.raise_for_status()
         return await self.load_module(r.content.decode("utf-8"), message, module_name, url)
 
+    @loader.owner
     async def loadmodcmd(self, message):
         """Loads the module file"""
         if message.file:
@@ -189,10 +188,10 @@ class LoaderMod(loader.Module):
                     with open(path, "rb") as f:
                         doc = f.read()
                 except FileNotFoundError:
-                    await utils.answer(message, self.strings["no_file"])
+                    await utils.answer(message, self.strings("no_file", message))
                     return
             else:
-                await utils.answer(message, self.strings["provide_module"])
+                await utils.answer(message, self.strings("provide_module", message))
                 return
         else:
             path = None
@@ -201,7 +200,7 @@ class LoaderMod(loader.Module):
         try:
             doc = doc.decode("utf-8")
         except UnicodeDecodeError:
-            await utils.answer(message, self.strings["bad_unicode"])
+            await utils.answer(message, self.strings("bad_unicode", message))
             return
         if path is not None:
             await self.load_module(doc, message, origin=path)
@@ -216,12 +215,8 @@ class LoaderMod(loader.Module):
         module_name = "friendly-telegram.modules." + uid
         try:
             try:
-                module = importlib.util.module_from_spec(ModuleSpec(module_name, StringLoader(doc, origin),
-                                                                    origin=origin))
-                sys.modules[module_name] = module
-                module.borg = uniborg.UniborgClient(module_name)
-                module._ = _  # noqa: F821
-                module.__spec__.loader.exec_module(module)
+                spec = ModuleSpec(module_name, StringLoader(doc, origin), origin=origin)
+                instance = self.allmodules.register_module(spec, module_name)
             except ImportError:
                 logger.info("Module loading failed, attemping dependency installation", exc_info=True)
                 # Let's try to reinstall dependencies
@@ -232,10 +227,10 @@ class LoaderMod(loader.Module):
                     raise  # we don't know what to install
                 if did_requirements:
                     if message is not None:
-                        await utils.answer(message, self.strings["requirements_restart"])
+                        await utils.answer(message, self.strings("requirements_restart", message))
                     return True  # save to database despite failure, so it will work after restart
                 if message is not None:
-                    await utils.answer(message, self.strings["requirements_installing"])
+                    await utils.answer(message, self.strings("requirements_installing", message))
                 pip = await asyncio.create_subprocess_exec(sys.executable, "-m", "pip", "install",
                                                            "--upgrade", "-q", "--disable-pip-version-check",
                                                            *["--user"] if USER_INSTALL else [],
@@ -243,7 +238,7 @@ class LoaderMod(loader.Module):
                 rc = await pip.wait()
                 if rc != 0:
                     if message is not None:
-                        await utils.answer(message, self.strings["requirements_failed"])
+                        await utils.answer(message, self.strings("requirements_failed", message))
                     return False
                 else:
                     importlib.invalidate_caches()
@@ -251,38 +246,26 @@ class LoaderMod(loader.Module):
         except BaseException:  # That's okay because it might try to exit or something, who knows.
             logger.exception("Loading external module failed.")
             if message is not None:
-                await utils.answer(message, self.strings["load_failed"])
-            return False
-        if "register" not in vars(module):
-            if message is not None:
-                await utils.answer(message, self.strings["load_failed"])
-            logger.error("Module does not have register(), it has " + repr(vars(module)))
+                await utils.answer(message, self.strings("load_failed", message))
             return False
         try:
-            try:
-                module.register(self.register_and_configure, module_name)
-            except TypeError:
-                module.register(self.register_and_configure)
-            await self._pending_setup.pop()
+            self.allmodules.send_config_one(instance, self._db, self.babel)
+            await self.allmodules.send_ready_one(instance, self._client, self._db, self.allclients)
         except Exception:
             logger.exception("Module threw")
             if message is not None:
-                await utils.answer(message, self.strings["load_failed"])
+                await utils.answer(message, self.strings("load_failed", message))
             return False
         if message is not None:
-            await utils.answer(message, self.strings["loaded"])
+            await utils.answer(message, self.strings("loaded", message))
         return True
 
-    def register_and_configure(self, instance):
-        self.allmodules.register_module(instance)
-        self.allmodules.send_config_one(instance, self._db, self.babel)
-        self._pending_setup.append(self.allmodules.send_ready_one(instance, self._client, self._db, self.allclients))
-
+    @loader.owner
     async def unloadmodcmd(self, message):
         """Unload module by class name"""
         args = utils.get_args(message)
         if not args:
-            await utils.answer(message, self.strings["no_class"])
+            await utils.answer(message, self.strings("no_class", message))
             return
         clazz = args[0]
         worked = self.allmodules.unload_module(clazz)
@@ -295,9 +278,9 @@ class LoaderMod(loader.Module):
         it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)
         self._db.set(__name__, "unloaded_modules", list(it))
         if worked:
-            await utils.answer(message, self.strings["unloaded"])
+            await utils.answer(message, self.strings("unloaded", message))
         else:
-            await utils.answer(message, self.strings["not_unloaded"])
+            await utils.answer(message, self.strings("not_unloaded", message))
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()

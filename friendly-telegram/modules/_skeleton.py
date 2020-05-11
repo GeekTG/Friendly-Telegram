@@ -34,14 +34,12 @@ class YourMod(loader.Module):
                "after_sleep": "We have finished sleeping!"}
 
     def __init__(self):
-        self.config = loader.ModuleConfig("CONFIG_STRING", "hello", lambda: self.strings["cfg_doc"])
+        self.config = loader.ModuleConfig("CONFIG_STRING", "hello", lambda m: self.strings("cfg_doc", m))
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
+    @loader.unrestricted  # security level, defaults to OWNER | SUDO
     async def examplecmd(self, message):
         """Does something when you type .example (hence, named examplecmd)"""
         logger.debug("We logged something!")
         await utils.answer(message, self.config["CONFIG_STRING"])
         await asyncio.sleep(5)  # Never use time.sleep
-        await utils.answer(message, self.strings["after_sleep"])
+        await utils.answer(message, self.strings("after_sleep", message))

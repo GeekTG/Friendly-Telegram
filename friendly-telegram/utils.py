@@ -20,8 +20,10 @@ import os
 import logging
 import asyncio
 import functools
+import io
 import shlex
 
+import telethon
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User
 from telethon.tl.custom.message import Message
 from telethon.extensions import html
@@ -37,7 +39,11 @@ def get_args(message):
         pass
     if not message:
         return False
-    return list(filter(lambda x: len(x) > 0, shlex.split(message)))[1:]
+    try:
+        split = shlex.split(message)
+    except ValueError:
+        return message  # Cannot split, let's assume that it's just one long message
+    return list(filter(lambda x: len(x) > 0, split))[1:]
 
 
 def get_args_raw(message):
@@ -103,7 +109,10 @@ async def get_user(message):
     except ValueError:  # Not in database. Lets go looking for them.
         logging.debug("user not in session cache. searching...")
     if isinstance(message.to_id, PeerUser):
-        await message.client.get_dialogs()
+        try:
+            await message.client.get_dialogs()
+        except telethon.rpcerrorlist.BotMethodInvalid:
+            return None
         return await message.client.get_entity(message.from_id)
     if isinstance(message.to_id, (PeerChannel, PeerChat)):
         async for user in message.client.iter_participants(message.to_id, aggressive=True):
@@ -155,14 +164,19 @@ def _fix_entities(ent, cont_msg, initial=False):
 
 async def answer(message, response, **kwargs):
     """Use this to give the response to a command"""
+    if isinstance(message, list):
+        delete_job = asyncio.ensure_future(message[0].client.delete_messages(message[0].input_chat, message[1:]))
+        message = message[0]
+    else:
+        delete_job = None
+    if await message.client.is_bot() and isinstance(response, str) and len(response) > 4096:
+        kwargs.setdefault("asfile", True)
+    kwargs.setdefault("link_preview", False)
     cont_msg = "[continued]\n"
-    ret = [message]
-    if isinstance(response, str) and not kwargs.get("asfile", False):
+    edit = message.out
+    if isinstance(response, str) and not kwargs.pop("asfile", False):
         txt, ent = html.parse(response)
-        if message.from_id == (await message.client.get_me(True)).user_id:
-            await message.edit(html.unparse(txt[:4096], ent))
-        else:
-            await message.reply(html.unparse(txt[:4096], ent))
+        ret = [await (message.edit if edit else message.reply)(html.unparse(txt[:4096], ent), **kwargs)]
         txt = txt[4096:]
         _fix_entities(ent, cont_msg, True)
         while len(txt) > 0:
@@ -172,19 +186,30 @@ async def answer(message, response, **kwargs):
             message.text = html.unparse(message.message, message.entities)
             txt = txt[4096:]
             _fix_entities(ent, cont_msg)
-            ret.append(await message.respond(message, parse_mode="HTML", **kwargs))
+            ret.append(await (message.reply if edit else message.respond)(message, **kwargs))
     elif isinstance(response, Message):
-        await message.edit("<b>Loading message...</b>")
+        txt = "<b>Loading message...</b>"
+        new = await (message.edit if edit else message.reply)(txt)
         ret = [await message.respond(response, **kwargs)]
-        await message.delete()
+        await new.delete()
     else:
-        if message.media is not None:
+        if isinstance(response, bytes):
+            response = io.BytesIO(response)
+        if isinstance(response, str):
+            response = io.StringIO(response)
+        name = kwargs.pop("filename", None)
+        if name:
+            response.name = name
+        if message.media is not None and edit:
             await message.edit(file=response, **kwargs)
         else:
-            await message.edit("<b>Loading media...</b>")
+            txt = "<b>Loading media...</b>"  # TODO translations
+            new = await (message.edit if edit else message.reply)(txt)
             ret = [await message.client.send_file(message.chat_id, response,
                                                   reply_to=message.reply_to_msg_id, **kwargs)]
-            await message.delete()
+            await new.delete()
+    if delete_job:
+        await delete_job
     return ret
 
 

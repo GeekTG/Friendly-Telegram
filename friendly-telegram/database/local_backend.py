@@ -17,6 +17,8 @@
 import asyncio
 import json
 
+from .backend import CloudBackend
+
 
 class LocalBackend():
     def __init__(self, client):
@@ -24,8 +26,10 @@ class LocalBackend():
         self._id = None
         self._file = None
         self._lock = asyncio.Lock()
+        self._cloud_db = CloudBackend(client)
 
     async def init(self, trigger_refresh):
+        await self._cloud_db.init(None)
         self._id = (await self._client.get_me(True)).user_id
         self._filename = "database-{}.json".format(self._id)
         try:
@@ -46,10 +50,12 @@ class LocalBackend():
            Return True or throw"""
         async with self._lock:
             self._file.seek(0)
+            self._file.truncate()
             self._file.write(data)
+            self._file.flush()
 
     async def store_asset(self, message):
-        pass
+        return await self._cloud_db.store_asset(message)
 
     async def fetch_asset(self, id):
-        return None
+        return await self._cloud_db.fetch_asset(id)

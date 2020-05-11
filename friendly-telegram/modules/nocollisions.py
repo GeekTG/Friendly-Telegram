@@ -34,15 +34,13 @@ class NoCollisionsMod(loader.Module):
     strings = {"name": "Anti-collisions",
                "killed": "<b>All userbots killed</b>"}
 
-    def config_complete(self):
-        self.name = self.strings["name"]
-
+    @loader.owner
     async def cleanbotscmd(self, message):
         """Kills all userbots except 1, selected according to which is fastest (approx)"""
         try:
             await message.edit("<code>DEADBEEF</code>")
             await asyncio.sleep(5)
-            await utils.answer(message, self.strings["killed"])
+            await utils.answer(message, self.strings("killed", message))
         except telethon.errors.rpcerrorlist.MessageNotModifiedError:
             [handler] = logging.getLogger().handlers
             handler.setLevel(logging.CRITICAL)

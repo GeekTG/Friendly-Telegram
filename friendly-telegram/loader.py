@@ -25,12 +25,29 @@ import asyncio
 import functools
 import inspect
 
-from . import utils
+from . import utils, security
+from .translations.dynamic import Strings
+
+owner = security.owner
+sudo = security.sudo
+support = security.support
+group_owner = security.group_owner
+group_admin_add_admins = security.group_admin_add_admins
+group_admin_change_info = security.group_admin_change_info
+group_admin_ban_users = security.group_admin_ban_users
+group_admin_delete_messages = security.group_admin_delete_messages
+group_admin_pin_messages = security.group_admin_pin_messages
+group_admin_invite_users = security.group_admin_invite_users
+group_admin = security.group_admin
+group_member = security.group_member
+pm = security.pm
+unrestricted = security.unrestricted
 
 MODULES_NAME = "modules"
 
 
 def translatable_docstring(cls):
+    """Decorator that makes triple-quote docstrings translatable"""
     @functools.wraps(cls.config_complete)
     def config_complete(self, *args, **kwargs):
         for command, func in get_commands(cls).items():
@@ -49,6 +66,12 @@ def translatable_docstring(cls):
 
 
 tds = translatable_docstring  # Shorter name for modules to use
+
+
+def ratelimit(func):
+    """Decorator that causes ratelimiting for this command to be enforced more strictly"""
+    func.ratelimit = True
+    return func
 
 
 class ModuleConfig(dict):
@@ -72,12 +95,15 @@ class ModuleConfig(dict):
         self._docstrings = dict(zip(keys, docstrings))
         self._defaults = dict(zip(keys, defaults))
 
-    def getdoc(self, key):
+    def getdoc(self, key, message=None):
         """Get the documentation by key"""
         ret = self._docstrings[key]
         if callable(ret):
-            ret = ret()
-            self._docstrings[key] = ret
+            try:
+                ret = ret(message)
+            except TypeError:  # Invalid number of params
+                logging.warning("%s using legacy doc trnsl", key)
+                ret = ret()
         return ret
 
     def getdef(self, key):
@@ -87,9 +113,6 @@ class ModuleConfig(dict):
 
 class Module():
     """There is no help for this module"""
-    def __init__(self):
-        self.name = "Unknown"
-
     def config_complete(self):
         """Will be called when module.config is populated"""
 
@@ -102,6 +125,7 @@ class Module():
 
 
 def get_commands(mod):
+    """Introspect the module to get its commands"""
     # https://stackoverflow.com/a/34452/5509575
     return {method_name[:-3]: getattr(mod, method_name) for method_name in dir(mod)
             if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"}
@@ -109,8 +133,6 @@ def get_commands(mod):
 
 class Modules():
     """Stores all registered modules"""
-    instances = []
-
     def __init__(self):
         self.commands = {}
         self.aliases = {}
@@ -118,13 +140,11 @@ class Modules():
         self.watchers = []
         self._compat_layer = None
         self._log_handlers = []
-        self.instances.append(self)
         self.client = None
 
     def register_all(self, babelfish, mods=None):
         """Load all modules in the module directory"""
         if self._compat_layer is None:
-            from .compat import uniborg
             from . import compat  # Avoid circular import
             self._compat_layer = compat.activate([])
         logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
@@ -139,23 +159,27 @@ class Modules():
                 logging.debug(os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 spec = importlib.util.spec_from_file_location(module_name,
                                                               os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
-                module = importlib.util.module_from_spec(spec)
-                sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
-                module.borg = uniborg.UniborgClient(module_name)
-                spec.loader.exec_module(module)
-                module._ = babelfish.gettext
-                try:
-                    module.register(self.register_module, module_name)
-                except TypeError:  # Too many arguments
-                    module.register(self.register_module)
+                self.register_module(spec, module_name)
             except BaseException:
                 logging.exception("Failed to load module %s due to:", mod)
 
-    def register_module(self, instance):
-        """Register single module instance"""
-        if not issubclass(type(instance), Module):
-            logging.error("Not a subclass %s", repr(instance.__class__))
-        self.complete_registration(instance)
+    def register_module(self, spec, module_name):
+        """Register single module from importlib spec"""
+        from .compat import uniborg
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
+        module.borg = uniborg.UniborgClient(module_name)
+        spec.loader.exec_module(module)
+        ret = None
+        for key, value in vars(module).items():
+            if key.endswith("Mod") and issubclass(value, Module):
+                ret = value()
+        if ret is None:
+            ret = module.register(module_name)
+            if not isinstance(ret, Module):
+                raise TypeError("Instance is not a Module, it is %r", ret)
+        self.complete_registration(ret)
+        return ret
 
     def register_commands(self, instance):
         """Register commands from instance"""
@@ -187,10 +211,7 @@ class Modules():
 
     def complete_registration(self, instance):
         """Complete registration of instance"""
-        # Mainly for the Help module
         instance.allmodules = self
-        # And for Remote
-        instance.allloaders = self.instances
         instance.log = self.log  # Like botlog from PP
         for module in self.modules:
             if module.__class__.__name__ == instance.__class__.__name__:
@@ -231,12 +252,10 @@ class Modules():
                         logging.debug("No config value for %s", conf)
                         mod.config[conf] = mod.config.getdef(conf)
             logging.debug(mod.config)
+        if babel is not None and not hasattr(mod, "name"):
+            mod.name = mod.strings["name"]
         if hasattr(mod, "strings") and babel is not None:
-            mod.strings = mod.strings.copy()  # For users with many accounts with diff. translations
-            for key, value in mod.strings.items():
-                new = babel.getkey(mod.__module__ + "." + key)
-                if new is not False:
-                    mod.strings[key] = new
+            mod.strings = Strings(mod.__module__, mod.strings, babel)
         if skip_hook:
             return
         mod.babel = babel
@@ -256,7 +275,9 @@ class Modules():
             logging.exception("Failed to send mod init complete signal")
 
     async def send_ready_one(self, mod, client, db, allclients, core=False):
-        mod.allclients = allclients
+        if core:
+            mod.allclients = allclients
+
         try:
             await mod.client_ready(client, db)
         except Exception:

@@ -43,7 +43,7 @@ class UniborgClient(MarkdownBotPassthrough):
             self.commands = borg._commands
             for func in self.commands.values():
                 func.__self__ = self
-            self.name = "UniBorg" + str(self._borg.instance_id)
+            self.strings = {"name": "UniBorg" + str(self._borg.instance_id)}
             self.__module__ = borg._module
             self._client = None
 
@@ -55,9 +55,9 @@ class UniborgClient(MarkdownBotPassthrough):
             self._client = client
             self._borg.__under = client
 
-    def registerfunc(self, cb):
+    def registerfunc(self, _):
         self._wrapper = type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self)
-        cb(self._wrapper)
+        return self._wrapper
 
     def __init__(self, module_name):
         self.instance_id = -1

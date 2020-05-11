@@ -26,7 +26,6 @@ import collections
 import sqlite3
 import importlib
 import signal
-import shlex
 import time
 import requests
 
@@ -36,6 +35,7 @@ from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModi
 from telethon.tl.functions.channels import DeleteChannelRequest
 
 from . import utils, loader, heroku
+from .dispatcher import CommandDispatcher
 
 
 from .database import backend, local_backend, frontend
@@ -48,143 +48,6 @@ except ImportError:
     logging.error("Unable to import web")
 else:
     web_available = True
-
-
-importlib.import_module(".modules", __package__)  # Required on 3.5 only
-
-
-class MemoryHandler(logging.Handler):
-    """Keeps 2 buffers. One for dispatched messages. One for unused messages. When the length of the 2 together is 100
-       truncate to make them 100 together, first trimming handled then unused."""
-    def __init__(self, target, capacity):
-        super().__init__(0)
-        self.target = target
-        self.capacity = capacity
-        self.buffer = []
-        self.handledbuffer = []
-        self.lvl = logging.WARNING  # Default loglevel
-
-    def setLevel(self, level):
-        self.lvl = level
-
-    def dump(self):
-        """Return a list of logging entries"""
-        return self.handledbuffer + self.buffer
-
-    def dumps(self, lvl=0):
-        """Return all entries of minimum level as list of strings"""
-        return [self.target.format(record) for record in (self.buffer + self.handledbuffer) if record.levelno >= lvl]
-
-    def emit(self, record):
-        if len(self.buffer) + len(self.handledbuffer) >= self.capacity:
-            if self.handledbuffer:
-                del self.handledbuffer[0]
-            else:
-                del self.buffer[0]
-        self.buffer.append(record)
-        if record.levelno >= self.lvl and self.lvl >= 0:
-            self.acquire()
-            try:
-                for precord in self.buffer:
-                    self.target.handle(precord)
-                self.handledbuffer = self.handledbuffer[-(self.capacity - len(self.buffer)):] + self.buffer
-                self.buffer = []
-            finally:
-                self.release()
-
-
-_formatter = logging.Formatter(logging.BASIC_FORMAT, "")  # pylint: disable=C0103
-_handler = logging.StreamHandler()  # pylint: disable=C0103
-_handler.setFormatter(_formatter)
-logging.getLogger().handlers = []
-logging.getLogger().addHandler(MemoryHandler(_handler, 500))
-logging.getLogger().setLevel(0)
-logging.captureWarnings(True)
-
-
-async def handle_command(modules, db, event):
-    """Handle all commands"""
-    prefix = db.get(__name__, "command_prefix", False) or "."  # Empty string evaluates to False, so the `or` activates
-    if not hasattr(event, "message") or getattr(event.message, "message", "") == "":
-        return
-    if event.message.message[0:len(prefix)] != prefix:
-        return
-    logging.debug("Incoming command!")
-    if not event.message:
-        logging.debug("Ignoring command with no text.")
-        return
-    if event.via_bot_id:
-        logging.debug("Ignoring inline bot.")
-        return
-    message = utils.censor(event.message)
-    blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    whitelist_chats = db.get(__name__, "whitelist_chats", [])
-    whitelist_modules = db.get(__name__, "whitelist_modules", [])
-    if utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and utils.get_chat_id(message) not in
-                                                         whitelist_chats) or message.from_id is None:
-        logging.debug("Message is blacklisted")
-        return
-    if len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
-            and message.message != len(message.message) // len(prefix) * prefix:
-        # Allow escaping commands using .'s
-        await message.edit(utils.escape_html(message.message[len(prefix):]))
-    logging.debug(message)
-    # Make sure we don't get confused about spaces or other shit in the prefix
-    message.message = message.message[len(prefix):]
-    try:
-        shlex.split(message.message)
-    except ValueError as e:
-        await message.edit("Invalid Syntax: " + str(e))
-        return
-    if not message.message:
-        return  # Message is just the prefix
-    command = message.message.split(maxsplit=1)[0]
-    logging.debug(command)
-    txt, func = modules.dispatch(command)
-    message.message = txt + message.message[len(command):]
-    if func is not None:
-        if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
-            logging.debug("Command is blacklisted in chat")
-            return
-        if whitelist_modules and not (str(utils.get_chat_id(message)) + "."
-                                      + func.__self__.__module__ in whitelist_modules):
-            logging.debug("Command is not whitelisted in chat")
-            return
-        try:
-            await func(message)
-        except Exception as e:
-            logging.exception("Command failed")
-            try:
-                await message.edit("<b>Request failed! Request was</b> <code>" + utils.escape_html(message.message)
-                                   + "</code><b>. Please report it in the support group (</b><code>{0}support</code>"
-                                   "<b>) along with the logs (</b><code>{0}logs error</code><b>)</b>".format(prefix))
-            finally:
-                raise e
-
-
-async def handle_incoming(modules, db, event):
-    """Handle all incoming messages"""
-    logging.debug("Incoming message!")
-    message = utils.censor(event.message)
-    blacklist_chats = db.get(__name__, "blacklist_chats", [])
-    whitelist_chats = db.get(__name__, "whitelist_chats", [])
-    whitelist_modules = db.get(__name__, "whitelist_modules", [])
-    if utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and utils.get_chat_id(message) not in
-                                                         whitelist_chats) or message.from_id is None:
-        logging.debug("Message is blacklisted")
-        return
-    for func in modules.watchers:
-        if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
-            logging.debug("Command is blacklisted in chat")
-            return
-        if whitelist_modules and not (str(utils.get_chat_id(message)) + "."
-                                      + func.__self__.__module__ in whitelist_modules):
-            logging.debug("Command is not whitelisted in chat")
-            return
-        try:
-            await func(message)
-        except Exception:
-            logging.exception("Error running watcher")
 
 
 def run_config(db, phone=None, modules=None):
@@ -359,7 +222,7 @@ def main():  # noqa: C901
                 client.session = session
         else:
             try:
-                phones = [input("Please enter your phone: ")]
+                phones = [input("Please enter your phone or bot token: ")]
             except EOFError:
                 print()  # noqa: T001
                 print("=" * 30)  # noqa: T001
@@ -382,11 +245,21 @@ def main():  # noqa: C901
                 print("Goodbye.")  # noqa: T001
                 sys.exit(1)
     for phone in phones:
+        if arguments.heroku:
+            session = StringSession()
+        else:
+            session = os.path.join(os.path.dirname(utils.get_base_dir()),
+                                   "friendly-telegram" + (("-" + phone.split(":", maxsplit=1)[0]) if phone else ""))
         try:
-            clients += [TelegramClient(StringSession() if arguments.heroku else
-                                       os.path.join(os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                                    + (("-" + phone) if phone else "")), api_token.ID,
-                                       api_token.HASH, connection_retries=None).start(phone)]
+            client = TelegramClient(session, api_token.ID, api_token.HASH, connection_retries=None)
+            if ":" in phone:
+                client.start(bot_token=phone)
+                client.phone = None
+                del phone
+            else:
+                client.start(phone)
+                client.phone = phone
+            clients.append(client)
         except sqlite3.OperationalError as ex:
             print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)  # noqa: T001
                   + ": this is probably your fault. Try checking that this is the only instance running and "
@@ -401,7 +274,7 @@ def main():  # noqa: C901
             print("Please check the phone number. Use international format (+XX...)"  # noqa: T001
                   " and don't put spaces in it.")
             continue
-        clients[-1].phone = phone  # so we can format stuff nicer in configurator
+    del phones
 
     if arguments.heroku:
         if isinstance(arguments.heroku, str):
@@ -419,7 +292,8 @@ def main():  # noqa: C901
     loops = [amain(client, clients, web, arguments) for client in clients]
 
     loop.set_exception_handler(lambda _, x:
-                               logging.error("Exception on event loop! %s", x["message"], exc_info=x["exception"]))
+                               logging.error("Exception on event loop! %s", x["message"],
+                                             exc_info=x.get("exception", None)))
     loop.run_until_complete(asyncio.gather(*loops))
 
 
@@ -431,6 +305,9 @@ async def amain(client, allclients, web, arguments):
     async with client:
         client.parse_mode = "HTML"
         await client.start()
+        is_bot = await client.is_bot()
+        if is_bot:
+            local = True
         [handler] = logging.getLogger().handlers
         dbc = local_backend.LocalBackend if local else backend.CloudBackend
         if setup:
@@ -482,9 +359,12 @@ async def amain(client, allclients, web, arguments):
             # Loader has installed all dependencies
             return  # We are done
         if not web_only:
-            client.add_event_handler(functools.partial(handle_incoming, modules, db),
-                                     events.NewMessage(incoming=True))
-            client.add_event_handler(functools.partial(handle_command, modules, db),
-                                     events.NewMessage(outgoing=True, forwards=False))
+            dispatcher = CommandDispatcher(modules, db, is_bot)
+            await dispatcher.init(client)
+            modules.check_security = dispatcher.check_security
+            client.add_event_handler(dispatcher.handle_incoming,
+                                     events.NewMessage)
+            client.add_event_handler(dispatcher.handle_command,
+                                     events.NewMessage(forwards=False))
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
         await client.run_until_disconnected()

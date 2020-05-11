@@ -65,6 +65,7 @@ class Translator:
                     continue
                 if not message.document or not message.entities:
                     logger.info("Last message in translation pack %r has no document/entities", pack)
+                    return
                 found = False
                 for ent in filter(lambda x: isinstance(x, MessageEntityHashtag), message.entities):
                     if message.message[ent.offset:ent.offset + ent.length] == MAGIC and message.file:

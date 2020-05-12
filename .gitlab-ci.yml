@@ -54,7 +54,7 @@ build_image:
   stage: build
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "IMAGE_TAG=\"$(printf \\\"$CI_REGISTRY_IMAGE/$CI_COMMIT_SHORT_SHA\\\" | cut -c -128)\""
+    - "IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE/$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
     - docker build --pull -t $IMAGE_TAG .
   
@@ -81,7 +81,7 @@ test_image:
     - docker:stable-dind
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "IMAGE_TAG=\"$(printf \\\"$CI_REGISTRY_IMAGE/$CI_COMMIT_SHORT_SHA\\\" | cut -c -128)\""
+    - "IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE/$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
     - docker pull $IMAGE_TAG
     - docker run $IMAGE_TAG test.sh

@@ -334,7 +334,7 @@ async def amain(client, allclients, web, arguments):
             babelfish = Translator([], [], arguments.data_root)
             await babelfish.init(client)
             modules.register_all(babelfish)
-            fdb = frontend.Database(dbc(client), True)
+            fdb = frontend.Database(db, True)
             await fdb.init()
             modules.send_config(fdb, babelfish)
             await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
@@ -354,7 +354,8 @@ async def amain(client, allclients, web, arguments):
         logging.info("Loading logging config...")
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        babelfish = Translator(db.get(__name__, "langpacks", []), db.get(__name__, "language", ["en"]), arguments.data_root)
+        babelfish = Translator(db.get(__name__, "langpacks", []),
+                               db.get(__name__, "language", ["en"]), arguments.data_root)
         await babelfish.init(client)
 
         modules = loader.Modules()
@@ -363,8 +364,8 @@ async def amain(client, allclients, web, arguments):
             await web.add_loader(client, modules, db)
             await web.start_if_ready(len(allclients))
 
-        modules.register_all(babelfish, None if not (arguments.heroku_deps_internal or
-                                                     arguments.docker_deps_internal) else ["loader.py"])
+        modules.register_all(babelfish, None if not (arguments.heroku_deps_internal
+                                                     or arguments.docker_deps_internal) else ["loader.py"])
 
         modules.send_config(db, babelfish)
         await modules.send_ready(client, db, allclients)

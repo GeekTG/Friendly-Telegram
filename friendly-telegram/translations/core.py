@@ -44,7 +44,9 @@ class Translator:
                     logger.warning("Pack path invalid")
                     continue
                 try:
-                    file = open(os.path.join(self._data_root or os.path.dirname(utils.get_base_dir()), "translations", pack + ".json"), "r")
+                    file = open(os.path.join(self._data_root
+                                             or os.path.dirname(utils.get_base_dir()),
+                                             "translations", pack + ".json"), "r")
                 except FileNotFoundError:
                     logger.exception("Pack not found")
                     continue

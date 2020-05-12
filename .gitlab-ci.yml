@@ -43,6 +43,22 @@ notify_start:
 before_script:
   - pip install tox
 
+build_image:
+  cache: {}
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  image: docker:stable
+  services:
+    - docker:stable-dind
+  stage: build
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - "IMAGE_TAG=\"$(printf \"${CI_REGISTRY_IMAGE:CI_COMMIT_SHORT_SHA}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)\""
+  script:
+    - docker build --pull -t $IMAGE_TAG
+  
+
 python36:
   image: python:3.6
   script: tox -e py36
@@ -55,6 +71,21 @@ python38:
   image: python:3.8
   script: tox -e py38
 
+test_image:
+  cache: {}
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  image: docker:stable
+  services:
+    - docker:stable-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - "IMAGE_TAG=\"$(printf \"${CI_REGISTRY_IMAGE:CI_COMMIT_SHORT_SHA}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)\""
+  script:
+    - docker pull $IMAGE_TAG
+    - docker run $IMAGE_TAG test.sh
+
 publish_image:
   cache: {}
   rules:
@@ -64,11 +95,13 @@ publish_image:
     - docker:stable-dind
   stage: deploy
   before_script:
-    - "IMAGE_TAG=\"$(printf \"${CI_COMMIT_TAG:-$CI_COMMIT_BRANCH}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)\""
-  script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $IMAGE_TAG .
-    - docker push $IMAGE_TAG
+    - "IMAGE_TAG=\"$(printf \"${CI_REGISTRY_IMAGE:CI_COMMIT_SHORT_SHA}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)\""
+    - "NEW_IMAGE_TAG=\"$(printf \"${CI_REGISTRY_IMAGE:latest}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)\""
+  script:
+    - docker pull $IMAGE_TAG
+    - docker tag $IMAGE_TAG $NEW_IMAGE_TAG
+    - docker push $NEW_IMAGE_TAG
 
 notify_success:
   rules:

@@ -86,7 +86,11 @@ class HelpMod(loader.Module):
                                                                                               "command_prefix",
                                                                                               False) or ".")[0]))
             for mod in self.allmodules.modules:
-                reply += self.strings("mod_tmpl", message).format(mod.strings("name", message))
+            try:
+                name = mod.strings("name", message)
+            except KeyError:
+                name = getattr(mod, "name", "ERROR")
+                reply += self.strings("mod_tmpl", message).format(name)
                 first = True
                 commands = [name for name, func in mod.commands.items()
                             if await self.allmodules.check_security(message, func)]

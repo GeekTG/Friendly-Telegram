@@ -40,8 +40,8 @@ build_image:
     - docker:stable-dind
   stage: build
   script:
-    - MAIN_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-    - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA-test
+    - MAIN_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-test
     - docker build --pull --target=main -t $MAIN_IMAGE_TAG .
     - docker build --pull --target=test -t $TEST_IMAGE_TAG .
     - docker push $MAIN_IMAGE_TAG
@@ -53,7 +53,7 @@ test_image:
   services:
     - docker:stable-dind
   script:
-    - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA-test
+    - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-test
     - docker pull $TEST_IMAGE_TAG
     - docker run $TEST_IMAGE_TAG
 
@@ -66,7 +66,7 @@ publish_image:
     - docker:stable-dind
   stage: deploy
   script:
-    - MAIN_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - MAIN_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - RELEASE_IMAGE_TAG=$CI_REGISTRY_IMAGE:latest
     - docker pull $MAIN_IMAGE_TAG
     - docker tag $MAIN_IMAGE_TAG $RELEASE_IMAGE_TAG

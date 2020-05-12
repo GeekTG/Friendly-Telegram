@@ -61,8 +61,11 @@ class HelpMod(loader.Module):
                 await utils.answer(message, self.strings("bad_module", message))
                 return
             # Translate the format specification and the module separately
-            reply = self.strings("single_mod_header", message).format(utils.escape_html(module.strings("name",
-                                                                                                       message)),
+            try:
+                name = module.strings("name", message)
+            except KeyError:
+                name = getattr(module, "name", "ERROR")
+            reply = self.strings("single_mod_header", message).format(utils.escape_html(name),
                                                                       utils.escape_html((self.db.get(main.__name__,
                                                                                                      "command_prefix",
                                                                                                      False) or ".")[0]))

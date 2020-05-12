@@ -54,9 +54,10 @@ build_image:
   stage: build
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
+    - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
-    - docker build --pull -t $IMAGE_TAG .
+    - docker build --pull -t $TEST_IMAGE_TAG .
+    - docker push $TEST_IMAGE_TAG
   
 
 python36:
@@ -81,10 +82,10 @@ test_image:
     - docker:stable-dind
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
+    - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
-    - docker pull $IMAGE_TAG
-    - docker run $IMAGE_TAG test.sh
+    - docker pull $TEST_IMAGE_TAG
+    - docker run $TEST_IMAGE_TAG test.sh
 
 publish_image:
   cache: {}
@@ -96,12 +97,12 @@ publish_image:
   stage: deploy
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
-    - "NEW_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:latest | cut -c -128)\""
+    - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
+    - "RELEASE_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:latest | cut -c -128)\""
   script:
-    - docker pull $IMAGE_TAG
-    - docker tag $IMAGE_TAG $NEW_IMAGE_TAG
-    - docker push $NEW_IMAGE_TAG
+    - docker pull $TEST_IMAGE_TAG
+    - docker tag $TEST_IMAGE_TAG $RELEASE_IMAGE_TAG
+    - docker push $RELEASE_IMAGE_TAG
 
 notify_success:
   rules:

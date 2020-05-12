@@ -56,6 +56,8 @@ python38:
   script: tox -e py38
 
 publish_image:
+  cache: {}
+  before_script: []
   rules:
     - if: $CI_DEFAULT_BRANCH == $CI_COMMIT_BRANCH
   image: docker:stable

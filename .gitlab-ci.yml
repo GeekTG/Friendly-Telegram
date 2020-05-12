@@ -63,7 +63,7 @@ publish_image:
     - docker:stable-dind
   stage: deploy
   variables:
-    - IMAGE_TAG: "$(printf \"${CI_COMMIT_TAG:-$CI_COMMIT_BRANCH}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)"
+    IMAGE_TAG: "$(printf \"${CI_COMMIT_TAG:-$CI_COMMIT_BRANCH}\" | tr -c 'a-zA-Z0-9_.-' - | sed 's/^[.-]*//' | cut -c -128)"
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $IMAGE_TAG .

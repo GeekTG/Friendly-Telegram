@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-FROM python:3.8-slim-buster
+FROM python:3.8-slim-buster as main
 ENV PIP_NO_CACHE_DIR=1
 COPY requirements.txt /app/requirements.txt
 RUN apt-get update \
@@ -22,7 +22,7 @@ RUN apt-get update \
     libcairo2 \
     git \
     && rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp \
-    && pip install --no-warn-script-location -r /app/requirements.txt \
+    && pip install --no-warn-script-location --no-cache-dir -r /app/requirements.txt \
 # The next line is used to ensure that /data exists. It won't exist if we are running in a CI job.
     && mkdir -p /data
 
@@ -35,3 +35,12 @@ RUN [ "python", "-m", "friendly-telegram", "--no-web", "--no-auth", "--docker-de
 ENV PORT=8080
 EXPOSE $PORT
 ENTRYPOINT [ "python", "-m", "friendly-telegram", "--data-root", "/data" ]
+
+FROM main as test
+COPY test-requirements.txt .
+RUN pip install --no-warn-script-location --no-cache-dir -r test-requirements.txt
+
+COPY tox.ini .
+COPY test.sh .
+
+ENTRYPOINT [ "bash", "test.sh" ]

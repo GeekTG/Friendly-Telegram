@@ -1,17 +1,9 @@
-# Change pip's cache directory to be inside the project directory since we can
-# only cache local items.
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
 
-# Pip's cache doesn't store the python packages
-# https://pip.pypa.io/en/stable/reference/pip_install/#caching
-#
-# If you want to also cache the installed packages, you have to install
-# them in a virtualenv and cache it as well.
-cache:
-  paths:
-    - .cache/pip
-    - .tox
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 
 .send_message: &send_message
@@ -24,6 +16,7 @@ cache:
     - '  echo "Sending ''$message'' to $TELEGRAM_CHAT_ID"'
     - '  curl -X POST --data-urlencode chat_id="$TELEGRAM_CHAT_ID" --data-urlencode text="$message" --data-urlencode parse_mode="HTML" --data-urlencode disable_web_page_preview=true https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage'
     - fi
+
 
 notify_start:
   stage: .pre
@@ -40,68 +33,43 @@ notify_start:
     - fi
   <<: *send_message
 
-before_script:
-  - pip install tox
 
 build_image:
-  cache: {}
-  variables:
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
   image: docker:stable
   services:
     - docker:stable-dind
   stage: build
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
-    - docker build --pull -t $TEST_IMAGE_TAG .
+    - MAIN_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA-test
+    - docker build --pull --target=main -t $MAIN_IMAGE_TAG .
+    - docker build --pull --target=test -t $TEST_IMAGE_TAG .
+    - docker push $MAIN_IMAGE_TAG
     - docker push $TEST_IMAGE_TAG
-  
 
-python36:
-  image: python:3.6
-  script: tox -e py36
-
-python37:
-  image: python:3.7
-  script: tox -e py37
-
-python38:
-  image: python:3.8
-  script: tox -e py38
 
 test_image:
-  cache: {}
-  variables:
-    DOCKER_HOST: tcp://docker:2376
-    DOCKER_TLS_CERTDIR: "/certs"
   image: docker:stable
   services:
     - docker:stable-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
+    - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA-test
     - docker pull $TEST_IMAGE_TAG
-    - docker run --entrypoint "/bin/bash" $TEST_IMAGE_TAG -c "$(cat test.sh)"
+    - docker run $TEST_IMAGE_TAG
+
 
 publish_image:
-  cache: {}
   rules:
     - if: $CI_DEFAULT_BRANCH == $CI_COMMIT_BRANCH
   image: docker:stable
   services:
     - docker:stable-dind
   stage: deploy
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
-    - "RELEASE_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:latest | cut -c -128)\""
   script:
-    - docker pull $TEST_IMAGE_TAG
-    - docker tag $TEST_IMAGE_TAG $RELEASE_IMAGE_TAG
+    - MAIN_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - RELEASE_IMAGE_TAG=$CI_REGISTRY_IMAGE:latest
+    - docker pull $MAIN_IMAGE_TAG
+    - docker tag $MAIN_IMAGE_TAG $RELEASE_IMAGE_TAG
     - docker push $RELEASE_IMAGE_TAG
 
 notify_success:
@@ -119,4 +87,3 @@ notify_failure:
   before_script:
     - message="Job $CI_PIPELINE_IID <b>failed</b>! <a href=\"$CI_PIPELINE_URL\">See the full output</a>"
   <<: *send_message
-

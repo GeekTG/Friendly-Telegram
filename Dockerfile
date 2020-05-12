@@ -22,7 +22,9 @@ RUN apt-get update \
     libcairo2 \
     git \
     && rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp \
-    && pip install --no-warn-script-location -r /app/requirements.txt
+    && pip install --no-warn-script-location -r /app/requirements.txt \
+# The next line is used to ensure that /data exists. It won't exist if we are running in a CI job.
+    && mkdir -p /data
 
 COPY friendly-telegram/ /app/friendly-telegram
 COPY web-resources/ /app/web-resources

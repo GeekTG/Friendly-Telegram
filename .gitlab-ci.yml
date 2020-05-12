@@ -85,7 +85,7 @@ test_image:
     - "TEST_IMAGE_TAG=\"$(printf $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA | cut -c -128)\""
   script:
     - docker pull $TEST_IMAGE_TAG
-    - docker run --entrypoint "/bin/bash" -c "$(cat test.sh)" $TEST_IMAGE_TAG
+    - docker run --entrypoint "/bin/bash" $TEST_IMAGE_TAG -c "$(cat test.sh)"
 
 publish_image:
   cache: {}

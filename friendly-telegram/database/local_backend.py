@@ -19,7 +19,7 @@ import json
 import os
 
 from .backend import CloudBackend
-from . import utils
+from .. import utils
 
 
 class LocalBackend():

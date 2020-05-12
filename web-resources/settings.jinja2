@@ -85,7 +85,7 @@
       <br>
       <form action="#">
         <div class="mdl-textfield mdl-js-textfield">
-          <input class="mdl-textfield__input" type="text" pattern="([0-9]+(,s*|$))+" id="sudo_ids" data-defaultvalue="" data-currentvalue="{{ sudo }}" value="{{ sudo }}" onchange="setGroup(this, 'sudo');">
+          <input class="mdl-textfield__input" type="text" pattern="([0-9]+(,\s*|$))+" id="sudo_ids" data-defaultvalue="" data-currentvalue="{{ sudo }}" value="{{ sudo }}" onchange="setGroup(this, 'sudo');">
           <label class="mdl-textfield__label" for="sudo_ids">Sudo IDs...</label>
           <span class="mdl-textfield__error">Input is not a comma-separated list of numbers!</span>
         </div>

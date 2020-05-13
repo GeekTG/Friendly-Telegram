@@ -19,7 +19,7 @@ import inspect
 
 from telethon.tl.functions.channels import JoinChannelRequest
 
-from .. import loader, utils, main
+from .. import loader, utils, main, security
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ class HelpMod(loader.Module):
 
     async def supportcmd(self, message):
         """Joins the support chat"""
-        if not self.is_bot and self.allmodules.check_security(message, loader.OWNER | loader.SUDO):
+        if not self.is_bot and self.allmodules.check_security(message, security.OWNER | security.SUDO):
             await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
             await utils.answer(message, self.strings("joined", message))
         else:

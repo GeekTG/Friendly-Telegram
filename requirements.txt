@@ -1,9 +1,6 @@
 # Telegram connection
 telethon >= 1.10.6
 
-# Compatibility for modules that use this (deprecated)
-future-fstrings
-
 # Config
 pythondialog
 

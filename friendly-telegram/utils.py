@@ -40,7 +40,7 @@ def get_args(message):
     if not message:
         return False
     message = message.split(maxsplit=1)
-    if not message:
+    if len(message) <= 1:
         return []
     message = message[1]
     try:

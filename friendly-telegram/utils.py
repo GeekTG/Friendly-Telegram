@@ -39,7 +39,10 @@ def get_args(message):
         pass
     if not message:
         return False
-    message = message.split(maxsplit=1)[1]
+    message = message.split(maxsplit=1)
+    if not message:
+        return []
+    message = message[1]
     try:
         split = shlex.split(message)
     except ValueError:

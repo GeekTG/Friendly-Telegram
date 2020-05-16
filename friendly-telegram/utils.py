@@ -39,11 +39,12 @@ def get_args(message):
         pass
     if not message:
         return False
+    message = message.split(maxsplit=1)[1]
     try:
         split = shlex.split(message)
     except ValueError:
         return message  # Cannot split, let's assume that it's just one long message
-    return list(filter(lambda x: len(x) > 0, split))[1:]
+    return list(filter(lambda x: len(x) > 0, split))
 
 
 def get_args_raw(message):

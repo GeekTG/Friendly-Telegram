@@ -30,15 +30,15 @@ COPY friendly-telegram/ /app/friendly-telegram
 COPY web-resources/ /app/web-resources
 
 WORKDIR /app
-RUN [ "python", "-m", "friendly-telegram", "--no-web", "--no-auth", "--docker-deps-internal", "--data-root", "/data" ]
+RUN [ "python", "-Om", "friendly-telegram", "--no-web", "--no-auth", "--docker-deps-internal", "--data-root", "/data" ]
 
 ENV PORT=8080
 EXPOSE $PORT
-ENTRYPOINT [ "python", "-m", "friendly-telegram", "--data-root", "/data" ]
+ENTRYPOINT [ "python", "-Om", "friendly-telegram", "--data-root", "/data" ]
 
 FROM main as test
 COPY test-requirements.txt .
-RUN pip install --no-warn-script-location --no-cache-dir -r test-requirements.txt
+RUN pip install --no-warn-script-location -r test-requirements.txt
 
 COPY tox.ini .
 COPY test.sh .

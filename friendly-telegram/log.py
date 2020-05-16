@@ -1,4 +1,10 @@
 import logging
+try:
+    import coloredlogs  # Optional support for https://pypi.org/project/coloredlogs
+except ModuleNotFoundError:
+    _formatter = logging.Formatter
+else:
+    _formatter = coloredlogs.ColoredFormatter
 
 
 class MemoryHandler(logging.Handler):
@@ -42,7 +48,7 @@ class MemoryHandler(logging.Handler):
 
 
 def init():
-    formatter = logging.Formatter(logging.BASIC_FORMAT, "")
+    formatter = _formatter(logging.BASIC_FORMAT, "")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logging.getLogger().handlers = []

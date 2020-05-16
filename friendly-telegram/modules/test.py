@@ -24,8 +24,20 @@ from .. import loader, utils
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(TestMod())
+@loader.test(args=None)
+async def dumptest(conv):
+    m = await conv.send_message("test")
+    await conv.send_message(".dump", reply_to=m)
+    r = await conv.get_response()
+    assert r.message.startswith("Message(") and "test" in r.message, r
+
+
+@loader.test(args="0")
+async def logstest(conv):
+    r = await conv.get_response()
+    assert r.message == "Loading media...", r
+    r2 = await conv.get_response()
+    assert r2.document, r2
 
 
 @loader.tds
@@ -43,11 +55,13 @@ class TestMod(loader.Module):
                "logs_caption": "friendly-telegram logs with verbosity {}",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>"}
 
+    @loader.test(resp="Pong")
     @loader.unrestricted
     async def pingcmd(self, message):
         """Does nothing"""
         await utils.answer(message, self.strings("pong", message))
 
+    @loader.test(func=dumptest)
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""
         if not message.is_reply:
@@ -55,6 +69,7 @@ class TestMod(loader.Module):
         await utils.answer(message, "<code>"
                            + utils.escape_html((await message.get_reply_message()).stringify()) + "</code>")
 
+    @loader.test(func=logstest)
     async def logscmd(self, message):
         """.logs <level>
            Dumps logs. Loglevels below WARNING may contain personal info."""

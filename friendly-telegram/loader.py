@@ -28,6 +28,13 @@ import inspect
 from . import utils, security
 from .translations.dynamic import Strings
 
+if __debug__:
+    from .test import decorators
+    test = decorators.test
+else:
+    def test(*args, **kwargs):
+        return lambda func: func
+
 owner = security.owner
 sudo = security.sudo
 support = security.support
@@ -147,14 +154,13 @@ class Modules():
         if self._compat_layer is None:
             from . import compat  # Avoid circular import
             self._compat_layer = compat.activate([])
-        logging.debug(os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), MODULES_NAME)))
         if not mods:
             mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
                           os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
         logging.debug(mods)
         for mod in mods:
             try:
-                module_name = __package__ + "." + MODULES_NAME + "." + mod[:-3]  # FQN
+                module_name = __package__ + "." + MODULES_NAME + "." + os.path.basename(mod)[:-3]  # FQN
                 logging.debug(module_name)
                 logging.debug(os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 spec = importlib.util.spec_from_file_location(module_name,

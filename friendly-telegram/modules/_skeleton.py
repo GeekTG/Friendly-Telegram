@@ -22,10 +22,6 @@ from .. import loader, utils
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(YourMod())
-
-
 @loader.tds
 class YourMod(loader.Module):
     """Description for module"""  # Translateable due to @loader.tds
@@ -36,7 +32,7 @@ class YourMod(loader.Module):
     def __init__(self):
         self.config = loader.ModuleConfig("CONFIG_STRING", "hello", lambda m: self.strings("cfg_doc", m))
 
-    @loader.unrestricted  # security level, defaults to OWNER | SUDO
+    @loader.unrestricted  # Security setting to change who can use the command (defaults to owner | sudo)
     async def examplecmd(self, message):
         """Does something when you type .example (hence, named examplecmd)"""
         logger.debug("We logged something!")

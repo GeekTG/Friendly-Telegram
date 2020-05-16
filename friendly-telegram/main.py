@@ -33,6 +33,7 @@ from telethon import TelegramClient, events
 from telethon.sessions import StringSession, SQLiteSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
 from telethon.tl.functions.channels import DeleteChannelRequest
+from telethon.tl.functions.updates import GetStateRequest
 
 from . import utils, loader, heroku
 from .dispatcher import CommandDispatcher
@@ -41,11 +42,14 @@ from .dispatcher import CommandDispatcher
 from .database import backend, local_backend, frontend
 from .translations.core import Translator
 
+if __debug__:
+    from .test.core import TestManager
+
 try:
     from .web import core
 except ImportError:
     web_available = False
-    logging.error("Unable to import web")
+    logging.exception("Unable to import web")
 else:
     web_available = True
 
@@ -66,6 +70,17 @@ def parse_arguments():
     parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
     parser.add_argument("--no-web", dest="web", action="store_false")
+    parser.add_argument("--data-root", dest="data_root", default="",
+                        help="Root path to store session files in")
+    parser.add_argument("--no-auth", dest="no_auth", action="store_true",
+                        help="Disable authentication and API token input, exitting if needed")
+    parser.add_argument("--test-dc", dest="test_dc", const=None, nargs="?", default=False,
+                        help="Connect to the test DC")
+    if __debug__:
+        parser.add_argument("--self-test", dest="self_test", const=1, nargs="?", default=False, type=int,
+                            help=("Run self-tests then exit.\nAs this is designed for testing on an unprivileged "
+                                  "environment, this will use a DB which is initialised as to prevent anyone "
+                                  "with access to the Telegram account being tested from using the bot."))
     parser.add_argument("--heroku-web-internal", dest="heroku_web_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-deps-internal", dest="heroku_deps_internal", action="store_true",
@@ -74,10 +89,6 @@ def parse_arguments():
                         help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-restart-internal", dest="heroku_restart_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
-    parser.add_argument("--data-root", dest="data_root", default="",
-                        help="Root path to store session files in (must include trailing slash)")
-    parser.add_argument("--no-auth", dest="no_auth", action="store_true",
-                        help="Disable authentication and API token input, exitting if needed")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":
@@ -89,10 +100,11 @@ def parse_arguments():
 
 def get_phones(arguments):
     """Get phones from the --token, --phone, and environment"""
-    phones = set(arguments.phone if arguments.phone else [])
-    phones.update(map(lambda f: f[18:-8],
-                      filter(lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
-                             os.listdir(arguments.data_root or os.path.dirname(utils.get_base_dir())))))
+    phones = {phone.split(":", maxsplit=1)[0]: phone for phone in
+              map(lambda f: f[18:-8],
+                  filter(lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
+                         os.listdir(arguments.data_root or os.path.dirname(utils.get_base_dir()))))}
+    phones.update(**({phone.split(":", maxsplit=1)[0]: phone for phone in arguments.phone} if arguments.phone else {}))
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku
     if authtoken and not arguments.setup:
@@ -106,9 +118,9 @@ def get_phones(arguments):
         authtoken = {}
     if arguments.tokens:
         for token in arguments.tokens:
-            phone = sorted(phones).pop(0)
-            phones.remove(phone)  # Handled seperately by authtoken logic
-            authtoken.update(**{phone: token})
+            phone = sorted(filter(lambda phone: ":" not in phone, phones.values()))[0]
+            del phones[phone]
+            authtoken[phone] = token
     return phones, authtoken
 
 
@@ -155,7 +167,8 @@ def main():  # noqa: C901
     api_token = get_api_token(arguments)
 
     if web_available:
-        web = core.Web(data_root=arguments.data_root, api_token=api_token) if arguments.web else None
+        web = core.Web(data_root=arguments.data_root, api_token=api_token,
+                       test_dc=arguments.test_dc is not False) if arguments.web else None
     else:
         if arguments.heroku_web_internal:
             raise RuntimeError("Web required but unavailable")
@@ -257,20 +270,25 @@ def main():  # noqa: C901
                 print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")  # noqa: T001
                 print("Goodbye.")  # noqa: T001
                 sys.exit(1)
-    for phone in phones:
+    for phone_id, phone in phones.items():
         if arguments.heroku:
             session = StringSession()
         else:
             session = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                   + (("-" + phone.split(":", maxsplit=1)[0]) if phone else ""))
+                                   + (("-" + phone_id) if phone_id else ""))
         try:
             client = TelegramClient(session, api_token.ID, api_token.HASH, connection_retries=None)
+            if arguments.test_dc is not False:
+                client.session.set_dc(client.session.dc_id, "149.154.167.40", 80)
             if ":" in phone:
                 client.start(bot_token=phone)
                 client.phone = None
                 del phone
             else:
-                client.start(phone)
+                if arguments.test_dc:
+                    client.start(phone, code_callback=lambda: arguments.test_dc)
+                else:
+                    client.start(phone)
                 client.phone = phone
             clients.append(client)
         except sqlite3.OperationalError as ex:
@@ -302,83 +320,108 @@ def main():  # noqa: C901
             loop.run_until_complete(web.root_redirected.wait())
         return
 
-    loops = [amain(client, clients, web, arguments) for client in clients]
-
     loop.set_exception_handler(lambda _, x:
                                logging.error("Exception on event loop! %s", x["message"],
                                              exc_info=x.get("exception", None)))
+
+    loops = [amain_wrapper(client, clients, web, arguments) for client in clients]
     loop.run_until_complete(asyncio.gather(*loops))
 
 
-async def amain(client, allclients, web, arguments):
+async def amain_wrapper(client, *args, **kwargs):
+    """Wrapper around amain so we don't have to manually clear all locals on soft restart"""
+    async with client:
+        first = True
+        while await amain(first, client, *args, **kwargs):
+            first = False
+
+
+async def amain(first, client, allclients, web, arguments):
     """Entrypoint for async init, run once for each user"""
     setup = arguments.setup
-    local = arguments.local
+    local = arguments.local or arguments.test_dc
     web_only = arguments.web_only
-    async with client:
-        client.parse_mode = "HTML"
-        await client.start()
-        is_bot = await client.is_bot()
-        if is_bot:
-            local = True
-        [handler] = logging.getLogger().handlers
-        db = local_backend.LocalBackend(client, arguments.data_root) if local else backend.CloudBackend(client)
-        if setup:
-            await db.init(lambda e: None)
-            jdb = await db.do_download()
-            try:
-                pdb = json.loads(jdb)
-            except (json.decoder.JSONDecodeError, TypeError):
-                pdb = {}
-            modules = loader.Modules()
-            babelfish = Translator([], [], arguments.data_root)
-            await babelfish.init(client)
-            modules.register_all(babelfish)
-            fdb = frontend.Database(db, True)
-            await fdb.init()
-            modules.send_config(fdb, babelfish)
-            await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
-            handler.setLevel(50)
-            pdb = run_config(pdb, arguments.data_root, getattr(client, "phone", "Unknown Number"), modules)
-            if pdb is None:
-                await client(DeleteChannelRequest(db.db))
-                return
-            try:
-                await db.do_upload(json.dumps(pdb))
-            except MessageNotModifiedError:
-                pass
-            return
-        db = frontend.Database(db, arguments.heroku_deps_internal or arguments.docker_deps_internal)
-        await db.init()
-        logging.debug("got db")
-        logging.info("Loading logging config...")
-        handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
-
-        babelfish = Translator(db.get(__name__, "langpacks", []),
-                               db.get(__name__, "language", ["en"]), arguments.data_root)
-        await babelfish.init(client)
-
+    client.parse_mode = "HTML"
+    await client.start()
+    is_bot = await client.is_bot()
+    if is_bot:
+        local = True
+    [handler] = logging.getLogger().handlers
+    db = local_backend.LocalBackend(client, arguments.data_root) if local else backend.CloudBackend(client)
+    if setup:
+        await db.init(lambda e: None)
+        jdb = await db.do_download()
+        try:
+            pdb = json.loads(jdb)
+        except (json.decoder.JSONDecodeError, TypeError):
+            pdb = {}
         modules = loader.Modules()
+        babelfish = Translator([], [], arguments.data_root)
+        await babelfish.init(client)
+        modules.register_all(babelfish)
+        fdb = frontend.Database(db, True)
+        await fdb.init()
+        modules.send_config(fdb, babelfish)
+        await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
+        handler.setLevel(50)
+        pdb = run_config(pdb, arguments.data_root, getattr(client, "phone", "Unknown Number"), modules)
+        if pdb is None:
+            await client(DeleteChannelRequest(db.db))
+            return
+        try:
+            await db.do_upload(json.dumps(pdb))
+        except MessageNotModifiedError:
+            pass
+        return False
+    db = frontend.Database(db, arguments.heroku_deps_internal or arguments.docker_deps_internal)
+    await db.init()
+    logging.debug("got db")
+    logging.info("Loading logging config...")
+    handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
-        if web and not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
-            await web.add_loader(client, modules, db)
-            await web.start_if_ready(len(allclients))
+    to_load = None
+    if arguments.heroku_deps_internal or arguments.docker_deps_internal:
+        to_load = ["loader.py"]
 
-        modules.register_all(babelfish, None if not (arguments.heroku_deps_internal
-                                                     or arguments.docker_deps_internal) else ["loader.py"])
+    if __debug__ and arguments.self_test:
+        tester = TestManager(client, db, allclients, arguments.self_test)
+        to_load = await tester.init()
 
-        modules.send_config(db, babelfish)
-        await modules.send_ready(client, db, allclients)
-        if arguments.heroku_deps_internal or arguments.docker_deps_internal:
-            # Loader has installed all dependencies
-            return  # We are done
-        if not web_only:
-            dispatcher = CommandDispatcher(modules, db, is_bot)
-            await dispatcher.init(client)
-            modules.check_security = dispatcher.check_security
-            client.add_event_handler(dispatcher.handle_incoming,
-                                     events.NewMessage)
-            client.add_event_handler(dispatcher.handle_command,
-                                     events.NewMessage(forwards=False))
+    babelfish = Translator(db.get(__name__, "langpacks", []),
+                           db.get(__name__, "language", ["en"]), arguments.data_root)
+    await babelfish.init(client)
+
+    modules = loader.Modules()
+
+    if web and not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
+        await web.add_loader(client, modules, db)
+        await web.start_if_ready(len(allclients))
+
+    modules.register_all(babelfish, to_load)
+
+    modules.send_config(db, babelfish)
+    await modules.send_ready(client, db, allclients)
+    if arguments.heroku_deps_internal or arguments.docker_deps_internal:
+        # Loader has installed all dependencies
+        return  # We are done
+    if not web_only:
+        dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test)
+        await dispatcher.init(client)
+        modules.check_security = dispatcher.check_security
+        client.add_event_handler(dispatcher.handle_incoming,
+                                 events.NewMessage)
+        client.add_event_handler(dispatcher.handle_command,
+                                 events.NewMessage(forwards=False))
+    if first:
+        await client(GetStateRequest())  # Start receiving updates
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
+    if __debug__ and arguments.self_test:
+        await asyncio.wait([client.disconnected, tester.restart], return_when=asyncio.FIRST_COMPLETED)
+    else:
         await client.run_until_disconnected()
+    await db.close()
+    if __debug__ and arguments.self_test and tester.should_restart():
+        for cb, _ in client.list_event_handlers():
+            client.remove_event_handler(cb)
+        return True
+    return False

@@ -43,6 +43,9 @@ class CloudBackend():
         self._me = await self._client.get_me(True)
         self._callback = trigger_refresh
 
+    def close(self):
+        pass
+
     async def _find_data_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
             if dialog.name == f"friendly-{self._me.user_id}-data" and dialog.is_channel:

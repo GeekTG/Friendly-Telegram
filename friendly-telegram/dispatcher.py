@@ -22,11 +22,12 @@ from . import utils, main, security
 
 
 class CommandDispatcher:
-    def __init__(self, modules, db, bot):
+    def __init__(self, modules, db, bot, testing):
         self._modules = modules
         self._db = db
         self._bot = bot
         self._security = security.SecurityManager(db, bot)
+        self._testing = testing
         self.check_security = self._security.check
 
     async def init(self, client):
@@ -36,7 +37,7 @@ class CommandDispatcher:
         self._cached_username = me.username.lower() if me.username else str(me.id)
 
     async def _handle_ratelimit(self, message, func):
-        if await self._security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
+        if self._testing or await self._security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
             return True
         start_time = time.time()
         if hasattr(func, "__func__"):
@@ -107,14 +108,15 @@ class CommandDispatcher:
             return  # Message is just the prefix
         command = message.message.split(maxsplit=1)[0]
         tag = command.split("@", maxsplit=1)
-        if len(tag) == 2:
-            if tag[1] == "me":
-                if not message.out:
+        if not self._testing:
+            if len(tag) == 2:
+                if tag[1] == "me":
+                    if not message.out:
+                        return
+                elif tag[1].lower() != self._cached_username:
                     return
-            elif tag[1].lower() != self._cached_username:
+            elif not event.is_private and not event.out:
                 return
-        elif not event.is_private and not event.out:
-            return
         logging.debug(tag[0])
         txt, func = self._modules.dispatch(tag[0])
         if func is not None:

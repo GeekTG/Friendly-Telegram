@@ -68,6 +68,11 @@ class Database(dict):
         self._loading = False
         self._waiter.set()
 
+    async def close(self):
+        await self.save()
+        if self._backend is not None:
+            self._backend.close()
+
     def save(self):
         if self._pending is not None and not self._pending.cancelled():
             self._pending.cancel()

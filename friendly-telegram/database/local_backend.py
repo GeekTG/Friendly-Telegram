@@ -42,6 +42,10 @@ class LocalBackend():
             self._file = open(self._filename, "w+")
             json.dump({}, self._file)
 
+    def close(self):
+        self._file.close()
+        self._file = None
+
     async def do_download(self):
         """Attempt to download the database.
            Return the database (as unparsed JSON) or None"""

@@ -55,7 +55,7 @@ test_image:
   script:
     - TEST_IMAGE_TAG=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-test
     - docker pull $TEST_IMAGE_TAG
-    - docker run $TEST_IMAGE_TAG
+    - docker run -e TEST_BOT_TOKEN $TEST_IMAGE_TAG
 
 
 publish_image:

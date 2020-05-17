@@ -248,7 +248,8 @@ def main():  # noqa: C901
                 client.session = session
         else:
             try:
-                phones = [input("Please enter your phone or bot token: ")]
+                phone = input("Please enter your phone or bot token: ")
+                phones = {phone.split(":", maxsplit=1)[0]: phone}
             except EOFError:
                 print()  # noqa: T001
                 print("=" * 30)  # noqa: T001

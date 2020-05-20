@@ -21,6 +21,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     libcairo2 \
     git \
+    neofetch \
     && rm -rf /var/lib/apt/lists /var/cache/apt/archives /tmp \
     && pip install --no-warn-script-location --no-cache-dir -r /app/requirements.txt \
 # The next line is used to ensure that /data exists. It won't exist if we are running in a CI job.

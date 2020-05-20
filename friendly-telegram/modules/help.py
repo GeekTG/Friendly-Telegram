@@ -104,6 +104,7 @@ class HelpMod(loader.Module):
         reply += self.strings("footer", message)
         await utils.answer(message, reply)
 
+    @loader.unrestricted
     async def supportcmd(self, message):
         """Joins the support chat"""
         if not self.is_bot and await self.allmodules.check_security(message, security.OWNER | security.SUDO):

@@ -106,7 +106,7 @@ class HelpMod(loader.Module):
 
     async def supportcmd(self, message):
         """Joins the support chat"""
-        if not self.is_bot and self.allmodules.check_security(message, security.OWNER | security.SUDO):
+        if not self.is_bot and await self.allmodules.check_security(message, security.OWNER | security.SUDO):
             await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
             await utils.answer(message, self.strings("joined", message))
         else:

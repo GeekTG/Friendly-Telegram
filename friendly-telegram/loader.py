@@ -119,6 +119,8 @@ class ModuleConfig(dict):
 
 
 class Module():
+    strings = {"name": "Unknown"}
+
     """There is no help for this module"""
     def config_complete(self):
         """Will be called when module.config is populated"""

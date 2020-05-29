@@ -15,10 +15,17 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
+import collections
 import logging
 import time
 
 from . import utils, main, security
+
+
+def _decrement_ratelimit(delay, data, key, severity):
+    def inner():
+        data[key] = max(0, data[key] - severity)
+    asyncio.get_event_loop().call_later(delay, inner)
 
 
 class CommandDispatcher:
@@ -28,6 +35,11 @@ class CommandDispatcher:
         self._bot = bot
         self._security = security.SecurityManager(db, bot)
         self._testing = testing
+        if not testing:
+            self._ratelimit_storage_user = collections.defaultdict(int)
+            self._ratelimit_storage_chat = collections.defaultdict(int)
+            self._ratelimit_max_user = db.get(__name__, "ratelimit_max_user", 30)
+            self._ratelimit_max_chat = db.get(__name__, "ratelimit_max_chat", 50)
         self.check_security = self._security.check
 
     async def init(self, client):
@@ -40,32 +52,25 @@ class CommandDispatcher:
         if self._testing or await self._security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
             return True
         start_time = time.time()
-        if hasattr(func, "__func__"):
-            func = func.__func__
-        ratelimit_delay = 60 if getattr(func, "ratelimit", False) else 5
-        if not hasattr(func, "ratelimit_storage_user"):
-            func.ratelimit_storage_user = {}
-        if not hasattr(func, "ratelimit_storage_chat"):
-            func.ratelimit_storage_chat = {}
-
-        if not await self._handle_ratelimit_data(func.ratelimit_storage_user.setdefault(message.from_id, []),
-                                                 ratelimit_delay, start_time, 10):
-            return False
-        if not await self._handle_ratelimit_data(func.ratelimit_storage_chat.setdefault(message.chat_id, []),
-                                                 ratelimit_delay, start_time, 20):
-            return False
-        return True
-
-    async def _handle_ratelimit_data(self, ratelimit_data, ratelimit_delay, start_time, count):
-        ratelimit_data.append(start_time)
-        if len(ratelimit_data) == count:
-            first_request = ratelimit_data.popleft()
-            if start_time - first_request >= ratelimit_delay:
-                if ratelimit_delay > 5:
-                    return False
-                else:
-                    await asyncio.sleep(ratelimit_delay)
-        return True
+        func = getattr(func, "__func__", func)
+        user = self._ratelimit_storage_user[message.from_id]
+        chat = self._ratelimit_storage_chat[message.chat_id]
+        severity = (5 if getattr(func, "ratelimit", False) else 2) * ((user + chat) // 30 + 1)
+        user += severity
+        chat += severity
+        self._ratelimit_storage_user[message.from_id] = user
+        ret = True
+        if user > self._ratelimit_max_user:
+            ret = False
+        else:
+            self._ratelimit_storage_chat[message.chat_id] = chat
+        _decrement_ratelimit(self._ratelimit_max_user * severity, self._ratelimit_storage_user,
+                             message.from_id, severity)
+        if chat > self._ratelimit_max_chat:
+            ret = False
+        _decrement_ratelimit(self._ratelimit_max_chat * severity, self._ratelimit_storage_chat,
+                             message.chat_id, severity)
+        return ret
 
     async def handle_command(self, event):
         """Handle all commands"""

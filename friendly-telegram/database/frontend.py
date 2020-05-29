@@ -14,8 +14,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 import asyncio
+import json
+import logging
 
 
 class NotifyingFuture(asyncio.Future):
@@ -69,7 +70,10 @@ class Database(dict):
         self._waiter.set()
 
     async def close(self):
-        await self.save()
+        try:
+            await self.save()
+        except Exception:
+            logging.info("Database close failed", exc_info=True)
         if self._backend is not None:
             self._backend.close()
 

@@ -58,10 +58,8 @@ class Web:
         salt = b64encode(os.urandom(16))
         msg = ("Your code is <code>{:05d}</code>\nDo <b>not</b> share this code with anyone!\n"
                "The code will expire in 2 minutes.".format(code))
-        owners = self.client_data[uid][2].get(security.__name__, "owner", None)
-        if not await self.client_data[uid][1].is_bot():
-            await self.client_data[uid][1].send_message("me", msg)
-        elif owners:
+        owners = self.client_data[uid][2].get(security.__name__, "owner", ["me"])
+        if owners:
             for owner in owners:
                 try:
                     await self.client_data[uid][1].send_message(owner, msg)

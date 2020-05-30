@@ -17,7 +17,6 @@
 import asyncio
 import collections
 import logging
-import time
 
 from . import utils, main, security
 
@@ -51,7 +50,6 @@ class CommandDispatcher:
     async def _handle_ratelimit(self, message, func):
         if self._testing or await self._security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
             return True
-        start_time = time.time()
         func = getattr(func, "__func__", func)
         user = self._ratelimit_storage_user[message.from_id]
         chat = self._ratelimit_storage_chat[message.chat_id]

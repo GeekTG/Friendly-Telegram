@@ -168,8 +168,7 @@ def module_config(mod):
     """Show menu for specific module and allow user to set config items"""
     choices = []
     for key in getattr(mod, "config", {}).keys():
-        if key.upper() == key:  # Constants only
-            choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
+        choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
     code, tag = DIALOG.menu("Module configuration for {}".format(mod.name), choices=choices)
     if code == DIALOG.OK:
         code, value = DIALOG.inputbox(tag)

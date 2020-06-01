@@ -4,7 +4,7 @@ A fast, easy to setup telegram userbot running Python 3 which uses the [Telethon
 Friendly Telegram, also known as FTG, is not your average Telegram userbot: it's faster, can load modules dynamically and is very easy to use!
 
 ### Requirements
-- Python 3.5 or above
+- Python 3.6 or above
 - API ID and Hash from [Telegram](https://my.telegram.org/apps)
 - Some basic knowledege (although you can usually mindlessly copy&paste from the docs)
 

@@ -33,6 +33,11 @@ COPY web-resources/ /app/web-resources
 WORKDIR /app
 RUN [ "python", "-Om", "friendly-telegram", "--no-web", "--no-auth", "--docker-deps-internal", "--data-root", "/data" ]
 
+STOPSIGNAL SIGINT
+
+COPY healthcheck.py /app/healthcheck.py
+HEALTHCHECK CMD [ "python", "-O", "/app/healthcheck.py" ]
+
 ENV PORT=8080
 EXPOSE $PORT
 ENTRYPOINT [ "python", "-Om", "friendly-telegram", "--data-root", "/data" ]

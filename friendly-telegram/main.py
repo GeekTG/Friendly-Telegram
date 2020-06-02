@@ -34,6 +34,8 @@ from telethon.sessions import StringSession, SQLiteSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
 from telethon.tl.functions.channels import DeleteChannelRequest
 from telethon.tl.functions.updates import GetStateRequest
+from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
+from telethon.network.connection import ConnectionTcpFull
 
 from . import utils, loader, heroku
 from .dispatcher import CommandDispatcher
@@ -76,6 +78,12 @@ def parse_arguments():
                         help="Disable authentication and API token input, exitting if needed")
     parser.add_argument("--test-dc", dest="test_dc", const=None, nargs="?", default=False,
                         help="Connect to the test DC")
+    parser.add_argument("--proxy-host", dest="proxy_host", action="store",
+                        help="MTProto proxy host, without port")
+    parser.add_argument("--proxy-port", dest="proxy_port", action="store", type=int,
+                        help="MTProto proxy port")
+    parser.add_argument("--proxy-secret", dest="proxy_secret", action="store",
+                        help="MTProto proxy secret")
     if __debug__:
         parser.add_argument("--self-test", dest="self_test", const=1, nargs="?", default=False, type=int,
                             help=("Run self-tests then exit.\nAs this is designed for testing on an unprivileged "
@@ -141,6 +149,18 @@ def get_api_token(arguments):
     return api_token
 
 
+def get_proxy(arguments):
+    """Get proxy tuple from --proxy-host, --proxy-port and --proxy-secret
+       and connection to use (depends on proxy - provided or not)"""
+    if (arguments.proxy_host is not None
+            and arguments.proxy_port is not None
+            and arguments.proxy_secret is not None):
+        logging.debug("Using proxy: %s:%s", arguments.proxy_host, arguments.proxy_port)
+        return ((arguments.proxy_host, arguments.proxy_port, arguments.proxy_secret),
+                ConnectionTcpMTProxyRandomizedIntermediate)
+    return None, ConnectionTcpFull
+
+
 def sigterm(app, signum, handler):
     if app is not None:
         dyno = os.environ["DYNO"]
@@ -165,10 +185,12 @@ def main():  # noqa: C901
     clients = []
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token(arguments)
+    proxy, conn = get_proxy(arguments)
 
     if web_available:
         web = core.Web(data_root=arguments.data_root, api_token=api_token,
-                       test_dc=arguments.test_dc is not False) if arguments.web else None
+                       test_dc=arguments.test_dc is not False,
+                       proxy=proxy, connection=conn) if arguments.web else None
     else:
         if arguments.heroku_web_internal:
             raise RuntimeError("Web required but unavailable")
@@ -218,7 +240,7 @@ def main():  # noqa: C901
         for phone, token in authtoken.items():
             try:
                 clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
-                                           connection_retries=None).start(phone)]
+                                           connection=conn, proxy=proxy, connection_retries=None).start(phone)]
             except ValueError:
                 run_config({}, arguments.data_root)
                 return
@@ -278,7 +300,8 @@ def main():  # noqa: C901
             session = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "friendly-telegram"
                                    + (("-" + phone_id) if phone_id else ""))
         try:
-            client = TelegramClient(session, api_token.ID, api_token.HASH, connection_retries=None)
+            client = TelegramClient(session, api_token.ID, api_token.HASH,
+                                    connection=conn, proxy=proxy, connection_retries=None)
             if arguments.test_dc is not False:
                 client.session.set_dc(client.session.dc_id, "149.154.167.40", 80)
             if ":" in phone:

@@ -32,6 +32,8 @@ class Web:
         self.heroku_api_token = os.environ.get("heroku_api_token")
         self.api_token = kwargs.pop("api_token")
         self.data_root = kwargs.pop("data_root")
+        self.connection = kwargs.pop("connection")
+        self.proxy = kwargs.pop("proxy")
         self.test_dc = kwargs.pop("test_dc")
         self.redirect_url = None
         super().__init__(**kwargs)
@@ -94,7 +96,8 @@ class Web:
         if not phone:
             return web.Response(status=400)
         client = telethon.TelegramClient(telethon.sessions.MemorySession(), self.api_token.ID,
-                                         self.api_token.HASH, connection_retries=None)
+                                         self.api_token.HASH, connection=self.connection,
+                                         proxy=self.proxy, connection_retries=None)
         if self.test_dc:
             client.session.set_dc(client.session.dc_id, "149.154.167.40", 80)
         await client.connect()

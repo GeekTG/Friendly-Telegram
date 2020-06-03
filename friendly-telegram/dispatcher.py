@@ -38,7 +38,7 @@ class CommandDispatcher:
             self._ratelimit_storage_user = collections.defaultdict(int)
             self._ratelimit_storage_chat = collections.defaultdict(int)
             self._ratelimit_max_user = db.get(__name__, "ratelimit_max_user", 30)
-            self._ratelimit_max_chat = db.get(__name__, "ratelimit_max_chat", 50)
+            self._ratelimit_max_chat = db.get(__name__, "ratelimit_max_chat", 100)
         self.check_security = self.security.check
 
     async def init(self, client):

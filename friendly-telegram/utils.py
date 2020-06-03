@@ -178,9 +178,11 @@ async def answer(message, response, **kwargs):
     kwargs.setdefault("link_preview", False)
     cont_msg = "[continued]\n"
     edit = message.out
+    if not edit:
+        kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
     if isinstance(response, str) and not kwargs.pop("asfile", False):
         txt, ent = html.parse(response)
-        ret = [await (message.edit if edit else message.reply)(html.unparse(txt[:4096], ent), **kwargs)]
+        ret = [await (message.edit if edit else message.respond)(html.unparse(txt[:4096], ent), **kwargs)]
         txt = txt[4096:]
         _fix_entities(ent, cont_msg, True)
         while len(txt) > 0:
@@ -209,8 +211,9 @@ async def answer(message, response, **kwargs):
         else:
             txt = "<b>Loading media...</b>"  # TODO translations
             new = await (message.edit if edit else message.reply)(txt)
+            kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
             ret = [await message.client.send_file(message.chat_id, response,
-                                                  reply_to=message.reply_to_msg_id, **kwargs)]
+                                                  **kwargs)]
             await new.delete()
     if delete_job:
         await delete_job

@@ -150,6 +150,8 @@ class Modules():
         self._compat_layer = None
         self._log_handlers = []
         self.client = None
+        self._initial_registration = True
+        self.added_modules = None
 
     def register_all(self, babelfish, mods=None):
         """Load all modules in the module directory"""
@@ -281,6 +283,8 @@ class Modules():
             await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
         except Exception:
             logging.exception("Failed to send mod init complete signal")
+        if self.added_modules:
+            await self.added_modules(self)
 
     async def send_ready_one(self, mod, client, db, allclients, core=False):
         if core:
@@ -295,6 +299,8 @@ class Modules():
 
         self.register_commands(mod)
         self.register_watcher(mod)
+        if not self._initial_registration and self.added_modules:
+            await self.added_modules(self)
 
     def get_classname(self, name):
         for module in reversed(self.modules):

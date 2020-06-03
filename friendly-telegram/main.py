@@ -34,10 +34,12 @@ from telethon.sessions import StringSession, SQLiteSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
 from telethon.tl.functions.channels import DeleteChannelRequest
 from telethon.tl.functions.updates import GetStateRequest
+from telethon.tl.functions.bots import SetBotCommandsRequest
+from telethon.tl.types import BotCommand
 from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
 from telethon.network.connection import ConnectionTcpFull
 
-from . import utils, loader, heroku
+from . import utils, loader, heroku, security
 from .dispatcher import CommandDispatcher
 
 
@@ -175,6 +177,13 @@ def sigterm(app, signum, handler):
                                                      "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0})
     # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
+
+
+async def set_commands(sec, modules):
+    commands = [BotCommand(name, ("/help " + getattr(getattr(func, "__self__", None), "name", "")))
+                for name, func in modules.commands.items()
+                if sec.get_flags(func) & security.PUBLIC_PERMISSIONS]
+    await modules.client(SetBotCommandsRequest(commands))
 
 
 def main():  # noqa: C901
@@ -417,19 +426,25 @@ async def amain(first, client, allclients, web, arguments):
 
     modules = loader.Modules()
 
-    if web and not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
-        await web.add_loader(client, modules, db)
-        await web.start_if_ready(len(allclients))
+    if not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
+        if web:
+            await web.add_loader(client, modules, db)
+            await web.start_if_ready(len(allclients))
+        if not web_only:
+            dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test)
+            if is_bot:
+                modules.added_modules = functools.partial(set_commands, dispatcher.security)
 
     modules.register_all(babelfish, to_load)
 
     modules.send_config(db, babelfish)
     await modules.send_ready(client, db, allclients)
+
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
         # Loader has installed all dependencies
         return  # We are done
+
     if not web_only:
-        dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test)
         await dispatcher.init(client)
         modules.check_security = dispatcher.check_security
         client.add_event_handler(dispatcher.handle_incoming,

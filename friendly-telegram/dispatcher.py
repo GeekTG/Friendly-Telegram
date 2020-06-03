@@ -32,23 +32,23 @@ class CommandDispatcher:
         self._modules = modules
         self._db = db
         self._bot = bot
-        self._security = security.SecurityManager(db, bot)
+        self.security = security.SecurityManager(db, bot)
         self._testing = testing
         if not testing:
             self._ratelimit_storage_user = collections.defaultdict(int)
             self._ratelimit_storage_chat = collections.defaultdict(int)
             self._ratelimit_max_user = db.get(__name__, "ratelimit_max_user", 30)
             self._ratelimit_max_chat = db.get(__name__, "ratelimit_max_chat", 50)
-        self.check_security = self._security.check
+        self.check_security = self.security.check
 
     async def init(self, client):
-        await self._security.init(client)
+        await self.security.init(client)
         me = await client.get_me()
         self._me = me.id
         self._cached_username = me.username.lower() if me.username else str(me.id)
 
     async def _handle_ratelimit(self, message, func):
-        if self._testing or await self._security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
+        if self._testing or await self.security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
             return True
         func = getattr(func, "__func__", func)
         user = self._ratelimit_storage_user[message.from_id]
@@ -125,7 +125,7 @@ class CommandDispatcher:
         if func is not None:
             if not await self._handle_ratelimit(message, func):
                 return
-            if not await self._security.check(message, func):
+            if not await self.security.check(message, func):
                 return
             message.message = txt + message.message[len(command):]
             if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
@@ -140,7 +140,7 @@ class CommandDispatcher:
             except Exception as e:
                 logging.exception("Command failed")
                 try:
-                    if await self._security.check(message, security.OWNER | security.SUDO):
+                    if await self.security.check(message, security.OWNER | security.SUDO):
                         txt = ("<b>Request failed! Request was</b> <code>" + utils.escape_html(message.message)
                                + "</code><b>. Please report it in the support group "
                                "(</b><code>{0}support</code><b>) along with the logs "

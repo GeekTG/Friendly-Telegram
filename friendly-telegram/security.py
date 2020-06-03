@@ -61,6 +61,9 @@ GROUP_ADMIN_ANY = (GROUP_ADMIN_ADD_ADMINS | GROUP_ADMIN_CHANGE_INFO | GROUP_ADMI
 DEFAULT_PERMISSIONS = (OWNER | SUDO)
 
 
+PUBLIC_PERMISSIONS = (GROUP_OWNER | GROUP_ADMIN_ANY | GROUP_MEMBER | PM)
+
+
 ALL = (1 << 13) - 1
 
 
@@ -126,23 +129,24 @@ def _sec(func, flags):
     return func
 
 
-class SafeCoroutine:
-    def __init__(self, coroutine):
-        self._coroutine = coroutine
+if __debug__:
+    class SafeCoroutine:
+        def __init__(self, coroutine):
+            self._coroutine = coroutine
 
-    def __await__(self):
-        return self._coroutine.__await__()
+        def __await__(self):
+            return self._coroutine.__await__()
 
-    def __bool__(self):
-        raise ValueError("Trying to compute truthiness of un-awaited security result")
+        def __bool__(self):
+            raise AssertionError("Trying to compute truthiness of un-awaited security result")
 
-    def __eq__(self, other):
-        raise ValueError("Trying to compute equality of un-awaited security result")
+        def __eq__(self, other):
+            raise AssertionError("Trying to compute equality of un-awaited security result")
 
-    def __repr__(self):
-        return "<unawaited secure coroutine {} at {}>".format(repr(self._coroutine), hex(id(self)))
+        def __repr__(self):
+            return "<unawaited secure coroutine {} at {}>".format(repr(self._coroutine), hex(id(self)))
 
-    __str__ = __repr__
+        __str__ = __repr__
 
 
 class SecurityManager:
@@ -162,7 +166,7 @@ class SecurityManager:
         if not self._owner:
             self._owner.append((await client.get_me(True)).user_id)
 
-    async def _check(self, message, func):
+    def get_flags(self, func):
         if isinstance(func, int):
             config = func
         else:
@@ -170,7 +174,12 @@ class SecurityManager:
         if config & ~ALL:
             logger.error("Security config contains unknown bits")
             return False
-        config &= self._bounding_mask
+        return config & self._bounding_mask
+
+    async def _check(self, message, func):
+        config = self.get_flags(func)
+        if not config:  # Either False or 0, either way we can failfast
+            return False
         logger.debug("Checking security match for %d", config)
 
         f_owner = config & OWNER
@@ -250,7 +259,10 @@ class SecurityManager:
                         return True
         return False
 
-    @functools.wraps(_check)
-    def check(self, *args, **kwargs):
-        # This wrapper function will cause the function to raise if you don't await it
-        return SafeCoroutine(self._check(*args, **kwargs))
+    if __debug__:
+        @functools.wraps(_check)
+        def check(self, *args, **kwargs):
+            # This wrapper function will cause the function to raise if you don't await it
+            return SafeCoroutine(self._check(*args, **kwargs))
+    else:
+        check = _check

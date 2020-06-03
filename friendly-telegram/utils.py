@@ -180,9 +180,12 @@ async def answer(message, response, **kwargs):
     edit = message.out
     if not edit:
         kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
+    parse_mode = telethon.utils.sanitize_parse_mode(kwargs.pop("parse_mode", message.client.parse_mode))
     if isinstance(response, str) and not kwargs.pop("asfile", False):
-        txt, ent = html.parse(response)
-        ret = [await (message.edit if edit else message.respond)(html.unparse(txt[:4096], ent), **kwargs)]
+        txt, ent = parse_mode.parse(response)
+        logging.debug(txt)
+        logging.debug(ent)
+        ret = [await (message.edit if edit else message.respond)(txt[:4096], parse_mode=lambda t: (t, ent), **kwargs)]
         txt = txt[4096:]
         _fix_entities(ent, cont_msg, True)
         while len(txt) > 0:
@@ -192,7 +195,7 @@ async def answer(message, response, **kwargs):
             message.text = html.unparse(message.message, message.entities)
             txt = txt[4096:]
             _fix_entities(ent, cont_msg)
-            ret.append(await (message.reply if edit else message.respond)(message, **kwargs))
+            ret.append(await (message.reply if edit else message.respond)(message, parse_mode=lambda t: (t, ent), **kwargs))
     elif isinstance(response, Message):
         txt = "<b>Loading message...</b>"
         new = await (message.edit if edit else message.reply)(txt)

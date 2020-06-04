@@ -24,7 +24,7 @@ import io
 import shlex
 
 import telethon
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User, MessageMediaWebPage
 from telethon.tl.custom.message import Message
 from telethon.extensions import html
 
@@ -195,12 +195,18 @@ async def answer(message, response, **kwargs):
             message.text = html.unparse(message.message, message.entities)
             txt = txt[4096:]
             _fix_entities(ent, cont_msg)
-            ret.append(await (message.reply if edit else message.respond)(message, parse_mode=lambda t: (t, ent), **kwargs))
+            ret.append(await (message.reply if edit else message.respond)(message,
+                                                                          parse_mode=lambda t: (t, ent), **kwargs))
     elif isinstance(response, Message):
-        txt = "<b>Loading message...</b>"
-        new = await (message.edit if edit else message.reply)(txt)
-        ret = [await message.respond(response, **kwargs)]
-        await new.delete()
+        if message.media is None and (response.media is None or isinstance(response.media, MessageMediaWebPage)):
+            ret = (await message.edit(response.message,
+                                      parse_mode=lambda t: (t, response.entities or []),
+                                      link_preview=isinstance(response.media, MessageMediaWebPage)),)
+        else:
+            txt = "<b>Loading message...</b>"
+            new = await (message.edit if edit else message.reply)(txt)
+            ret = (await message.respond(response, **kwargs),)
+            await new.delete()
     else:
         if isinstance(response, bytes):
             response = io.BytesIO(response)
@@ -215,8 +221,8 @@ async def answer(message, response, **kwargs):
             txt = "<b>Loading media...</b>"  # TODO translations
             new = await (message.edit if edit else message.reply)(txt)
             kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
-            ret = [await message.client.send_file(message.chat_id, response,
-                                                  **kwargs)]
+            ret = (await message.client.send_file(message.chat_id, response,
+                                                  **kwargs),)
             await new.delete()
     if delete_job:
         await delete_job

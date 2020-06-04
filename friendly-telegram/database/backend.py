@@ -181,4 +181,7 @@ class CloudBackend():
             self._assets = await self._find_asset_channel()
         if not self._assets:
             return None
-        return (await self._client.get_messages(self._assets, limit=1, max_id=id + 1, min_id=id - 1))[0]
+        ret = (await self._client.get_messages(self._assets, limit=1, max_id=id + 1, min_id=id - 1))
+        if not ret:
+            return None
+        return ret[0]

@@ -24,10 +24,6 @@ from .. import loader, utils, main, security
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(HelpMod())
-
-
 @loader.tds
 class HelpMod(loader.Module):
     """Provides this help message"""

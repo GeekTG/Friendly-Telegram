@@ -20,10 +20,6 @@ from .. import loader, main, utils
 import telethon
 
 
-def register(cb):
-    cb(CoreMod())
-
-
 @loader.tds
 class CoreMod(loader.Module):
     """Control core userbot settings"""

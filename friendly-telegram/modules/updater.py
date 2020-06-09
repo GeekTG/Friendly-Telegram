@@ -34,10 +34,6 @@ from .. import loader, utils
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(UpdaterMod())
-
-
 @loader.tds
 class UpdaterMod(loader.Module):
     """Updates itself"""

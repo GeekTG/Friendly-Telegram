@@ -28,10 +28,6 @@ from .. import loader, utils
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(PythonMod())
-
-
 @loader.tds
 class PythonMod(loader.Module):
     """Python stuff"""

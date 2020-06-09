@@ -25,10 +25,6 @@ from .. import loader, utils
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(LoggerMod())
-
-
 @loader.tds
 class LoggerMod(loader.Module):
     """Description for module"""

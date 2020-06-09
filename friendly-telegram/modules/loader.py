@@ -36,10 +36,6 @@ VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*
 USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
 
 
-def register(cb):  # pylint: disable=C0116
-    cb(LoaderMod())
-
-
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
     """Load a python module/file from a string"""
     def __init__(self, data, origin):

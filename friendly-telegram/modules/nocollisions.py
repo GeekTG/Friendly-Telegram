@@ -24,10 +24,6 @@ from .. import loader, utils
 logger = logging.getLogger(__name__)
 
 
-def register(cb):
-    cb(NoCollisionsMod())
-
-
 @loader.tds
 class NoCollisionsMod(loader.Module):
     """Makes sure only 1 userbot is running at a time"""

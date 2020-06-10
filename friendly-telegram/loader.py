@@ -166,7 +166,6 @@ class Modules():
             try:
                 module_name = __package__ + "." + MODULES_NAME + "." + os.path.basename(mod)[:-3]  # FQN
                 logging.debug(module_name)
-                logging.debug(os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 spec = importlib.util.spec_from_file_location(module_name,
                                                               os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
                 self.register_module(spec, module_name)
@@ -249,19 +248,14 @@ class Modules():
         """Send config to single instance"""
         if hasattr(mod, "config"):
             modcfg = db.get(mod.__module__, "__config__", {})
-            logging.debug(modcfg)
             for conf in mod.config.keys():
-                logging.debug(conf)
                 if conf in modcfg.keys():
                     mod.config[conf] = modcfg[conf]
                 else:
                     try:
                         mod.config[conf] = os.environ[mod.__module__ + "." + conf]
-                        logging.debug("Loaded config key %s from environment", conf)
                     except KeyError:
-                        logging.debug("No config value for %s", conf)
                         mod.config[conf] = mod.config.getdef(conf)
-            logging.debug(mod.config)
         if babel is not None and not hasattr(mod, "name"):
             mod.name = mod.strings["name"]
         if hasattr(mod, "strings") and babel is not None:

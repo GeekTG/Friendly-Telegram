@@ -53,6 +53,9 @@ class TestMod(loader.Module):
                "no_logs": "<b>You don't have any logs at verbosity {}.</b>",
                "logs_filename": "ftg-logs.txt",
                "logs_caption": "friendly-telegram logs with verbosity {}",
+               "logs_unsafe": ("<b>Warning: running this command may reveal personal or dangerous information. "
+                               "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
+               "logs_force": "FORCE_INSECURE",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>"}
 
     @loader.test(resp="Pong")
@@ -74,7 +77,7 @@ class TestMod(loader.Module):
         """.logs <level>
            Dumps logs. Loglevels below WARNING may contain personal info."""
         args = utils.get_args(message)
-        if not len(args) == 1:
+        if not len(args) == 1 and not len(args) == 2:
             await utils.answer(message, self.strings("set_loglevel", message))
             return
         try:
@@ -84,6 +87,11 @@ class TestMod(loader.Module):
             lvl = getattr(logging, args[0].upper(), None)
         if not isinstance(lvl, int):
             await utils.answer(message, self.strings("bad_loglevel", message))
+            return
+        if not (lvl >= logging.WARNING or (len(args) == 2 and args[1] == self.strings("logs_force", message))):
+            await utils.answer(message,
+                               self.strings("logs_unsafe", message).format(utils.escape_html(self.strings("logs_force",
+                                                                                                          message))))
             return
         [handler] = logging.getLogger().handlers
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-8")

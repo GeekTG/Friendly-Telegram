@@ -52,7 +52,7 @@ class CloudBackend():
                 members = await self._client.get_participants(dialog, limit=2)
                 if len(members) != 1:
                     continue
-                logger.debug(f"Found data chat! It is {dialog}.")
+                logger.debug(f"Found data chat! It is {dialog.id}.")
                 return dialog.entity
 
     async def _make_data_channel(self):
@@ -70,7 +70,7 @@ class CloudBackend():
                 members = await self._client.get_participants(dialog, limit=2)
                 if len(members) != 1:
                     continue
-                logger.debug(f"Found asset chat! It is {dialog}.")
+                logger.debug(f"Found asset chat! It is {dialog.id}.")
                 return dialog.entity
 
     async def _make_asset_channel(self):
@@ -101,12 +101,10 @@ class CloudBackend():
         lastdata = ""
         async for msg in msgs:
             if isinstance(msg, Message):
-                logger.debug(f"Found text message {msg}")
                 data += lastdata
                 lastdata = msg.message
             else:
                 logger.debug(f"Found service message {msg}")
-        logger.debug(f"Database contains {data}")
         return data
 
     async def do_upload(self, data):
@@ -126,17 +124,14 @@ class CloudBackend():
         sdata = data
         newmsg = False
         for msg in msgs:
-            logger.debug(msg)
             if isinstance(msg, Message):
                 if len(sdata):
-                    logging.debug("editing message " + msg.stringify() + " last is " + msgs[-1].stringify())
                     if msg.id == msgs[-1].id:
                         newmsg = True
                     if sdata[:4096] != msg.message:
                         ops += [msg.edit("<code>" + utils.escape_html(sdata[:4096]) + "</code>")]
                     sdata = sdata[4096:]
                 else:
-                    logging.debug("maybe deleting message")
                     if not msg.id == msgs[-1].id:
                         ops += [msg.delete()]
 

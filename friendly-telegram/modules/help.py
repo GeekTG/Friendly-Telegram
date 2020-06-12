@@ -41,8 +41,8 @@ class HelpMod(loader.Module):
                "cmd_tmpl": ", {}",
                "footer": ("\n\nYou can <b>read more</b> about most commands "
                           "<a href='https://friendly-telegram.gitlab.io'>here</a>"),
-               "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support chat</a>",
-               "join": "<b>Join the</b> <a href='https://t.me/friendlytgbot'>support chat</a>"}
+               "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support channel</a>",
+               "join": "<b>Join the</b> <a href='https://t.me/friendlytgbot'>support channel</a>"}
 
     @loader.unrestricted
     async def helpcmd(self, message):

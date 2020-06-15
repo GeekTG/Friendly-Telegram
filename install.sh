@@ -141,6 +141,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
       PKGMGR="true"
     fi
   else
+    runout dpkg --configure -a
     runout apt-get update  # Not essential
   fi
   PYVER="3"

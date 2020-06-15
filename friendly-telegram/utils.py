@@ -73,17 +73,11 @@ def get_args_split_by(message, sep):
 
 def get_chat_id(message):
     """Get the chat ID, but without -100 if its a channel"""
-    chat = message.to_id
-    if isinstance(chat, PeerUser):
-        return message.chat_id
-    return get_entity_id(chat)
+    return telethon.utils.resolve_id(message.chat_id)
 
 
 def get_entity_id(entity):
-    attrs = vars(entity)
-    if len(attrs) != 1:
-        return None
-    return next(iter(attrs.values()))
+    return telethon.utils.get_peer_id(entity)
 
 
 def escape_html(text):
@@ -149,6 +143,18 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):  # 
         elif k[0] != "_" and hasattr(v, "__dict__"):
             setattr(obj, k, censor(v, to_censor, replace_with))
     return obj
+
+
+def relocate_entities(entities, offset, text=None):
+    """Move all entities by offset (truncating at text)"""
+    for ent in entities or ():
+        ent.offset += offset
+        if ent.offset < 0:
+            ent.length += ent.offset
+            ent.offset = 0
+        if text is not None and ent.offset + ent.length > len(text):
+            ent.length = len(text) - ent.offset
+    return entities
 
 
 def _fix_entities(ent, cont_msg, initial=False):

@@ -130,7 +130,7 @@ def _sec(func, flags):
 
 
 if __debug__:
-    class SafeCoroutine:
+    class _SafeCoroutine:
         def __init__(self, coroutine):
             self._coroutine = coroutine
 
@@ -138,10 +138,10 @@ if __debug__:
             return self._coroutine.__await__()
 
         def __bool__(self):
-            raise AssertionError("Trying to compute truthiness of un-awaited security result")
+            raise ValueError("Trying to compute truthiness of un-awaited security result")
 
         def __eq__(self, other):
-            raise AssertionError("Trying to compute equality of un-awaited security result")
+            raise ValueError("Trying to compute equality of un-awaited security result")
 
         def __repr__(self):
             return "<unawaited secure coroutine {} at {}>".format(repr(self._coroutine), hex(id(self)))
@@ -217,31 +217,45 @@ class SecurityManager:
             return True
 
         if f_group_admin_any or f_group_owner:
-            if message.is_channel and message.is_group:  # TODO support channels
-                participant = await message.client(GetParticipantRequest(await message.get_input_chat(),
-                                                                         await message.get_input_sender()))
-                participant = participant.participant
-                if isinstance(participant, telethon.types.ChannelParticipantCreator):
-                    return True
-                if isinstance(participant, telethon.types.ChannelParticipantAdmin):
+            if message.is_channel:
+                if not message.is_group:
+                    if message.edit_date:
+                        return False  # anyone can assume identity of another in channels
+                        # TODO: iter admin log and search for the edit event, to check who edited
+                    chat = await message.get_chat()
+                    if not chat.creator and not (chat.admin_rights and chat.admin_rights.post_messages):
+                        return False
                     if self._any_admin and f_group_admin_any:
                         return True
-                    rights = participant.admin_rights
 
                     if f_group_admin:
                         return True
-                    if f_group_admin_add_admins and rights.add_admins:
+                    # TODO: when running as bot, send an inline button which allows confirmation of command
+                else:
+                    participant = await message.client(GetParticipantRequest(await message.get_input_chat(),
+                                                                             await message.get_input_sender()))
+                    participant = participant.participant
+                    if isinstance(participant, telethon.types.ChannelParticipantCreator):
                         return True
-                    if f_group_admin_change_info and rights.change_info:
-                        return True
-                    if f_group_admin_ban_users and rights.ban_users:
-                        return True
-                    if f_group_admin_delete_messages and rights.delete_messages:
-                        return True
-                    if f_group_admin_pin_messages and rights.pin_messages:
-                        return True
-                    if f_group_admin_invite_users and rights.invite_users:
-                        return True
+                    if isinstance(participant, telethon.types.ChannelParticipantAdmin):
+                        if self._any_admin and f_group_admin_any:
+                            return True
+                        rights = participant.admin_rights
+
+                        if f_group_admin:
+                            return True
+                        if f_group_admin_add_admins and rights.add_admins:
+                            return True
+                        if f_group_admin_change_info and rights.change_info:
+                            return True
+                        if f_group_admin_ban_users and rights.ban_users:
+                            return True
+                        if f_group_admin_delete_messages and rights.delete_messages:
+                            return True
+                        if f_group_admin_pin_messages and rights.pin_messages:
+                            return True
+                        if f_group_admin_invite_users and rights.invite_users:
+                            return True
             elif message.is_group:
                 full_chat = await message.client(telethon.functions.messages.GetFullChatRequest(message.chat_id))
                 participants = full_chat.full_chat.participants.participants
@@ -263,6 +277,6 @@ class SecurityManager:
         @functools.wraps(_check)
         def check(self, *args, **kwargs):
             # This wrapper function will cause the function to raise if you don't await it
-            return SafeCoroutine(self._check(*args, **kwargs))
+            return _SafeCoroutine(self._check(*args, **kwargs))
     else:
         check = _check

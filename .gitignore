@@ -11,3 +11,4 @@ venv/
 data/
 translations/
 api_token.txt
+.coverage

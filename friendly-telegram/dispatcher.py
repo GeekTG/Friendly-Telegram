@@ -51,19 +51,22 @@ class CommandDispatcher:
         if self._testing or await self.security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
             return True
         func = getattr(func, "__func__", func)
-        user = self._ratelimit_storage_user[message.from_id]
-        chat = self._ratelimit_storage_chat[message.chat_id]
-        severity = (5 if getattr(func, "ratelimit", False) else 2) * ((user + chat) // 30 + 1)
-        user += severity
-        chat += severity
-        self._ratelimit_storage_user[message.from_id] = user
         ret = True
-        if user > self._ratelimit_max_user:
-            ret = False
+        chat = self._ratelimit_storage_chat[message.chat_id]
+        if message.from_id:
+            user = self._ratelimit_storage_user[message.from_id]
+            severity = (5 if getattr(func, "ratelimit", False) else 2) * ((user + chat) // 30 + 1)
+            user += severity
+            self._ratelimit_storage_user[message.from_id] = user
+            if user > self._ratelimit_max_user:
+                ret = False
+            else:
+                self._ratelimit_storage_chat[message.chat_id] = chat
+            _decrement_ratelimit(self._ratelimit_max_user * severity, self._ratelimit_storage_user,
+                                 message.from_id, severity)
         else:
-            self._ratelimit_storage_chat[message.chat_id] = chat
-        _decrement_ratelimit(self._ratelimit_max_user * severity, self._ratelimit_storage_user,
-                             message.from_id, severity)
+            severity = (5 if getattr(func, "ratelimit", False) else 2) * (chat // 15 + 1)
+        chat += severity
         if chat > self._ratelimit_max_chat:
             ret = False
         _decrement_ratelimit(self._ratelimit_max_chat * severity, self._ratelimit_storage_chat,
@@ -72,13 +75,15 @@ class CommandDispatcher:
 
     async def handle_command(self, event):
         """Handle all commands"""
+        if not hasattr(event, "message") or getattr(event.message, "message", "") == "":
+            return
+
         # Empty string evaluates to False, so the `or` activates
         prefixes = self._db.get(main.__name__, "command_prefix", False) or ["."]
         if isinstance(prefixes, str):
             prefixes = [prefixes]  # legacy db migration
             self._db.set(main.__name__, "command_prefix", prefixes)
-        if not hasattr(event, "message") or getattr(event.message, "message", "") == "":
-            return
+
         prefix = None
         for possible_prefix in prefixes:
             if event.message.message.startswith(possible_prefix):
@@ -86,29 +91,36 @@ class CommandDispatcher:
                 break
         if prefix is None:
             return
+
         logging.debug("Incoming command!")
         if event.sticker:
             logging.debug("Ignoring invisible command (with sticker).")
         if event.via_bot_id:
             logging.debug("Ignoring inline bot.")
             return
+
         message = utils.censor(event.message)
         blacklist_chats = self._db.get(main.__name__, "blacklist_chats", [])
         whitelist_chats = self._db.get(main.__name__, "whitelist_chats", [])
         whitelist_modules = self._db.get(main.__name__, "whitelist_modules", [])
         if utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and utils.get_chat_id(message) not in
-                                                             whitelist_chats) or message.from_id is None:
+                                                             whitelist_chats):
             logging.debug("Message is blacklisted")
             return
-        if not self._bot and len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
+
+        if message.out and len(message.message) > len(prefix) and message.message[:len(prefix) * 2] == prefix * 2 \
                 and message.message != len(message.message) // len(prefix) * prefix:
             # Allow escaping commands using .'s
-            await message.edit(utils.escape_html(message.message[len(prefix):]))
+            entities = utils.relocate_entities(message.entities, -len(prefix), message.message)
+            await message.edit(message.message[len(prefix):], parse_mode=lambda s: (s, entities or ()))
+            return
+
         logging.debug(message)
         # Make sure we don't get confused about spaces or other stuff in the prefix
         message.message = message.message[len(prefix):]
         if not message.message:
             return  # Message is just the prefix
+
         command = message.message.split(maxsplit=1)[0]
         tag = command.split("@", maxsplit=1)
         if not self._testing:
@@ -121,12 +133,17 @@ class CommandDispatcher:
             elif not event.is_private and not event.out:
                 return
         logging.debug(tag[0])
+
         txt, func = self._modules.dispatch(tag[0])
         if func is not None:
             if not await self._handle_ratelimit(message, func):
                 return
             if not await self.security.check(message, func):
                 return
+            if message.is_channel and message.is_group:
+                my_id = (await message.client.get_me(True)).user_id
+                if (await message.get_chat()).title.startswith(f"friendly-{my_id}-"):
+                    return
             message.message = txt + message.message[len(command):]
             if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
                 logging.debug("Command is blacklisted in chat")
@@ -135,6 +152,7 @@ class CommandDispatcher:
                                           + func.__self__.__module__ in whitelist_modules):
                 logging.debug("Command is not whitelisted in chat")
                 return
+
             try:
                 await func(message)
             except Exception as e:
@@ -154,12 +172,12 @@ class CommandDispatcher:
     async def handle_incoming(self, event):
         """Handle all incoming messages"""
         logging.debug("Incoming message!")
-        message = utils.censor(event.message)
+        message = utils.censor(getattr(event, "message", event))
         blacklist_chats = self._db.get(main.__name__, "blacklist_chats", [])
         whitelist_chats = self._db.get(main.__name__, "whitelist_chats", [])
         whitelist_modules = self._db.get(main.__name__, "whitelist_modules", [])
         if utils.get_chat_id(message) in blacklist_chats or (whitelist_chats and utils.get_chat_id(message) not in
-                                                             whitelist_chats) or message.from_id is None:
+                                                             whitelist_chats):
             logging.debug("Message is blacklisted")
             return
         for func in self._modules.watchers:

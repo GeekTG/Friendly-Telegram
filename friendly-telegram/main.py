@@ -449,8 +449,12 @@ async def amain(first, client, allclients, web, arguments):
         modules.check_security = dispatcher.check_security
         client.add_event_handler(dispatcher.handle_incoming,
                                  events.NewMessage)
+        client.add_event_handler(dispatcher.handle_incoming,
+                                 events.ChatAction)
         client.add_event_handler(dispatcher.handle_command,
                                  events.NewMessage(forwards=False))
+        client.add_event_handler(dispatcher.handle_command,
+                                 events.MessageEdited())
     if first:
         await client(GetStateRequest())  # Start receiving updates
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001

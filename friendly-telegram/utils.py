@@ -73,7 +73,7 @@ def get_args_split_by(message, sep):
 
 def get_chat_id(message):
     """Get the chat ID, but without -100 if its a channel"""
-    return telethon.utils.resolve_id(message.chat_id)
+    return telethon.utils.resolve_id(message.chat_id)[0]
 
 
 def get_entity_id(entity):

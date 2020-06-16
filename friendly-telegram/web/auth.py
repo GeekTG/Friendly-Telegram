@@ -27,7 +27,7 @@ from base64 import b64encode
 from .. import security
 
 try:
-    import humanfriendly
+    import humanfriendly.terminal.html
 except ImportError:
     humanfriendly = False
     from telethon.extensions import html

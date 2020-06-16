@@ -456,7 +456,8 @@ async def amain(first, client, allclients, web, arguments):
         client.add_event_handler(dispatcher.handle_command,
                                  events.MessageEdited())
     if first:
-        await client(GetStateRequest())  # Start receiving updates
+        if __debug__ and arguments.self_test:
+            await client(GetStateRequest())  # Start receiving updates
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
     if __debug__ and arguments.self_test:
         await asyncio.wait([client.disconnected, tester.restart], return_when=asyncio.FIRST_COMPLETED)

@@ -120,6 +120,7 @@ class CommandDispatcher:
         message.message = message.message[len(prefix):]
         if not message.message:
             return  # Message is just the prefix
+        utils.relocate_entities(message.entities, -len(prefix))
 
         command = message.message.split(maxsplit=1)[0]
         tag = command.split("@", maxsplit=1)

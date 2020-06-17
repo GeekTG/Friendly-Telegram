@@ -147,13 +147,17 @@ def censor(obj, to_censor=["phone"], replace_with="redacted_{count}_chars"):  # 
 
 def relocate_entities(entities, offset, text=None):
     """Move all entities by offset (truncating at text)"""
-    for ent in entities or ():
+    if text is not None:
+        length = len(text)
+    for ent in entities.copy() if entities else ():
         ent.offset += offset
         if ent.offset < 0:
             ent.length += ent.offset
             ent.offset = 0
-        if text is not None and ent.offset + ent.length > len(text):
-            ent.length = len(text) - ent.offset
+        if text is not None and ent.offset + ent.length > length:
+            ent.length = length - ent.offset
+        if ent.length <= 0:
+            entities.remove(ent)
     return entities
 
 

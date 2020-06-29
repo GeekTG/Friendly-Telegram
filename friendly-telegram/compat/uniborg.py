@@ -1,4 +1,4 @@
-#    Friendly Telegram (telegram userbot)
+t#    Friendly Telegram (telegram userbot)
 #    Copyright (C) 2018-2019 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
@@ -194,7 +194,7 @@ class UniborgUtil:
 
 class UniborgConfig:
     __all__ = ["GOOGLE_CHROME_BIN", "SCREEN_SHOT_LAYER_ACCESS_KEY", "PRIVATE_GROUP_BOT_API_ID",
-               "IBM_WATSON_CRED_URL", "IBM_WATSON_CRED_PASSWORD", "HASH_TO_TORRENT_API",
+               "IBM_WATSON_CRED_URL", "IBM_WATSON_CRED_PASSWORD",
                "TELEGRAPH_SHORT_NAME", "OCR_SPACE_API_KEY", "G_BAN_LOGGER_GROUP", "TG_GLOBAL_ALBUM_LIMIT",
                "TG_BOT_TOKEN_BF_HER", "TG_BOT_USER_NAME_BF_HER", "ANTI_FLOOD_WARN_MODE", "GIT_REPO_NAME",
                "MAX_ANTI_FLOOD_MESSAGES", "CHATS_TO_MONITOR_FOR_ANTI_FLOOD", "REM_BG_API_KEY",
@@ -209,7 +209,6 @@ class UniborgConfig:
     PRIVATE_GROUP_BOT_API_ID = None
     IBM_WATSON_CRED_URL = None
     IBM_WATSON_CRED_PASSWORD = None
-    HASH_TO_TORRENT_API = None
     TELEGRAPH_SHORT_NAME = "UniborgShimFriendlyTelegram"
     OCR_SPACE_API_KEY = None
     G_BAN_LOGGER_GROUP = None

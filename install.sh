@@ -183,7 +183,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   runout $PKGMGR "python$PYVER-pip"
   runout $PKGMGR build-essential libwebp-dev libz-dev libjpeg-dev libffi-dev libcairo2 libopenjp2-7 libtiff5 libcairo2-dev
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-  runout $PKGMGR libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
+  runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   runout $PKGMGR jpeg webp
 fi

@@ -32,7 +32,7 @@ async def dumptest(conv):
     assert r.message.startswith("Message(") and "test" in r.message, r
 
 
-@loader.test(args="0")
+@loader.test(args="0 FORCE_INSECURE")
 async def logstest(conv):
     r = await conv.get_response()
     assert r.message == "Loading media...", r

@@ -1,1 +1,4 @@
 include: 'https://gitlab.com/hackintosh5/ci-templates/-/raw/master/python-docker.gitlab-ci.yml'
+
+variables:
+    DOCKER_FLAGS: '-e TEST_BOT_TOKEN'

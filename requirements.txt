@@ -1,5 +1,5 @@
 # Telegram connection
-telethon ~= 1.16.1, >= 1.16.1
+telethon ~= 1.16.1, >= 1.16.1, < 1.16.4
 
 # Config
 pythondialog ~= 3.5.1

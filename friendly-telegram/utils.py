@@ -221,7 +221,7 @@ async def answer(message, response, **kwargs):
         if isinstance(response, bytes):
             response = io.BytesIO(response)
         if isinstance(response, str):
-            response = io.StringIO(response)
+            response = io.BytesIO(response.encode("utf-8"))
         name = kwargs.pop("filename", None)
         if name:
             response.name = name

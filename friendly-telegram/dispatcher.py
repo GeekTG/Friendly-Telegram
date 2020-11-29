@@ -93,8 +93,8 @@ class CommandDispatcher:
             return
 
         logging.debug("Incoming command!")
-        if event.sticker or event.dice:
-            logging.debug("Ignoring invisible command (with sticker).")
+        if event.sticker or event.dice or event.audio:
+            logging.debug("Ignoring invisible or potentially forwarded command.")
         if event.via_bot_id:
             logging.debug("Ignoring inline bot.")
             return

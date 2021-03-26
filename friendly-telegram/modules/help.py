@@ -29,20 +29,19 @@ class HelpMod(loader.Module):
     """Provides this help message"""
     strings = {"name": "Help",
                "bad_module": "<b>Invalid module name specified</b>",
-               "single_mod_header": ("<b>Help for</b> <u>{}</u>:\nNote that the monospace text are the commands "
-                                     "and they can be run with <code>{}&lt;command&gt;</code>"),
+               "single_mod_header": ("<b>Help for</b> <u>{}</u>:"),
                "single_cmd": "\n• <code><u>{}</u></code>\n",
-               "undoc_cmd": "There is no documentation for this command",
-               "all_header": ("<b>Help for</b> <a href='https://t.me/friendlytgbot'>Friendly-Telegram</a>\n"
+               "undoc_cmd": "No docs",
+               "all_header": ("<b>Help for</b> <a href='https://t.me/mod_ftg'>Friendly-Telegram</a>\n"
                               "For more help on how to use a command, type <code>{}help &lt;module name&gt;</code>\n\n"
                               "<b>Available Modules:</b>"),
                "mod_tmpl": "\n• <b>{}</b>",
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
                "footer": ("\n\nYou can <b>read more</b> about most commands "
-                          "<a href='https://friendly-telegram.gitlab.io'>here</a>"),
-               "joined": "<b>Joined to</b> <a href='https://t.me/friendlytgbot'>support channel</a>",
-               "join": "<b>Join the</b> <a href='https://t.me/friendlytgbot'>support channel</a>"}
+                          "<a href='https://ftg.geektg.ml'>here</a>"),
+               "joined": "<b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
+               "join": "<b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>"}
 
     @loader.unrestricted
     async def helpcmd(self, message):
@@ -61,10 +60,7 @@ class HelpMod(loader.Module):
                 name = module.strings("name", message)
             except KeyError:
                 name = getattr(module, "name", "ERROR")
-            reply = self.strings("single_mod_header", message).format(utils.escape_html(name),
-                                                                      utils.escape_html((self.db.get(main.__name__,
-                                                                                                     "command_prefix",
-                                                                                                     False) or ".")[0]))
+            reply = self.strings("single_mod_header", message).format(utils.escape_html(name))
             if module.__doc__:
                 reply += "\n" + "\n".join("  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
             else:
@@ -102,9 +98,9 @@ class HelpMod(loader.Module):
 
     @loader.unrestricted
     async def supportcmd(self, message):
-        """Joins the support chat"""
+        """Joins the support FTG chat"""
         if not self.is_bot and await self.allmodules.check_security(message, security.OWNER | security.SUDO):
-            await self.client(JoinChannelRequest("https://t.me/friendlytgbot"))
+            await self.client(JoinChannelRequest("https://t.me/chat_ftg"))
             await utils.answer(message, self.strings("joined", message))
         else:
             await utils.answer(message, self.strings("join", message))

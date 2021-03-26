@@ -44,7 +44,6 @@ async def logstest(conv):
 class TestMod(loader.Module):
     """Self-tests"""
     strings = {"name": "Tester",
-               "pong": "Pong",
                "bad_loglevel": ("<b>Invalid loglevel. Please refer to </b>"
                                 "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
                                 "the docs</a><b>.</b>"),
@@ -57,13 +56,6 @@ class TestMod(loader.Module):
                                "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
                "logs_force": "FORCE_INSECURE",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>"}
-
-    @loader.test(resp="Pong")
-    @loader.unrestricted
-    async def pingcmd(self, message):
-        """Does nothing"""
-        await utils.answer(message, self.strings("pong", message))
-
     @loader.test(func=dumptest)
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""

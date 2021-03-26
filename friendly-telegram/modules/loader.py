@@ -110,7 +110,6 @@ class LoaderMod(loader.Module):
         self.config = loader.ModuleConfig("MODULES_REPO",
                                           "https://raw.githubusercontent.com/GeekTG/FTG-Modules/main/",
                                           lambda m: self.strings("repo_config_doc", m))
-
     @loader.owner
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
@@ -283,8 +282,8 @@ class LoaderMod(loader.Module):
     @loader.owner
     async def clearmodulescmd(self, message):
         """Delete all installed modules"""
-        self.db.set("friendly-telegram.modules.loader", "loaded_modules", [])
-        self.db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
+        self._db.set("friendly-telegram.modules.loader", "loaded_modules", [])
+        self._db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
         await message.edit("<b>All modules deleted</b>")
         await self.allmodules.commands["restart"](await message.reply("_"))
 
@@ -293,7 +292,7 @@ class LoaderMod(loader.Module):
         """Install modules from backup"""
         reply = await message.get_reply_message()
         if not reply or not reply.file or reply.file.name.split('.')[-1] != "bkm": return await message.edit("Reply to .bkm file")
-        modules = self.db.get("friendly-telegram.modules.loader", "loaded_modules", [])
+        modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
         txt = io.BytesIO()
         await reply.download_media(txt)
         txt.seek(0)
@@ -304,14 +303,14 @@ class LoaderMod(loader.Module):
                 valid += 1
                 modules.append(i)
             else: already_loaded += 1
-        self.db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
+        self._db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
         await message.edit(f"<b>Loaded:</b> {valid}\n<b>Already loaded:</b> {already_loaded}")
         if valid > 0: await self.allmodules.commands["restart"](await message.reply("_"))
 
     @loader.owner
     async def backupcmd(self, message):
         "Create backup of modules"
-        modules = self.db.get("friendly-telegram.modules.loader", "loaded_modules", [])
+        modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
         txt = io.BytesIO("\n".join(modules).encode())
         txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
         if len(modules) > 0:

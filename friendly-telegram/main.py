@@ -27,7 +27,10 @@ import sqlite3
 import importlib
 import signal
 import time
+
+import pymyip
 import requests
+import socket
 
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession, SQLiteSession
@@ -212,7 +215,8 @@ def main():  # noqa: C901
             loop.run_until_complete(web.start())
             print("Web mode ready for configuration")  # noqa: T001
             if not arguments.heroku_web_internal:
-                print("Please visit http://localhost:" + str(web.port))  # noqa: T001
+                ipaddress, port = pymyip.get_ip(), str(web.port)
+                print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
         else:
@@ -262,7 +266,8 @@ def main():  # noqa: C901
                 loop.run_until_complete(web.start())
                 print("Web mode ready for configuration")  # noqa: T001
                 if not arguments.heroku_web_internal:
-                    print("Please visit http://localhost:" + str(web.port))  # noqa: T001
+                    ipaddress, port = pymyip.get_ip(), str(web.port)
+                    print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_clients_setup())
             arguments.heroku = web.heroku_api_token
             clients = web.clients

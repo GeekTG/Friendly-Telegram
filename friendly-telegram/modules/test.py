@@ -57,6 +57,7 @@ class TestMod(loader.Module):
                                "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
                "logs_force": "FORCE_INSECURE",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>"}
+
     @loader.test(func=dumptest)
     async def dumpcmd(self, message):
         """Use in reply to get a dump of a message"""

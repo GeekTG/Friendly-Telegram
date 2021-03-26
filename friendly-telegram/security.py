@@ -200,14 +200,14 @@ class SecurityManager:
                              or f_group_admin_delete_messages or f_group_admin_pin_messages
                              or f_group_admin_invite_users or f_group_admin)
 
-        if f_owner and message.from_id in self._owner:
+        if f_owner and message.sender_id in self._owner:
             return True
-        if f_sudo and message.from_id in self._sudo:
+        if f_sudo and message.sender_id in self._sudo:
             return True
-        if f_support and message.from_id in self._support:
+        if f_support and message.sender_id in self._support:
             return True
 
-        if message.from_id in self._db.get(main.__name__, "blacklist_users", []):
+        if message.sender_id in self._db.get(main.__name__, "blacklist_users", []):
             return False
 
         if f_pm and message.is_private:
@@ -261,7 +261,7 @@ class SecurityManager:
                 participants = full_chat.full_chat.participants.participants
                 participant = None
                 for possible_participant in participants:
-                    if possible_participant.user_id == message.from_id:
+                    if possible_participant.user_id == message.sender_id:
                         participant = possible_participant
                         break
                 if not participant:

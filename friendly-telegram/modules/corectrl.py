@@ -95,7 +95,7 @@ class CoreMod(loader.Module):
                     await utils.answer(message, self.strings("who_to_unblacklist", message))
                     return
             else:
-                return (await message.get_reply_message()).from_id
+                return (await message.get_reply_message()).sender_id
 
     async def blacklistusercmd(self, message):
         """.blacklistuser [id]

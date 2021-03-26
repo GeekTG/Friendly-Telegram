@@ -103,7 +103,7 @@ def get_dir(mod):
 async def get_user(message):
     """Get user who sent message, searching if not found easily"""
     try:
-        return await message.client.get_entity(message.from_id)
+        return await message.client.get_entity(message.sender_id)
     except ValueError:  # Not in database. Lets go looking for them.
         logging.debug("user not in session cache. searching...")
     if isinstance(message.to_id, PeerUser):
@@ -111,10 +111,10 @@ async def get_user(message):
             await message.client.get_dialogs()
         except telethon.rpcerrorlist.BotMethodInvalid:
             return None
-        return await message.client.get_entity(message.from_id)
+        return await message.client.get_entity(message.sender_id)
     if isinstance(message.to_id, (PeerChannel, PeerChat)):
         async for user in message.client.iter_participants(message.to_id, aggressive=True):
-            if user.id == message.from_id:
+            if user.id == message.sender_id:
                 return user
         logging.error("WTF! user isn't in the group where they sent the message")
         return None
@@ -247,7 +247,7 @@ async def get_target(message, arg_no=0):
     elif len(get_args(message)) > arg_no:
         user = get_args(message)[arg_no]
     elif message.is_reply:
-        return (await message.get_reply_message()).from_id
+        return (await message.get_reply_message()).sender_id
     elif hasattr(message.to_id, "user_id"):
         user = message.to_id.user_id
     else:

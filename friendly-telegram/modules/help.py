@@ -33,7 +33,7 @@ class HelpMod(loader.Module):
                "single_cmd": "\n• <code><u>{}</u></code>\n",
                "undoc_cmd": "No docs",
                "all_header":  "<b>Available FTG Modules:</b>",
-               "mod_tmpl": "\n➩ <b>{}</b>",
+               "mod_tmpl": "\n• <b>{}</b>",
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
                "joined": "<b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",

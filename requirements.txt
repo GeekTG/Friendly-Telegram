@@ -1,5 +1,5 @@
 # Telegram connection
-telethon ~= 1.16.1, >= 1.16.1, < 1.16.4
+telethon
 
 # Config
 pythondialog ~= 3.5.1
@@ -15,4 +15,7 @@ babel ~= 2.8.0
 meval >= 2.4, ~= 2.4
 
 # Web
-aiohttp_jinja2 ~= 1.2.0 
+aiohttp_jinja2 ~= 1.2.0
+
+# IP Address
+pymyip0

@@ -111,6 +111,15 @@ class LoaderMod(loader.Module):
         self.config = loader.ModuleConfig("MODULES_REPO",
                                           "https://raw.githubusercontent.com/GeekTG/FTG-Modules/main/",
                                           lambda m: self.strings("repo_config_doc", m))
+
+    async def aliasescmd(self, message):
+        """Print all your aliases"""
+        aliases = self.allmodules.aliases
+        string = "<b>Aliases:</b>"
+        for i, y in aliases.items():
+            string += f"\n{i}: {y}"
+        await message.edit(string)
+
     @loader.owner
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""

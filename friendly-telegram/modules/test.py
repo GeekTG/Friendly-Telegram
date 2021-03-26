@@ -20,6 +20,7 @@ import time
 from io import BytesIO
 
 from .. import loader, utils
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,14 @@ class TestMod(loader.Module):
             time.sleep(int(utils.get_args_raw(message)))
         except ValueError:
             await utils.answer(message, self.strings("suspend_invalid_time", message))
+
+    async def pingcmd(self, message):
+        """Test your userbot ping"""
+        start = datetime.now()
+        await utils.answer(message, "<code>Ping checking...</code>")
+        end = datetime.now()
+        ms = (end - start).microseconds / 1000
+        await utils.answer(message, "<b>Ping:</b> <code>{}ms</code>".format(ms))
 
     async def client_ready(self, client, db):
         self.client = client

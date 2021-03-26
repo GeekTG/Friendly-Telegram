@@ -14,6 +14,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-FROM registry.gitlab.com/friendly-telegram/friendly-telegram AS modules
+FROM registry.github.com/GeekTG/Friendly-Telegram AS modules
 RUN [ "python", "-Om", "friendly-telegram", "--no-web", "--no-auth", "--docker-deps-internal", "--data-root", "/data" ]
 

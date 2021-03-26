@@ -32,14 +32,10 @@ class HelpMod(loader.Module):
                "single_mod_header": ("<b>Help for</b> <u>{}</u>:"),
                "single_cmd": "\n• <code><u>{}</u></code>\n",
                "undoc_cmd": "No docs",
-               "all_header": ("<b>Help for</b> <a href='https://t.me/mod_ftg'>Friendly-Telegram</a>\n"
-                              "For more help on how to use a command, type <code>{}help &lt;module name&gt;</code>\n\n"
-                              "<b>Available Modules:</b>"),
-               "mod_tmpl": "\n• <b>{}</b>",
+               "all_header":  "<b>Available FTG Modules:</b>",
+               "mod_tmpl": "\n➩ <b>{}</b>",
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
-               "footer": ("\n\nYou can <b>read more</b> about most commands "
-                          "<a href='https://ftg.geektg.ml'>here</a>"),
                "joined": "<b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
                "join": "<b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>"}
 
@@ -93,7 +89,6 @@ class HelpMod(loader.Module):
                     else:
                         reply += self.strings("cmd_tmpl", message).format(cmd)
                 reply += "</code>"
-        reply += self.strings("footer", message)
         await utils.answer(message, reply)
 
     @loader.unrestricted

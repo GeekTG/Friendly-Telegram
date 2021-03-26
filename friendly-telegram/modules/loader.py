@@ -24,6 +24,7 @@ import urllib
 import os
 import re
 import requests
+import inspect
 
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
@@ -304,7 +305,7 @@ class LoaderMod(loader.Module):
                 modules.append(i)
             else: already_loaded += 1
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
-        await message.edit(f"<b>Loaded:</b> {valid}\n<b>Already loaded:</b> {already_loaded}")
+        await message.edit(f"<b>Loaded:</b> <code>{valid}</code>\n<b>Already loaded:</b> <code>{already_loaded}</code>")
         if valid > 0: await self.allmodules.commands["restart"](await message.reply("_"))
 
     @loader.owner
@@ -314,10 +315,28 @@ class LoaderMod(loader.Module):
         txt = io.BytesIO("\n".join(modules).encode())
         txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
         if len(modules) > 0:
-            await message.client.send_file(message.to_id, txt, caption=f"<b>Modules backup completed</b>\n<b>Number:</b> {len(modules)}")
+            await message.client.send_file(message.to_id, txt, caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
             await message.delete()
         else: await message.edit(f"<b>You have no custom modules!</b>")
-
+    @loader.owner
+    async def moduleinfocmd(self, message):
+        """Get link on module"""
+        args = utils.get_args_raw(message)
+        if not args: return await message.edit('<b>Type module name in arguments</b>')
+        await message.edit('<b>Searching...</b>')
+        try:
+            f = ' '.join([x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
+            r = inspect.getmodule(next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
+            link = str(r).split('(')[1].split(')')[0]
+            if "http" not in link: text = f"File {f}:"
+            else: text = f"<a href=\"{link}\">Link</a> for {f}: \n<code>{link}</code>"
+            out = io.BytesIO(r.__loader__.data)
+            out.name = f + ".py"
+            out.seek(0)
+            await message.respond(text, file=out)
+            await message.delete()
+        except:
+            return await message.edit("<b>An unexpected error occurred</b>")
     async def _update_modules(self):
         todo = await self._get_modules_to_load()
         await asyncio.gather(*[self.download_and_install(mod) for mod in todo])

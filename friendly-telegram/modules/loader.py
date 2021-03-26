@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import io
 import logging
 import importlib
 import sys
@@ -278,6 +279,45 @@ class LoaderMod(loader.Module):
             await utils.answer(message, self.strings("unloaded", message))
         else:
             await utils.answer(message, self.strings("not_unloaded", message))
+    
+    @loader.owner
+    async def clearmodulescmd(self, message):
+        """Delete all installed modules"""
+        self.db.set("friendly-telegram.modules.loader", "loaded_modules", [])
+        self.db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
+        await message.edit("<b>All modules deleted</b>")
+        await self.allmodules.commands["restart"](await message.reply("_"))
+
+    @loader.owner
+    async def restorecmd(self, message):
+        """Install modules from backup"""
+        reply = await message.get_reply_message()
+        if not reply or not reply.file or reply.file.name.split('.')[-1] != "bkm": return await message.edit("Reply to .bkm file")
+        modules = self.db.get("friendly-telegram.modules.loader", "loaded_modules", [])
+        txt = io.BytesIO()
+        await reply.download_media(txt)
+        txt.seek(0)
+        valid = 0
+        already_loaded = 0
+        for i in txt.read().decode('utf-8').split("\n"):
+            if i not in modules:
+                valid += 1
+                modules.append(i)
+            else: already_loaded += 1
+        self.db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
+        await message.edit(f"<b>Loaded:</b> {valid}\n<b>Already loaded:</b> {already_loaded}")
+        if valid > 0: await self.allmodules.commands["restart"](await message.reply("_"))
+
+    @loader.owner
+    async def backupcmd(self, message):
+        "Create backup of modules"
+        modules = self.db.get("friendly-telegram.modules.loader", "loaded_modules", [])
+        txt = io.BytesIO("\n".join(modules).encode())
+        txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
+        if len(modules) > 0:
+            await message.client.send_file(message.to_id, txt, caption=f"<b>Modules backup completed</b>\n<b>Number:</b> {len(modules)}")
+            await message.delete()
+        else: await message.edit(f"<b>You have no custom modules!</b>")
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()

@@ -67,8 +67,6 @@ class UpdaterMod(loader.Module):
         else:
             msg = (await utils.answer(message, self.strings("restarting_caption", message)))[0]
         await self.restart_common(msg)
-        await asyncio.sleep(10)
-        await msg.delete()
 
     async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
@@ -98,8 +96,6 @@ class UpdaterMod(loader.Module):
         message = await utils.answer(message, self.strings("downloading", message))
         await self.download_common()
         await utils.answer(message, self.strings("downloaded", message))
-        await asyncio.sleep(10)
-        await message.delete()
 
     async def download_common(self):
         try:
@@ -162,8 +158,6 @@ class UpdaterMod(loader.Module):
             if req_update:
                 self.req_common()
             await self.restart_common(message)
-        await asyncio.sleep(10)
-        await message.delete()
 
     @loader.unrestricted
     async def sourcecmd(self, message):

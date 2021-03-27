@@ -19,3 +19,6 @@ aiohttp_jinja2 ~= 1.2.0
 
 # IP Address
 pymyip0
+
+# Speedtest
+speedtest-cli

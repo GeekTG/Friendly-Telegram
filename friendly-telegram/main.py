@@ -45,7 +45,6 @@ from telethon.network.connection import ConnectionTcpFull
 from . import utils, loader, heroku, security
 from .dispatcher import CommandDispatcher
 
-
 from .database import backend, local_backend, frontend
 from .translations.core import Translator
 
@@ -253,7 +252,7 @@ def main():  # noqa: C901
         for phone, token in authtoken.items():
             try:
                 clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
-                                           connection=conn, proxy=proxy, connection_retries=None).start(phone)]
+                                           connection=conn, proxy=proxy, connection_retries=None).start()]
             except ValueError:
                 run_config({}, arguments.data_root)
                 return
@@ -276,7 +275,7 @@ def main():  # noqa: C901
                     session = StringSession()
                 else:
                     session = SQLiteSession(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()),
-                                                         "friendly-telegram-" + client.phone))
+                                                         "friendly-telegram-" + "+" + "X" * (len(client.phone) - 5) + client.phone[-4:]))
                 session.set_dc(client.session.dc_id, client.session.server_address, client.session.port)
                 session.auth_key = client.session.auth_key
                 if not arguments.heroku:
@@ -332,8 +331,8 @@ def main():  # noqa: C901
         except sqlite3.OperationalError as ex:
             print("Error initialising phone " + (phone if phone else "unknown") + " " + ",".join(ex.args)  # noqa: T001
                   + ": this is probably your fault. Try checking that this is the only instance running and "
-                  "that the session is not copied. If that doesn't help, delete the file named '"
-                  "friendly-telegram" + (("-" + phone) if phone else "") + ".session'")
+                    "that the session is not copied. If that doesn't help, delete the file named '"
+                    "friendly-telegram" + (("-" + phone) if phone else "") + ".session'")
             continue
         except (ValueError, ApiIdInvalidError):
             # Bad API hash/ID

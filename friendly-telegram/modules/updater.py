@@ -56,7 +56,7 @@ class UpdaterMod(loader.Module):
         self.config = loader.ModuleConfig("GIT_ORIGIN_URL",
                                           "https://github.com/GeekTG/Friendly-Telegram",
                                           lambda m: self.strings("origin_cfg_doc", m),
-                                          "AUDIO", True, lambda m: self.strings("audio_cfg_doc", m))
+                                          "AUDIO", False, lambda m: self.strings("audio_cfg_doc", m))
 
     @loader.owner
     async def restartcmd(self, message):

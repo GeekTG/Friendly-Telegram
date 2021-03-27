@@ -40,6 +40,7 @@ USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.enviro
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
     """Load a python module/file from a string"""
+
     def __init__(self, data, origin):
         if isinstance(data, str):
             self.data = data.encode("utf-8")
@@ -131,7 +132,7 @@ class LoaderMod(loader.Module):
         else:
             text = utils.escape_html("\n".join(await self.get_repo_list("full")))
             await utils.answer(message, "<b>" + self.strings("avail_header", message)
-                               + "</b>\n"+'\n'.join(["<code>" + i + "</code>" for i in text.split('\n')]))
+                               + "</b>\n" + '\n'.join(["<code>" + i + "</code>" for i in text.split('\n')]))
 
     @loader.owner
     async def dlpresetcmd(self, message):
@@ -152,6 +153,7 @@ class LoaderMod(loader.Module):
         self._db.set(__name__, "loaded_modules", [])
         self._db.set(__name__, "unloaded_modules", [])
         await utils.answer(message, self.strings("preset_loaded", message))
+        await self.allmodules.commands["restart"](await message.reply("_"))
 
     async def _get_modules_to_load(self):
         todo = await self.get_repo_list(self._db.get(__name__, "chosen_preset", None))
@@ -288,20 +290,22 @@ class LoaderMod(loader.Module):
             await utils.answer(message, self.strings("unloaded", message))
         else:
             await utils.answer(message, self.strings("not_unloaded", message))
-    
+
     @loader.owner
     async def clearmodulescmd(self, message):
         """Delete all installed modules"""
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", [])
         self._db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
         await message.edit("<b>All modules deleted</b>")
+        self._db.set(__name__, "chosen_preset", "none")
         await self.allmodules.commands["restart"](await message.reply("_"))
 
     @loader.owner
     async def restorecmd(self, message):
         """Install modules from backup"""
         reply = await message.get_reply_message()
-        if not reply or not reply.file or reply.file.name.split('.')[-1] != "txt": return await message.edit("Reply to .txt file")
+        if not reply or not reply.file or reply.file.name.split('.')[-1] != "txt": return await message.edit(
+            "Reply to .txt file")
         modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
         txt = io.BytesIO()
         await reply.download_media(txt)
@@ -312,7 +316,8 @@ class LoaderMod(loader.Module):
             if i not in modules:
                 valid += 1
                 modules.append(i)
-            else: already_loaded += 1
+            else:
+                already_loaded += 1
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
         await message.edit(f"<b>Loaded:</b> <code>{valid}</code>\n<b>Already loaded:</b> <code>{already_loaded}</code>")
         if valid > 0: await self.allmodules.commands["restart"](await message.reply("_"))
@@ -324,9 +329,12 @@ class LoaderMod(loader.Module):
         txt = io.BytesIO("\n".join(modules).encode())
         txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
         if len(modules) > 0:
-            await message.client.send_file(message.to_id, txt, caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
+            await message.client.send_file(message.to_id, txt,
+                                           caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
             await message.delete()
-        else: await message.edit(f"<b>You have no custom modules!</b>")
+        else:
+            await message.edit(f"<b>You have no custom modules!</b>")
+
     @loader.owner
     async def moduleinfocmd(self, message):
         """Get link on module"""
@@ -334,11 +342,15 @@ class LoaderMod(loader.Module):
         if not args: return await message.edit('<b>Type module name in arguments</b>')
         await message.edit('<b>Searching...</b>')
         try:
-            f = ' '.join([x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
-            r = inspect.getmodule(next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
+            f = ' '.join(
+                [x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
+            r = inspect.getmodule(
+                next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
             link = str(r).split('(')[1].split(')')[0]
-            if "http" not in link: text = f"File {f}:"
-            else: text = f"<a href=\"{link}\">Link</a> for {f}: \n<code>{link}</code>"
+            if "http" not in link:
+                text = f"File {f}:"
+            else:
+                text = f"<a href=\"{link}\">Link</a> for {f}: \n<code>{link}</code>"
             out = io.BytesIO(r.__loader__.data)
             out.name = f + ".py"
             out.seek(0)
@@ -346,6 +358,7 @@ class LoaderMod(loader.Module):
             await message.delete()
         except:
             return await message.edit("<b>An unexpected error occurred</b>")
+
     async def _update_modules(self):
         todo = await self._get_modules_to_load()
         await asyncio.gather(*[self.download_and_install(mod) for mod in todo])

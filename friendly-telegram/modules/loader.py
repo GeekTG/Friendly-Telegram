@@ -131,7 +131,7 @@ class LoaderMod(loader.Module):
         else:
             text = utils.escape_html("\n".join(await self.get_repo_list("full")))
             await utils.answer(message, "<b>" + self.strings("avail_header", message)
-                               + "</b>\n<code>" + text + "</code>")
+                               + "</b>\n"+'\n'.join(["<code>" + i + "</code>" for i in text.split('\n')]))
 
     @loader.owner
     async def dlpresetcmd(self, message):

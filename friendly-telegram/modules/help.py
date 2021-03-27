@@ -32,7 +32,7 @@ class HelpMod(loader.Module):
                "single_mod_header": ("<b>Help for</b> <u>{}</u>:"),
                "single_cmd": "\n• <code><u>{}</u></code>\n",
                "undoc_cmd": "No docs",
-               "all_header":  "<b>Available FTG Modules:</b>",
+               "all_header": "<b>Available FTG Modules:</b>",
                "mod_tmpl": "\n• <b>{}</b>",
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
@@ -78,17 +78,19 @@ class HelpMod(loader.Module):
                     name = mod.strings("name", message)
                 except KeyError:
                     name = getattr(mod, "name", "ERROR")
-                reply += self.strings("mod_tmpl", message).format(name)
-                first = True
-                commands = [name for name, func in mod.commands.items()
-                            if await self.allmodules.check_security(message, func)]
-                for cmd in commands:
-                    if first:
-                        reply += self.strings("first_cmd_tmpl", message).format(cmd)
-                        first = False
-                    else:
-                        reply += self.strings("cmd_tmpl", message).format(cmd)
-                reply += "</code>"
+                if name != "Logger" and name != "Raphielgang Configuration Placeholder" \
+                        and name != "Uniborg configuration placeholder":
+                    reply += self.strings("mod_tmpl", message).format(name)
+                    first = True
+                    commands = [name for name, func in mod.commands.items()
+                                if await self.allmodules.check_security(message, func)]
+                    for cmd in commands:
+                        if first:
+                            reply += self.strings("first_cmd_tmpl", message).format(cmd)
+                            first = False
+                        else:
+                            reply += self.strings("cmd_tmpl", message).format(cmd)
+                    reply += "</code>"
         await utils.answer(message, reply)
 
     @loader.unrestricted

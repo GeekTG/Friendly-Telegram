@@ -10,6 +10,7 @@ Friendly Telegram, also known as FTG, is not your average Telegram userbot: it's
 - UX improvements (IP address in config script, etc)
 - Stock modules updates (New functions, bug fixed)
 - [Modules Repo](https://github.com/GeekTG/FTG-Modules) with a great variety of modules
+- FFmpeg support for Heroku
 
 ### Requirements
 - Python 3.6 or above

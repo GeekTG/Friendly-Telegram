@@ -322,7 +322,7 @@ class LoaderMod(loader.Module):
         "Create backup of modules"
         modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
         txt = io.BytesIO("\n".join(modules).encode())
-        txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
+        txt.name = "ModulesBackup-{}.bkm".format(str((await message.client.get_me()).id))
         if len(modules) > 0:
             await message.client.send_file(message.to_id, txt, caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
             await message.delete()

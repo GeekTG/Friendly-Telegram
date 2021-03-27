@@ -36,7 +36,7 @@ class PythonMod(loader.Module):
     strings = {"name": "Python",
                "evaluated": "<b>Executed expression:</b>\n<code>{}</code>\n<b>Returned:</b>\n<code>{}</code>",
                "evaluate_fail": ("<b>[eval] Failed to execute the expression:</b>\n<code>{}</code>"
-                                 "\n\n<b>Ошибка:</b>\n<code>{}</code>"),
+                                 "\n\n<b>Error:</b>\n<code>{}</code>"),
                "execute_fail": ("<b>[exec] Failed to execute the expression:</b>\n<code>{}</code>"
                                 "\n\n<b>Error:</b>\n<code>{}</code>")}
 

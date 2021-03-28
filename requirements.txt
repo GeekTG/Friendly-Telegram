@@ -1,5 +1,5 @@
 # Telegram connection
-telethon
+telethon==1.21.1
 
 # Config
 pythondialog ~= 3.5.1
@@ -19,6 +19,7 @@ aiohttp_jinja2 ~= 1.2.0
 
 # IP Address
 pymyip0
+bs4
 
 # Speedtest
 speedtest-cli

@@ -97,7 +97,7 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
   runout git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
-  echo "python-3.7.5" > runtime.txt
+  echo "python-3.8.5" > runtime.txt
   echo "pip" > requirements.txt
   STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
       { endspin "Bootstrap install failed!"; exit 1; }
@@ -105,8 +105,8 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
-if [ -d "friendly-telegram/friendly-telegram" ]; then
-  cd friendly-telegram || { endspin "Failed to chdir"; exit 6; }
+if [ -d "Friendly-Telegram/friendly-telegram" ]; then
+  cd Friendly-Telegram || { endspin "Failed to chdir"; exit 6; }
   DIR_CHANGED="yes"
 fi
 if [ -f ".setup_complete" ] || [ -d "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
@@ -170,7 +170,7 @@ elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   PKGMGR="brew install"
   PYVER="3"
 else
-  endspin "Unrecognised OS. Please follow https://friendly-telegram.gitlab.io/installing_advanced"
+  endspin "Unrecognised OS. Please follow https://Friendly-Telegram.gitlab.io/installing_advanced"
   exit 1
 fi
 
@@ -200,10 +200,10 @@ if [ ! x"$SUDO_USER" = x"" ]; then
 fi
 
 # shellcheck disable=SC2086
-${SUDO_CMD}rm -rf friendly-telegram
+${SUDO_CMD}rm -rf Friendly-Telegram
 # shellcheck disable=SC2086
 runout ${SUDO_CMD}git clone https://github.com/GeekTG/Friendly-Telegram || { errorout "Clone failed."; exit 3; }
-cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
+cd Friendly-Telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip setuptools wheel --user
 # shellcheck disable=SC2086

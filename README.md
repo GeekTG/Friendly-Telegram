@@ -6,7 +6,7 @@ Friendly Telegram, also known as FTG, is not your average Telegram userbot: it's
 
 ## Changes
 - Telethon lib v1.21.1
-- Security improvements (.session file name not contain full phone number and more)
+- Security improvements (.session file name not contain full phone number, DeleteAccountRequest disabled, and more)
 - UX improvements (IP address in config script, etc)
 - Stock modules updates (New functions, bug fixed)
 - [Modules Repo](https://github.com/GeekTG/FTG-Modules) with a great variety of modules

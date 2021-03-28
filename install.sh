@@ -105,11 +105,11 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
-if [ -d "friendly-telegram/friendly-telegram" ]; then
-  cd friendly-telegram || { endspin "Failed to chdir"; exit 6; }
+if [ -d "Friendly-Telegram/Friendly-Telegram" ]; then
+  cd Friendly-Telegram || { endspin "Failed to chdir"; exit 6; }
   DIR_CHANGED="yes"
 fi
-if [ -f ".setup_complete" ] || [ -d "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
+if [ -f ".setup_complete" ] || [ -d "Friendly-Telegram" -a ! x"" = x"$DYNO" ]; then
   # If ftg is already installed by this script, or its in Heroku and installed
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
@@ -118,7 +118,7 @@ if [ -f ".setup_complete" ] || [ -d "friendly-telegram" -a ! x"" = x"$DYNO" ]; t
   endspin "Existing installation detected"
   clear
   banner
-  "python$PYVER" -m friendly-telegram "$@"
+  "python$PYVER" -m Friendly-Telegram "$@"
   exit $?
 elif [ "$DIR_CHANGED" = "yes" ]; then
   cd ..
@@ -170,7 +170,7 @@ elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
   PKGMGR="brew install"
   PYVER="3"
 else
-  endspin "Unrecognised OS. Please follow https://friendly-telegram.gitlab.io/installing_advanced"
+  endspin "Unrecognised OS. Please follow https://Friendly-Telegram.gitlab.io/installing_advanced"
   exit 1
 fi
 
@@ -200,10 +200,10 @@ if [ ! x"$SUDO_USER" = x"" ]; then
 fi
 
 # shellcheck disable=SC2086
-${SUDO_CMD}rm -rf friendly-telegram
+${SUDO_CMD}rm -rf Friendly-Telegram
 # shellcheck disable=SC2086
 runout ${SUDO_CMD}git clone https://github.com/GeekTG/Friendly-Telegram || { errorout "Clone failed."; exit 3; }
-cd friendly-telegram || { endspin "Failed to chdir"; exit 7; }
+cd Friendly-Telegram || { endspin "Failed to chdir"; exit 7; }
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip setuptools wheel --user
 # shellcheck disable=SC2086
@@ -212,4 +212,4 @@ touch .setup_complete
 endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log
 # shellcheck disable=SC2086,SC2015
-${SUDO_CMD}"python$PYVER" -m friendly-telegram "$@" || { echo "Python scripts failed"; exit 5; }
+${SUDO_CMD}"python$PYVER" -m Friendly-Telegram "$@" || { echo "Python scripts failed"; exit 5; }

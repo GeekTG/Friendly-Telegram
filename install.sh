@@ -97,7 +97,7 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
   runout git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
-  echo "python-3.7.5" > runtime.txt
+  echo "python-3.8.5" > runtime.txt
   echo "pip" > requirements.txt
   STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
       { endspin "Bootstrap install failed!"; exit 1; }
@@ -105,11 +105,11 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
   export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
-if [ -d "Friendly-Telegram/Friendly-Telegram" ]; then
+if [ -d "Friendly-Telegram/friendly-telegram" ]; then
   cd Friendly-Telegram || { endspin "Failed to chdir"; exit 6; }
   DIR_CHANGED="yes"
 fi
-if [ -f ".setup_complete" ] || [ -d "Friendly-Telegram" -a ! x"" = x"$DYNO" ]; then
+if [ -f ".setup_complete" ] || [ -d "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
   # If ftg is already installed by this script, or its in Heroku and installed
   PYVER=""
   if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then

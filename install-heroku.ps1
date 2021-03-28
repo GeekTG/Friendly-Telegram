@@ -18,7 +18,7 @@ if (Test-Path "Friendly-Telegram" -PathType Container) {
     if (Test-Path (Join-Path "Friendly-Telegram" "Friendly-Telegram") -PathType Container) {
         Set-Location "Friendly-Telegram"
     }
-    python -m Friendly-Telegram
+    python -m friendly-telegram
     exit
 }
 
@@ -51,5 +51,5 @@ git clone https://github.com/GeekTG/Friendly-Telegram
 
 Set-Location Friendly-Telegram
 python -m pip install -r requirements.txt
-python -m Friendly-Telegram
-python -m Friendly-Telegram --heroku # Stopgap
+python -m friendly-telegram
+python -m friendly-telegram --heroku # Stopgap

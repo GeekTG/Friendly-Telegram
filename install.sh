@@ -118,7 +118,7 @@ if [ -f ".setup_complete" ] || [ -d "Friendly-Telegram" -a ! x"" = x"$DYNO" ]; t
   endspin "Existing installation detected"
   clear
   banner
-  "python$PYVER" -m Friendly-Telegram "$@"
+  "python$PYVER" -m friendly-telegram "$@"
   exit $?
 elif [ "$DIR_CHANGED" = "yes" ]; then
   cd ..
@@ -212,4 +212,4 @@ touch .setup_complete
 endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log
 # shellcheck disable=SC2086,SC2015
-${SUDO_CMD}"python$PYVER" -m Friendly-Telegram "$@" || { echo "Python scripts failed"; exit 5; }
+${SUDO_CMD}"python$PYVER" -m friendly-telegram "$@" || { echo "Python scripts failed"; exit 5; }

@@ -26,6 +26,7 @@ import collections
 import sqlite3
 import importlib
 import signal
+import platform
 import time
 
 import pymyip
@@ -214,8 +215,12 @@ def main():  # noqa: C901
             loop.run_until_complete(web.start())
             print("Web mode ready for configuration")  # noqa: T001
             if not arguments.heroku_web_internal:
-                ipaddress, port = pymyip.get_ip(), str(web.port)
-                print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
+                port = str(web.port)
+                if platform.system() == "Linux" and not os.path.exists("/etc/os-release"):
+                    print(f"Please visit http://localhost:{port}")
+                else:
+                    ipaddress, port = pymyip.get_ip()
+                    print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
         else:
@@ -265,8 +270,12 @@ def main():  # noqa: C901
                 loop.run_until_complete(web.start())
                 print("Web mode ready for configuration")  # noqa: T001
                 if not arguments.heroku_web_internal:
-                    ipaddress, port = pymyip.get_ip(), str(web.port)
-                    print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
+                    port = str(web.port)
+                    if platform.system() == "Linux" and not os.path.exists("/etc/os-release"):
+                        print(f"Please visit http://localhost:{port}")
+                    else:
+                        ipaddress, port = pymyip.get_ip()
+                        print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_clients_setup())
             arguments.heroku = web.heroku_api_token
             clients = web.clients

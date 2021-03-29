@@ -18,6 +18,9 @@ Friendly Telegram, also known as FTG, is not your average Telegram userbot: it's
 - API ID and Hash from [Telegram](https://my.telegram.org/apps)
 - Some basic knowledege (although you can usually mindlessly copy&paste from the docs)
 
+### Deploy to [Heroku](https://www.heroku.com/)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://www.heroku.com/deploy/?template=https://github.com/GeekTG/Friendly-Telegram)
+
 ### Documentation
 We've made docs to help you to set-up the bot.
 They can be found [here](https://ftg.geektg.ml).

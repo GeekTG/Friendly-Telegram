@@ -274,7 +274,7 @@ def main():  # noqa: C901
                     if platform.system() == "Linux" and not os.path.exists("/etc/os-release"):
                         print(f"Please visit http://localhost:{port}")
                     else:
-                        ipaddress, port = pymyip.get_ip()
+                        ipaddress = pymyip.get_ip()
                         print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_clients_setup())
             arguments.heroku = web.heroku_api_token

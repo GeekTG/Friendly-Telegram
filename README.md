@@ -1,4 +1,4 @@
-#### forked from [friendly-telegram/friendly-telegram](https://gitlab.com/friendly-telegram/friendly-telegram)
+##### forked from [friendly-telegram/friendly-telegram](https://gitlab.com/friendly-telegram/friendly-telegram)
 # Friendly Telegram Userbot
 A fast, easy to setup telegram userbot running Python 3 which uses the [Telethon](https://github.com/LonamiWebs/Telethon/) Library.
 

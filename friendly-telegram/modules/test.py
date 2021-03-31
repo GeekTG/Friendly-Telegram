@@ -117,7 +117,7 @@ class TestMod(loader.Module):
     async def pingcmd(self, message):
         """Test your userbot ping"""
         start = datetime.now()
-        await utils.answer(message, "<code>Ping checking...</code>")
+        message = await utils.answer(message, "<code>Ping checking...</code>")
         end = datetime.now()
         ms = (end - start).microseconds / 1000
         await utils.answer(message, "<b>Ping:</b> <code>{}ms</code>".format(ms))

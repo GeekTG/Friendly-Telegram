@@ -105,7 +105,22 @@ class LoaderMod(loader.Module):
                "not_unloaded": "<b>Module not unloaded.</b>",
                "requirements_failed": "<b>Requirements installation failed</b>",
                "requirements_installing": "<b>Installing requirements...</b>",
-               "requirements_restart": "<b>Requirements installed, but a restart is required</b>"}
+               "requirements_restart": "<b>Requirements installed, but a restart is required</b>",
+               "aliases": "<b>Aliases:</b>",
+               "all_modules_deleted": "<b>All modules deleted</b>",
+               "reply_to_txt": "<b>Reply to .txt file<b>",
+               "restored_modules": "<b>Loaded:</b> <code>{}</code>\n<b>Already loaded:</b> <code>{}</code>",
+               "backup_completed": "<b>Modules backup completed</b>\n<b>Count:</b> <code>{}</code>",
+               "no_modules": "<b>You have no custom modules!</b>",
+               "no_name_module": "<b>Type module name in arguments</b>",
+               "no_command_module": "<b>Type module name in arguments</b>",
+               "command_not_found": "<b>Command was not found!</b>",
+               "searching": "<b>Searching...</b>",
+               "file": "<b>File {}:<b>",
+               "module_link": "<a href=\"{}\">Link</a> for {}: \n<code>{}</code>",
+               "not_found_info": "Request to find module with name {} failed due to:",
+               "not_found_c_info": "Request to find module with command {} failed due to:",
+               "not_found": "<b>Module was not found</b>"}
 
     def __init__(self):
         super().__init__()
@@ -116,10 +131,10 @@ class LoaderMod(loader.Module):
     async def aliasescmd(self, message):
         """Print all your aliases"""
         aliases = self.allmodules.aliases
-        string = "<b>Aliases:</b>"
+        string = self.strings("aliases", message)
         for i, y in aliases.items():
             string += f"\n{i}: {y}"
-        await message.edit(string)
+        await utils.answer(message, string)
 
     @loader.owner
     async def dlmodcmd(self, message):
@@ -296,7 +311,7 @@ class LoaderMod(loader.Module):
         """Delete all installed modules"""
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", [])
         self._db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
-        await utils.answer(message, "<b>All modules deleted</b>")
+        await utils.answer(message, self.strings("all_modules_deleted", message))
         self._db.set(__name__, "chosen_preset", "none")
         await self.allmodules.commands["restart"](await message.reply("_"))
 
@@ -304,8 +319,8 @@ class LoaderMod(loader.Module):
     async def restorecmd(self, message):
         """Install modules from backup"""
         reply = await message.get_reply_message()
-        if not reply or not reply.file or reply.file.name.split('.')[-1] != "txt": return await message.edit(
-            "Reply to .txt file")
+        if not reply or not reply.file or reply.file.name.split('.')[-1] != "txt": return await utils.answer(message,
+            self.strings("reply_to_txt", message))
         modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
         txt = io.BytesIO()
         await reply.download_media(txt)
@@ -319,7 +334,7 @@ class LoaderMod(loader.Module):
             else:
                 already_loaded += 1
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
-        await message.edit(f"<b>Loaded:</b> <code>{valid}</code>\n<b>Already loaded:</b> <code>{already_loaded}</code>")
+        await utils.answer(message, self.strings("restored_modules", message).format(valid, already_loaded))
         if valid > 0: await self.allmodules.commands["restart"](await message.reply("_"))
 
     @loader.owner
@@ -329,16 +344,16 @@ class LoaderMod(loader.Module):
         txt = io.BytesIO("\n".join(modules).encode())
         txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
         if len(modules) > 0:
-            await utils.answer(message, txt, caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
+            await utils.answer(message, txt, caption=self.strings("backup_completed", message).format(len(modules)))
         else:
-            await utils.answer(message, f"<b>You have no custom modules!</b>")
+            await utils.answer(message, self.strings("no_modules", message))
 
     @loader.owner
     async def moduleinfocmd(self, message):
-        """Get link on module"""
+        """Get link on module by one's name"""
         args = utils.get_args_raw(message)
-        if not args: return await utils.answer(message, '<b>Type module name in arguments</b>')
-        message = await utils.answer(message, '<b>Searching...</b>')
+        if not args: return await utils.answer(message, self.strings("no_name_module", message))
+        message = await utils.answer(message, self.strings("searching", message))
         try:
             f = ' '.join(
                 [x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
@@ -346,15 +361,45 @@ class LoaderMod(loader.Module):
                 next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
             link = str(r).split('(')[1].split(')')[0]
             if "http" not in link:
-                text = f"File {f}:"
+                text = self.strings("file", message).format(f)
             else:
-                text = f"<a href=\"{link}\">Link</a> for {f}: \n<code>{link}</code>"
+                text = self.strings("module_link", message).format(link, f, link)
             out = io.BytesIO(r.__loader__.data)
             out.name = f + ".py"
             out.seek(0)
+
             await utils.answer(message, out, caption=text)
-        except:
-            return await utils.answer(message, "<b>An unexpected error occurred</b>")
+        except Exception as e:
+            logger.info(self.strings("not_found_info", message).format(args), exc_info=True)
+            await utils.answer(message, self.strings("not_found", message))
+
+    async def moduleinfoccmd(self, message):
+        """Get link on module by one's command"""
+        args = utils.get_args_raw(message)
+        if not args: return await utils.answer(message, self.strings("no_command_module", message))
+        if args in self.allmodules.commands.keys():
+            args = self.allmodules.commands[args].__self__.strings["name"]
+        else:
+            return await utils.answer(message, self.strings("command_not_found", message))
+        message = await utils.answer(message, self.strings("searching", message))
+        try:
+            f = ' '.join(
+                [x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
+            r = inspect.getmodule(
+                next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
+            link = str(r).split('(')[1].split(')')[0]
+            if "http" not in link:
+                text = self.strings("file", message).format(f)
+            else:
+                text = self.strings("module_link", message).format(link, f, link)
+            out = io.BytesIO(r.__loader__.data)
+            out.name = f + ".py"
+            out.seek(0)
+
+            await utils.answer(message, out, caption=text)
+        except Exception as e:
+            logger.info(self.strings("not_found_c_info", message).format(args), exc_info=True)
+            await utils.answer(message, self.strings("not_found", message))
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()

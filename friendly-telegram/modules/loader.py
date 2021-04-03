@@ -329,18 +329,16 @@ class LoaderMod(loader.Module):
         txt = io.BytesIO("\n".join(modules).encode())
         txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
         if len(modules) > 0:
-            await message.client.send_file(message.to_id, txt,
-                                           caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
-            await message.delete()
+            await utils.answer(message, txt, caption=f"<b>Modules backup completed</b>\n<b>Count:</b> <code>{len(modules)}</code>")
         else:
-            await message.edit(f"<b>You have no custom modules!</b>")
+            await utils.answer(message, f"<b>You have no custom modules!</b>")
 
     @loader.owner
     async def moduleinfocmd(self, message):
         """Get link on module"""
         args = utils.get_args_raw(message)
-        if not args: return await message.edit('<b>Type module name in arguments</b>')
-        await message.edit('<b>Searching...</b>')
+        if not args: return await utils.answer(message, '<b>Type module name in arguments</b>')
+        message = await utils.answer(message, '<b>Searching...</b>')
         try:
             f = ' '.join(
                 [x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
@@ -354,10 +352,9 @@ class LoaderMod(loader.Module):
             out = io.BytesIO(r.__loader__.data)
             out.name = f + ".py"
             out.seek(0)
-            await message.respond(text, file=out)
-            await message.delete()
+            await utils.answer(message, out, caption=text)
         except:
-            return await message.edit("<b>An unexpected error occurred</b>")
+            return await utils.answer(message, "<b>An unexpected error occurred</b>")
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()

@@ -296,7 +296,7 @@ class LoaderMod(loader.Module):
         """Delete all installed modules"""
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", [])
         self._db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
-        await message.edit("<b>All modules deleted</b>")
+        await utils.answer(message, "<b>All modules deleted</b>")
         self._db.set(__name__, "chosen_preset", "none")
         await self.allmodules.commands["restart"](await message.reply("_"))
 

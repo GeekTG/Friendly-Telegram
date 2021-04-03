@@ -124,7 +124,7 @@ class TestMod(loader.Module):
 
     async def speedtestcmd(self, message):
         """Tests your internet speed"""
-        await utils.answer(message, self.strings("running", message))
+        message = await utils.answer(message, self.strings("running", message))
         args = utils.get_args(message)
         servers = []
         for server in args:

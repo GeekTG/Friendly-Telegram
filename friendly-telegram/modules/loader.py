@@ -292,7 +292,7 @@ class LoaderMod(loader.Module):
             await utils.answer(message, self.strings("no_class", message))
             return
         clazz = ' '.join(args)
-        worked = self.allmodules.unload_module(clazz)
+        worked = self.allmodules.unload_module(clazz.capitalize())
         without_prefix = []
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod

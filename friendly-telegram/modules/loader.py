@@ -143,7 +143,7 @@ class LoaderMod(loader.Module):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)
         if args:
-            if not urllib.parse.urlparse(args).netloc:
+            if not urllib.parse.urlparse(args[0]).netloc:
                 args = args[0].lower()
             else:
                 args = args[0]

@@ -28,6 +28,7 @@ import inspect
 
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
+from os import path
 
 from .. import loader, utils
 
@@ -113,14 +114,15 @@ class LoaderMod(loader.Module):
                "backup_completed": "<b>Modules backup completed</b>\n<b>Count:</b> <code>{}</code>",
                "no_modules": "<b>You have no custom modules!</b>",
                "no_name_module": "<b>Type module name in arguments</b>",
-               "no_command_module": "<b>Type module name in arguments</b>",
+               "no_command_module": "<b>Type module command in arguments</b>",
                "command_not_found": "<b>Command was not found!</b>",
                "searching": "<b>Searching...</b>",
-               "file": "<b>File {}:<b>",
-               "module_link": "<a href=\"{}\">Link</a> for {}: \n<code>{}</code>",
+               "file": "<b>File of module {}:<b>",
+               "module_link": "<a href=\"{}\">Link</a> for module {}: \n<code>{}</code>",
                "not_found_info": "Request to find module with name {} failed due to:",
                "not_found_c_info": "Request to find module with command {} failed due to:",
-               "not_found": "<b>Module was not found</b>"}
+               "not_found": "<b>Module was not found</b>",
+               "file_core": "<b>File of core module {}:</b>"}
 
     def __init__(self):
         super().__init__()
@@ -351,54 +353,60 @@ class LoaderMod(loader.Module):
     @loader.owner
     async def moduleinfocmd(self, message):
         """Get link on module by one's name"""
-        args = utils.get_args_raw(message)
+        args = utils.get_args_raw(message).lower()
         if not args: return await utils.answer(message, self.strings("no_name_module", message))
         message = await utils.answer(message, self.strings("searching", message))
-        try:
-            f = ' '.join(
-                [x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
-            r = inspect.getmodule(
-                next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
-            link = str(r).split('(')[1].split(')')[0]
-            if "http" not in link:
-                text = self.strings("file", message).format(f)
-            else:
-                text = self.strings("module_link", message).format(link, f, link)
-            out = io.BytesIO(r.__loader__.data)
-            out.name = f + ".py"
-            out.seek(0)
+        await self.send_module(message, args, True)
 
-            await utils.answer(message, out, caption=text)
-        except Exception as e:
-            logger.info(self.strings("not_found_info", message).format(args), exc_info=True)
-            await utils.answer(message, self.strings("not_found", message))
-
+    @loader.owner
     async def moduleinfoccmd(self, message):
         """Get link on module by one's command"""
-        args = utils.get_args_raw(message)
+        args = utils.get_args_raw(message).lower()
         if not args: return await utils.answer(message, self.strings("no_command_module", message))
         if args in self.allmodules.commands.keys():
+            args = self.allmodules.commands[args].__self__.strings["name"]
+        elif args in self.allmodules.aliases.keys():
+            args = self.allmodules.aliases[args]
             args = self.allmodules.commands[args].__self__.strings["name"]
         else:
             return await utils.answer(message, self.strings("command_not_found", message))
         message = await utils.answer(message, self.strings("searching", message))
+        await self.send_module(message, args, False)
+
+    async def send_module(self, message, args, by_name):
+        """Sends module by name"""
         try:
             f = ' '.join(
-                [x.strings["name"] for x in self.allmodules.modules if args.lower() == x.strings["name"].lower()])
+                [x.strings["name"] for x in self.allmodules.modules if
+                 args.lower() == x.strings("name", message).lower()])
             r = inspect.getmodule(
-                next(filter(lambda x: args.lower() == x.strings["name"].lower(), self.allmodules.modules)))
-            link = str(r).split('(')[1].split(')')[0]
-            if "http" not in link:
-                text = self.strings("file", message).format(f)
-            else:
+                next(filter(lambda x: args.lower() == x.strings("name", message).lower(), self.allmodules.modules)))
+            link = r.__spec__.origin
+
+            core_module = False
+
+            if link.startswith("http"):
                 text = self.strings("module_link", message).format(link, f, link)
-            out = io.BytesIO(r.__loader__.data)
+            elif link == "<string>":
+                text = self.strings("file", message).format(f)
+            elif path.isfile(link):
+                core_module = True
+                text = self.strings("file_core", message).format(f)
+            else:
+                text = self.strings("file", message).format(f)
+
+            if core_module:
+                with open(link, "rb") as file:
+                    out = io.BytesIO(file.read())
+            else:
+                out = io.BytesIO(r.__loader__.data)
             out.name = f + ".py"
             out.seek(0)
 
             await utils.answer(message, out, caption=text)
         except Exception as e:
-            logger.info(self.strings("not_found_c_info", message).format(args), exc_info=True)
+            log_text = self.strings("not_found_info", message) if by_name else self.strings("not_found_info", message)
+            logger.info(log_text.format(args), exc_info=True)
             await utils.answer(message, self.strings("not_found", message))
 
     async def _update_modules(self):

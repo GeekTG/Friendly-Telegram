@@ -143,9 +143,9 @@ class LoaderMod(loader.Module):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)
         if args:
-            if await self.download_and_install(args[0], message):
+            if await self.download_and_install(args[0].lower(), message):
                 self._db.set(__name__, "loaded_modules",
-                             list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0]])))
+                             list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0].lower()])))
         else:
             text = utils.escape_html("\n".join(await self.get_repo_list("full")))
             await utils.answer(message, "<b>" + self.strings("avail_header", message)
@@ -294,7 +294,7 @@ class LoaderMod(loader.Module):
             await utils.answer(message, self.strings("no_class", message))
             return
         clazz = ' '.join(args)
-        worked = self.allmodules.unload_module(clazz)
+        worked = self.allmodules.unload_module(clazz.capitalize()) + self.allmodules.unload_module(clazz)
         without_prefix = []
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod

@@ -29,7 +29,7 @@ class HelpMod(loader.Module):
     """Provides this help message"""
     strings = {"name": "Help",
                "bad_module": "<b>Invalid module name specified</b>",
-               "single_mod_header": ("<b>Help for</b> <u>{}</u>:"),
+               "single_mod_header": "<b>Help for</b> <u>{}</u>:",
                "single_cmd": "\n• <code><u>{}</u></code>\n",
                "undoc_cmd": "No docs",
                "all_header": "<b>Available FTG Modules:</b>",

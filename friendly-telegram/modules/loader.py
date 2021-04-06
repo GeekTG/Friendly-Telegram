@@ -356,26 +356,25 @@ class LoaderMod(loader.Module):
 
     @loader.owner
     async def moduleinfocmd(self, message):
-        """Get link on module by one's name"""
+        """Get link on module by one's command or name"""
         args = utils.get_args_raw(message).lower()
-        if not args: return await utils.answer(message, self.strings("no_name_module", message))
-        message = await utils.answer(message, self.strings("searching", message))
-        await self.send_module(message, args, True)
-
-    @loader.owner
-    async def moduleinfoccmd(self, message):
-        """Get link on module by one's command"""
-        args = utils.get_args_raw(message).lower()
-        if not args: return await utils.answer(message, self.strings("no_command_module", message))
-        if args in self.allmodules.commands.keys():
-            args = self.allmodules.commands[args].__self__.strings["name"]
-        elif args in self.allmodules.aliases.keys():
-            args = self.allmodules.aliases[args]
-            args = self.allmodules.commands[args].__self__.strings["name"]
+        if args.startswith(self._db.get(__name__, "command_prefix")):
+            args = args[1:]
+            if not args: return await utils.answer(message, self.strings("no_command_module", message))
+            if args in self.allmodules.commands.keys():
+                args = self.allmodules.commands[args].__self__.strings["name"]
+            elif args in self.allmodules.aliases.keys():
+                args = self.allmodules.aliases[args]
+                args = self.allmodules.commands[args].__self__.strings["name"]
+            else:
+                return await utils.answer(message, self.strings("command_not_found", message))
+            message = await utils.answer(message, self.strings("searching", message))
+            await self.send_module(message, args, False)
         else:
-            return await utils.answer(message, self.strings("command_not_found", message))
-        message = await utils.answer(message, self.strings("searching", message))
-        await self.send_module(message, args, False)
+            args = utils.get_args_raw(message).lower()
+            if not args: return await utils.answer(message, self.strings("no_name_module", message))
+            message = await utils.answer(message, self.strings("searching", message))
+            await self.send_module(message, args, True)
 
     async def send_module(self, message, args, by_name):
         """Sends module by name"""

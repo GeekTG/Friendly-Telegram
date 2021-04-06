@@ -358,7 +358,7 @@ class LoaderMod(loader.Module):
     async def moduleinfocmd(self, message):
         """Get link on module by one's command or name"""
         args = utils.get_args_raw(message).lower()
-        if args.startswith(str(self._db.get(__name__, "command_prefix", ["."]))):
+        if args.startswith(*self._db.get(__name__, "command_prefix", ["."])):
             args = args[1:]
             if not args: return await utils.answer(message, self.strings("no_command_module", message))
             if args in self.allmodules.commands.keys():

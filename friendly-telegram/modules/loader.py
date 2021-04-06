@@ -187,7 +187,7 @@ class LoaderMod(loader.Module):
         if urllib.parse.urlparse(module_name).netloc:
             url = module_name
         else:
-            url = self.config["MODULES_REPO"] + "/" + module_name + ".py"
+            url = self.config["MODULES_REPO"] + module_name + ".py"
         r = await utils.run_sync(requests.get, url)
         if r.status_code == 404:
             if message is not None:

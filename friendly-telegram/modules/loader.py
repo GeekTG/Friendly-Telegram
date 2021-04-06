@@ -171,7 +171,8 @@ class LoaderMod(loader.Module):
             else:
                 raise
         self._db.set(__name__, "chosen_preset", args[0])
-        self._db.set(__name__, "loaded_modules", [])
+        if args[0] in ("minimal", "none"):
+            self._db.set(__name__, "loaded_modules", [])
         self._db.set(__name__, "unloaded_modules", [])
         await utils.answer(message, self.strings("preset_loaded", message))
         await self.allmodules.commands["restart"](await message.reply("_"))

@@ -180,7 +180,8 @@ class LoaderMod(loader.Module):
     async def _get_modules_to_load(self):
         todo = await self.get_repo_list(self._db.get(__name__, "chosen_preset", None))
         todo = todo.difference(self._db.get(__name__, "unloaded_modules", []))
-        todo.update(self._db.get(__name__, "loaded_modules", []))
+        if self._db.get(__name__, "chosen_preset") in ("minimal", "none"):
+            todo.update(self._db.get(__name__, "loaded_modules", []))
         return todo
 
     async def get_repo_list(self, preset=None):

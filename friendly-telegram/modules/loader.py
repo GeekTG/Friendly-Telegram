@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 VALID_URL = r"[-[\]_.~:/?#@!$&'()*+,;%<=>a-zA-Z0-9]+"
 VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*$".format(url=VALID_URL), re.MULTILINE)
 USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
+GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$", flags=re.IGNORECASE)
 
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
@@ -86,6 +87,21 @@ def unescape_percent(text):
     return out
 
 
+def get_git_api(url):
+    m = GIT_REGEX.search(url)
+    if m is None:
+        return None
+    repo = m.group(1)
+    branch = m.group(2)
+    path = m.group(3)
+    apiUrl = "https://api.github.com/repos{}/contents".format(m.group(1))
+    if path is not None and len(path) > 0:
+        apiUrl += path
+    if branch:
+        apiUrl += "?ref=" + branch
+    return apiUrl
+
+
 @loader.tds
 class LoaderMod(loader.Module):
     """Loads modules"""
@@ -122,7 +138,14 @@ class LoaderMod(loader.Module):
                "not_found_info": "Request to find module with name {} failed due to:",
                "not_found_c_info": "Request to find module with command {} failed due to:",
                "not_found": "<b>Module was not found</b>",
-               "file_core": "<b>File of core module {}:</b>"}
+               "file_core": "<b>File of core module {}:</b>",
+               "loading": "<b>Loading...</b>",
+               "url_invalid": "<b>URL invalid</b>",
+               "args_incorrect": "<b>Args incorrect</b>",
+               "repo_loaded": "<b>Repository loaded</b>",
+               "repo_not_loaded": "<b>Repository not loaded</b>",
+               "repo_unloaded": "<b>Repository unloaded, but restart is required to unload repository modules</b>",
+               "repo_not_unloaded": "<b>Repository not unloaded</b>"}
 
     def __init__(self):
         super().__init__()
@@ -291,6 +314,50 @@ class LoaderMod(loader.Module):
         return True
 
     @loader.owner
+    async def dlrepocmd(self, message):
+        """Downloads and installs all modules from repo"""
+        args = utils.get_args(message)
+        if len(args) == 1:
+            repoUrl = args[0]
+            gitAPI = get_git_api(repoUrl)
+            if gitAPI is None:
+                return await utils.answer(message, self.strings("url_invalid", message))
+            await utils.answer(message, self.strings("loading", message))
+            if await self.load_repo(gitAPI):
+                self._db.set(__name__, "loaded_repositories", list(set(self._db.get(__name__, "loaded_repositories", [])).union([repoUrl])))
+                await utils.answer(message, self.strings("repo_loaded", message))
+            else:
+                await utils.answer(message, self.strings("repo_not_loaded", message))
+        else:
+            await utils.answer(message, self.strings("args_incorrect", message))
+
+    @loader.owner
+    async def unloadrepocmd(self, message):
+        """Removes loaded repository"""
+        args = utils.get_args(message)
+        if len(args) == 1:
+            repoUrl = args[0]
+            repos = set(self._db.get(__name__, "loaded_repositories", []))
+            try:
+                repos.remove(repoUrl)
+            except KeyError:
+                return await utils.answer(message, self.strings("repo_not_unloaded", message))
+            self._db.set(__name__, "loaded_repositories", list(repos))
+            await utils.answer(message, self.strings("repo_unloaded", message))
+        else:
+            await utils.answer(message, self.strings("args_incorrect", message))
+
+    async def load_repo(self, gitApi):
+        req = await utils.run_sync(requests.get, gitApi)
+        if req.status_code != 200:
+            return False
+        files = req.json()
+        if not isinstance(files, list):
+            return False
+        await asyncio.gather(*[self.download_and_install(f["download_url"]) for f in filter(lambda f: f["name"].endswith(".py") and f["type"] == "file", files)])
+        return True
+
+    @loader.owner
     async def unloadmodcmd(self, message):
         """Unload module by class name"""
         args = utils.get_args(message)
@@ -415,6 +482,8 @@ class LoaderMod(loader.Module):
     async def _update_modules(self):
         todo = await self._get_modules_to_load()
         await asyncio.gather(*[self.download_and_install(mod) for mod in todo])
+        repos = set(self._db.get(__name__, "loaded_repositories", []))
+        await asyncio.gather(*[self.load_repo(get_git_api(url)) for url in repos])
 
     async def client_ready(self, client, db):
         self._db = db

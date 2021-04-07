@@ -12,3 +12,4 @@ data/
 translations/
 api_token.txt
 .coverage
+.vscode/

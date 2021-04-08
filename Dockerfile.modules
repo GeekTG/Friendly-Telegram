@@ -1,6 +1,0 @@
-#    Friendly Telegram Userbot
-#    by GeekTG Team
-
-FROM registry.github.com/GeekTG/Friendly-Telegram AS modules
-RUN [ "python", "-Om", "friendly-telegram", "--no-web", "--no-auth", "--docker-deps-internal", "--data-root", "/data" ]
-

@@ -17,9 +17,5 @@ meval >= 2.4, ~= 2.4
 # Web
 aiohttp_jinja2 ~= 1.2.0
 
-# IP Address
-pymyip0
-bs4
-
 # Speedtest
 speedtest-cli

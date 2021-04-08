@@ -16,9 +16,8 @@ import signal
 import platform
 import time
 
-import pymyip
 import requests
-import socket
+from requests import get
 
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession, SQLiteSession
@@ -206,7 +205,7 @@ def main():  # noqa: C901
                 if platform.system() == "Linux" and not os.path.exists("/etc/os-release"):
                     print(f"Please visit http://localhost:{port}")
                 else:
-                    ipaddress = pymyip.get_ip()
+                    ipaddress = get('https://api.ipify.org').text
                     print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
@@ -261,7 +260,7 @@ def main():  # noqa: C901
                     if platform.system() == "Linux" and not os.path.exists("/etc/os-release"):
                         print(f"Please visit http://localhost:{port}")
                     else:
-                        ipaddress = pymyip.get_ip()
+                        ipaddress = get('https://api.ipify.org').text
                         print(f"Please visit http://{ipaddress}:{port} or http://localhost:{port}")
             loop.run_until_complete(web.wait_for_clients_setup())
             arguments.heroku = web.heroku_api_token

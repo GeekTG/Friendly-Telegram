@@ -28,10 +28,10 @@ VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*
 USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
 GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$",
                        flags=re.IGNORECASE)
-fname = "ModulesBackup-{}.bin"
+fname = "ModulesBackup.bin"
 enc = "utf-8"
 d = [b"\xFD", b"\xFF"]
-l = "friendly-telegram.modules.loader"
+name = "friendly-telegram.modules.loader"
 
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
@@ -390,14 +390,14 @@ class LoaderMod(loader.Module):
             map(lambda mod: d[0].join(map(lambda s: s if isinstance(s, bytes) else s.encode(enc), mod)),
                 filter(lambda mod: None not in mod and mod[1] != "path", modules))))
         f = io.BytesIO(b)
-        f.name = fname.format(str((await message.client.get_me()).id))
+        f.name = fname
         await message.client.send_file(message.to_id, f, caption=f"<b>Backup completed!</b>")
         await message.delete()
 
     async def restorecmd(self, message):
         reply = await message.get_reply_message()
-        if not reply or not reply.file or reply.file.name != fname.format(str((await message.client.get_me()).id)):
-            return await message.edit("Reply to file")
+        if not reply or not reply.file or reply.file.name != fname or reply.file.name.split('.')[-1] != "bin":
+            return await message.edit("<b>Reply to backup file</b>")
         await message.edit("<b>Downloading backup...</b>")
         f = io.BytesIO()
         await reply.download_media(f)
@@ -409,7 +409,7 @@ class LoaderMod(loader.Module):
         for [name, mtype, data] in modules:
             if mtype == "link":
                 if await loader.download_and_install(data):
-                    self.db.set(l, "loaded_modules", list(set(self.db.get(l, "loaded_modules", [])).union([data])))
+                    self.db.set(name, "loaded_modules", list(set(self.db.get(name, "loaded_modules", [])).union([data])))
             elif mtype == "text":
                 await loader.load_module(data, None)
         await message.edit("<b>Restore completed!</b>")

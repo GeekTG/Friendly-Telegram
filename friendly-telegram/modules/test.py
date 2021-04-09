@@ -45,7 +45,7 @@ class TestMod(loader.Module):
                                "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
                "logs_force": "FORCE_INSECURE",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>",
-               "suspended":"<b>Bot suspended for</b> <code>{}</code> <b>seconds</b>"
+               "suspended":"<b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
                "running": "<b>Running speedtest...</b>",
                "results": "<b>Speedtest Results:</b>",
                "results_download": "<b>Download:</b> <code>{}</code> <b>MiB/s</b>",

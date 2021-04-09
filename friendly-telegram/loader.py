@@ -230,7 +230,7 @@ class Modules():
             except KeyError:
                 try:
                     change = str.maketrans(ru_keys + en_keys, en_keys + ru_keys)
-                    cmd = self.aliases[str.translate(command, change).lower()]
+                    cmd = str.translate(command, change).lower()
                     return cmd, self.commands[cmd.lower()]
                 except KeyError:
                     return command, None

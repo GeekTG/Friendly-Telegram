@@ -31,7 +31,6 @@ GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z
 fname = "ModulesBackup.bin"
 enc = "utf-8"
 d = [b"\xFD", b"\xFF"]
-name = "friendly-telegram.modules.loader"
 
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader

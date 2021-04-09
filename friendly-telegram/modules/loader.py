@@ -31,7 +31,6 @@ GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z
 fname = "ModulesBackup.bin"
 enc = "utf-8"
 d = [b"\xFD", b"\xFF"]
-name = "friendly-telegram.modules.loader"
 
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
@@ -411,7 +410,7 @@ class LoaderMod(loader.Module):
         for [name, mtype, data] in modules:
             if mtype == "link":
                 if await loader.download_and_install(data):
-                    self.db.set(name, "loaded_modules", list(set(self.db.get(name, "loaded_modules", [])).union([data])))
+                    self.db.set(__name__, "loaded_modules", list(set(self.db.get(__name__, "loaded_modules", [])).union([data])))
             elif mtype == "text":
                 await loader.load_module(data, None)
         await message.edit("<b>Restore completed!</b>")

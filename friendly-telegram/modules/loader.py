@@ -409,7 +409,7 @@ class LoaderMod(loader.Module):
         for [name, mtype, data] in modules:
             if mtype == "link":
                 if await self.download_and_install(data):
-                    self.db.set(__name__, "loaded_modules", list(set(self.db.get(__name__, "loaded_modules", [])).union([data])))
+                    self._db.set(__name__, "loaded_modules", list(set(self._db.get(__name__, "loaded_modules", [])).union([data])))
             elif mtype == "text":
                 await self.load_module(data, None)
         await message.edit("<b>Restore completed!</b>")

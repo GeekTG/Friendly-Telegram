@@ -36,7 +36,7 @@ from .database import backend, local_backend, frontend
 from .translations.core import Translator
 
 if __debug__:
-    from .test.core import TestManager
+    from .core import TestManager
 
 try:
     from .web import core

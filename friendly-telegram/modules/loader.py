@@ -384,6 +384,7 @@ class LoaderMod(loader.Module):
         self._db.set(__name__, "chosen_preset", "none")
         await self.allmodules.commands["restart"](await message.reply("_"))
 
+    @loader.owner
     async def backupcmd(self, message):
         modules = map(get_module, self.allmodules.modules)
         b = zlib.compress(d[1].join(
@@ -394,6 +395,7 @@ class LoaderMod(loader.Module):
         await message.client.send_file(message.to_id, f, caption=f"<b>Backup completed!</b>")
         await message.delete()
 
+    @loader.owner
     async def restorecmd(self, message):
         reply = await message.get_reply_message()
         if not reply or not reply.file or reply.file.name != fname or reply.file.name.split('.')[-1] != "bin":

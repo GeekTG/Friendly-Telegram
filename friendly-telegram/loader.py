@@ -16,7 +16,7 @@ from . import utils, security
 from .translations.dynamic import Strings
 
 if __debug__:
-    from .test import decorators
+    from . import decorators
     test = decorators.test
 else:
     def test(*args, **kwargs):
@@ -38,6 +38,10 @@ pm = security.pm
 unrestricted = security.unrestricted
 
 MODULES_NAME = "modules"
+ru_keys = """ёйцукенгшщзхъфывапролджэячсмитьбю.Ё"№;%:?ЙЦУКЕНГ
+        ШЩЗХЪФЫВАПРОЛДЖЭ/ЯЧСМИТЬБЮ, """
+en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
+        }ASDFGHJKL:"|ZXCVBNM<>? """
 
 
 def translatable_docstring(cls):
@@ -224,7 +228,12 @@ class Modules():
                 cmd = self.aliases[command.lower()]
                 return cmd, self.commands[cmd.lower()]
             except KeyError:
-                return command, None
+                try:
+                    change = str.maketrans(ru_keys + en_keys, en_keys + ru_keys)
+                    cmd = self.aliases[str.translate(command, change).lower()]
+                    return cmd, self.commands[cmd.lower()]
+                except KeyError:
+                    return command, None
 
     def send_config(self, db, babel, skip_hook=False):
         """Configure modules"""

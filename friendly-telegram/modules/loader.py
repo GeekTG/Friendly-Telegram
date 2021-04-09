@@ -395,7 +395,7 @@ class LoaderMod(loader.Module):
 
     async def restorecmd(self, message):
         reply = await message.get_reply_message()
-        if not reply or not reply.file or reply.file.name != fname or reply.file.name.split('.')[-1] != "bin":
+        if not reply or not reply.file or not reply.file.name.endswith(".bin"):
             return await message.edit("<b>Reply to backup file</b>")
         await message.edit("<b>Downloading backup...</b>")
         f = io.BytesIO()
@@ -403,14 +403,13 @@ class LoaderMod(loader.Module):
         f.seek(0)
         b = zlib.decompress(f.read())
         modules = list(map(lambda e: list(map(lambda e: e.decode(enc), e.split(d[0]))), b.split(d[1])))
-        loader = next(filter(lambda x: "LoaderMod" == x.__class__.__name__, self.allmodules.modules))
         await message.edit("<b>Loading backup...</b>")
         for [name, mtype, data] in modules:
             if mtype == "link":
-                if await loader.download_and_install(data):
+                if await self.download_and_install(data):
                     self.db.set(__name__, "loaded_modules", list(set(self.db.get(__name__, "loaded_modules", [])).union([data])))
             elif mtype == "text":
-                await loader.load_module(data, None)
+                await self.load_module(data, None)
         await message.edit("<b>Restore completed!</b>")
 
     @loader.owner

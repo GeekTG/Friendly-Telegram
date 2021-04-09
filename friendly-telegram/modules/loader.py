@@ -1,5 +1,6 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
+#    Backup authors: @mishase, @tshipenchko
 
 import io
 import logging
@@ -12,6 +13,7 @@ import os
 import re
 import requests
 import inspect
+import zlib
 
 from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
@@ -24,7 +26,12 @@ logger = logging.getLogger(__name__)
 VALID_URL = r"[-[\]_.~:/?#@!$&'()*+,;%<=>a-zA-Z0-9]+"
 VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*$".format(url=VALID_URL), re.MULTILINE)
 USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
-GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$", flags=re.IGNORECASE)
+GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$",
+                       flags=re.IGNORECASE)
+fname = "ModulesBackup-{}.bin"
+enc = "utf-8"
+d = [b"\xFD", b"\xFF"]
+l = "friendly-telegram.modules.loader"
 
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
@@ -311,7 +318,8 @@ class LoaderMod(loader.Module):
                 return await utils.answer(message, self.strings("url_invalid", message))
             await utils.answer(message, self.strings("loading", message))
             if await self.load_repo(gitAPI):
-                self._db.set(__name__, "loaded_repositories", list(set(self._db.get(__name__, "loaded_repositories", [])).union([repoUrl])))
+                self._db.set(__name__, "loaded_repositories",
+                             list(set(self._db.get(__name__, "loaded_repositories", [])).union([repoUrl])))
                 await utils.answer(message, self.strings("repo_loaded", message))
             else:
                 await utils.answer(message, self.strings("repo_not_loaded", message))
@@ -341,7 +349,8 @@ class LoaderMod(loader.Module):
         files = req.json()
         if not isinstance(files, list):
             return False
-        await asyncio.gather(*[self.download_and_install(f["download_url"]) for f in filter(lambda f: f["name"].endswith(".py") and f["type"] == "file", files)])
+        await asyncio.gather(*[self.download_and_install(f["download_url"]) for f in
+                               filter(lambda f: f["name"].endswith(".py") and f["type"] == "file", files)])
         return True
 
     @loader.owner
@@ -375,38 +384,35 @@ class LoaderMod(loader.Module):
         self._db.set(__name__, "chosen_preset", "none")
         await self.allmodules.commands["restart"](await message.reply("_"))
 
-    @loader.owner
-    async def restorecmd(self, message):
-        """Install modules from backup"""
-        reply = await message.get_reply_message()
-        if not reply or not reply.file or reply.file.name.split('.')[-1] != "txt": return await utils.answer(message,
-            self.strings("reply_to_txt", message))
-        modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
-        txt = io.BytesIO()
-        await reply.download_media(txt)
-        txt.seek(0)
-        valid = 0
-        already_loaded = 0
-        for i in txt.read().decode('utf-8').split("\n"):
-            if i not in modules:
-                valid += 1
-                modules.append(i)
-            else:
-                already_loaded += 1
-        self._db.set("friendly-telegram.modules.loader", "loaded_modules", modules)
-        await utils.answer(message, self.strings("restored_modules", message).format(valid, already_loaded))
-        if valid > 0: await self.allmodules.commands["restart"](await message.reply("_"))
-
-    @loader.owner
     async def backupcmd(self, message):
-        "Create backup of modules"
-        modules = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
-        txt = io.BytesIO("\n".join(modules).encode())
-        txt.name = "ModulesBackup-{}.txt".format(str((await message.client.get_me()).id))
-        if len(modules) > 0:
-            await utils.answer(message, txt, caption=self.strings("backup_completed", message).format(len(modules)))
-        else:
-            await utils.answer(message, self.strings("no_modules", message))
+        modules = map(get_module, self.allmodules.modules)
+        b = zlib.compress(d[1].join(
+            map(lambda mod: d[0].join(map(lambda s: s if isinstance(s, bytes) else s.encode(enc), mod)),
+                filter(lambda mod: None not in mod and mod[1] != "path", modules))))
+        f = io.BytesIO(b)
+        f.name = fname.format(str((await message.client.get_me()).id))
+        await message.client.send_file(message.to_id, f, caption=f"<b>Backup completed!</b>")
+        await message.delete()
+
+    async def restorecmd(self, message):
+        reply = await message.get_reply_message()
+        if not reply or not reply.file or reply.file.name != fname.format(str((await message.client.get_me()).id)):
+            return await message.edit("Reply to file")
+        await message.edit("<b>Downloading backup...</b>")
+        f = io.BytesIO()
+        await reply.download_media(f)
+        f.seek(0)
+        b = zlib.decompress(f.read())
+        modules = list(map(lambda e: list(map(lambda e: e.decode(enc), e.split(d[0]))), b.split(d[1])))
+        loader = next(filter(lambda x: "LoaderMod" == x.__class__.__name__, self.allmodules.modules))
+        await message.edit("<b>Loading backup...</b>")
+        for [name, mtype, data] in modules:
+            if mtype == "link":
+                if await loader.download_and_install(data):
+                    self.db.set(l, "loaded_modules", list(set(self.db.get(l, "loaded_modules", [])).union([data])))
+            elif mtype == "text":
+                await loader.load_module(data, None)
+        await message.edit("<b>Restore completed!</b>")
 
     @loader.owner
     async def moduleinfocmd(self, message):
@@ -476,3 +482,23 @@ class LoaderMod(loader.Module):
         self._db = db
         self._client = client
         await self._update_modules()
+
+
+def get_module(module):
+    name = module.name
+    sysmod = sys.modules.get(module.__module__)
+    origin = sysmod.__spec__.origin
+    loader = sysmod.__loader__
+    cname = type(loader).__name__
+    r = [name, None, None]
+    if cname == "SourceFileLoader":
+        r[1] = "path"
+        r[2] = loader.get_filename()
+    elif cname == "StringLoader":
+        if origin == "<string>":
+            r[1] = "text"
+            r[2] = loader.data
+        else:
+            r[1] = "link"
+            r[2] = origin
+    return r

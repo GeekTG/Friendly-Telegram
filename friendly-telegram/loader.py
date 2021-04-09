@@ -221,6 +221,7 @@ class Modules():
 
     def dispatch(self, command):
         """Dispatch command to appropriate module"""
+        change = str.maketrans(ru_keys + en_keys, en_keys + ru_keys)
         try:
             return command, self.commands[command.lower()]
         except KeyError:
@@ -229,11 +230,14 @@ class Modules():
                 return cmd, self.commands[cmd.lower()]
             except KeyError:
                 try:
-                    change = str.maketrans(ru_keys + en_keys, en_keys + ru_keys)
-                    cmd = str.translate(command, change).lower()
+                    cmd = self.aliases[str.translate(command, change).lower()]
                     return cmd, self.commands[cmd.lower()]
                 except KeyError:
-                    return command, None
+                    try:
+                        cmd = str.translate(command, change).lower()
+                        return cmd, self.commands[cmd.lower()]
+                    except KeyError:
+                        return command, None
 
     def send_config(self, db, babel, skip_hook=False):
         """Configure modules"""

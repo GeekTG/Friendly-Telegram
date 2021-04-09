@@ -7,6 +7,10 @@ import logging
 
 from . import utils, main, security
 
+ru_keys = """ёйцукенгшщзхъфывапролджэячсмитьбю.Ё"№;%:?ЙЦУКЕНГ
+        ШЩЗХЪФЫВАПРОЛДЖЭ/ЯЧСМИТЬБЮ, """
+en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
+        }ASDFGHJKL:"|ZXCVBNM<>? """
 
 def _decrement_ratelimit(delay, data, key, severity):
     def inner():
@@ -72,10 +76,13 @@ class CommandDispatcher:
             self._db.set(main.__name__, "command_prefix", prefixes)
 
         prefix = None
+        change = str.maketrans(ru_keys + en_keys, en_keys + ru_keys)
         for possible_prefix in prefixes:
             if event.message.message.startswith(possible_prefix):
                 prefix = possible_prefix
                 break
+            elif event.message.message.startswith(str.translate(possible_prefix, change)):
+                prefix = str.translate(possible_prefix, change)
         if prefix is None:
             return
 

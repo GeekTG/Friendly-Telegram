@@ -45,6 +45,7 @@ class TestMod(loader.Module):
                                "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
                "logs_force": "FORCE_INSECURE",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>",
+               "suspended":"<b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
                "running": "<b>Running speedtest...</b>",
                "results": "<b>Speedtest Results:</b>",
                "results_download": "<b>Download:</b> <code>{}</code> <b>MiB/s</b>",
@@ -94,10 +95,10 @@ class TestMod(loader.Module):
     async def suspendcmd(self, message):
         """.suspend <time>
            Suspends the bot for N seconds"""
-        # Blocks asyncio event loop, preventing ANYTHING happening (except multithread ops,
-        # but they will be blocked on return).
         try:
-            time.sleep(int(utils.get_args_raw(message)))
+            time = float(utils.get_args_raw(message))
+            await utils.answer(message, self.strings("suspended", message).format(str(time)))
+            time.sleep(time)
         except ValueError:
             await utils.answer(message, self.strings("suspend_invalid_time", message))
 

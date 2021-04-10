@@ -3,17 +3,17 @@
 
 """Utility functions to help modules do stuff"""
 
-import os
-import logging
 import asyncio
 import functools
 import io
+import logging
+import os
 import shlex
 
 import telethon
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User, MessageMediaWebPage
-from telethon.tl.custom.message import Message
 from telethon.extensions import html
+from telethon.tl.custom.message import Message
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User, MessageMediaWebPage
 
 from . import __main__
 

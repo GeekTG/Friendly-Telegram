@@ -1,8 +1,8 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-import logging
 import asyncio
+import logging
 
 import telethon
 

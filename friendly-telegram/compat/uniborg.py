@@ -3,19 +3,18 @@
 
 # pylint: disable=R,C,W0613,W0212 # This is bad code, just let it be.
 
-import logging
-import sys
-import re
-import datetime
-import tempfile
 import asyncio
+import datetime
+import logging
+import re
+import sys
+import tempfile
 from functools import wraps
 
 import telethon
 
 from .util import get_cmd_name, MarkdownBotPassthrough
 from .. import loader
-
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +66,7 @@ class UniborgClient(MarkdownBotPassthrough):
         def _unknown_command_inner(message):
             message.message = "." + message.message[len("borgcmd" + str(self.instance_id)) + 1:]
             return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
+
         return _unknown_command_inner
 
     def on(self, event):  # noqa: C901 # legacy code that works fine
@@ -111,6 +111,7 @@ class UniborgClient(MarkdownBotPassthrough):
                     else:
                         logger.debug("but not matched cmd " + message.message
                                      + " regex " + event.pattern.__self__.pattern)
+
                 if use_unknown:
                     self._unknowns += [commandhandler]
                 else:
@@ -133,11 +134,13 @@ class UniborgClient(MarkdownBotPassthrough):
                         return func(event2)
                     return asyncio.gather()
                     # Return a coroutine
+
                 self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
             else:
                 logger.error("event not incoming or outgoing")
                 return func
             return func
+
         return subreg
 
 

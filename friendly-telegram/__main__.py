@@ -6,6 +6,7 @@
 """Initial entrypoint"""
 
 import sys
+
 if sys.version_info < (3, 6, 0):
     print("Error: you must use at least Python version 3.6.0")  # pragma: no cover
 else:
@@ -13,6 +14,7 @@ else:
         print("Error: you cannot run this as a script; you must execute as a package")  # pragma: no cover
     else:
         from . import log
+
         log.init()
         try:
             from . import main

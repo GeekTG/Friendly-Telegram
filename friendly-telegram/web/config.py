@@ -3,8 +3,8 @@
 
 import ast
 
-from aiohttp import web
 import aiohttp_jinja2
+from aiohttp import web
 
 
 class Web:

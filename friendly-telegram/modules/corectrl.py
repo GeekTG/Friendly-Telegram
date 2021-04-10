@@ -3,8 +3,9 @@
 
 import os
 
-from .. import loader, main, utils
 import telethon
+
+from .. import loader, main, utils
 
 
 @loader.tds

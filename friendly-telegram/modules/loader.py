@@ -2,22 +2,22 @@
 #    by GeekTG Team
 #    Backup authors: @mishase, @tshipenchko
 
+import asyncio
+import importlib
+import inspect
 import io
 import logging
-import importlib
-import sys
-import uuid
-import asyncio
-import urllib
 import os
 import re
-import requests
-import inspect
+import sys
+import urllib
+import uuid
 import zlib
-
-from importlib.machinery import ModuleSpec
 from importlib.abc import SourceLoader
+from importlib.machinery import ModuleSpec
 from os import path
+
+import requests
 
 from .. import loader, utils
 
@@ -409,7 +409,8 @@ class LoaderMod(loader.Module):
         for [name, mtype, data] in modules:
             if mtype == "link":
                 if await self.download_and_install(data):
-                    self._db.set(__name__, "loaded_modules", list(set(self._db.get(__name__, "loaded_modules", [])).union([data])))
+                    self._db.set(__name__, "loaded_modules",
+                                 list(set(self._db.get(__name__, "loaded_modules", [])).union([data])))
             elif mtype == "text":
                 await self.load_module(data, None)
         await message.edit("<b>Restore completed!</b>")

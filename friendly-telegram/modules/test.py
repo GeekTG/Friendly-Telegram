@@ -2,13 +2,12 @@
 #    by GeekTG Team
 
 import logging
-import time
-import speedtest
-
+from datetime import datetime
 from io import BytesIO
 
+import speedtest
+
 from .. import loader, utils
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,7 @@ class TestMod(loader.Module):
                                "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
                "logs_force": "FORCE_INSECURE",
                "suspend_invalid_time": "<b>Invalid time to suspend</b>",
-               "suspended":"<b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
+               "suspended": "<b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
                "running": "<b>Running speedtest...</b>",
                "results": "<b>Speedtest Results:</b>",
                "results_download": "<b>Download:</b> <code>{}</code> <b>MiB/s</b>",
@@ -122,8 +121,8 @@ class TestMod(loader.Module):
                 logger.warning("server failed")
         results = await utils.run_sync(self.speedtest, servers)
         ret = self.strings("results", message) + "\n\n"
-        ret += self.strings("results_download", message).format(round(results["download"] / 2**20, 2)) + "\n"
-        ret += self.strings("results_upload", message).format(round(results["upload"] / 2**20, 2)) + "\n"
+        ret += self.strings("results_download", message).format(round(results["download"] / 2 ** 20, 2)) + "\n"
+        ret += self.strings("results_upload", message).format(round(results["upload"] / 2 ** 20, 2)) + "\n"
         ret += self.strings("results_ping", message).format(round(results["ping"], 2)) + "\n"
         await utils.answer(message, ret)
 

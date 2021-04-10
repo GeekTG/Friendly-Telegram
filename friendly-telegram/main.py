@@ -1,38 +1,36 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-import logging
-import os
-import sys
-import atexit
 import argparse
 import asyncio
-import json
-import functools
+import atexit
 import collections
-import sqlite3
+import functools
 import importlib
-import signal
+import json
+import logging
+import os
 import platform
+import signal
+import sqlite3
+import sys
 import time
 
 import requests
 from requests import get
-
 from telethon import TelegramClient, events
-from telethon.sessions import StringSession, SQLiteSession
 from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModifiedError, ApiIdInvalidError
+from telethon.network.connection import ConnectionTcpFull
+from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
+from telethon.sessions import StringSession, SQLiteSession
+from telethon.tl.functions.bots import SetBotCommandsRequest
 from telethon.tl.functions.channels import DeleteChannelRequest
 from telethon.tl.functions.updates import GetStateRequest
-from telethon.tl.functions.bots import SetBotCommandsRequest
 from telethon.tl.types import BotCommand
-from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
-from telethon.network.connection import ConnectionTcpFull
 
 from . import utils, loader, heroku, security
-from .dispatcher import CommandDispatcher
-
 from .database import backend, local_backend, frontend
+from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
 if __debug__:
@@ -270,7 +268,8 @@ def main():  # noqa: C901
                     session = StringSession()
                 else:
                     session = SQLiteSession(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()),
-                                                         "friendly-telegram-" + "+" + "X" * (len(client.phone) - 5) + client.phone[-4:]))
+                                                         "friendly-telegram-" + "+" + "X" * (
+                                                                     len(client.phone) - 5) + client.phone[-4:]))
                 session.set_dc(client.session.dc_id, client.session.server_address, client.session.port)
                 session.auth_key = client.session.auth_key
                 if not arguments.heroku:

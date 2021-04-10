@@ -1,15 +1,13 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-import sys
 import logging
-
+import sys
 from importlib.abc import Loader, MetaPathFinder
 from importlib.machinery import ModuleSpec
 
 from .raphielgang import RaphielgangConfig, RaphielgangEvents, RaphielgangDatabase
 from .uniborg import UniborgUtil, Uniborg
-
 
 # When a name is matched, the import is overriden, and our custom object is returned
 MODULES = {"userbot": RaphielgangConfig, "userbot.events": RaphielgangEvents,
@@ -19,6 +17,7 @@ MODULES = {"userbot": RaphielgangConfig, "userbot.events": RaphielgangEvents,
 
 class BotCompat(MetaPathFinder, Loader):  # pylint: disable=W0223 # It's wrong - https://kutt.it/hkjRb9
     """importlib Loader that loads the classes in MODULES under their pseudonyms"""
+
     def __init__(self, clients):
         self.clients = clients
         self.created = []

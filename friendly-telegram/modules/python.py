@@ -3,14 +3,14 @@
 
 # Code from @govnocodules
 
-import logging
-import traceback
-import sys
 import itertools
+import logging
+import sys
+import traceback
 import types
-from meval import meval
 
 import telethon
+from meval import meval
 
 from .. import loader, utils
 
@@ -42,12 +42,12 @@ class PythonMod(loader.Module):
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-            exc = exc.replace(phone, "❚"*len(phone))
+            exc = exc.replace(phone, "❚" * len(phone))
             await utils.answer(message, self.strings("evaluate_fail", message)
                                .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
         ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
-        ret = ret.replace(str(phone), "❚"*len(str(phone)))
+        ret = ret.replace(str(phone), "❚" * len(str(phone)))
         await utils.answer(message, ret)
 
     @loader.owner
@@ -60,7 +60,7 @@ class PythonMod(loader.Module):
         except Exception:
             exc = sys.exc_info()
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-            exc = exc.replace(str(phone), "❚"*len(str(phone)))
+            exc = exc.replace(str(phone), "❚" * len(str(phone)))
             await utils.answer(message, self.strings("execute_fail", message)
                                .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
@@ -82,8 +82,8 @@ class PythonMod(loader.Module):
                               it.__dict__.items())),
                 **dict(itertools.chain.from_iterable([self.get_sub(y[1], _depth + 1).items() for y in
                                                       filter(lambda x: x[0][0] != "_"
-                                                             and isinstance(x[1], types.ModuleType)
-                                                             and x[1] != it
-                                                             and x[1].__package__.rsplit(".", _depth)[0]
-                                                             == "telethon.tl",
+                                                                       and isinstance(x[1], types.ModuleType)
+                                                                       and x[1] != it
+                                                                       and x[1].__package__.rsplit(".", _depth)[0]
+                                                                       == "telethon.tl",
                                                              it.__dict__.items())]))}

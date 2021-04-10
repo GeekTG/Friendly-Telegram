@@ -3,11 +3,11 @@
 
 # pylint: disable=R,C,W0613 # This is bad code, just let it be. We will delete it at some point, perhaps?
 
+import asyncio
+import inspect
 import logging
 import re
 import sys
-import asyncio
-import inspect
 from functools import wraps
 
 try:
@@ -18,7 +18,6 @@ except ImportError:
 
 from .. import loader
 from .util import get_cmd_name, MarkdownBotPassthrough
-
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +217,7 @@ class RaphielgangConfig():
                 return self.MONGOCLIENT.ismongos is not None
             except pymongo.errors.ServerSelectionTimeoutError:
                 return False
+
         self.is_mongo_alive = is_mongo_alive
 
         def is_redis_alive():
@@ -229,6 +229,7 @@ class RaphielgangConfig():
                 return False
             else:
                 return True
+
         self.is_redis_alive = is_redis_alive
         # pylint: enable=C0103
 
@@ -265,6 +266,7 @@ class RaphielgangConfig():
         except IndexError:
             pass
 
+
 # The core machinery will fail to identify any register() function in the module.
 # So we need to introspect the module and add register(), and a shimmed class to store state
 
@@ -282,6 +284,7 @@ class RaphielgangEvents():
     class RaphielgangEventsSub():
         class __RaphielgangShimMod__Base(loader.Module):
             instance_count = 0
+
             # E1101 is triggered because pylint thinks that inspect.getmro(type(self))[1] means
             # type(super()), and it's correct, but this is a base class and is never used. As a result, pylint
             # incorrectly thinks that type(super()) resolves to loader.Module, and can't find .instance_count.
@@ -363,6 +366,7 @@ class RaphielgangEvents():
                         else:
                             logger.debug("but not matched " + message.message + " / " + kwargs.get("pattern", "None"))
                             return asyncio.gather()  # passthru coro
+
                     if use_unknown:
                         self.unknowns += [commandhandler]
                     else:
@@ -385,11 +389,13 @@ class RaphielgangEvents():
                             event.message = MarkdownBotPassthrough(message)
                             return func(event)  # Return a coroutine
                         return asyncio.gather()
+
                     self.watchers += [subwatcher]  # Add to list of watchers so we can call later.
                 else:
                     logger.error("event not incoming or outgoing or neither or both")
                     return func
                 return func
+
             self.instance_id = kwargs["__instance_number"]
             return subreg
 
@@ -406,6 +412,7 @@ class RaphielgangEvents():
                 self.instances[func.__module__] = self.RaphielgangEventsSub()
             kwargs["__instance_number"] = list(self.instances.keys()).index(func.__module__)
             return self.instances[func.__module__].register(**kwargs)(func)
+
         return subreg
 
     def errors_handler(self, func):

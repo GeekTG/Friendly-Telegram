@@ -6,53 +6,55 @@
 {% extends "base.jinja2" %}
 
 {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/scrypt-async@2.0.1/scrypt-async.min.js"></script>
-<script src="{{ static('auth.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/scrypt-async@2.0.1/scrypt-async.min.js"></script>
+    <script src="{{ static('auth.js') }}"></script>
 {% endblock %}
 
 {% block title %}
-Authentication
+    Authentication
 {% endblock %}
 
 {% block content %}
-<div class="mdl-card__title">
-  <h3 class="mdl-card__title-text">Sign In</h3>
-</div>
-<div class="mdl-card__supporting-text">
-  Please select the Telegram User ID to which you want to sign in
-  <ul class="mdl-list">
-    {% for uid in users %}
-      <li class="mdl-list__item">
-        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" onclick="beginAuthFlow(this.innerText);">
-          {{ uid }}
-        </button>
-      </li>
-    {% endfor %}
-  </ul>
-</div>
+    <div class="mdl-card__title">
+        <h3 class="mdl-card__title-text">Sign In</h3>
+    </div>
+    <div class="mdl-card__supporting-text">
+        Please select the Telegram User ID to which you want to sign in
+        <ul class="mdl-list">
+            {% for uid in users %}
+                <li class="mdl-list__item">
+                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"
+                            onclick="beginAuthFlow(this.innerText);">
+                        {{ uid }}
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}
 
 {% block after %}
-<dialog class="mdl-dialog" id="codeentry">
-  <h4 class="mdl-dialog__title">Enter Code</h4>
-  <div class="mdl-dialog__content">
-    <p>
-      Please enter the code sent to your Telegram account
-    </p>
+    <dialog class="mdl-dialog" id="codeentry">
+        <h4 class="mdl-dialog__title">Enter Code</h4>
+        <div class="mdl-dialog__content">
+            <p>
+                Please enter the code sent to your Telegram account
+            </p>
 
-    <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code" oninput="codeChanged(this);">
-      <label class="mdl-textfield__label" for="code">Code</label>
-      <span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
-    </div>
-  </div>
-  <div class="mdl-dialog__actions">
-    <button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
-  </div>
-</dialog>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
-<script>
-  'use strict';
-  dialogPolyfill.registerDialog(document.getElementById("codeentry"));
-</script>
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code"
+                       oninput="codeChanged(this);">
+                <label class="mdl-textfield__label" for="code">Code</label>
+                <span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
+            </div>
+        </div>
+        <div class="mdl-dialog__actions">
+            <button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
+        </div>
+    </dialog>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
+    <script>
+        'use strict';
+        dialogPolyfill.registerDialog(document.getElementById("codeentry"));
+    </script>
 {% endblock %}

@@ -3,13 +3,13 @@
 
 import functools
 import logging
+
 import telethon
 from telethon.tl.functions.channels import GetParticipantRequest
 
 from . import main
 
 logger = logging.getLogger(__name__)
-
 
 OWNER = 1 << 0
 SUDO = 1 << 1
@@ -25,7 +25,6 @@ GROUP_ADMIN = 1 << 10
 GROUP_MEMBER = 1 << 11
 PM = 1 << 12
 
-
 BITMAP = {"OWNER": OWNER,
           "SUDO": SUDO,
           "SUPPORT": SUPPORT,
@@ -40,16 +39,12 @@ BITMAP = {"OWNER": OWNER,
           "GROUP_MEMBER": GROUP_MEMBER,
           "PM": PM}
 
-
 GROUP_ADMIN_ANY = (GROUP_ADMIN_ADD_ADMINS | GROUP_ADMIN_CHANGE_INFO | GROUP_ADMIN_BAN_USERS
                    | GROUP_ADMIN_DELETE_MESSAGES | GROUP_ADMIN_PIN_MESSAGES | GROUP_ADMIN_INVITE_USERS | GROUP_ADMIN)
 
-
 DEFAULT_PERMISSIONS = (OWNER | SUDO)
 
-
 PUBLIC_PERMISSIONS = (GROUP_OWNER | GROUP_ADMIN_ANY | GROUP_MEMBER | PM)
-
 
 ALL = (1 << 13) - 1
 

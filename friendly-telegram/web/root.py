@@ -1,9 +1,9 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-from aiohttp import web
 import aiohttp_jinja2
 import telethon
+from aiohttp import web
 
 
 class Web:

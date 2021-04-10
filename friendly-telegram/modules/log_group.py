@@ -4,8 +4,8 @@
 import logging
 
 import telethon
-from telethon.tl.types import MessageEntityHashtag, MessageEntityBold, InputPeerSelf
 from telethon.tl.types import MessageEntityCode, MessageEntityMentionName, InputPeerUser
+from telethon.tl.types import MessageEntityHashtag, MessageEntityBold, InputPeerSelf
 
 from .. import loader, utils
 
@@ -33,7 +33,7 @@ class LoggerMod(loader.Module):
             if isinstance(entity, InputPeerUser):
                 fail = False
                 entities.append(MessageEntityMentionName(len(message),
-                                len(str(entity.user_id)), entity.user_id))
+                                                         len(str(entity.user_id)), entity.user_id))
                 message += str(entity.user_id)
         if fail:
             if not isinstance(id, int):

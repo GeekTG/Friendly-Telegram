@@ -1,8 +1,8 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-import logging
 import inspect
+import logging
 
 from telethon.extensions import markdown
 
@@ -42,6 +42,7 @@ def get_cmd_name(pattern):
 
 class MarkdownBotPassthrough():
     """Passthrough class that forces markdown mode"""
+
     def __init__(self, under):
         self.__under = under
 
@@ -69,6 +70,7 @@ class MarkdownBotPassthrough():
                         del kwargs["parse_mode"]
                         ret2 = await func(*args, **kwargs)
                     return self.__convert(ret2)
+
                 return wrapper()
         return self.__convert(ret)
 
@@ -76,6 +78,7 @@ class MarkdownBotPassthrough():
         if inspect.iscoroutine(ret):
             async def wrapper():
                 return self.__convert(await ret)
+
             return wrapper()
         if isinstance(ret, list):
             for i, thing in enumerate(ret):

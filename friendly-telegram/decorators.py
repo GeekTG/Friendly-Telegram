@@ -1,5 +1,6 @@
 import functools
 import shlex
+
 import telethon
 
 from . import core
@@ -41,6 +42,7 @@ def test(*, func=None, resp=None, pre=None, post=None, edits=0, stages=[5], args
                                 ret(resp)
                 else:
                     await func(target, db, client, cmd)
+
             return inner
     elif not pre and not post:
         def decorator(cmd):
@@ -50,6 +52,7 @@ def test(*, func=None, resp=None, pre=None, post=None, edits=0, stages=[5], args
                 @test(pre=True, post=True, edits=edits, stages=stages)
                 async def inner(conv):
                     return resp
+
                 cmd.test = inner
             return cmd
     else:

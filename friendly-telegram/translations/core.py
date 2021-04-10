@@ -1,18 +1,17 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
+import json
 import logging
 import os
-import json
-import telethon
 
+import telethon
 from babel import negotiate_locale
 from telethon.tl.types import MessageEntityHashtag
 
 from .. import utils
 
 logger = logging.getLogger(__name__)
-
 
 MAGIC = "#ftgtrnsl1"
 

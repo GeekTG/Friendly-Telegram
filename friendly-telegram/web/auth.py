@@ -2,14 +2,14 @@
 #    by GeekTG Team
 
 import asyncio
-from aiohttp import web
-import aiohttp_jinja2
 import hashlib
+import logging
 import os
 import secrets
-import logging
-
 from base64 import b64encode
+
+import aiohttp_jinja2
+from aiohttp import web
 
 from .. import security
 

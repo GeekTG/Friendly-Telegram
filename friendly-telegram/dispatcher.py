@@ -12,9 +12,11 @@ ru_keys = """ёйцукенгшщзхъфывапролджэячсмитьбю.
 en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
         }ASDFGHJKL:"|ZXCVBNM<>? """
 
+
 def _decrement_ratelimit(delay, data, key, severity):
     def inner():
         data[key] = max(0, data[key] - severity)
+
     asyncio.get_event_loop().call_later(delay, inner)
 
 
@@ -157,8 +159,8 @@ class CommandDispatcher:
                     if await self.security.check(message, security.OWNER | security.SUDO):
                         txt = ("<b>Request failed! Request was</b> <code>" + utils.escape_html(message.message)
                                + "</code><b>. Please report it in the support group "
-                               "(</b><code>{0}support</code><b>) along with the logs "
-                               "(</b><code>{0}logs error</code><b>)</b>").format(prefix)
+                                 "(</b><code>{0}support</code><b>) along with the logs "
+                                 "(</b><code>{0}logs error</code><b>)</b>").format(prefix)
                     else:
                         txt = "<b>Sorry, something went wrong!</b>"
                     await (message.edit if message.out else message.reply)(txt)

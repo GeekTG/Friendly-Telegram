@@ -5,12 +5,12 @@
 
 """Configuration menu, providing interface for users to control internals"""
 
+import ast
+import inspect
 import locale
 import os
-import inspect
-import ast
-import sys
 import string
+import sys
 
 from dialog import Dialog, ExecutableNotFound
 
@@ -120,7 +120,6 @@ if sys.stdout.isatty():
         DIALOG = TDialog()
 else:
     DIALOG = TDialog()
-
 
 MODULES = None
 DB = None  # eww... meh.

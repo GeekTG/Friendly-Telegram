@@ -2,6 +2,7 @@
 #    by GeekTG Team
 
 import logging
+
 try:
     import coloredlogs  # Optional support for https://pypi.org/project/coloredlogs
 except ModuleNotFoundError:
@@ -13,6 +14,7 @@ else:
 class MemoryHandler(logging.Handler):
     """Keeps 2 buffers. One for dispatched messages. One for unused messages. When the length of the 2 together is 100
        truncate to make them 100 together, first trimming handled then unused."""
+
     def __init__(self, target, capacity):
         super().__init__(0)
         self.target = target

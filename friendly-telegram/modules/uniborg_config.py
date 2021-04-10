@@ -1,8 +1,8 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-import logging
 import itertools
+import logging
 
 from .. import loader
 from ..compat import uniborg

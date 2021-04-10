@@ -3,20 +3,21 @@
 
 """Loads modules from disk and dispatches stuff, and stores state"""
 
-import importlib
-import importlib.util
-import os
-import logging
-import sys
 import asyncio
 import functools
+import importlib
+import importlib.util
 import inspect
+import logging
+import os
+import sys
 
 from . import utils, security
 from .translations.dynamic import Strings
 
 if __debug__:
     from . import decorators
+
     test = decorators.test
 else:
     def test(*args, **kwargs):
@@ -46,6 +47,7 @@ en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
 
 def translatable_docstring(cls):
     """Decorator that makes triple-quote docstrings translatable"""
+
     @functools.wraps(cls.config_complete)
     def config_complete(self, *args, **kwargs):
         for command, func in get_commands(cls).items():
@@ -55,6 +57,7 @@ def translatable_docstring(cls):
                 func.__func__.__doc__ = self.strings["_cmd_doc_" + command]
         self.__doc__ = self.strings["_cls_doc"]
         return self.config_complete._old_(self, *args, **kwargs)
+
     config_complete._old_ = cls.config_complete
     cls.config_complete = config_complete
     for command, func in get_commands(cls).items():
@@ -74,6 +77,7 @@ def ratelimit(func):
 
 class ModuleConfig(dict):
     """Like a dict but contains doc for each key"""
+
     def __init__(self, *entries):
         i = 0
         keys = []
@@ -113,6 +117,7 @@ class Module():
     strings = {"name": "Unknown"}
 
     """There is no help for this module"""
+
     def config_complete(self):
         """Will be called when module.config is populated"""
 
@@ -133,6 +138,7 @@ def get_commands(mod):
 
 class Modules():
     """Stores all registered modules"""
+
     def __init__(self):
         self.commands = {}
         self.aliases = {}

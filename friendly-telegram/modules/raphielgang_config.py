@@ -1,10 +1,11 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
-import logging
 import itertools
+import logging
 
 import userbot  # see .compat
+
 from .. import loader
 
 logger = logging.getLogger(__name__)

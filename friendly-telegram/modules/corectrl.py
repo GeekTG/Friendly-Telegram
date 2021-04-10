@@ -144,6 +144,15 @@ class CoreMod(loader.Module):
 		else:
 			await utils.answer(message, self.strings("no_alias", message).format(utils.escape_html(alias)))
 
+	@loader.owner
+	async def aliasescmd(self, message):
+		"""Print all your aliases"""
+		aliases = self.allmodules.aliases
+		string = self.strings("aliases", message)
+		for i, y in aliases.items():
+			string += f"\n{i}: {y}"
+		await utils.answer(message, string)
+
 	async def addtrnslcmd(self, message):
 		"""Add a translation pack
 		   .addtrnsl <pack>

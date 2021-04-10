@@ -28,25 +28,25 @@ class TestManager:
 			self._db.set(security.__name__, "bounding_mask", security.SUPPORT)
 			self._db.set(security.__name__, "support", [user_id])
 			await self._db.set(main.__name__, "command_prefix", ["/"])
-			return ["../test/botmodule.py"]
+			return ["../botmodule.py"]
 		else:
 			bot_id = [(await c.get_me(True)).user_id for c in self._clients if c is not self._client][0]
 			self._db.set(security.__name__, "bounding_mask", -1)
 			if stage == 0:
 				self._db.set(security.__name__, "bounding_mask", -1)
 				self._db.set(security.__name__, "owner", [bot_id])
-				return ["../test/usermodule.py"]
+				return ["../usermodule.py"]
 			self._db.set(security.__name__, "owner", [-1])
 			if stage == 1:
 				self._db.set(security.__name__, "sudo", [bot_id])
-				return ["../test/usermodule.py"]
+				return ["../usermodule.py"]
 			if stage == 2:
 				self._db.set(security.__name__, "sudo", [])
 				self._db.set(security.__name__, "support", [bot_id])
-				return ["../test/usermodule.py"]
+				return ["../usermodule.py"]
 			if stage == 3:
 				self._db.set(security.__name__, "support", [])
-				return ["../test/usermodule.py"]
+				return ["../usermodule.py"]
 			if stage == 4:
 				self._db.set(security.__name__, "owner", [bot_id])
 				await self._db.set(security.__name__, "bounding_mask", 1)

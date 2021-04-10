@@ -9,6 +9,7 @@ database-*.json
 .idea/
 venv/
 data/
+mishase_cache/
 translations/
 api_token.txt
 .coverage

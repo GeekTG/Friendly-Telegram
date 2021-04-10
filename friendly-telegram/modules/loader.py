@@ -116,7 +116,6 @@ class LoaderMod(loader.Module):
 	           "requirements_failed": "<b>Requirements installation failed</b>",
 	           "requirements_installing": "<b>Installing requirements...</b>",
 	           "requirements_restart": "<b>Requirements installed, but a restart is required</b>",
-	           "aliases": "<b>Aliases:</b>",
 	           "all_modules_deleted": "<b>All modules deleted</b>",
 	           "reply_to_txt": "<b>Reply to .txt file<b>",
 	           "restored_modules": "<b>Loaded:</b> <code>{}</code>\n<b>Already loaded:</b> <code>{}</code>",
@@ -145,7 +144,6 @@ class LoaderMod(loader.Module):
 		self.config = loader.ModuleConfig("MODULES_REPO",
 		                                  "https://raw.githubusercontent.com/GeekTG/FTG-Modules/main/",
 		                                  lambda m: self.strings("repo_config_doc", m))
-
 	@loader.owner
 	async def dlmodcmd(self, message):
 		"""Downloads and installs a module from the official module repo"""

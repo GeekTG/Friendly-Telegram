@@ -114,14 +114,13 @@ class CoreMod(loader.Module):
 		await utils.answer(message, self.strings("prefix_set", message).format(newprefix=utils.escape_html(args[0]),
 		                                                                       oldprefix=utils.escape_html(oldprefix)))
 	@loader.owner
- 	async def aliasescmd(self, message):
+	async def aliasescmd(self, message):
 		"""Print all your aliases"""
 		aliases = self.allmodules.aliases
 		string = self.strings("aliases", message)
 		for i, y in aliases.items():
 			string += f"\n{i}: {y}"
 		await utils.answer(message, string)
-  
 	@loader.owner
 	async def addaliascmd(self, message):
 		"""Set an alias for a command"""

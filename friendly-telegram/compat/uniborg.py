@@ -107,7 +107,7 @@ class UniborgClient(MarkdownBotPassthrough):
 						sys.modules[self._module].__dict__["borg"] = MarkdownBotPassthrough(self._wrapper._client)
 
 						return func(event2)
-						# Return a coroutine
+					# Return a coroutine
 					else:
 						logger.debug("but not matched cmd " + message.message
 						             + " regex " + event.pattern.__self__.pattern)
@@ -133,7 +133,8 @@ class UniborgClient(MarkdownBotPassthrough):
 
 						return func(event2)
 					return asyncio.gather()
-					# Return a coroutine
+
+				# Return a coroutine
 
 				self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
 			else:

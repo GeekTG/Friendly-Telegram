@@ -203,7 +203,7 @@ class SecurityManager:
 				if not message.is_group:
 					if message.edit_date:
 						return False  # anyone can assume identity of another in channels
-						# TODO: iter admin log and search for the edit event, to check who edited
+					# TODO: iter admin log and search for the edit event, to check who edited
 					chat = await message.get_chat()
 					if not chat.creator and not (chat.admin_rights and chat.admin_rights.post_messages):
 						return False
@@ -212,7 +212,7 @@ class SecurityManager:
 
 					if f_group_admin:
 						return True
-					# TODO: when running as bot, send an inline button which allows confirmation of command
+				# TODO: when running as bot, send an inline button which allows confirmation of command
 				else:
 					participant = await message.client(GetParticipantRequest(await message.get_input_chat(),
 					                                                         await message.get_input_sender()))

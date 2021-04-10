@@ -23,7 +23,7 @@ runin() {
   # Runs the arguments and spins once per line of stdout (tee'd to logfile), also piping stderr to logfile
   { "$@" 2>>../ftg-install.log || return $?; } | while read -r line; do
     spin
-    printf "%s\n" "$line" >> ../ftg-install.log
+    printf "%s\n" "$line" >>../ftg-install.log
   done
 }
 
@@ -31,7 +31,7 @@ runout() {
   # Runs the arguments and spins once per line of stdout (tee'd to logfile), also piping stderr to logfile
   { "$@" 2>>ftg-install.log || return $?; } | while read -r line; do
     spin
-    printf "%s\n" "$line" >> ftg-install.log
+    printf "%s\n" "$line" >>ftg-install.log
   done
 }
 
@@ -81,19 +81,28 @@ fi
 
 if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
   # We are running in a heroku dyno without python, time to get ugly!
-  runout git clone https://github.com/heroku/heroku-buildpack-python || { endspin "Bootstrap download failed!"; exit 1; }
+  runout git clone https://github.com/heroku/heroku-buildpack-python || {
+    endspin "Bootstrap download failed!"
+    exit 1
+  }
   rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
   mkdir .cache .env
-  echo "python-3.8.5" > runtime.txt
-  echo "pip" > requirements.txt
-  STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env || \
-      { endspin "Bootstrap install failed!"; exit 1; }
+  echo "python-3.8.5" >runtime.txt
+  echo "pip" >requirements.txt
+  STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env ||
+    {
+      endspin "Bootstrap install failed!"
+      exit 1
+    }
   rm -rf .cache
-  export PATH="/app/.heroku/python/bin:$PATH"  # Prefer the bootstrapped python, incl. pip, over the system one.
+  export PATH="/app/.heroku/python/bin:$PATH" # Prefer the bootstrapped python, incl. pip, over the system one.
 fi
 
 if [ -d "Friendly-Telegram/friendly-telegram" ]; then
-  cd Friendly-Telegram || { endspin "Failed to chdir"; exit 6; }
+  cd Friendly-Telegram || {
+    endspin "Failed to chdir"
+    exit 6
+  }
   DIR_CHANGED="yes"
 fi
 if [ -f ".setup_complete" ] || [ -d "friendly-telegram" -a ! x"" = x"$DYNO" ]; then
@@ -113,7 +122,7 @@ fi
 
 ##############################################################################
 
-echo "Installing..." > ftg-install.log
+echo "Installing..." >ftg-install.log
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; then
   PKGMGR="apt-get install -y"
@@ -129,7 +138,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
     fi
   else
     runout dpkg --configure -a
-    runout apt-get update  # Not essential
+    runout apt-get update # Not essential
   fi
   PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
@@ -163,7 +172,10 @@ fi
 
 ##############################################################################
 
-runout $PKGMGR "python$PYVER" git || { errorout "Core install failed."; exit 2; }
+runout $PKGMGR "python$PYVER" git || {
+  errorout "Core install failed."
+  exit 2
+}
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
   runout $PKGMGR "python$PYVER-dev"
@@ -181,7 +193,7 @@ runout $PKGMGR neofetch dialog
 
 SUDO_CMD=""
 if [ ! x"$SUDO_USER" = x"" ]; then
-  if command -v sudo>/dev/null; then
+  if command -v sudo >/dev/null; then
     SUDO_CMD="sudo -u $SUDO_USER "
   fi
 fi
@@ -189,14 +201,26 @@ fi
 # shellcheck disable=SC2086
 ${SUDO_CMD}rm -rf Friendly-Telegram
 # shellcheck disable=SC2086
-runout ${SUDO_CMD}git clone https://github.com/GeekTG/Friendly-Telegram || { errorout "Clone failed."; exit 3; }
-cd Friendly-Telegram || { endspin "Failed to chdir"; exit 7; }
+runout ${SUDO_CMD}git clone https://github.com/GeekTG/Friendly-Telegram || {
+  errorout "Clone failed."
+  exit 3
+}
+cd Friendly-Telegram || {
+  endspin "Failed to chdir"
+  exit 7
+}
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip setuptools wheel --user
 # shellcheck disable=SC2086
-runin ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || { errorin "Requirements failed!"; exit 4; }
+runin ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || {
+  errorin "Requirements failed!"
+  exit 4
+}
 touch .setup_complete
 endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log
 # shellcheck disable=SC2086,SC2015
-${SUDO_CMD}"python$PYVER" -m friendly-telegram "$@" || { echo "Python scripts failed"; exit 5; }
+${SUDO_CMD}"python$PYVER" -m friendly-telegram "$@" || {
+  echo "Python scripts failed"
+  exit 5
+}

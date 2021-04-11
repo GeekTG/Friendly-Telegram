@@ -4,8 +4,8 @@
 import asyncio
 import logging
 
-from . import loader, utils
 from . import core
+from . import loader, utils
 
 logger = logging.getLogger(__name__)
 

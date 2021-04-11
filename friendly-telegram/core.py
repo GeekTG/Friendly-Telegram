@@ -1,7 +1,7 @@
 import asyncio
 import os
 
-from . import security, utils, loader, main
+from . import security, utils, loader
 
 user_modules = None
 

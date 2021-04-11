@@ -1,21 +1,21 @@
 # Telegram connection
-telethon==1.21.1
+telethon
 
 # Config
-pythondialog ~= 3.5.1
+pythondialog
 
 # Heroku & Updater
-heroku3 ~= 4.2.1
-gitpython ~= 3.1.9
+heroku3
+gitpython
 
 # Translations
-babel ~= 2.8.0
+babel
 
 # Eval
-meval >= 2.4, ~= 2.4
+meval
 
 # Web
-aiohttp_jinja2 ~= 1.2.0
+aiohttp_jinja2
 
 # Speedtest
 speedtest-cli

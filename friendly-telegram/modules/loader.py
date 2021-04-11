@@ -385,6 +385,7 @@ class LoaderMod(loader.Module):
 
 	@loader.owner
 	async def backupcmd(self, message):
+		"""Backup all your modules"""
 		modules = map(get_module, self.allmodules.modules)
 		b = zlib.compress(d[1].join(
 			map(lambda mod: d[0].join(map(lambda s: s if isinstance(s, bytes) else s.encode(enc), mod)),
@@ -396,6 +397,7 @@ class LoaderMod(loader.Module):
 
 	@loader.owner
 	async def restorecmd(self, message):
+		"""Restore modules from backup file"""
 		reply = await message.get_reply_message()
 		if not reply or not reply.file or not reply.file.name.endswith(".bin"):
 			return await message.edit("<b>Reply to backup file</b>")

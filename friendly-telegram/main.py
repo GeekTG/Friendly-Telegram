@@ -430,12 +430,6 @@ async def amain(first, client, allclients, web, arguments):
 			dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test)
 			if is_bot:
 				modules.added_modules = functools.partial(set_commands, dispatcher.security)
-
-	modules.register_all(babelfish, to_load)
-
-	modules.send_config(db, babelfish)
-	await modules.send_ready(client, db, allclients)
-
 	if arguments.heroku_deps_internal or arguments.docker_deps_internal:
 		# Loader has installed all dependencies
 		return  # We are done
@@ -451,6 +445,10 @@ async def amain(first, client, allclients, web, arguments):
 		                         events.NewMessage(forwards=False))
 		client.add_event_handler(dispatcher.handle_command,
 		                         events.MessageEdited())
+	modules.register_all(babelfish, to_load)
+
+	modules.send_config(db, babelfish)
+	await modules.send_ready(client, db, allclients)
 	if first:
 		if __debug__ and arguments.self_test:
 			await client(GetStateRequest())  # Start receiving updates

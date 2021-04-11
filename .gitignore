@@ -14,3 +14,4 @@ translations/
 api_token.txt
 .coverage
 .vscode/
+ftg-install.log

@@ -9,7 +9,7 @@
 {% extends "base.jinja2" %}
 
 {% block head %}
-    <style>
+	<style>
         td, th {
             word-wrap: break-all;
             word-break: break-word;
@@ -84,93 +84,93 @@
                 border-bottom: 0;
             }
         }
-    </style>
-    <script src="{{ static('translation.js') }}"></script>
+	</style>
+	<script src="{{ static('translation.js') }}"></script>
 {% endblock %}
 
 {% block title %}
-    Friendly-Telegram
+	Friendly-Telegram
 {% endblock %}
 
 {% block content %}
-    <div class="mdl-card__title">
-        <h3 class="mdl-card__title-text">Translation</h3>
-    </div>
-    <div class="mdl-card__supporting-text">
-        Here you can translate the whole of Friendly-Telegram. To save, you have to export the data and follow <a
-            href="https://friendly-telegram.gitlab.io/web/translation#making-a-pack">the docs</a>.
-        <br>
-        <br>
-        <a id="export" download="ftg-translation.json">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
-                Export data
-            </button>
-        </a>
-        <form onsubmit="return false;">
-            <div class="mdl-textfield mdl-js-textfield">
-                <input class="mdl-textfield__input" type="text" id="lang-code" onchange="setLanguage(this);" value="en">
-                <label class="mdl-textfield__label" for="lang-code">ISO 639-1 language code</label>
-            </div>
-        </form>
-        <form onsubmit="return false;">
-            <input type="file" id="import" onchange="loadTranslations(this.files[0]);" style="display: none;"
-                   accept="application/json">
-            <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"
-                    onclick="document.getElementById('import').click();">
-                Import data
-            </button>
-        </form>
-        <br>
-        {% for module in modules %}
-            <br>
-            {% set ns.module_number = ns.module_number + 1 %}
-            <a href="#module_{{ ns.module_number }}">{{ module.name }}</a>
-        {% endfor %}
-    </div>
+	<div class="mdl-card__title">
+		<h3 class="mdl-card__title-text">Translation</h3>
+	</div>
+	<div class="mdl-card__supporting-text">
+		Here you can translate the whole of Friendly-Telegram. To save, you have to export the data and follow <a
+			href="https://friendly-telegram.gitlab.io/web/translation#making-a-pack">the docs</a>.
+		<br>
+		<br>
+		<a id="export" download="ftg-translation.json">
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+				Export data
+			</button>
+		</a>
+		<form onsubmit="return false;">
+			<div class="mdl-textfield mdl-js-textfield">
+				<input class="mdl-textfield__input" type="text" id="lang-code" onchange="setLanguage(this);" value="en">
+				<label class="mdl-textfield__label" for="lang-code">ISO 639-1 language code</label>
+			</div>
+		</form>
+		<form onsubmit="return false;">
+			<input type="file" id="import" onchange="loadTranslations(this.files[0]);" style="display: none;"
+			       accept="application/json">
+			<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"
+			        onclick="document.getElementById('import').click();">
+				Import data
+			</button>
+		</form>
+		<br>
+		{% for module in modules %}
+			<br>
+			{% set ns.module_number = ns.module_number + 1 %}
+			<a href="#module_{{ ns.module_number }}">{{ module.name }}</a>
+		{% endfor %}
+	</div>
 {% endblock %}
 
 
 {% block after %}
-    {% for module in modules %}
-        {% set ns2.module_number = ns2.module_number + 1 %}
-        <br>
-        <div class="mdl-card mdl-shadow--2dp padded" style="width: 100%;" id="module_{{ ns2.module_number }}">
-            <div class="mdl-card__title">
-                <h4 class="mdl-card__title-text">{{ module.name }}</h3>
-            </div>
-            <div class="mdl-cad__supporting-text" style="width:100%;">
-                <p>{{ module|getdoc }}</p>
-                <br>
-                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive"
-                       style="width: 100%; display: block; table-layout: fixed;">
-                    <thead>
-                    <tr>
-                        <th class="mdl-data-table__cell--non-numeric" style="width: 25%;">Key</th>
-                        <th class="mdl-data-table__cell--non-numeric" style="width: 75%;">Value</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for key in module.strings %}
-                        <tr>
-                            <td class="mdl-data-table__cell--non-numeric">{{ key }}</td>
-                            <td class="mdl-data-table__cell--non-numeric">
-                                <form action="#module_{{ ns2.module_number }}">
-                                    <div class="mdl-textfield mdl-js-textfield" style="width: 100%;">
+	{% for module in modules %}
+		{% set ns2.module_number = ns2.module_number + 1 %}
+		<br>
+		<div class="mdl-card mdl-shadow--2dp padded" style="width: 100%;" id="module_{{ ns2.module_number }}">
+			<div class="mdl-card__title">
+				<h4 class="mdl-card__title-text">{{ module.name }}</h3>
+			</div>
+			<div class="mdl-cad__supporting-text" style="width:100%;">
+				<p>{{ module|getdoc }}</p>
+				<br>
+				<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive"
+				       style="width: 100%; display: block; table-layout: fixed;">
+					<thead>
+					<tr>
+						<th class="mdl-data-table__cell--non-numeric" style="width: 25%;">Key</th>
+						<th class="mdl-data-table__cell--non-numeric" style="width: 75%;">Value</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for key in module.strings %}
+						<tr>
+							<td class="mdl-data-table__cell--non-numeric">{{ key }}</td>
+							<td class="mdl-data-table__cell--non-numeric">
+								<form action="#module_{{ ns2.module_number }}">
+									<div class="mdl-textfield mdl-js-textfield" style="width: 100%;">
                                         <textarea class="mdl-textfield__input translation-input" type="text"
                                                   data-module="{{ module.__module__ }}" data-stringkey="{{ key }}"
                                                   data-currentvalue="{{ module.strings[key] }}"
                                                   id="input_{{ ns2.module_number }}_{{ key }}"
                                                   onchange="setString(this);">{{ module.strings[key] }}</textarea>
-                                        <label class="mdl-textfield__label"
-                                               for="input_{{ ns2.module_number }}_{{ key }}">{{ module.strings[key] }}</label>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% endfor %}
+										<label class="mdl-textfield__label"
+										       for="input_{{ ns2.module_number }}_{{ key }}">{{ module.strings[key] }}</label>
+									</div>
+								</form>
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	{% endfor %}
 {% endblock %}

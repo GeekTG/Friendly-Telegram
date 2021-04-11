@@ -6,173 +6,173 @@
 {% extends "base.jinja2" %}
 
 {% block head %}
-    <script src="{{ static('initial_root.js') }}"></script>
+	<script src="{{ static('initial_root.js') }}"></script>
 {% endblock %}
 
 {% block title %}
-    Friendly-Telegram
+	Friendly-Telegram
 {% endblock %}
 
 {% block content %}
-    <div class="mdl-card__title">
-        <h3 class="mdl-card__title-text">Welcome to the Friendly-Telegram web interface</h3>
-    </div>
-    <div class="mdl-card__supporting-text">
-        Here you can configure various features of Friendly-Telegram, as well as access debugging tools and status
-        reports
-        <br>
-        You are currently in initial configuration mode.
-    </div>
+	<div class="mdl-card__title">
+		<h3 class="mdl-card__title-text">Welcome to the Friendly-Telegram web interface</h3>
+	</div>
+	<div class="mdl-card__supporting-text">
+		Here you can configure various features of Friendly-Telegram, as well as access debugging tools and status
+		reports
+		<br>
+		You are currently in initial configuration mode.
+	</div>
 {% endblock %}
 
 {% block after %}
-    <br>
-    <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-        <div class="mdl-card__title">
-            <h3 class="mdl-card__title-text">Telegram API</h3>
-        </div>
-        <div class="mdl-card__supporting-text">
-            {% if api_done %}
-                Your Telegram API configuration is already completed. Please proceed to the next step.
-            {% endif %}
-            In this section you must enter the API Hash and ID from <a href="https://my.telegram.org">the Telegram
-            website</a>
-            <form onsubmit="return false;">
-                <div class="mdl-textfield mdl-js-textfield">
-                    <input class="mdl-textfield__input" type="number" pattern="[0-9]+" id="api_id" onchange="setApi();">
-                    <label class="mdl-textfield__label" for="api_id">API ID</label>
-                    <span class="mdl-textfield__error">Input is not a number!</span>
-                </div>
-                <br>
-                <div class="mdl-textfield mdl-js-textfield">
-                    <input class="mdl-textfield__input" type="text" pattern="[0-9a-f]{32}" id="api_hash"
-                           onchange="setApi();">
-                    <label class="mdl-textfield__label" for="api_hash">API hash</label>
-                    <span class="mdl-textfield__error">Input is not a valid hash!</span>
-                </div>
-            </form>
-        </div>
-    </div>
+	<br>
+	<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+		<div class="mdl-card__title">
+			<h3 class="mdl-card__title-text">Telegram API</h3>
+		</div>
+		<div class="mdl-card__supporting-text">
+			{% if api_done %}
+				Your Telegram API configuration is already completed. Please proceed to the next step.
+			{% endif %}
+			In this section you must enter the API Hash and ID from <a href="https://my.telegram.org">the Telegram
+			website</a>
+			<form onsubmit="return false;">
+				<div class="mdl-textfield mdl-js-textfield">
+					<input class="mdl-textfield__input" type="number" pattern="[0-9]+" id="api_id" onchange="setApi();">
+					<label class="mdl-textfield__label" for="api_id">API ID</label>
+					<span class="mdl-textfield__error">Input is not a number!</span>
+				</div>
+				<br>
+				<div class="mdl-textfield mdl-js-textfield">
+					<input class="mdl-textfield__input" type="text" pattern="[0-9a-f]{32}" id="api_hash"
+					       onchange="setApi();">
+					<label class="mdl-textfield__label" for="api_hash">API hash</label>
+					<span class="mdl-textfield__error">Input is not a valid hash!</span>
+				</div>
+			</form>
+		</div>
+	</div>
 
-    <br>
-    <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-        <div class="mdl-card__title">
-            <h3 class="mdl-card__title-text">Telegram Authentication</h3>
-        </div>
-        <div class="mdl-card__supporting-text">
-            {% if tg_done %}
-                Your Telegram Authentication is already completed. Please login.
-            {% endif %}
-            In this section you must enter the One-Time-Password you will receive from the Telegram Service account.
-            Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
-            <br><br>
-            <form onsubmit="return false;">
-                <div class="mdl-textfield mdl-js-textfield">
-                    <input class="mdl-textfield__input" type="phone" pattern="\+[0-9]{6,}" id="phone">
-                    <label class="mdl-textfield__label" for="phone">Phone</label>
-                    <span class="mdl-textfield__error" id="phoneerror">Phone number can't possibly be correct</span>
-                </div>
-                <br><br>
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
-                        onclick="sendCode(document.getElementById('phone'));">
-                    Send Code
-                </button>
-            </form>
-        </div>
-    </div>
+	<br>
+	<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+		<div class="mdl-card__title">
+			<h3 class="mdl-card__title-text">Telegram Authentication</h3>
+		</div>
+		<div class="mdl-card__supporting-text">
+			{% if tg_done %}
+				Your Telegram Authentication is already completed. Please login.
+			{% endif %}
+			In this section you must enter the One-Time-Password you will receive from the Telegram Service account.
+			Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
+			<br><br>
+			<form onsubmit="return false;">
+				<div class="mdl-textfield mdl-js-textfield">
+					<input class="mdl-textfield__input" type="phone" pattern="\+[0-9]{6,}" id="phone">
+					<label class="mdl-textfield__label" for="phone">Phone</label>
+					<span class="mdl-textfield__error" id="phoneerror">Phone number can't possibly be correct</span>
+				</div>
+				<br><br>
+				<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+				        onclick="sendCode(document.getElementById('phone'));">
+					Send Code
+				</button>
+			</form>
+		</div>
+	</div>
 
-    <br>
-    <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-        <div class="mdl-card__title">
-            <h3 class="mdl-card__title-text">Heroku (If needed)</h3>
-        </div>
-        <div class="mdl-card__supporting-text">
-            In this section you can choose to enter the Heroku API Token from <a
-                href="https://dashboard.heroku.com/account">the Heroku dashboard</a>
-            Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
-            {% if heroku_token %}
-                This token has already been configured, and only needs to be changed if you changed your Heroku account
-                password.
-                Click Continue to save all settings to Heroku.
-            {% endif %}
-            <br>
-            If you do not want to deploy to Heroku, please ignore this step.
-            <br><br>
-            <form onsubmit="return false;">
-                <div class="mdl-textfield mdl-js-textfield">
-                    <input class="mdl-textfield__input" type="password"
-                           pattern="[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}" id="heroku"
-                           value="{{ heroku_token or "" }}">
-                    <label class="mdl-textfield__label" for="heroku">Heroku API Token</label>
-                    <span class="mdl-textfield__error" id="herokuerror">Invalid API Token</span>
-                </div>
-                <br>
-            </form>
-        </div>
-    </div>
+	<br>
+	<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+		<div class="mdl-card__title">
+			<h3 class="mdl-card__title-text">Heroku (If needed)</h3>
+		</div>
+		<div class="mdl-card__supporting-text">
+			In this section you can choose to enter the Heroku API Token from <a
+				href="https://dashboard.heroku.com/account">the Heroku dashboard</a>
+			Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
+			{% if heroku_token %}
+				This token has already been configured, and only needs to be changed if you changed your Heroku account
+				password.
+				Click Continue to save all settings to Heroku.
+			{% endif %}
+			<br>
+			If you do not want to deploy to Heroku, please ignore this step.
+			<br><br>
+			<form onsubmit="return false;">
+				<div class="mdl-textfield mdl-js-textfield">
+					<input class="mdl-textfield__input" type="password"
+					       pattern="[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}" id="heroku"
+					       value="{{ heroku_token or "" }}">
+					<label class="mdl-textfield__label" for="heroku">Heroku API Token</label>
+					<span class="mdl-textfield__error" id="herokuerror">Invalid API Token</span>
+				</div>
+				<br>
+			</form>
+		</div>
+	</div>
 
-    <br>
-    <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-        <div class="mdl-card__title">
-            <h3 class="mdl-card__title-text">Save Changes</h3>
-        </div>
-        <div class="mdl-card__supporting-text">
-            <form onsubmit="return false;">
-                <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
-                        onclick="finishLogin();">
-                    Continue
-                </button>
-                <br><br>
-                <div id="heroku_progress" style="display: none;">
-                    <div class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <dialog class="mdl-dialog" id="codeentry">
-        <h4 class="mdl-dialog__title">Enter Code</h4>
-        <div class="mdl-dialog__content">
-            <p>
-                Please enter the code sent to you by Telegram
-            </p>
-            <div class="mdl-textfield mdl-js-textfield">
-                <input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code"
-                       oninput="codeChanged();">
-                <label class="mdl-textfield__label" for="code">Code</label>
-                <span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
-            </div>
-        </div>
-        <div class="mdl-dialog__actions">
-            <button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
-        </div>
-    </dialog>
+	<br>
+	<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+		<div class="mdl-card__title">
+			<h3 class="mdl-card__title-text">Save Changes</h3>
+		</div>
+		<div class="mdl-card__supporting-text">
+			<form onsubmit="return false;">
+				<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
+				        onclick="finishLogin();">
+					Continue
+				</button>
+				<br><br>
+				<div id="heroku_progress" style="display: none;">
+					<div class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+				</div>
+			</form>
+		</div>
+	</div>
 
 
-    <dialog class="mdl-dialog" id="passwordentry">
-        <h4 class="mdl-dialog__title">Enter your Cloud Password</h4>
-        <div class="mdl-dialog__content">
-            <p>
-                Please enter your two-factor-authentication password for Telegram
-            </p>
-            <div class="mdl-textfield mdl-js-textfield">
-                <input class="mdl-textfield__input" type="password" pattern=".+" id="password">
-                <label class="mdl-textfield__label" for="password">Password</label>
-                <span class="mdl-textfield__error" id="passworderror">Password cannot be blank</span>
-            </div>
-        </div>
-        <div class="mdl-dialog__actions">
-            <button class="mdl-button" onclick="codeChanged();">Submit</button>
-            <button class="mdl-button" onclick="cancelPasswordInput();">Cancel</button>
-        </div>
-    </dialog>
+	<dialog class="mdl-dialog" id="codeentry">
+		<h4 class="mdl-dialog__title">Enter Code</h4>
+		<div class="mdl-dialog__content">
+			<p>
+				Please enter the code sent to you by Telegram
+			</p>
+			<div class="mdl-textfield mdl-js-textfield">
+				<input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code"
+				       oninput="codeChanged();">
+				<label class="mdl-textfield__label" for="code">Code</label>
+				<span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
+			</div>
+		</div>
+		<div class="mdl-dialog__actions">
+			<button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
+		</div>
+	</dialog>
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
-    <script>
+	<dialog class="mdl-dialog" id="passwordentry">
+		<h4 class="mdl-dialog__title">Enter your Cloud Password</h4>
+		<div class="mdl-dialog__content">
+			<p>
+				Please enter your two-factor-authentication password for Telegram
+			</p>
+			<div class="mdl-textfield mdl-js-textfield">
+				<input class="mdl-textfield__input" type="password" pattern=".+" id="password">
+				<label class="mdl-textfield__label" for="password">Password</label>
+				<span class="mdl-textfield__error" id="passworderror">Password cannot be blank</span>
+			</div>
+		</div>
+		<div class="mdl-dialog__actions">
+			<button class="mdl-button" onclick="codeChanged();">Submit</button>
+			<button class="mdl-button" onclick="cancelPasswordInput();">Cancel</button>
+		</div>
+	</dialog>
+
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
+	<script>
 		'use strict';
 		dialogPolyfill.registerDialog(document.getElementById("codeentry"));
 		dialogPolyfill.registerDialog(document.getElementById("passwordentry"));
-    </script>
+	</script>
 {% endblock %}

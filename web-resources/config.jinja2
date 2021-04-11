@@ -9,7 +9,7 @@
 {% extends "base.jinja2" %}
 
 {% block head %}
-    <style>
+	<style>
         td, th {
             word-wrap: break-all;
             word-break: break-word;
@@ -96,82 +96,82 @@
         .mdl-data-table th.row-header {
             vertical-align: middle;
         }
-    </style>
-    <script src="{{ static('config.js') }}"></script>
+	</style>
+	<script src="{{ static('config.js') }}"></script>
 {% endblock %}
 
 {% block title %}
-    Friendly-Telegram
+	Friendly-Telegram
 {% endblock %}
 
 {% block content %}
-    <div class="mdl-card__title">
-        <h3 class="mdl-card__title-text">Configuration</h3>
-    </div>
-    <div class="mdl-card__supporting-text">
-        Here you can modify most settings that are supported in Friendly-Telegram
-        {% for module in modules %}
-            <br>
-            {% set ns.module_number = ns.module_number + 1 %}
-            <a href="#module_{{ ns.module_number }}">{{ module.strings["name"] }}</a>
-        {% endfor %}
-    </div>
+	<div class="mdl-card__title">
+		<h3 class="mdl-card__title-text">Configuration</h3>
+	</div>
+	<div class="mdl-card__supporting-text">
+		Here you can modify most settings that are supported in Friendly-Telegram
+		{% for module in modules %}
+			<br>
+			{% set ns.module_number = ns.module_number + 1 %}
+			<a href="#module_{{ ns.module_number }}">{{ module.strings["name"] }}</a>
+		{% endfor %}
+	</div>
 {% endblock %}
 
 
 {% block after %}
-    {% for module in modules %}
-        <br>
-        {% set ns2.module_number = ns2.module_number + 1 %}
-        <div class="mdl-card mdl-shadow--2dp padded" style="width: 100%;" id="module_{{ ns2.module_number }}">
-            <div class="mdl-card__title">
-                <h4 class="mdl-card__title-text">{{ module.strings["name"] }}</h4>
-            </div>
-            <div class="mdl-cad__supporting-text" style="width:100%;">
-                <p>{{ module|getdoc }}</p>
-                <br>
-                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive"
-                       style="width: 100%; display: block; table-layout: fixed;">
-                    <colgroup>
-                        <col class="config-col">
-                        <col class="config-col">
-                        <col class="config-col">
-                        <col class="config-col">
-                    </colgroup>
-                    <thead>
-                    <tr>
-                        <th class="mdl-data-table__cell--non-numeric col">Key</th>
-                        <th class="mdl-data-table__cell--non-numeric col">Documentation</th>
-                        <th class="mdl-data-table__cell--non-numeric col">Default</th>
-                        <th class="mdl-data-table__cell--non-numeric col">Value</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for key in module.config %}
-                        <tr>
-                            <th class="mdl-data-table__cell--non-numeric col row-header" scope="row">
-                            {{ key }}</td>
-                            <td class="mdl-data-table__cell--non-numeric col">{{ module.config.getdoc(key) }}</td>
-                            <td class="mdl-data-table__cell--non-numeric col">{{ module.config.getdef(key)|ascii }}</td>
-                            <td class="mdl-data-table__cell--non-numeric col">
-                                <form action="#module_{{ ns2.module_number }}">
-                                    <div class="mdl-textfield mdl-js-textfield">
+	{% for module in modules %}
+		<br>
+		{% set ns2.module_number = ns2.module_number + 1 %}
+		<div class="mdl-card mdl-shadow--2dp padded" style="width: 100%;" id="module_{{ ns2.module_number }}">
+			<div class="mdl-card__title">
+				<h4 class="mdl-card__title-text">{{ module.strings["name"] }}</h4>
+			</div>
+			<div class="mdl-cad__supporting-text" style="width:100%;">
+				<p>{{ module|getdoc }}</p>
+				<br>
+				<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp table-responsive"
+				       style="width: 100%; display: block; table-layout: fixed;">
+					<colgroup>
+						<col class="config-col">
+						<col class="config-col">
+						<col class="config-col">
+						<col class="config-col">
+					</colgroup>
+					<thead>
+					<tr>
+						<th class="mdl-data-table__cell--non-numeric col">Key</th>
+						<th class="mdl-data-table__cell--non-numeric col">Documentation</th>
+						<th class="mdl-data-table__cell--non-numeric col">Default</th>
+						<th class="mdl-data-table__cell--non-numeric col">Value</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for key in module.config %}
+						<tr>
+							<th class="mdl-data-table__cell--non-numeric col row-header" scope="row">
+							{{ key }}</td>
+							<td class="mdl-data-table__cell--non-numeric col">{{ module.config.getdoc(key) }}</td>
+							<td class="mdl-data-table__cell--non-numeric col">{{ module.config.getdef(key)|ascii }}</td>
+							<td class="mdl-data-table__cell--non-numeric col">
+								<form action="#module_{{ ns2.module_number }}">
+									<div class="mdl-textfield mdl-js-textfield">
                                         <textarea class="mdl-textfield__input" type="text" rows="1"
                                                   data-modulenum="{{ ns2.module_number }}" data-configkey="{{ key }}"
                                                   data-defaultvalue="{{ module.config.getdef(key)|ascii }}"
                                                   data-currentvalue="{{ module.config[key]|ascii }}"
                                                   id="input_{{ ns2.module_number }}_{{ key }}"
                                                   onchange="setConfig(this);">{{ module.config[key]|ascii }}</textarea>
-                                        <label class="mdl-textfield__label"
-                                               for="input_{{ ns2.module_number }}_{{ key }}">{{ module.config.getdef(key)|ascii }}</label>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    {% endfor %}
+										<label class="mdl-textfield__label"
+										       for="input_{{ ns2.module_number }}_{{ key }}">{{ module.config.getdef(key)|ascii }}</label>
+									</div>
+								</form>
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	{% endfor %}
 {% endblock %}

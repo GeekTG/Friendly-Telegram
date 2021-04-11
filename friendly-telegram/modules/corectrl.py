@@ -21,8 +21,10 @@ class CoreMod(loader.Module):
 	           "prefix_set": ("<b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}"
 	                          "</code> <b>to change it back</b>"),
 	           "alias_created": "<b>Alias created. Access it with</b> <code>{}</code>",
+			   "aliases": "<b>Aliases:</b>",
 	           "no_command": "<b>Command</b> <code>{}</code> <b>does not exist</b>",
 	           "alias_args": "<b>You must provide a command and the alias for it</b>",
+				"aliases": "<b>Aliases:</b>",
 	           "delalias_args": "<b>You must provide the alias name</b>",
 	           "alias_removed": "<b>Alias</b> <code>{}</code> <b>removed.",
 	           "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>",
@@ -111,7 +113,14 @@ class CoreMod(loader.Module):
 		self._db.set(main.__name__, "command_prefix", args)
 		await utils.answer(message, self.strings("prefix_set", message).format(newprefix=utils.escape_html(args[0]),
 		                                                                       oldprefix=utils.escape_html(oldprefix)))
-
+	@loader.owner
+	async def aliasescmd(self, message):
+		"""Print all your aliases"""
+		aliases = self.allmodules.aliases
+		string = self.strings("aliases", message)
+		for i, y in aliases.items():
+			string += f"\n{i}: {y}"
+		await utils.answer(message, string)
 	@loader.owner
 	async def addaliascmd(self, message):
 		"""Set an alias for a command"""
@@ -143,6 +152,15 @@ class CoreMod(loader.Module):
 			await utils.answer(message, self.strings("alias_removed", message).format(utils.escape_html(alias)))
 		else:
 			await utils.answer(message, self.strings("no_alias", message).format(utils.escape_html(alias)))
+
+	@loader.owner
+	async def aliasescmd(self, message):
+		"""Print all your aliases"""
+		aliases = self.allmodules.aliases
+		string = self.strings("aliases", message)
+		for i, y in aliases.items():
+			string += f"\n{i}: {y}"
+		await utils.answer(message, string)
 
 	async def addtrnslcmd(self, message):
 		"""Add a translation pack

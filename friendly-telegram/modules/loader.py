@@ -155,7 +155,7 @@ class LoaderMod(loader.Module):
 				args = args[0]
 			if await self.download_and_install(args, message):
 				self._db.set(__name__, "loaded_modules",
-				             list(set(self._db.get(__name__, "loaded_modules", [])).union([args[0].lower()])))
+				             list(set(self._db.get(__name__, "loaded_modules", [])).union([args])))
 		else:
 			text = utils.escape_html("\n".join(await self.get_repo_list("full")))
 			await utils.answer(message, "<b>" + self.strings("avail_header", message)

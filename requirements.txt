@@ -1,5 +1,5 @@
 # Telegram connection
-telethon
+git+https://github.com/GeekTG/Telethon.git@v6.21.1
 
 # Config
 pythondialog

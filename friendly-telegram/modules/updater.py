@@ -150,7 +150,7 @@ class UpdaterMod(loader.Module):
 			                                         caption=self.strings("installing", message), voice_note=True)
 			await asyncio.gather(*[msg.delete() for msg in msgs])
 		else:
-			message = (await utils.answer(message, self.strings("installing", message)))[0]
+			message = (await utils.answer(msgs, self.strings("installing", message)))[0]
 		heroku_key = os.environ.get("heroku_api_token")
 		if heroku_key:
 			from .. import heroku

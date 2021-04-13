@@ -24,7 +24,6 @@ class CoreMod(loader.Module):
 	           "aliases": "<b>Aliases:</b>",
 	           "no_command": "<b>Command</b> <code>{}</code> <b>does not exist</b>",
 	           "alias_args": "<b>You must provide a command and the alias for it</b>",
-	           "aliases": "<b>Aliases:</b>",
 	           "delalias_args": "<b>You must provide the alias name</b>",
 	           "alias_removed": "<b>Alias</b> <code>{}</code> <b>removed.",
 	           "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>",

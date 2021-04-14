@@ -68,8 +68,11 @@ class HelpMod(loader.Module):
 				if name != "Logger" and name != "Raphielgang Configuration Placeholder" and name != "Uniborg configuration placeholder":
 					reply += self.strings("mod_tmpl", message).format(name)
 					first = True
-					commands = [name for name, func in mod.commands.items()
-					            if await self.allmodules.check_security(message, func)]
+					try:
+						commands = [name for name, func in mod.commands.items()
+						            if await self.allmodules.check_security(message, func)]
+					except:
+						pass
 					for cmd in commands:
 						if first:
 							reply += self.strings("first_cmd_tmpl", message).format(cmd)

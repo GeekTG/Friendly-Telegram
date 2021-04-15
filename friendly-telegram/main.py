@@ -55,6 +55,7 @@ def parse_arguments():
 	"""Parse the arguments"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--setup", "-s", action="store_true")
+	parser.add_argument("--port", dest="port", action="store", type=int)
 	parser.add_argument("--phone", "-p", action="append")
 	parser.add_argument("--token", "-t", action="append", dest="tokens")
 	parser.add_argument("--heroku", action="store_true")
@@ -194,7 +195,10 @@ def main():  # noqa: C901
 		if arguments.no_auth:
 			return
 		if web:
-			loop.run_until_complete(web.start())
+			if arguments.port:
+				loop.run_until_complete(web.start(arguments.port))
+			else:
+				loop.run_until_complete(web.start(8080))
 			print("Web mode ready for configuration")  # noqa: T001
 			if not arguments.heroku_web_internal:
 				port = str(web.port)
@@ -249,7 +253,10 @@ def main():  # noqa: C901
 			return
 		if web:
 			if not web.running.is_set():
-				loop.run_until_complete(web.start())
+				if arguments.port:
+					loop.run_until_complete(web.start(arguments.port))
+				else:
+					loop.run_until_complete(web.start(8080))
 				print("Web mode ready for configuration")  # noqa: T001
 				if not arguments.heroku_web_internal:
 					port = str(web.port)
@@ -425,7 +432,10 @@ async def amain(first, client, allclients, web, arguments):
 	if not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
 		if web:
 			await web.add_loader(client, modules, db)
-			await web.start_if_ready(len(allclients))
+			if arguments.port:
+				await web.start_if_ready(len(allclients), arguments.port)
+			else:
+				await web.start_if_ready(len(allclients), 8080)
 		if not web_only:
 			dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test)
 			if is_bot:

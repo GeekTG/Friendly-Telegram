@@ -71,15 +71,15 @@ class HelpMod(loader.Module):
 					try:
 						commands = [name for name, func in mod.commands.items()
 						            if await self.allmodules.check_security(message, func)]
+						for cmd in commands:
+							if first:
+								reply += self.strings("first_cmd_tmpl", message).format(cmd)
+								first = False
+							else:
+								reply += self.strings("cmd_tmpl", message).format(cmd)
+						reply += "</code>"
 					except:
 						pass
-					for cmd in commands:
-						if first:
-							reply += self.strings("first_cmd_tmpl", message).format(cmd)
-							first = False
-						else:
-							reply += self.strings("cmd_tmpl", message).format(cmd)
-					reply += "</code>"
 		await utils.answer(message, reply)
 
 	@loader.unrestricted

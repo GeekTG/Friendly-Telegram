@@ -2,20 +2,20 @@
 git+https://github.com/GeekTG/Telethon.git@v1.21.1-mod
 
 # Config
-pythondialog
+pythondialog==3.5.1
 
 # Heroku & Updater
-heroku3
-gitpython
+heroku3==4.2.3
+gitpython==3.1.14
 
 # Translations
-babel
+babel==2.9.0
 
 # Eval
-meval
+meval==2.5
 
 # Web
-aiohttp_jinja2
+aiohttp_jinja2==1.4.2
 
 # Speedtest
-speedtest-cli
+speedtest-cli==2.1.3

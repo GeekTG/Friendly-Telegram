@@ -55,7 +55,7 @@ def parse_arguments():
 	"""Parse the arguments"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--setup", "-s", action="store_true")
-	parser.add_argument("--port", dest="port", action="store", type=int)
+	parser.add_argument("--port", dest="port", action="store", default=8080, type=int)
 	parser.add_argument("--phone", "-p", action="append")
 	parser.add_argument("--token", "-t", action="append", dest="tokens")
 	parser.add_argument("--heroku", action="store_true")
@@ -195,10 +195,7 @@ def main():  # noqa: C901
 		if arguments.no_auth:
 			return
 		if web:
-			if arguments.port:
-				loop.run_until_complete(web.start(arguments.port))
-			else:
-				loop.run_until_complete(web.start(8080))
+			loop.run_until_complete(web.start(arguments.port))
 			print("Web mode ready for configuration")  # noqa: T001
 			if not arguments.heroku_web_internal:
 				port = str(web.port)

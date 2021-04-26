@@ -109,11 +109,14 @@ class UpdaterMod(loader.Module):
 		await self.download_common()
 		await utils.answer(message, self.strings("downloaded", message))
 
-	async def download_common(self):
+	async def download_common(self, branch: list):
 		try:
 			repo = Repo(os.path.dirname(utils.get_base_dir()))
 			origin = repo.remote("origin")
-			r = origin.pull()
+			if branch and len(branch) > 0:
+				r = origin.pull(branch[0])
+			else:
+				r = origin.pull()
 			new_commit = repo.head.commit
 			for info in r:
 				if info.old_commit:
@@ -144,7 +147,7 @@ class UpdaterMod(loader.Module):
 		"""Downloads userbot updates"""
 		# We don't really care about asyncio at this point, as we are shutting down
 		msgs = await utils.answer(message, self.strings("downloading", message))
-		req_update = await self.download_common()
+		req_update = await self.download_common(utils.get_args(message))
 		if self.config["AUDIO"]:
 			message = await message.client.send_file(message.chat_id, SHUTDOWN,
 			                                         caption=self.strings("installing", message), voice_note=True)

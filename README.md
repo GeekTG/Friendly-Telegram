@@ -2,8 +2,7 @@
 
 # Friendly Telegram Userbot
 
-A fast, easy to setup telegram userbot running Python 3 which uses
-the [Telethon](https://github.com/LonamiWebs/Telethon/) Library.
+A fast, easy to setup telegram userbot running Python 3 which uses fork of the [Telethon](https://github.com/GeekTG/Telethon) Library.
 
 Friendly Telegram, also known as FTG, is not your average Telegram userbot: it's faster, can load modules dynamically
 and is very easy to use!

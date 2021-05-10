@@ -191,7 +191,7 @@ class LoaderMod(loader.Module):
 	async def get_repo_list(self, preset=None):
 		if preset is None:
 			preset = "minimal"
-		r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
+		r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt", verify=False)
 		r.raise_for_status()
 		return set(filter(lambda x: x, r.text.split("\n")))
 
@@ -200,7 +200,7 @@ class LoaderMod(loader.Module):
 			url = module_name
 		else:
 			url = self.config["MODULES_REPO"] + module_name + ".py"
-		r = await utils.run_sync(requests.get, url)
+		r = await utils.run_sync(requests.get, url, verify=False)
 		if r.status_code == 404:
 			if message is not None:
 				await utils.answer(message, self.strings("no_module", message))
@@ -332,7 +332,7 @@ class LoaderMod(loader.Module):
 			await utils.answer(message, self.strings("args_incorrect", message))
 
 	async def load_repo(self, gitApi):
-		req = await utils.run_sync(requests.get, gitApi)
+		req = await utils.run_sync(requests.get, gitApi, verify=False)
 		if req.status_code != 200:
 			return False
 		files = req.json()

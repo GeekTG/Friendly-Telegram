@@ -97,7 +97,7 @@ class TestMod(loader.Module):
 		   Suspends the bot for N seconds"""
 		try:
 			time_sleep = float(utils.get_args_raw(message))
-			await utils.answer(message, self.strings("suspended", message).format(str(time)))
+			await utils.answer(message, self.strings("suspended", message).format(str(time_sleep)))
 			time.sleep(time_sleep)
 		except ValueError:
 			await utils.answer(message, self.strings("suspend_invalid_time", message))

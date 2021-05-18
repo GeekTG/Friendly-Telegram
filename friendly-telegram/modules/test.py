@@ -3,6 +3,7 @@
 
 import logging
 from datetime import datetime
+import time
 from io import BytesIO
 
 import speedtest
@@ -95,9 +96,9 @@ class TestMod(loader.Module):
 		""".suspend <time>
 		   Suspends the bot for N seconds"""
 		try:
-			time = float(utils.get_args_raw(message))
+			time_sleep = float(utils.get_args_raw(message))
 			await utils.answer(message, self.strings("suspended", message).format(str(time)))
-			time.sleep(time)
+			time.sleep(time_sleep)
 		except ValueError:
 			await utils.answer(message, self.strings("suspend_invalid_time", message))
 

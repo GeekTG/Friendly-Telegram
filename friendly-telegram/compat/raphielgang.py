@@ -14,8 +14,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#    Friendly Telegram Userbot
-#    by GeekTG Team
+#    Modded by GeekTG Team
 
 # pylint: disable=R,C,W0613 # This is bad code, just let it be. We will delete it at some point, perhaps?
 

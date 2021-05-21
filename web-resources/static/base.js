@@ -15,8 +15,7 @@
 //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-//    Friendly Telegram Userbot
-//    by GeekTG Team
+//    Modded by GeekTG Team
 
 function scrollToTop() {
 	'use strict';

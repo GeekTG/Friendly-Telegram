@@ -1,4 +1,5 @@
-#    Copyright (C) 2018-2019 The Authors
+#    Friendly Telegram (telegram userbot)
+#    Copyright (C) 2018-2021 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -12,6 +13,9 @@
 
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#    Friendly Telegram Userbot
+#    by GeekTG Team
 
 """Handles heroku uploads"""
 

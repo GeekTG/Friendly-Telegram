@@ -1,3 +1,19 @@
+#    Friendly Telegram (telegram userbot)
+#    Copyright (C) 2018-2021 The Authors
+
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 #    Backup authors: @mishase, @tshipenchko
@@ -191,7 +207,7 @@ class LoaderMod(loader.Module):
 	async def get_repo_list(self, preset=None):
 		if preset is None:
 			preset = "minimal"
-		r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt", verify=False)
+		r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
 		r.raise_for_status()
 		return set(filter(lambda x: x, r.text.split("\n")))
 
@@ -200,7 +216,7 @@ class LoaderMod(loader.Module):
 			url = module_name
 		else:
 			url = self.config["MODULES_REPO"] + module_name + ".py"
-		r = await utils.run_sync(requests.get, url, verify=False)
+		r = await utils.run_sync(requests.get, url)
 		if r.status_code == 404:
 			if message is not None:
 				await utils.answer(message, self.strings("no_module", message))
@@ -332,7 +348,7 @@ class LoaderMod(loader.Module):
 			await utils.answer(message, self.strings("args_incorrect", message))
 
 	async def load_repo(self, gitApi):
-		req = await utils.run_sync(requests.get, gitApi, verify=False)
+		req = await utils.run_sync(requests.get, gitApi)
 		if req.status_code != 200:
 			return False
 		files = req.json()

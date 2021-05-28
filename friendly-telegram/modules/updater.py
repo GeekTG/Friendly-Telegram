@@ -30,7 +30,7 @@ from base64 import b64decode
 from os import path
 
 import git
-from git import Repo
+from git import Repo, GitCommandError
 
 from .. import loader, utils
 
@@ -158,33 +158,40 @@ class UpdaterMod(loader.Module):
 	async def updatecmd(self, message):
 		"""Downloads userbot updates"""
 		# We don't really care about asyncio at this point, as we are shutting down
-		msgs = await utils.answer(message, self.strings("downloading", message))
-		req_update = await self.download_common()
-		if self.config["AUDIO"]:
-			message = await message.client.send_file(message.chat_id, SHUTDOWN,
-			                                         caption=self.strings("installing", message), voice_note=True)
-			await asyncio.gather(*[msg.delete() for msg in msgs])
-		else:
-			message = (await utils.answer(msgs, self.strings("installing", message)))[0]
-		heroku_key = os.environ.get("heroku_api_token")
-		if heroku_key:
-			from .. import heroku
-			await self.prerestart_common(message)
-			heroku.publish(self.allclients, heroku_key)
-			# If we pushed, this won't return. If the push failed, we will get thrown at.
-			# So this only happens when remote is already up to date (remote is heroku, where we are running)
-			self._db.set(__name__, "selfupdatechat", None)
-			self._db.set(__name__, "selfupdatemsg", None)
+		args = utils.get_args(message)
+		if args and args[0].upper() == "HARD":
+			os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")
+		try:
+			msgs = await utils.answer(message, self.strings("downloading", message))
+			req_update = await self.download_common()
 			if self.config["AUDIO"]:
-				await message.client.send_file(message.chat_id, STARTUP, voice_note=True,
-				                               caption=self.strings("already_updated", message))
-				await message.delete()
+				message = await message.client.send_file(message.chat_id, SHUTDOWN,
+				                                         caption=self.strings("installing", message), voice_note=True)
+				await asyncio.gather(*[msg.delete() for msg in msgs])
 			else:
-				await utils.answer(message, self.strings("already_updated", message))
-		else:
-			if req_update:
-				self.req_common()
-			await self.restart_common(message)
+				message = (await utils.answer(msgs, self.strings("installing", message)))[0]
+			heroku_key = os.environ.get("heroku_api_token")
+			if heroku_key:
+				from .. import heroku
+				await self.prerestart_common(message)
+				heroku.publish(self.allclients, heroku_key)
+				# If we pushed, this won't return. If the push failed, we will get thrown at.
+				# So this only happens when remote is already up to date (remote is heroku, where we are running)
+				self._db.set(__name__, "selfupdatechat", None)
+				self._db.set(__name__, "selfupdatemsg", None)
+				if self.config["AUDIO"]:
+					await message.client.send_file(message.chat_id, STARTUP, voice_note=True,
+					                               caption=self.strings("already_updated", message))
+					await message.delete()
+				else:
+					await utils.answer(message, self.strings("already_updated", message))
+			else:
+				if req_update:
+					self.req_common()
+				await self.restart_common(message)
+		except GitCommandError:
+			await message.edit("<b>Installation stopped, because of that some files have been changed</b>\n"
+			                   "To continue send command with argument <b>HARD</b> (<code>.update HARD</code>)")
 
 	@loader.unrestricted
 	async def sourcecmd(self, message):

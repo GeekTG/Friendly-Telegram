@@ -294,16 +294,15 @@ class Modules():
 		self.client = client
 		await self._compat_layer.client_ready(client)
 		try:
-			await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients, True) for mod in self.modules])
+			await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
 			await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
 		except Exception:
 			logging.exception("Failed to send mod init complete signal")
 		if self.added_modules:
 			await self.added_modules(self)
 
-	async def send_ready_one(self, mod, client, db, allclients, core=False):
-		if core:
-			mod.allclients = allclients
+	async def send_ready_one(self, mod, client, db, allclients):
+		mod.allclients = allclients
 
 		try:
 			await mod.client_ready(client, db)

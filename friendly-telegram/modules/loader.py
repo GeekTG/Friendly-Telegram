@@ -189,8 +189,7 @@ class LoaderMod(loader.Module):
 			if e.response.status_code == 404:
 				await utils.answer(message, self.strings("no_preset", message))
 				return
-			else:
-				raise
+			raise
 		self._db.set(__name__, "chosen_preset", args[0])
 		self._db.set(__name__, "loaded_modules", [])
 		self._db.set(__name__, "unloaded_modules", [])
@@ -291,9 +290,8 @@ class LoaderMod(loader.Module):
 					if message is not None:
 						await utils.answer(message, self.strings("requirements_failed", message))
 					return False
-				else:
-					importlib.invalidate_caches()
-					return await self.load_module(doc, message, name, origin, True)  # Try again
+				importlib.invalidate_caches()
+				return await self.load_module(doc, message, name, origin, True)  # Try again
 		except BaseException:  # That's okay because it might try to exit or something, who knows.
 			logger.exception("Loading external module failed.")
 			if message is not None:
@@ -428,7 +426,8 @@ class LoaderMod(loader.Module):
 		args = utils.get_args_raw(message).lower()
 		if args.startswith(*self._db.get(__name__, "command_prefix", ["."])):
 			args = args[1:]
-			if not args: return await utils.answer(message, self.strings("no_command_module", message))
+			if not args: 
+			  return await utils.answer(message, self.strings("no_command_module", message))
 			if args in self.allmodules.commands.keys():
 				args = self.allmodules.commands[args].__self__.strings["name"]
 			elif args in self.allmodules.aliases.keys():
@@ -440,10 +439,10 @@ class LoaderMod(loader.Module):
 			await self.send_module(message, args, False)
 		else:
 			args = utils.get_args_raw(message).lower()
-			if not args: return await utils.answer(message, self.strings("no_name_module", message))
+			if not args: 
+			  return await utils.answer(message, self.strings("no_name_module", message))
 			message = await utils.answer(message, self.strings("searching", message))
 			await self.send_module(message, args, True)
-
 	async def send_module(self, message, args, by_name):
 		"""Sends module by name"""
 		try:

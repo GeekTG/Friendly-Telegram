@@ -265,9 +265,9 @@ class SecurityManager:
 					return
 				if isinstance(participant, telethon.types.ChatParticipantCreator):
 					return True
-				if isinstance(participant, telethon.types.ChatParticipantAdmin):
-					if f_group_admin_any:
-						return True
+				if (isinstance(participant, telethon.types.ChatParticipantAdmin)
+				    and f_group_admin_any):
+					return True
 		return False
 
 	if __debug__:

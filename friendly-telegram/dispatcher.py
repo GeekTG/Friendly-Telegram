@@ -161,8 +161,8 @@ class CommandDispatcher:
 			if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
 				logging.debug("Command is blacklisted in chat")
 				return
-			if whitelist_modules and not (str(utils.get_chat_id(message)) + "."
-			                              + func.__self__.__module__ in whitelist_modules):
+			if (whitelist_modules and str(utils.get_chat_id(message)) + "." +
+			    func.__self__.__module__ not in whitelist_modules):
 				logging.debug("Command is not whitelisted in chat")
 				return
 
@@ -197,8 +197,8 @@ class CommandDispatcher:
 			if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
 				logging.debug("Command is blacklisted in chat")
 				return
-			if whitelist_modules and not (str(utils.get_chat_id(message)) + "."
-			                              + func.__self__.__module__ in whitelist_modules):
+			if (whitelist_modules and str(utils.get_chat_id(message)) + "." +
+			    func.__self__.__module__ not in whitelist_modules):
 				logging.debug("Command is not whitelisted in chat")
 				return
 			try:

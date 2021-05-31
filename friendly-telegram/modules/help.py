@@ -80,7 +80,11 @@ class HelpMod(loader.Module):
 					name = mod.strings("name", message)
 				except KeyError:
 					name = getattr(mod, "name", "ERROR")
-				if name != "Logger" and name != "Raphielgang Configuration Placeholder" and name != "Uniborg configuration placeholder":
+				if name not in [
+				    "Logger",
+				    "Raphielgang Configuration Placeholder",
+				    "Uniborg configuration placeholder",
+				]:
 					reply += self.strings("mod_tmpl", message).format(name)
 					first = True
 					try:

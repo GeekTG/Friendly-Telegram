@@ -90,9 +90,8 @@ class UpdaterMod(loader.Module):
 				f = open(pt, "rb")
 				if f.read() != uf:
 					f.close()
-					f = open(pt, "wb")
-					f.write(uf)
-					f.close()
+					with open(pt, "wb") as f:
+						f.write(uf)
 			l = self._db.get("friendly-telegram.modules.loader", "unloaded_modules", [])
 			if lnk in l:
 				l.remove(lnk)

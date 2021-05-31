@@ -179,7 +179,7 @@ class UniborgUtil:
 			kwargs.setdefault("pattern", ".*")
 		if not (kwargs["pattern"].startswith(".") or kwargs["pattern"].startswith(r"\.")):
 			kwargs["pattern"] = r"\." + kwargs["pattern"]
-		if not ("incoming" in kwargs.keys() or "outgoing" in kwargs.keys()):
+		if "incoming" not in kwargs.keys() and "outgoing" not in kwargs.keys():
 			kwargs["outgoing"] = True
 		if "allow_sudo" in kwargs.keys():
 			del kwargs["allow_sudo"]

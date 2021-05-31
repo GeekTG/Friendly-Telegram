@@ -92,14 +92,13 @@ class CoreMod(loader.Module):
 			return int(utils.get_args(message)[0])
 		except (ValueError, IndexError):
 			reply = await message.get_reply_message()
-			if not reply:
-				if message.is_private:
-					return message.to_id.user_id
-				else:
-					await utils.answer(message, self.strings("who_to_unblacklist", message))
-					return
-			else:
+			if reply:
 				return (await message.get_reply_message()).sender_id
+
+			if message.is_private:
+				return message.to_id.user_id
+			await utils.answer(message, self.strings("who_to_unblacklist", message))
+			return
 
 	async def blacklistusercmd(self, message):
 		""".blacklistuser [id]
@@ -236,8 +235,9 @@ class CoreMod(loader.Module):
 		await utils.answer(message, self.strings("db_cleared", message))
 
 	async def _client_ready2(self, client, db):
-		ret = {}
-		for alias, cmd in db.get(__name__, "aliases", {}).items():
-			if self.allmodules.add_alias(alias, cmd):
-				ret[alias] = cmd
+		ret = {
+		    alias: cmd
+		    for alias, cmd in db.get(__name__, "aliases", {}).items()
+		    if self.allmodules.add_alias(alias, cmd)
+		}
 		db.set(__name__, "aliases", ret)

@@ -39,21 +39,28 @@ def _safe_input(*args, **kwargs):
 	except (EOFError, OSError):
 		print()
 		print("=" * 30)
-		print()
-		print("Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!")
-		print()
-		print("It is likely that you tried to deploy to heroku - you cannot do this via the web interface.")
-		print("To deploy to heroku, go to https://friendly-telegram.gitlab.io/heroku to learn more")
-		print()
-		print("If you're not using heroku, then you are using a non-interactive prompt but "
-		      "you have not got a session configured, meaning authentication to Telegram is impossible.")
-		print()
-		print("THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!")
-		print("Goodbye.")
+		bigprint(
+		    "Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!",
+		    "It is likely that you tried to deploy to heroku - you cannot do this via the web interface.",
+		    "To deploy to heroku, go to https://friendly-telegram.gitlab.io/heroku to learn more",
+		)
+		bigprint(
+		    "If you're not using heroku, then you are using a non-interactive prompt but "
+		    "you have not got a session configured, meaning authentication to Telegram is impossible.",
+		    "THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!",
+		    "Goodbye.",
+		)
 		sys.exit(1)
 	except KeyboardInterrupt:
 		print()
 		return None
+
+def bigprint(arg0, arg1, arg2):
+	print()
+	print(arg0)
+	print()
+	print(arg1)
+	print(arg2)
 
 
 class TDialog():
@@ -74,9 +81,9 @@ class TDialog():
 		print()
 		print(title)
 		print()
-		biggest = max([len(k) for k, d in choices])
+		biggest = max(len(k) for k, d in choices)
 		i = 1
-		for k, v in choices:
+		for i, (k, v) in enumerate(choices, 1):
 			print(" " + str(i) + ". " + k + (" " * (biggest + 2 - len(k))) + (v.replace("\n", "...\n      ")))
 			i += 1
 		while True:
@@ -167,9 +174,9 @@ def modules_config():
 
 def module_config(mod):
 	"""Show menu for specific module and allow user to set config items"""
-	choices = []
-	for key in getattr(mod, "config", {}).keys():
-		choices += [(key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))]
+	choices = [(key, getattr(mod.config,
+	                         "getdoc", lambda k: "Undocumented key")(key))
+	           for key in getattr(mod, "config", {}).keys()]
 	code, tag = DIALOG.menu("Module configuration for {}".format(mod.name), choices=choices)
 	if code == DIALOG.OK:
 		code, value = DIALOG.inputbox(tag)
@@ -237,16 +244,15 @@ def main_config(init, data_root):
 	           ("Logging", "Configure debug output"),
 	           ("Factory reset", "Removes all userbot data stored in Telegram cloud")]
 	code, tag = DIALOG.menu("Main Menu", choices=choices)
-	if code == DIALOG.OK:
-		if tag == "Modules":
-			modules_config()
-		if tag == "API Token and ID":
-			api_config(data_root)
-		if tag == "Logging":
-			logging_config()
-		if tag == "Factory reset":
-			factory_reset_check()
-			return False
-	else:
+	if code != DIALOG.OK:
+		return False
+	if tag == "Modules":
+		modules_config()
+	if tag == "API Token and ID":
+		api_config(data_root)
+	if tag == "Logging":
+		logging_config()
+	if tag == "Factory reset":
+		factory_reset_check()
 		return False
 	return True

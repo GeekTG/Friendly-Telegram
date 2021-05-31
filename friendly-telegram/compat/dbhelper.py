@@ -17,9 +17,7 @@ async def mute(chatid, userid):
 async def is_muted(chatid, userid):
 	is_muted = MONGO.mutes.find_one({'chat_id': chatid, 'user_id': userid})
 
-	if not is_muted:
-		return False
-	return True
+	return bool(is_muted)
 
 
 async def unmute(chatid, userid):
@@ -32,11 +30,7 @@ async def unmute(chatid, userid):
 async def get_muted(chatid):
 	muted_db = MONGO.mutes.find({'chat_id': int(chatid)})
 
-	muted = []
-	for user in muted_db:
-		muted.append(user["user_id"])
-
-	return muted
+	return [user["user_id"] for user in muted_db]
 
 
 # GMutes
@@ -50,9 +44,7 @@ async def gmute(userid):
 async def is_gmuted(userid):
 	is_gmuted = MONGO.gmutes.find_one({'user_id': userid})
 
-	if not is_gmuted:
-		return False
-	return True
+	return bool(is_gmuted)
 
 
 async def ungmute(userid):
@@ -64,12 +56,7 @@ async def ungmute(userid):
 
 async def get_gmuted():
 	gmuted_db = MONGO.gmutes.find()
-	gmuted = []
-
-	for user in gmuted_db:
-		gmuted.append(user["user_id"])
-
-	return gmuted
+	return [user["user_id"] for user in gmuted_db]
 
 
 # Filters
@@ -258,7 +245,7 @@ async def block_pm(userid):
 
 
 async def notif_state():
-	state = dict()
+	state = {}
 	state_db = MONGO.notif.find()
 
 	for stat in state_db:
@@ -274,7 +261,7 @@ async def notif_state():
 
 
 async def __notif_id():
-	id_real = dict()
+	id_real = {}
 	id_db = MONGO.notif.find()
 
 	for id_s in id_db:
@@ -309,9 +296,7 @@ def strb(redis_string):
 
 async def is_afk():
 	to_check = REDIS.get('is_afk')
-	if to_check:
-		return True
-	return False
+	return bool(to_check)
 
 
 async def afk(reason):
@@ -347,9 +332,7 @@ async def remove_chat_fban(chatid):
 
 
 async def is_fban(chatid):
-	if not MONGO.fban.find_one({"chatid": chatid}):
-		return False
-	return True
+	return bool(MONGO.fban.find_one({"chatid": chatid}))
 
 
 # Gbans
@@ -373,9 +356,7 @@ async def remove_chat_gban(chatid):
 
 
 async def is_gban(chatid):
-	if not MONGO.gban.find_one({"chatid": chatid}):
-		return False
-	return True
+	return bool(MONGO.gban.find_one({"chatid": chatid}))
 
 
 # Time

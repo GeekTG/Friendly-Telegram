@@ -168,7 +168,7 @@ def _fix_entities(ent, cont_msg, initial=False):
 		if not initial:
 			entity.offset -= len(cont_msg)
 			entity.length += len(cont_msg)
-		if entity.offset + entity.length - 4096 < 0:
+		if entity.offset + entity.length < 4096:
 			entity.offset = 0
 			entity.length = 0  # It's useless
 			continue
@@ -188,7 +188,6 @@ async def answer(message, response, **kwargs):
 	if await message.client.is_bot() and isinstance(response, str) and len(response) > 4096:
 		kwargs.setdefault("asfile", True)
 	kwargs.setdefault("link_preview", False)
-	cont_msg = "[continued]\n"
 	edit = message.out
 	if not edit:
 		kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
@@ -199,6 +198,7 @@ async def answer(message, response, **kwargs):
 		logging.debug(ent)
 		ret = [await (message.edit if edit else message.respond)(txt[:4096], parse_mode=lambda t: (t, ent), **kwargs)]
 		txt = txt[4096:]
+		cont_msg = "[continued]\n"
 		_fix_entities(ent, cont_msg, True)
 		while len(txt) > 0:
 			txt = cont_msg + txt

@@ -94,12 +94,11 @@ class ModuleConfig(dict):
 	"""Like a dict but contains doc for each key"""
 
 	def __init__(self, *entries):
-		i = 0
 		keys = []
 		values = []
 		defaults = []
 		docstrings = []
-		for entry in entries:
+		for i, entry in enumerate(entries):
 			if i % 3 == 0:
 				keys.append(entry)
 			elif i % 3 == 1:
@@ -107,7 +106,6 @@ class ModuleConfig(dict):
 				defaults.append(entry)
 			else:
 				docstrings.append(entry)
-			i += 1
 		super().__init__(zip(keys, values))
 		self._docstrings = dict(zip(keys, docstrings))
 		self._defaults = dict(zip(keys, defaults))

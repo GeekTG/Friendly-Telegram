@@ -316,7 +316,7 @@ async def download_file(client: TelegramClient,
 			r = progress_callback(out.tell(), size)
 			if inspect.isawaitable(r):
 				await r
-	
+
 	return out
 
 

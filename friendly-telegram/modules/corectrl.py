@@ -47,7 +47,9 @@ class CoreMod(loader.Module):
 	           "trnsl_saved": "<b>Translation pack added</b>",
 	           "packs_cleared": "<b>Translations cleared</b>",
 	           "lang_set": "<b>Language changed</b>",
-	           "db_cleared": "<b>Database cleared</b>"}
+	           "db_cleared": "<b>Database cleared</b>",
+	           "no_args": "<strong>Invalid arguments</strong>",
+	           "not_found": "<strong>Command not found</strong>"	           }
 
 	async def client_ready(self, client, db):
 		self._db = db
@@ -176,6 +178,28 @@ class CoreMod(loader.Module):
 		for i, y in aliases.items():
 			string += f"\n{i}: {y}"
 		await utils.answer(message, string)
+
+	async def excmd(self, message):
+		"""ex [count] [command] [args...]"""
+		args = message.raw_text.split(" ", maxsplit=3)
+
+		if len(args) < 3:
+			await utils.answer(message, self.strings["no_args"])
+			return
+
+		if args[2] in self.allmodules.aliases.keys():
+			command = self.allmodules.commands[self.allmodules.aliases[args[2]]]
+		elif args[2] in self.allmodules.commands.keys():
+			command = self.allmodules.commands[args[2]]
+		else:
+			await utils.answer(message, self.strings["not_found"])
+			return
+
+		reply = await message.get_reply_message()
+		for i in range(int(args[1])):
+			msg = "." + " ".join(args[2:]).format(n=i)
+			event = await reply.reply(msg) if reply else await message.respond(msg)
+			await command(event)
 
 	async def addtrnslcmd(self, message):
 		"""Add a translation pack

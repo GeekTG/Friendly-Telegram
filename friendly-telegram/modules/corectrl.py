@@ -194,7 +194,7 @@ class CoreMod(loader.Module):
 		else:
 			await utils.answer(message, self.strings["not_found"])
 			return
-
+		await message.delete()
 		reply = await message.get_reply_message()
 		for i in range(int(args[1])):
 			msg = "." + " ".join(args[2:]).format(n=i)

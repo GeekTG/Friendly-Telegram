@@ -99,7 +99,7 @@ class TestMod(loader.Module):
 			                                                                                              message))))
 			return
 		[handler] = logging.getLogger().handlers
-		logs = ("\n".join(handler.dumps(lvl))).encode("utf-16")
+		logs = ("\n".join(handler.dumps(lvl))).encode("utf-8")
 		if not len(logs) > 0:
 			await utils.answer(message, self.strings("no_logs", message).format(lvl))
 			return

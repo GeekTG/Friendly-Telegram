@@ -1,6 +1,7 @@
 *__pycache__
 *.pyc
 friendly-telegram/api_token.py
+friendly-telegram/FTG-Modules
 friendly-telegram*.session*
 database-*.json
 *.swp

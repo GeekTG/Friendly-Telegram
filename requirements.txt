@@ -2,7 +2,7 @@
 Telethon-Mod==1.21.1
 
 # Config
-pythondialog==3.5.1
+pythondialog==3.5.2
 
 # Heroku & Updater
 heroku3==4.2.3

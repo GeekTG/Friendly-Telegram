@@ -36,12 +36,13 @@ def _decrement_ratelimit(delay, data, key, severity):
 
 
 class CommandDispatcher:
-	def __init__(self, modules, db, bot, testing):
+	def __init__(self, modules, db, bot, testing, no_nickname=False):
 		self._modules = modules
 		self._db = db
 		self._bot = bot
 		self.security = security.SecurityManager(db, bot)
 		self._testing = testing
+		self.no_nickname = no_nickname
 		if not testing:
 			self._ratelimit_storage_user = collections.defaultdict(int)
 			self._ratelimit_storage_chat = collections.defaultdict(int)
@@ -143,8 +144,9 @@ class CommandDispatcher:
 						return
 				elif tag[1].lower() != self._cached_username:
 					return
-			elif not event.is_private and not event.out:
-				return
+			elif not self.no_nickname:
+				if event.is_private and not event.out:
+					return
 		logging.debug(tag[0])
 
 		txt, func = self._modules.dispatch(tag[0])

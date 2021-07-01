@@ -261,3 +261,19 @@ async def get_target(message, arg_no=0):
 	else:
 		if isinstance(ent, User):
 			return ent.id
+
+
+def merge(a, b):
+	"""Merge with replace dictionary a to dictionary b"""
+	for key in a:
+		if key in b:
+			if isinstance(a[key], dict) and isinstance(b[key], dict):
+				b[key] = merge(a[key], b[key])
+			elif isinstance(a[key], list) and isinstance(b[key], list):
+				b[key] = list(set(b[key] + a[key]))
+			else:
+				b[key] = a[key]
+
+		b[key] = a[key]
+
+	return b

@@ -74,6 +74,8 @@ def parse_arguments():
 	parser.add_argument("--phone", "-p", action="append")
 	parser.add_argument("--token", "-t", action="append", dest="tokens")
 	parser.add_argument("--heroku", action="store_true")
+	parser.add_argument("--no-nickname", "-nn", dest="no_nickname", action="store_true")
+	parser.add_argument("--constant-database", "-cd", dest="constant_database", action="store_true")
 	parser.add_argument("--local-db", dest="local", action="store_true")
 	parser.add_argument("--web-only", dest="web_only", action="store_true")
 	parser.add_argument("--no-web", dest="web", action="store_false")
@@ -427,6 +429,21 @@ async def amain(first, client, allclients, web, arguments):
 	logging.info("Loading logging config...")
 	handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
+	if arguments.constant_database:
+		logging.debug("starting patch database")
+		async with asyncio.Lock():
+			filename = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "constant_database.json")
+			if not os.path.isfile(filename):
+				logging.debug("nothing to patch")
+				with open(filename, "w+") as file:
+					json.dump({}, file)
+			else:
+				with open(filename, "r") as file:
+					constant = json.load(file)
+					db = utils.merge(constant, db)
+					await db.save()
+					logging.debug("successfully patched")
+
 	to_load = None
 	if arguments.heroku_deps_internal or arguments.docker_deps_internal:
 		to_load = ["loader.py"]
@@ -440,6 +457,7 @@ async def amain(first, client, allclients, web, arguments):
 	await babelfish.init(client)
 
 	modules = loader.Modules()
+	no_nickname = arguments.no_nickname
 
 	if not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
 		if web:
@@ -449,7 +467,7 @@ async def amain(first, client, allclients, web, arguments):
 			else:
 				await web.start_if_ready(len(allclients), 8080)
 		if not web_only:
-			dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test)
+			dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test, no_nickname)
 			if is_bot:
 				modules.added_modules = functools.partial(set_commands, dispatcher.security)
 	if arguments.heroku_deps_internal or arguments.docker_deps_internal:

@@ -154,11 +154,10 @@ class UpdaterMod(loader.Module):
 			logger.exception("Req install failed")
 
 	@loader.owner
-	async def updatecmd(self, message):
+	async def updatecmd(self, message, hard=False):
 		"""Downloads userbot updates"""
 		# We don't really care about asyncio at this point, as we are shutting down
-		args = utils.get_args(message)
-		if args and args[0].upper() == "HARD":
+		if hard:
 			os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")
 		try:
 			msgs = await utils.answer(message, self.strings("downloading", message))
@@ -189,8 +188,7 @@ class UpdaterMod(loader.Module):
 					self.req_common()
 				await self.restart_common(message)
 		except GitCommandError:
-			await message.edit("<b>Installation stopped, because of that some files have been changed</b>\n"
-			                   "To continue send command with argument <b>HARD</b> (<code>.update HARD</code>)")
+			await self.updatecmd(self, message, True)
 
 	@loader.unrestricted
 	async def sourcecmd(self, message):

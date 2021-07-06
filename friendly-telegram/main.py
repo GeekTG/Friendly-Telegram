@@ -20,13 +20,16 @@ import argparse
 import asyncio
 import atexit
 import collections
+import configparser
 import functools
 import importlib
 import json
 import logging
 import os
 import platform
+import random
 import signal
+import socket
 import sqlite3
 import sys
 import time
@@ -66,11 +69,30 @@ def run_config(db, data_root, phone=None, modules=None):
 	return configurator.run(db, data_root, phone, phone is None, modules)
 
 
+def gen_port():
+	if os.path.isdir("/app/friendly-telegram"):
+		return 8080
+	config = configparser.ConfigParser()
+	path = "config.ini"
+	if os.path.isfile(path):
+		config.read(path)
+		port = int(config.get("Settings", "port"))
+	else:
+		port = random.randint(1024, 65536)
+		while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
+			port = random.randint(1024, 65536)
+		config.add_section("Settings")
+		config.set("Settings", "port", str(port))
+		with open(path, "w") as config_file:
+			config.write(config_file)
+	return port
+
+
 def parse_arguments():
 	"""Parse the arguments"""
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--setup", "-s", action="store_true")
-	parser.add_argument("--port", dest="port", action="store", default=8080, type=int)
+	parser.add_argument("--port", dest="port", action="store", default=gen_port(), type=int)
 	parser.add_argument("--phone", "-p", action="append")
 	parser.add_argument("--token", "-t", action="append", dest="tokens")
 	parser.add_argument("--heroku", action="store_true")
@@ -267,10 +289,7 @@ def main():  # noqa: C901
 			return
 		if web:
 			if not web.running.is_set():
-				if arguments.port:
-					loop.run_until_complete(web.start(arguments.port))
-				else:
-					loop.run_until_complete(web.start(8080))
+				loop.run_until_complete(web.start(arguments.port))
 				print("Web mode ready for configuration")  # noqa: T001
 				if not arguments.heroku_web_internal:
 					port = str(web.port)
@@ -432,7 +451,8 @@ async def amain(first, client, allclients, web, arguments):
 	if arguments.constant_database:
 		logging.debug("starting patch database")
 		async with asyncio.Lock():
-			filename = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "constant_database.json")
+			filename = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()),
+			                        "constant_database.json")
 			if not os.path.isfile(filename):
 				logging.debug("nothing to patch")
 				with open(filename, "w+") as file:
@@ -462,10 +482,7 @@ async def amain(first, client, allclients, web, arguments):
 	if not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
 		if web:
 			await web.add_loader(client, modules, db)
-			if arguments.port:
-				await web.start_if_ready(len(allclients), arguments.port)
-			else:
-				await web.start_if_ready(len(allclients), 8080)
+			await web.start_if_ready(len(allclients), arguments.port)
 		if not web_only:
 			dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test, no_nickname)
 			if is_bot:

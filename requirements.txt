@@ -22,3 +22,7 @@ speedtest-cli==2.1.3
 
 # Asyncio Matrix framework
 mautrix==0.9.8
+
+aiohttp>=3.7.4.post0
+Jinja2>=3.0.1
+requests>=2.25.1

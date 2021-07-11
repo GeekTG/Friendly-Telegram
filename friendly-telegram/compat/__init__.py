@@ -58,8 +58,8 @@ class BotCompat(MetaPathFinder, Loader):  # pylint: disable=W0223 # It's wrong -
 		for mod in self.created:
 			try:
 				await mod.client_ready(client)
-			except BaseException:
-				logging.exception("Failed to send client_ready to compat layer " + repr(mod))
+			except BaseException as e:
+				logging.exception("Failed to send client_ready to compat layer " + repr(mod) + f"due to {e}")
 
 
 def activate(clients):

@@ -28,7 +28,7 @@ else:
 
 class MemoryHandler(logging.Handler):
 	"""Keeps 2 buffers. One for dispatched messages. One for unused messages. When the length of the 2 together is 100
-	   truncate to make them 100 together, first trimming handled then unused."""
+	truncate to make them 100 together, first trimming handled then unused. """
 
 	def __init__(self, target, capacity):
 		super().__init__(0)
@@ -56,7 +56,7 @@ class MemoryHandler(logging.Handler):
 			else:
 				del self.buffer[0]
 		self.buffer.append(record)
-		if record.levelno >= self.lvl and self.lvl >= 0:
+		if record.levelno >= self.lvl >= 0:
 			self.acquire()
 			try:
 				for precord in self.buffer:

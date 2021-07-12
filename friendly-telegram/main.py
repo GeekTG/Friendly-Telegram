@@ -180,7 +180,7 @@ def get_api_token(arguments):
 
 def get_proxy(arguments):
     """Get proxy tuple from --proxy-host, --proxy-port and --proxy-secret
-	   and connection to use (depends on proxy - provided or not)"""
+    and connection to use (depends on proxy - provided or not)"""
     if arguments.proxy_host is not None and arguments.proxy_port is not None and arguments.proxy_secret is not None:
         logging.debug("Using proxy: %s:%s", arguments.proxy_host, arguments.proxy_port)
         return ((arguments.proxy_host, arguments.proxy_port, arguments.proxy_secret),

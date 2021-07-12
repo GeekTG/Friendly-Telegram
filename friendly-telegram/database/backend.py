@@ -85,7 +85,7 @@ class CloudBackend:
     async def do_download(self):
         # TODO: PEP 8: E101 indentation contains mixed spaces and tabs
         """Attempt to download the database.
-		   Return the database (as unparsed JSON) or None"""
+        Return the database (as unparsed JSON) or None"""
         if not self.db:
             self.db = await self._find_data_channel()
             if not self.db:
@@ -110,7 +110,7 @@ class CloudBackend:
 
     async def do_upload(self, data):
         """Attempt to upload the database.
-		   Return True or throw"""
+        Return True or throw"""
         if not self.db:
             self.db = await self._find_data_channel()
             if not self.db:

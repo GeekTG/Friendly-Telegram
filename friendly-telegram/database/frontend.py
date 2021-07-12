@@ -66,17 +66,18 @@ class Database(dict):
 		if db is not None:
 			try:
 				self.update(**json.loads(db))
-			except Exception:
+			except Exception as e:
+				logging.info(f"Failed to load database due to {e}", ext_info=True)
 				# Don't worry if its corrupted. Just set it to {} and let it be fixed on next upload
-				pass
+
 		self._loading = False
 		self._waiter.set()
 
 	async def close(self):
 		try:
 			await self.save()
-		except Exception:
-			logging.info("Database close failed", exc_info=True)
+		except Exception as e:
+			logging.info(f"Database close failed due to {e}", exc_info=True)
 		if self._backend is not None:
 			self._backend.close()
 
@@ -118,6 +119,7 @@ class Database(dict):
 		self._sync_future.set_result(True)
 
 	async def reload(self, event):
+		# TODO: remove unused event
 		if self._noop:
 			return
 		try:

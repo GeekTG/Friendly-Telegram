@@ -59,9 +59,9 @@ class PythonMod(loader.Module):
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
             exc = exc.replace(phone, "❚" * len(phone))
             await utils.answer(message, self.strings("evaluate_fail", message)
-                               .format_(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
+                               .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
-        ret = ret.format_(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
+        ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
         ret = ret.replace(str(phone), "❚" * len(str(phone)))
         await utils.answer(message, ret)
 
@@ -77,7 +77,7 @@ class PythonMod(loader.Module):
             exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
             exc = exc.replace(str(phone), "❚" * len(str(phone)))
             await utils.answer(message, self.strings("execute_fail", message)
-                               .format_(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
+                               .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
             return
 
     async def getattrs(self, message):

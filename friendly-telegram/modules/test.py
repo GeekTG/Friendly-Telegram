@@ -95,17 +95,17 @@ class TestMod(loader.Module):
         if lvl < logging.WARNING and (len(args) != 2 or
                                       args[1] != self.strings("logs_force", message)):
             await utils.answer(message,
-                               self.strings("logs_unsafe", message).format_(utils.escape_html(self.strings("logs_force",
-                                                                                                           message))))
+                               self.strings("logs_unsafe", message).format(utils.escape_html(self.strings("logs_force",
+                                                                                                          message))))
             return
         [handler] = logging.getLogger().handlers
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-16")
         if not len(logs) > 0:
-            await utils.answer(message, self.strings("no_logs", message).format_(lvl))
+            await utils.answer(message, self.strings("no_logs", message).format(lvl))
             return
         logs = BytesIO(logs)
         logs.name = self.strings("logs_filename", message)
-        await utils.answer(message, logs, caption=self.strings("logs_caption", message).format_(lvl))
+        await utils.answer(message, logs, caption=self.strings("logs_caption", message).format(lvl))
 
     @loader.owner
     async def suspendcmd(self, message):
@@ -113,7 +113,7 @@ class TestMod(loader.Module):
         Suspends the bot for N seconds"""
         try:
             time_sleep = float(utils.get_args_raw(message))
-            await utils.answer(message, self.strings("suspended", message).format_(str(time_sleep)))
+            await utils.answer(message, self.strings("suspended", message).format(str(time_sleep)))
             time.sleep(time_sleep)
         except ValueError:
             await utils.answer(message, self.strings("suspend_invalid_time", message))
@@ -138,9 +138,9 @@ class TestMod(loader.Module):
                 logger.warning("server failed")
         results = await utils.run_sync(self.speedtest, servers)
         ret = self.strings("results", message) + "\n\n"
-        ret += self.strings("results_download", message).format_(round(results["download"] / 2 ** 20, 2)) + "\n"
-        ret += self.strings("results_upload", message).format_(round(results["upload"] / 2 ** 20, 2)) + "\n"
-        ret += self.strings("results_ping", message).format_(round(results["ping"], 2)) + "\n"
+        ret += self.strings("results_download", message).format(round(results["download"] / 2 ** 20, 2)) + "\n"
+        ret += self.strings("results_upload", message).format(round(results["upload"] / 2 ** 20, 2)) + "\n"
+        ret += self.strings("results_ping", message).format(round(results["ping"], 2)) + "\n"
         await utils.answer(message, ret)
 
     def speedtest(self, servers):

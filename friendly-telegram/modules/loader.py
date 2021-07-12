@@ -457,7 +457,7 @@ class LoaderMod(loader.Module):
             core_module = False
 
             if link.startswith("http"):
-                text = self.strings("module_link", message).format_(link, f, link)
+                text = self.strings("module_link", message).format(link, f, link)
             elif (
                 not link.startswith("http")
                 and link == "<string>"
@@ -465,10 +465,10 @@ class LoaderMod(loader.Module):
                 and link != "<string>"
                 and not path.isfile(link)
             ):
-                text = self.strings("file", message).format_(f)
+                text = self.strings("file", message).format(f)
             else:
                 core_module = True
-                text = self.strings("file_core", message).format_(f)
+                text = self.strings("file_core", message).format(f)
             if core_module:
                 with open(link, "rb") as file:
                     out = io.BytesIO(file.read())
@@ -480,7 +480,7 @@ class LoaderMod(loader.Module):
             await utils.answer(message, out, caption=text)
         except Exception as e:
             log_text = self.strings("not_found_info", message) if by_name else self.strings("not_found_info", message)
-            logger.info(log_text.format_(args) + f"\nDue to {e}", exc_info=True)
+            logger.info(log_text.format(args) + f"\nDue to {e}", exc_info=True)
             await utils.answer(message, self.strings("not_found", message))
 
     async def _update_modules(self):

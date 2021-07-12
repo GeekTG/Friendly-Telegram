@@ -195,7 +195,7 @@ class UpdaterMod(loader.Module):
     @loader.unrestricted
     async def sourcecmd(self, message):
         """Links the source code of this project"""
-        await utils.answer(message, self.strings("source", message).format_(self.config["GIT_ORIGIN_URL"]))
+        await utils.answer(message, self.strings("source", message).format(self.config["GIT_ORIGIN_URL"]))
 
     async def client_ready(self, client, db):
         self._db = db

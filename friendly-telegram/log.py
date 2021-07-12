@@ -47,7 +47,7 @@ class MemoryHandler(logging.Handler):
 
 	def dumps(self, lvl=0):
 		"""Return all entries of minimum level as list of strings"""
-		return [self.target.format_(record) for record in (self.buffer + self.handledbuffer) if record.levelno >= lvl]
+		return [self.target.format(record) for record in (self.buffer + self.handledbuffer) if record.levelno >= lvl]
 
 	def emit(self, record):
 		if len(self.buffer) + len(self.handledbuffer) >= self.capacity:

@@ -58,7 +58,7 @@ class HelpMod(loader.Module):
                 name = module.strings("name", message)
             except KeyError:
                 name = getattr(module, "name", "ERROR")
-            reply = self.strings("single_mod_header", message).format_(utils.escape_html(name))
+            reply = self.strings("single_mod_header", message).format(utils.escape_html(name))
             if module.__doc__:
                 reply += "\n" + "\n".join("  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
             else:
@@ -66,15 +66,15 @@ class HelpMod(loader.Module):
             commands = {name: func for name, func in module.commands.items()
                         if await self.allmodules.check_security(message, func)}
             for name, fun in commands.items():
-                reply += self.strings("single_cmd", message).format_(name)
+                reply += self.strings("single_cmd", message).format(name)
                 if fun.__doc__:
                     reply += utils.escape_html("\n".join("  " + t for t in inspect.getdoc(fun).split("\n")))
                 else:
                     reply += self.strings("undoc_cmd", message)
         else:
-            reply = self.strings("all_header", message).format_(utils.escape_html((self.db.get(main.__name__,
+            reply = self.strings("all_header", message).format(utils.escape_html((self.db.get(main.__name__,
                                                                                                "command_prefix",
-                                                                                               False) or ".")[0]))
+                                                                                              False) or ".")[0]))
             for mod in self.allmodules.modules:
                 try:
                     name = mod.strings("name", message)
@@ -85,17 +85,17 @@ class HelpMod(loader.Module):
                     "Raphielgang Configuration Placeholder",
                     "Uniborg configuration placeholder",
                 ]:
-                    reply += self.strings("mod_tmpl", message).format_(name)
+                    reply += self.strings("mod_tmpl", message).format(name)
                     first = True
                     try:
                         commands = [name for name, func in mod.commands.items()
                                     if await self.allmodules.check_security(message, func)]
                         for cmd in commands:
                             if first:
-                                reply += self.strings("first_cmd_tmpl", message).format_(cmd)
+                                reply += self.strings("first_cmd_tmpl", message).format(cmd)
                                 first = False
                             else:
-                                reply += self.strings("cmd_tmpl", message).format_(cmd)
+                                reply += self.strings("cmd_tmpl", message).format(cmd)
                         reply += "</code>"
                     except:
                         # TODO: FIX THAT SHIT

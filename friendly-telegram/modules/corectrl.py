@@ -79,7 +79,7 @@ class CoreMod(loader.Module):
         Blacklist the bot from operating somewhere"""
         chatid = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [chatid])
-        await utils.answer(message, self.strings("blacklisted", message).format_(chatid))
+        await utils.answer(message, self.strings("blacklisted", message).format(chatid))
 
     async def unblacklistcmd(self, message):
         """.unblacklist [id]
@@ -87,7 +87,7 @@ class CoreMod(loader.Module):
         chatid = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats",
                      list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])))
-        await utils.answer(message, self.strings("unblacklisted", message).format_(chatid))
+        await utils.answer(message, self.strings("unblacklisted", message).format(chatid))
 
     async def getuser(self, message):
         try:
@@ -107,7 +107,7 @@ class CoreMod(loader.Module):
         Prevent this user from running any commands"""
         user = await self.getuser(message)
         self._db.set(main.__name__, "blacklist_users", self._db.get(main.__name__, "blacklist_users", []) + [user])
-        await utils.answer(message, self.strings("user_blacklisted", message).format_(user))
+        await utils.answer(message, self.strings("user_blacklisted", message).format(user))
 
     async def unblacklistusercmd(self, message):
         """.unblacklistuser [id]
@@ -115,7 +115,7 @@ class CoreMod(loader.Module):
         user = await self.getuser(message)
         self._db.set(main.__name__, "blacklist_users",
                      list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])))
-        await utils.answer(message, self.strings("user_unblacklisted", message).format_(user))
+        await utils.answer(message, self.strings("user_unblacklisted", message).format(user))
 
     @loader.owner
     async def setprefixcmd(self, message):
@@ -126,8 +126,8 @@ class CoreMod(loader.Module):
             return
         oldprefix = self._db.get(main.__name__, "command_prefix", ["."])[0]
         self._db.set(main.__name__, "command_prefix", args)
-        await utils.answer(message, self.strings("prefix_set", message).format_(newprefix=utils.escape_html(args[0]),
-                                                                                oldprefix=utils.escape_html(oldprefix)))
+        await utils.answer(message, self.strings("prefix_set", message).format(newprefix=utils.escape_html(args[0]),
+                                                                               oldprefix=utils.escape_html(oldprefix)))
 
     @loader.owner
     async def aliasescmd(self, message):
@@ -149,9 +149,9 @@ class CoreMod(loader.Module):
         ret = self.allmodules.add_alias(alias, cmd)
         if ret:
             self._db.set(__name__, "aliases", {**self._db.get(__name__, "aliases"), alias: cmd})
-            await utils.answer(message, self.strings("alias_created", message).format_(utils.escape_html(alias)))
+            await utils.answer(message, self.strings("alias_created", message).format(utils.escape_html(alias)))
         else:
-            await utils.answer(message, self.strings("no_command", message).format_(utils.escape_html(cmd)))
+            await utils.answer(message, self.strings("no_command", message).format(utils.escape_html(cmd)))
 
     @loader.owner
     async def delaliascmd(self, message):
@@ -166,9 +166,9 @@ class CoreMod(loader.Module):
             current = self._db.get(__name__, "aliases")
             del current[alias]
             self._db.set(__name__, "aliases", current)
-            await utils.answer(message, self.strings("alias_removed", message).format_(utils.escape_html(alias)))
+            await utils.answer(message, self.strings("alias_removed", message).format(utils.escape_html(alias)))
         else:
-            await utils.answer(message, self.strings("no_alias", message).format_(utils.escape_html(alias)))
+            await utils.answer(message, self.strings("no_alias", message).format(utils.escape_html(alias)))
 
     @loader.owner
     async def aliasescmd(self, message):

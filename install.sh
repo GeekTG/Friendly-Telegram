@@ -153,7 +153,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
 		fi
 	else
 		runout dpkg --configure -a
-		runout apt-get update # Not essential
+		runout apt update # Not essential
 	fi
 	PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
@@ -171,8 +171,8 @@ elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; the
 	fi
 	PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-	runout apt-get update
-	PKGMGR="apt-get install -y"
+	runout apt update
+	PKGMGR="apt install -y"
 	PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
 	if ! command -v brew >/dev/null; then
@@ -195,7 +195,7 @@ runout $PKGMGR "python$PYVER" git || {
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
 	runout $PKGMGR "python$PYVER-dev"
 	runout $PKGMGR "python$PYVER-pip"
-	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2 neofetch dialog
+	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2 neofetch dialog ffmpeg imagemagick -y
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
 	runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then

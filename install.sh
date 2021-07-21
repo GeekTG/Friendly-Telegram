@@ -102,7 +102,7 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
 	}
 	rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
 	mkdir .cache .env
-	echo "python-3.8.5" >runtime.txt
+	echo "python-3.9.6" >runtime.txt
 	echo "pip" >requirements.txt
 	STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env ||
 		{

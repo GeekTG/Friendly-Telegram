@@ -9,7 +9,7 @@ and is very easy to use!
 
 ## Changes
 
-- Telethon lib v1.22.0
+- Latest Telethon lib
 - Security improvements (.session file name not contain full phone number, DeleteAccountRequest disabled, and more)
 - UX improvements (IP address in config script, random port on first launch, etc)
 - Stock modules updates (New functions, bug fixed)

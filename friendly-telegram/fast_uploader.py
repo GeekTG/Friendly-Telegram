@@ -1,32 +1,25 @@
-# ------------------------------------------------------------------------- #
-# Code from https://gist.github.com/painor/7e74de80ae0c819d3e9abcf9989a8dd6 #
-# ------------------------------------------------------------------------- #
-
+# copied from https://github.com/tulir/mautrix-telegram/blob/master/mautrix_telegram/util/parallel_file_transfer.py
+# Copyright (C) 2021 Tulir Asokan
 import asyncio
 import hashlib
 import inspect
-import io
 import logging
 import math
 import os
 from collections import defaultdict
-from typing import (AsyncGenerator, Awaitable, BinaryIO, DefaultDict, List,
-                    Optional, Tuple, Union)
+from typing import Optional, List, AsyncGenerator, Union, Awaitable, DefaultDict, Tuple, BinaryIO
 
-from telethon import TelegramClient, helpers, utils
+from telethon import utils, helpers, TelegramClient
 from telethon.crypto import AuthKey
 from telethon.network import MTProtoSender
 from telethon.tl.alltlobjects import LAYER
 from telethon.tl.functions import InvokeWithLayerRequest
-from telethon.tl.functions.auth import (ExportAuthorizationRequest,
-                                        ImportAuthorizationRequest)
-from telethon.tl.functions.upload import (GetFileRequest,
-                                          SaveBigFilePartRequest,
-                                          SaveFilePartRequest)
-from telethon.tl.types import (Document, InputDocumentFileLocation, InputFile,
-                               InputFileBig, InputFileLocation,
-                               InputPeerPhotoFileLocation,
-                               InputPhotoFileLocation, TypeInputFile)
+from telethon.tl.functions.auth import ExportAuthorizationRequest, ImportAuthorizationRequest
+from telethon.tl.functions.upload import (GetFileRequest, SaveFilePartRequest,
+                                          SaveBigFilePartRequest)
+from telethon.tl.types import (Document, InputFileLocation, InputDocumentFileLocation,
+                               InputPhotoFileLocation, InputPeerPhotoFileLocation, TypeInputFile,
+                               InputFileBig, InputFile)
 
 try:
     from mautrix.crypto.attachments import async_encrypt_attachment
@@ -82,8 +75,7 @@ class UploadSender:
         self.sender = sender
         self.part_count = part_count
         if big:
-            self.request = SaveBigFilePartRequest(
-                file_id, index, part_count, b"")
+            self.request = SaveBigFilePartRequest(file_id, index, part_count, b"")
         else:
             self.request = SaveFilePartRequest(file_id, index, b"")
         self.stride = stride
@@ -196,10 +188,8 @@ class ParallelTransferrer:
 
     async def init_upload(self, file_id: int, file_size: int, part_size_kb: Optional[float] = None,
                           connection_count: Optional[int] = None) -> Tuple[int, int, bool]:
-        connection_count = connection_count or self._get_connection_count(
-            file_size)
-        part_size = (
-                            part_size_kb or utils.get_appropriated_part_size(file_size)) * 1024
+        connection_count = connection_count or self._get_connection_count(file_size)
+        part_size = (part_size_kb or utils.get_appropriated_part_size(file_size)) * 1024
         part_count = (file_size + part_size - 1) // part_size
         is_large = file_size > 10 * 1024 * 1024
         await self._init_upload(connection_count, file_id, part_count, is_large)
@@ -215,10 +205,8 @@ class ParallelTransferrer:
     async def download(self, file: TypeLocation, file_size: int,
                        part_size_kb: Optional[float] = None,
                        connection_count: Optional[int] = None) -> AsyncGenerator[bytes, None]:
-        connection_count = connection_count or self._get_connection_count(
-            file_size)
-        part_size = (
-                            part_size_kb or utils.get_appropriated_part_size(file_size)) * 1024
+        connection_count = connection_count or self._get_connection_count(file_size)
+        part_size = (part_size_kb or utils.get_appropriated_part_size(file_size)) * 1024
         part_count = math.ceil(file_size / part_size)
         log.debug("Starting parallel download: "
                   f"{connection_count} {part_size} {part_count} {file!s}")
@@ -226,8 +214,9 @@ class ParallelTransferrer:
 
         part = 0
         while part < part_count:
-            tasks = [self.loop.create_task(sender.next())
-                     for sender in self.senders]
+            tasks = []
+            for sender in self.senders:
+                tasks.append(self.loop.create_task(sender.next()))
             for task in tasks:
                 data = await task
                 if not data:
@@ -240,11 +229,10 @@ class ParallelTransferrer:
         await self._cleanup()
 
 
-parallel_transfer_locks: DefaultDict[int, asyncio.Lock] = defaultdict(
-    lambda: asyncio.Lock())
+parallel_transfer_locks: DefaultDict[int, asyncio.Lock] = defaultdict(lambda: asyncio.Lock())
 
 
-def stream_file(file_to_stream: BinaryIO or io.BytesIO, chunk_size=1024):
+def stream_file(file_to_stream: BinaryIO, chunk_size=1024):
     while True:
         data_read = file_to_stream.read(chunk_size)
         if not data_read:
@@ -253,11 +241,12 @@ def stream_file(file_to_stream: BinaryIO or io.BytesIO, chunk_size=1024):
 
 
 async def _internal_transfer_to_telegram(client: TelegramClient,
-                                         response: BinaryIO or io.BytesIO,
+                                         response: BinaryIO,
                                          progress_callback: callable
                                          ) -> Tuple[TypeInputFile, int]:
     file_id = helpers.generate_random_long()
-    file_size = os.path.getsize(response.name) if isinstance(response, BinaryIO) else response.getbuffer().nbytes
+    file_size = os.path.getsize(response.name)
+
     hash_md5 = hashlib.md5()
     uploader = ParallelTransferrer(client)
     part_size, part_count, is_large = await uploader.init_upload(file_id, file_size)
@@ -292,22 +281,12 @@ async def _internal_transfer_to_telegram(client: TelegramClient,
 
 async def download_file(client: TelegramClient,
                         location: TypeLocation,
-                        out: BinaryIO or io.BytesIO,
+                        out: BinaryIO,
                         progress_callback: callable = None
-                        ) -> BinaryIO or io.BytesIO:
-    """Download file
-
-	Args:
-		client (TelegramClient): Telethon CLient
-		location (TypeLocation): Location
-		out (BinaryIO or io.BytesIO): Output file
-		progress_callback (callable, optional): Progress callback func. Defaults to None.
-
-	Returns:
-		BinaryIO or io.BytesIO: File
-	"""
+                        ) -> BinaryIO:
     size = location.size
     dc_id, location = utils.get_input_location(location)
+    # We lock the transfers because telegram has connection count limits
     downloader = ParallelTransferrer(client, dc_id)
     downloaded = downloader.download(location, size)
     async for x in downloaded:
@@ -321,10 +300,9 @@ async def download_file(client: TelegramClient,
 
 
 async def upload_file(client: TelegramClient,
-                      file: BinaryIO or io.BytesIO,
+                      file: BinaryIO,
                       progress_callback: callable = None,
 
                       ) -> TypeInputFile:
-    return (
-        await _internal_transfer_to_telegram(client, file, progress_callback)
-    )[0]
+    res = (await _internal_transfer_to_telegram(client, file, progress_callback))[0]
+    return res

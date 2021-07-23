@@ -4,8 +4,10 @@ Telethon-Mod==1.23.0
 # Config
 pythondialog==3.5.2
 
-# Heroku & Updater
+# Heroku
 heroku3==4.2.3
+
+# Python Git Library
 gitpython==3.1.18
 
 # Translations

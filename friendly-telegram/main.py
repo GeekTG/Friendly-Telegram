@@ -44,7 +44,7 @@ from telethon.sessions import StringSession, SQLiteSession
 from telethon.tl.functions.bots import SetBotCommandsRequest
 from telethon.tl.functions.channels import DeleteChannelRequest
 from telethon.tl.functions.updates import GetStateRequest
-from telethon.tl.types import BotCommand
+from telethon.tl.types import BotCommand, BotCommandScopeDefault
 
 from . import utils, loader, heroku, security
 from .database import backend, local_backend, frontend
@@ -208,7 +208,11 @@ async def set_commands(sec, modules):
     commands = [BotCommand(name, ("/help " + getattr(getattr(func, "__self__", None), "name", "")))
                 for name, func in modules.commands.items()
                 if sec.get_flags(func) & security.PUBLIC_PERMISSIONS]
-    await modules.client(SetBotCommandsRequest(commands))
+    await modules.client(SetBotCommandsRequest(
+        BotCommandScopeDefault(),
+        'en',
+        commands
+    ))
 
 
 def main():  # noqa: C901

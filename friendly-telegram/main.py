@@ -215,12 +215,33 @@ async def set_commands(sec, modules):
     ))
 
 
+class SuperList(list):
+    """
+    Makes able: await self.allclients.send_message("foo", "bar")
+    """
+    def __getattribute__(self, attr):
+        if hasattr(list, attr):
+            return list.__getattribute__(self, attr)
+
+        for obj in self:  # TODO: find other way
+            _ = getattr(obj, attr)
+            if callable(_):
+                if asyncio.iscoroutinefunction(_):
+                    async def foobar(*args, **kwargs):
+                        return [await getattr(__, attr)(*args, **kwargs) for __ in self]
+
+                    return foobar
+                return lambda *args, **kwargs: [getattr(__, attr)(*args, **kwargs) for __ in self]
+
+            return [getattr(x, attr) for x in self]
+
+
 def main():  # noqa: C901
     """Main entrypoint"""
     arguments = parse_arguments()
     loop = asyncio.get_event_loop()
 
-    clients = []
+    clients = SuperList()
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token(arguments)
     proxy, conn = get_proxy(arguments)

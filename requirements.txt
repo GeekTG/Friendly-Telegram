@@ -23,7 +23,7 @@ aiohttp_jinja2==1.4.2
 speedtest-cli==2.1.3
 
 # Asyncio Matrix framework
-mautrix==0.9.9
+mautrix==0.9.10
 
 # Async http client/server framework
 aiohttp==3.7.4.post0

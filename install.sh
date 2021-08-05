@@ -102,7 +102,7 @@ if [ ! x"" = x"$DYNO" ] && ! command -v python >/dev/null; then
 	}
 	rm -rf .heroku .cache .profile.d requirements.txt runtime.txt .env
 	mkdir .cache .env
-	echo "python-3.8.5" >runtime.txt
+	echo "python-3.9.6" >runtime.txt
 	echo "pip" >requirements.txt
 	STACK=heroku-18 runout bash heroku-buildpack-python/bin/compile /app /app/.cache /app/.env ||
 		{
@@ -140,7 +140,7 @@ fi
 echo "Installing..." >ftg-install.log
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; then
-	PKGMGR="apt-get install -y"
+	PKGMGR="apt install -y"
 	if [ ! "$(whoami)" = "root" ]; then
 		# Relaunch as root, preserving arguments
 		if command -v sudo >/dev/null; then
@@ -153,7 +153,7 @@ if echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/debian_version' ]; the
 		fi
 	else
 		runout dpkg --configure -a
-		runout apt-get update # Not essential
+		runout apt update
 	fi
 	PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; then
@@ -171,8 +171,8 @@ elif echo "$OSTYPE" | grep -qE '^linux-gnu.*' && [ -f '/etc/arch-release' ]; the
 	fi
 	PYVER="3"
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-	runout apt-get update
-	PKGMGR="apt-get install -y"
+	runout apt update
+	PKGMGR="apt install -y"
 	PYVER=""
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
 	if ! command -v brew >/dev/null; then
@@ -181,7 +181,7 @@ elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
 	PKGMGR="brew install"
 	PYVER="3"
 else
-	endspin "Unrecognised OS. Please follow https://Friendly-Telegram.gitlab.io/installing_advanced"
+	endspin "Unrecognised OS. Please follow https://ftg.geektg.ml/#installation"
 	exit 1
 fi
 
@@ -195,7 +195,7 @@ runout $PKGMGR "python$PYVER" git || {
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
 	runout $PKGMGR "python$PYVER-dev"
 	runout $PKGMGR "python$PYVER-pip"
-	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2 neofetch dialog
+	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
 	runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
@@ -227,13 +227,13 @@ cd Friendly-Telegram || {
 # shellcheck disable=SC2086
 runin ${SUDO_CMD}"python$PYVER" -m pip install --upgrade pip setuptools wheel --user
 # shellcheck disable=SC2086
-runin ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --user --no-warn-script-location --disable-pip-version-check || {
+runin ${SUDO_CMD}"python$PYVER" -m pip install -r requirements.txt --upgrade --user --no-warn-script-location --disable-pip-version-check || {
 	errorin "Requirements failed!"
 	exit 4
 }
-touch .setup_complete
 endspin "Installation successful. Launching setup interface..."
 rm -f ../ftg-install.log
+touch .setup_complete
 # shellcheck disable=SC2086,SC2015
 ${SUDO_CMD}"python$PYVER" -m friendly-telegram "$@" || {
 	echo "Python scripts failed"

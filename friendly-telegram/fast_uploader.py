@@ -1,7 +1,5 @@
-# ------------------------------------------------------------------------- #
-# Code from https://gist.github.com/painor/7e74de80ae0c819d3e9abcf9989a8dd6 #
-# ------------------------------------------------------------------------- #
-
+# copied from https://github.com/tulir/mautrix-telegram/blob/master/mautrix_telegram/util/parallel_file_transfer.py
+# Copyright (C) 2021 Tulir Asokan
 import asyncio
 import hashlib
 import inspect
@@ -22,6 +20,11 @@ from telethon.tl.functions.upload import (GetFileRequest, SaveFilePartRequest,
 from telethon.tl.types import (Document, InputFileLocation, InputDocumentFileLocation,
                                InputPhotoFileLocation, InputPeerPhotoFileLocation, TypeInputFile,
                                InputFileBig, InputFile)
+
+try:
+    from mautrix.crypto.attachments import async_encrypt_attachment
+except ImportError:
+    async_encrypt_attachment = None
 
 log: logging.Logger = logging.getLogger("telethon")
 
@@ -211,7 +214,9 @@ class ParallelTransferrer:
 
         part = 0
         while part < part_count:
-            tasks = [self.loop.create_task(sender.next()) for sender in self.senders]
+            tasks = []
+            for sender in self.senders:
+                tasks.append(self.loop.create_task(sender.next()))
             for task in tasks:
                 data = await task
                 if not data:
@@ -299,6 +304,5 @@ async def upload_file(client: TelegramClient,
                       progress_callback: callable = None,
 
                       ) -> TypeInputFile:
-    return (
-        await _internal_transfer_to_telegram(client, file, progress_callback)
-    )[0]
+    res = (await _internal_transfer_to_telegram(client, file, progress_callback))[0]
+    return res

@@ -1,11 +1,13 @@
 # Telegram connection
-Telethon-Mod==1.22.0
+Telethon-Mod==1.23.0
 
 # Config
 pythondialog==3.5.2
 
-# Heroku & Updater
+# Heroku
 heroku3==4.2.3
+
+# Python Git Library
 gitpython==3.1.18
 
 # Translations
@@ -19,3 +21,15 @@ aiohttp_jinja2==1.4.2
 
 # Speedtest
 speedtest-cli==2.1.3
+
+# Asyncio Matrix framework
+mautrix==0.10.2
+
+# Async http client/server framework
+aiohttp==3.7.4.post0
+
+# A very fast and expressive template engine.
+Jinja2==3.0.1
+
+# Python HTTP for Humans.
+requests==2.26.0

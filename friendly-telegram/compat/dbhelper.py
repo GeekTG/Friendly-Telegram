@@ -3,6 +3,8 @@
 
 # flake8: noqa: Q000
 
+
+# TODO: remove that shit or idk
 from userbot import MONGO, REDIS
 
 
@@ -203,7 +205,7 @@ async def set_list(oldchatid, name, newchatid):
 			'name': to_check["name"],
 			'items': to_check["items"]
 		}, {"$set": {
-			chat_id': newchatid
+			'chat_id': newchatid
 		}})
 	return True
 

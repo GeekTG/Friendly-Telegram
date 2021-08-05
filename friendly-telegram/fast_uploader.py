@@ -21,11 +21,6 @@ from telethon.tl.types import (Document, InputFileLocation, InputDocumentFileLoc
                                InputPhotoFileLocation, InputPeerPhotoFileLocation, TypeInputFile,
                                InputFileBig, InputFile)
 
-try:
-    from mautrix.crypto.attachments import async_encrypt_attachment
-except ImportError:
-    async_encrypt_attachment = None
-
 log: logging.Logger = logging.getLogger("telethon")
 
 TypeLocation = Union[Document, InputDocumentFileLocation, InputPeerPhotoFileLocation,
@@ -214,9 +209,7 @@ class ParallelTransferrer:
 
         part = 0
         while part < part_count:
-            tasks = []
-            for sender in self.senders:
-                tasks.append(self.loop.create_task(sender.next()))
+            tasks = [self.loop.create_task(sender.next()) for sender in self.senders]
             for task in tasks:
                 data = await task
                 if not data:
@@ -304,5 +297,6 @@ async def upload_file(client: TelegramClient,
                       progress_callback: callable = None,
 
                       ) -> TypeInputFile:
-    res = (await _internal_transfer_to_telegram(client, file, progress_callback))[0]
-    return res
+    return (
+        await _internal_transfer_to_telegram(client, file, progress_callback)
+    )[0]

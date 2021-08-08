@@ -68,7 +68,7 @@ class Database(dict):
 				self.update(**json.loads(db))
 			except Exception as e:
 				logging.info(f"Failed to load database due to {e}", ext_info=True)
-				# Don't worry if its corrupted. Just set it to {} and let it be fixed on next upload
+			# Don't worry if its corrupted. Just set it to {} and let it be fixed on next upload
 
 		self._loading = False
 		self._waiter.set()

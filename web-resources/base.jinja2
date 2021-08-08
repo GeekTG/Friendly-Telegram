@@ -25,15 +25,14 @@
 -->
 
 
-
 <html>
 <head>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-    <title>Friendly-Telegram</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.light_blue-deep_purple.min.css">
-    <style>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+	<title>Friendly-Telegram</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.light_blue-deep_purple.min.css">
+	<style>
         .padded {
             padding: 16px;
         }
@@ -45,57 +44,57 @@
             right: 30px;
             z-index: 99;
         }
-    </style>
-    <script src="{{ static("base.js") }}"></script>
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-    {% block head %}{% endblock %}
+	</style>
+	<script src="{{ static("base.js") }}"></script>
+	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+	{% block head %}{% endblock %}
 </head>
 <body>
 <div class="mdl-layout mdl-js-layout">
-    <header class="mdl-layout__header">
-        <div class="mdl-layout-icon"></div>
-        <div class="mdl-layout__header-row">
+	<header class="mdl-layout__header">
+		<div class="mdl-layout-icon"></div>
+		<div class="mdl-layout__header-row">
           <span class="mdl-layout__title">
             {{ title_s }}
           </span>
-            <div class="mdl-layout-spacer"></div>
-            <nav class="mdl-navigation mdl-layout--large-screen-only">
-                {% include "nav.jinja2" %}
-            </nav>
-            <nav class="mdl-navigation">
-            </nav>
-        </div>
-    </header>
-    <div class="mdl-layout__drawer">
+			<div class="mdl-layout-spacer"></div>
+			<nav class="mdl-navigation mdl-layout--large-screen-only">
+				{% include "nav.jinja2" %}
+			</nav>
+			<nav class="mdl-navigation">
+			</nav>
+		</div>
+	</header>
+	<div class="mdl-layout__drawer">
         <span class="mdl-layout__title">
           {{ title_s }}
         </span>
-        <nav class="mdl-navigation">
-            {% include "nav.jinja2" %}
-        </nav>
-    </div>
-    <main class="mdl-layout__content">
-        <div class="page-content mdl-grid">
-            <div class="mdl-layout-spacer"></div>
-            <div class="mdl-cell mdl-cell--8-col">
-                <div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-                    {% block content %}
-                        <p><b>An internal error occured.</b></p>
-                    {% endblock %}
-                </div>
-                <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-                    <div class="mdl-snackbar__text"></div>
-                    <button class="mdl-snackbar__action" type="button"></button>
-                </div>
-                {% block after %}{% endblock %}
-            </div>
-            <div class="mdl-layout-spacer"></div>
-        </div>
-        <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored scroll-to-top"
-                onclick="scrollToTop();">
-            <i class="material-icons">arrow_upward</i>
-        </button>
-    </main>
+		<nav class="mdl-navigation">
+			{% include "nav.jinja2" %}
+		</nav>
+	</div>
+	<main class="mdl-layout__content">
+		<div class="page-content mdl-grid">
+			<div class="mdl-layout-spacer"></div>
+			<div class="mdl-cell mdl-cell--8-col">
+				<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
+					{% block content %}
+						<p><b>An internal error occured.</b></p>
+					{% endblock %}
+				</div>
+				<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+					<div class="mdl-snackbar__text"></div>
+					<button class="mdl-snackbar__action" type="button"></button>
+				</div>
+				{% block after %}{% endblock %}
+			</div>
+			<div class="mdl-layout-spacer"></div>
+		</div>
+		<button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored scroll-to-top"
+		        onclick="scrollToTop();">
+			<i class="material-icons">arrow_upward</i>
+		</button>
+	</main>
 </div>
 </body>
 </html>

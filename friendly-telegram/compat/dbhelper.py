@@ -230,9 +230,9 @@ async def approve(userid):
 	if await approval(userid) is True:
 		return False
 	MONGO.pmpermit.update_one({'user_id': userid},
-		                          {"$set": {
-			                          'approval': True
-		                          }})
+	                          {"$set": {
+		                          'approval': True
+	                          }})
 	return True
 
 
@@ -240,9 +240,9 @@ async def block_pm(userid):
 	if await approval(userid) is False:
 		return False
 	MONGO.pmpermit.update_one({'user_id': userid},
-		                          {"$set": {
-			                          'approval': False
-		                          }})
+	                          {"$set": {
+		                          'approval': False
+	                          }})
 	return True
 
 
@@ -276,9 +276,9 @@ async def notif_on():
 	if await notif_state() is True:
 		return False
 	MONGO.notif.update({'_id': await __notif_id()},
-		                   {"$set": {
-			                   'state': True
-		                   }})
+	                   {"$set": {
+		                   'state': True
+	                   }})
 	return True
 
 
@@ -286,9 +286,9 @@ async def notif_off():
 	if await notif_state() is False:
 		return False
 	MONGO.notif.update({'_id': await __notif_id()},
-		                   {"$set": {
-			                   'state': False
-		                   }})
+	                   {"$set": {
+		                   'state': False
+	                   }})
 	return True
 
 

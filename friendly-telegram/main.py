@@ -70,22 +70,31 @@ def run_config(db, data_root, phone=None, modules=None):
 
 
 def gen_port():
-	if os.path.isdir("/app/friendly-telegram"):
+	if 'DYNO' in os.environ:
 		return 8080
 	config = configparser.ConfigParser()
 	path = "config.ini"
-	if os.path.isfile(path):
+	try:
 		config.read(path)
 		port = int(config.get("Settings", "port"))
-	else:
+	except:
 		port = random.randint(1024, 65536)
 		while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
 			port = random.randint(1024, 65536)
+	return port
+
+
+def save_port(port):
+	config = configparser.ConfigParser()
+	path = "config.ini"
+	try:
+		config.read(path)
+		config.set("Settings", "port", str(port))
+	except:
 		config.add_section("Settings")
 		config.set("Settings", "port", str(port))
-		with open(path, "w") as config_file:
-			config.write(config_file)
-	return port
+	with open(path, "w") as config_file:
+		config.write(config_file)
 
 
 def parse_arguments():
@@ -255,7 +264,7 @@ def main():  # noqa: C901
 		raise RuntimeError("Web required but unavailable")
 	else:
 		web = None
-
+	save_port(arguments.port)
 	while api_token is None:
 		if arguments.no_auth:
 			return

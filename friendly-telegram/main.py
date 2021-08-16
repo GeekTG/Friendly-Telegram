@@ -33,6 +33,7 @@ import socket
 import sqlite3
 import sys
 import time
+from configparser import NoSectionError
 
 import requests
 from requests import get
@@ -77,7 +78,7 @@ def gen_port():
 	try:
 		config.read(path)
 		port = int(config.get("Settings", "port"))
-	except:
+	except NoSectionError:
 		port = random.randint(1024, 65536)
 		while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
 			port = random.randint(1024, 65536)
@@ -90,7 +91,7 @@ def save_port(port):
 	try:
 		config.read(path)
 		config.set("Settings", "port", str(port))
-	except:
+	except NoSectionError:
 		config.add_section("Settings")
 		config.set("Settings", "port", str(port))
 	with open(path, "w") as config_file:

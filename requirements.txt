@@ -17,7 +17,7 @@ babel==2.9.1
 meval==2.5
 
 # Web
-aiohttp_jinja2==1.4.2
+aiohttp_jinja2==1.5
 
 # Speedtest
 speedtest-cli==2.1.3

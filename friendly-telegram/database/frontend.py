@@ -113,7 +113,7 @@ class Database(dict):
 		if self._loading:
 			await self._waiter.wait()
 		try:
-			await self._backend.do_upload(json.dumps(self))
+			await self._backend.do_upload(json.dumps(self, ensure_ascii=False))
 		except Exception as e:
 			self._sync_future.set_exception(e)
 		self._sync_future.set_result(True)

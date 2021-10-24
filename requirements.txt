@@ -23,7 +23,7 @@ aiohttp_jinja2==1.5
 speedtest-cli==2.1.3
 
 # Async http client/server framework
-aiohttp==4.0.0a1
+aiohttp==3.7.4.post0
 
 # A very fast and expressive template engine.
 Jinja2==3.0.2

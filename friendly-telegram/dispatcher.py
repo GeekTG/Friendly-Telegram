@@ -145,7 +145,7 @@ class CommandDispatcher:
 				elif tag[1].lower() != self._cached_username:
 					return
 			elif not self.no_nickname:
-				if event.is_private and not event.out:
+				if not event.is_private and not event.out:
 					return
 		logging.debug(tag[0])
 

@@ -38,8 +38,8 @@ def test(*, func=None, resp=None, pre=None, post=None, edits=0, stages=None, arg
                     return
                 if pre is not False:
                     async with telethon.custom.Conversation(client, target, timeout=timeout,
-                                                            total_timeout=total_timeout, max_messages=None,
-                                                            exclusive=True, replies_are_responses=True) as conv:
+                                                                    total_timeout=total_timeout, max_messages=None,
+                                                                    exclusive=True, replies_are_responses=True) as conv:
                         if args is not None:
                             await conv.send_message("." + cmd + " " + " ".join([shlex.quote(arg) for arg in args]))
                         try:
@@ -56,7 +56,7 @@ def test(*, func=None, resp=None, pre=None, post=None, edits=0, stages=None, arg
                                     raise AssertionError("Expected {} but got {}".format(ret, resp_))
                             elif isinstance(ret, str):
                                 resp_ = await conv.get_response()
-                                for i in range(edits):
+                                for _ in range(edits):
                                     resp_ = await conv.get_edit()
                                 assert resp_.text == ret, (resp_, ret)
                             elif callable(ret):

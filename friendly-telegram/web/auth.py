@@ -102,7 +102,7 @@ class Web:
         return web.Response(text=secret)
 
     async def _clear_secret(self, secret):
-        await asyncio.sleep(60 * 60 * 6)  # You must authenticate once per 6 hours
+        await asyncio.sleep(60**2 * 6)
         try:
             del self._secret_to_uid[secret]
         except KeyError:

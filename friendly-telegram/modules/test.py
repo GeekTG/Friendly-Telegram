@@ -100,7 +100,7 @@ class TestMod(loader.Module):
             return
         [handler] = logging.getLogger().handlers
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-16")
-        if not len(logs) > 0:
+        if len(logs) <= 0:
             await utils.answer(message, self.strings("no_logs", message).format(lvl))
             return
         logs = BytesIO(logs)

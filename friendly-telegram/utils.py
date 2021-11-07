@@ -198,7 +198,7 @@ async def answer(message, response, **kwargs):
         logging.debug(txt)
         logging.debug(ent)
 
-        if len(txt) >= 6144:
+        if len(txt) >= 8192:
             file = io.BytesIO(txt.encode('utf-8'))
             file.name = "command_result.txt"
             await message.client.send_file(message.to_id, file, caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>")

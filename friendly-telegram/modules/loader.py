@@ -31,6 +31,7 @@ import zlib
 from importlib.abc import SourceLoader
 from importlib.machinery import ModuleSpec
 from os import path
+import telethon
 
 import requests
 
@@ -324,7 +325,10 @@ class LoaderMod(loader.Module):
                     modhelp += utils.escape_html("\n".join("    " + t for t in inspect.getdoc(fun).split("\n")))
                 else:
                     modhelp += self.strings("undoc_cmd", message)
-            await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
+            try:
+                await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
+            except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:
+                await message.reply(self.strings("loaded", message).format(modname.strip(), modhelp))
         return True
 
     @loader.owner

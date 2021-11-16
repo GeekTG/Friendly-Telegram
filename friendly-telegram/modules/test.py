@@ -98,7 +98,7 @@ class TestMod(loader.Module):
                                self.strings("logs_unsafe", message).format(utils.escape_html(self.strings("logs_force",
                                                                                                           message))))
             return
-        [handler] = logging.getLogger().handlers
+        handler = logging.getLogger().handlers[0]
         logs = ("\n".join(handler.dumps(lvl))).encode("utf-16")
         if len(logs) <= 0:
             await utils.answer(message, self.strings("no_logs", message).format(lvl))

@@ -124,7 +124,7 @@ class CoreMod(loader.Module):
         """<on|off> - Toggle No-Nickname mode (performing commands without nickname)"""
         args = utils.get_args_raw(message)
         if not args:
-            await utils.answer(message, self.strings("no_nickname_status", message).format("'t" if self._db.get(main.__name__, "no_nickname", False) else ""))
+            await utils.answer(message, self.strings("no_nickname_status", message).format("'t" if not self._db.get(main.__name__, "no_nickname", False) else ""))
             return
 
         if args not in ["on", "off"]:

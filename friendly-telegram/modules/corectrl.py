@@ -50,7 +50,8 @@ class CoreMod(loader.Module):
                "db_cleared": "<b>✅ Database cleared</b>",
                "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
                "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
-               "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>"}
+               "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
+               "nn_args": "🚫<b> Usage: .nonick [on/off]</b>"}
 
     async def client_ready(self, client, db):
         self._db = db
@@ -122,6 +123,10 @@ class CoreMod(loader.Module):
     async def nonickcmd(self, message):
         """<on|off> - Toggle No-Nickname mode (performing commands without nickname)"""
         args = utils.get_args_raw(message)
+        if not args:
+            await utils.answer(message, self.strings("no_nickname_status", message).format("'t" if self._db.get(main.__name__, "no_nickname", False) else ""))
+            return
+
         if args not in ["on", "off"]:
             await utils.answer(message, self.strings("nn_args", message))
             return

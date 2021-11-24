@@ -35,7 +35,7 @@ import telethon
 
 import requests
 
-from .. import loader, utils
+from .. import loader, utils, main
 
 logger = logging.getLogger(__name__)
 

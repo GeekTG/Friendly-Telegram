@@ -35,7 +35,7 @@ import telethon
 
 import requests
 
-from .. import loader, utils
+from .. import loader, utils, main
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ class LoaderMod(loader.Module):
                "repo_not_loaded": "<b>🚫 Repository not loaded</b>",
                "repo_unloaded": "<b>🔄 Repository unloaded, but restart is required to unload repository modules</b>",
                "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
-               "single_cmd": "\n📍 {}\n",
+               "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
                "undoc_cmd": "👁‍🗨 No docs"
             }
 
@@ -316,13 +316,14 @@ class LoaderMod(loader.Module):
             except KeyError:
                 modname = getattr(instance, "name", "ERROR")
             modhelp = ""
+            prefix = utils.escape_html((self._db.get(main.__name__, "command_prefix", False) or ".")[0])
             if instance.__doc__:
-                modhelp += "<i>\nℹ️ " +  ("\n".join("  " + t for t in utils.escape_html(inspect.getdoc(instance)).split("\n"))).strip() + "</i>\n"
+                modhelp += "<i>\nℹ️ " +  utils.escape_html(inspect.getdoc(instance)) + "</i>\n"
             commands = {name: func for name, func in instance.commands.items()}
             for name, fun in commands.items():
-                modhelp += self.strings("single_cmd", message).format(name)
+                modhelp += self.strings("single_cmd", message).format(prefix, name)
                 if fun.__doc__:
-                    modhelp += utils.escape_html("\n".join("    " + t for t in inspect.getdoc(fun).split("\n")))
+                    modhelp += utils.escape_html(inspect.getdoc(fun))
                 else:
                     modhelp += self.strings("undoc_cmd", message)
             try:

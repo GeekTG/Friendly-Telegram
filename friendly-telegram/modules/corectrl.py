@@ -27,27 +27,31 @@ from .. import loader, main, utils
 class CoreMod(loader.Module):
     """Control core userbot settings"""
     strings = {"name": "Settings",
-               "too_many_args": "<b>Too many args</b>",
-               "blacklisted": "<b>Chat {} blacklisted from userbot</b>",
-               "unblacklisted": "<b>Chat {} unblacklisted from userbot</b>",
-               "user_blacklisted": "<b>User {} blacklisted from userbot</b>",
-               "user_unblacklisted": "<b>User {} unblacklisted from userbot</b>",
-               "what_prefix": "<b>What should the prefix be set to?</b>",
-               "prefix_set": ("<b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}"
+               "too_many_args": "🚫 <b>Too many args</b>",
+               "blacklisted": "✅ <b>Chat {} blacklisted from userbot</b>",
+               "unblacklisted": "✅ <b>Chat {} unblacklisted from userbot</b>",
+               "user_blacklisted": "✅ <b>User {} blacklisted from userbot</b>",
+               "user_unblacklisted": "✅ <b>User {} unblacklisted from userbot</b>",
+               "what_prefix": "❓ <b>What should the prefix be set to?</b>",
+               "prefix_set": ("✅ <b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}"
                               "</code> <b>to change it back</b>"),
-               "alias_created": "<b>Alias created. Access it with</b> <code>{}</code>",
+               "alias_created": "✅ <b>Alias created. Access it with</b> <code>{}</code>",
                "aliases": "<b>Aliases:</b>",
-               "no_command": "<b>Command</b> <code>{}</code> <b>does not exist</b>",
-               "alias_args": "<b>You must provide a command and the alias for it</b>",
-               "delalias_args": "<b>You must provide the alias name</b>",
-               "alias_removed": "<b>Alias</b> <code>{}</code> <b>removed.",
-               "no_alias": "<b>Alias</b> <code>{}</code> <b>does not exist</b>",
-               "no_pack": "<b>What translation pack should be added?</b>",
-               "bad_pack": "<b>Invalid translation pack specified</b>",
-               "trnsl_saved": "<b>Translation pack added</b>",
-               "packs_cleared": "<b>Translations cleared</b>",
-               "lang_set": "<b>Language changed</b>",
-               "db_cleared": "<b>Database cleared</b>"}
+               "no_command": "🚫 <b>Command</b> <code>{}</code> <b>does not exist</b>",
+               "alias_args": "🚫 <b>You must provide a command and the alias for it</b>",
+               "delalias_args": "🚫 <b>You must provide the alias name</b>",
+               "alias_removed": "✅ <b>Alias</b> <code>{}</code> <b>removed.",
+               "no_alias": "<b>🚫 Alias</b> <code>{}</code> <b>does not exist</b>",
+               "no_pack": "<b>❓ What translation pack should be added?</b>",
+               "bad_pack": "<b>✅ Invalid translation pack specified</b>",
+               "trnsl_saved": "<b>✅ Translation pack added</b>",
+               "packs_cleared": "<b>✅ Translations cleared</b>",
+               "lang_set": "<b>✅ Language changed</b>",
+               "db_cleared": "<b>✅ Database cleared</b>",
+               "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
+               "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
+               "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
+               "nn_args": "🚫<b> Usage: .nonick [on/off]</b>"}
 
     async def client_ready(self, client, db):
         self._db = db
@@ -114,6 +118,22 @@ class CoreMod(loader.Module):
         self._db.set(main.__name__, "blacklist_users",
                      list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])))
         await utils.answer(message, self.strings("user_unblacklisted", message).format(user))
+
+    @loader.owner
+    async def nonickcmd(self, message):
+        """<on|off> - Toggle No-Nickname mode (performing commands without nickname)"""
+        args = utils.get_args_raw(message)
+        if not args:
+            await utils.answer(message, self.strings("no_nickname_status", message).format("'t" if not self._db.get(main.__name__, "no_nickname", False) else ""))
+            return
+
+        if args not in ["on", "off"]:
+            await utils.answer(message, self.strings("nn_args", message))
+            return
+
+        args = True if args == "on" else False
+        self._db.set(main.__name__, "no_nickname", args)
+        await utils.answer(message, self.strings("no_nickname_on" if args else "no_nickname_off", message))
 
     @loader.owner
     async def setprefixcmd(self, message):

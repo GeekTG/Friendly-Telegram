@@ -316,7 +316,7 @@ class LoaderMod(loader.Module):
             except KeyError:
                 modname = getattr(instance, "name", "ERROR")
             modhelp = ""
-            prefix = utils.escape_html((self.db.get(main.__name__, "command_prefix", False) or ".")[0])
+            prefix = utils.escape_html((self._db.get(main.__name__, "command_prefix", False) or ".")[0])
             if instance.__doc__:
                 modhelp += "<i>\nℹ️ " +  utils.escape_html(inspect.getdoc(instance)) + "</i>\n"
             commands = {name: func for name, func in instance.commands.items()}

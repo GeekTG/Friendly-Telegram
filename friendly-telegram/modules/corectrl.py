@@ -131,7 +131,7 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings("nn_args", message))
             return
 
-        args = True if args == "on" else False
+        args = args == "on"
         self._db.set(main.__name__, "no_nickname", args)
         await utils.answer(message, self.strings("no_nickname_on" if args else "no_nickname_off", message))
 

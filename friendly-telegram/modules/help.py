@@ -30,16 +30,16 @@ logger = logging.getLogger(__name__)
 class HelpMod(loader.Module):
     """Provides this help message"""
     strings = {"name": "Help",
-               "bad_module": "<b>Invalid module name specified</b>",
-               "single_mod_header": "<b>Help for</b> <u>{}</u>:",
+               "bad_module": "<b>Invalid module name specified📁</b>",
+               "single_mod_header": "<b>Help for</b> <u>{}</u>💾:",
                "single_cmd": "\n• <code><u>{}</u></code>\n",
-               "undoc_cmd": "No docs",
-               "all_header": "<b>Available FTG Modules:</b>",
+               "undoc_cmd": "No docs🗂",
+               "all_header": "<b>Available FTG Modules👨🏿‍💻:</b>",
                "mod_tmpl": "\n• <b>{}</b>",
                "first_cmd_tmpl": ": <code>{}",
                "cmd_tmpl": ", {}",
-               "joined": "<b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
-               "join": "<b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>"}
+               "joined": "<b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat🎪</a>",
+               "join": "<b>Join the</b> <a href='https://t.me/chat_ftg'>support chat🎪</a>"}
 
     @loader.unrestricted
     async def helpcmd(self, message):
@@ -62,7 +62,7 @@ class HelpMod(loader.Module):
             if module.__doc__:
                 reply += "\n" + "\n".join("  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
             else:
-                logger.warning("Module %s is missing docstring!", module)
+                logger.warning("Module %s is missing docstring!📂", module)
             commands = {name: func for name, func in module.commands.items()
                         if await self.allmodules.check_security(message, func)}
             for name, fun in commands.items():
@@ -104,7 +104,7 @@ class HelpMod(loader.Module):
 
     @loader.unrestricted
     async def supportcmd(self, message):
-        """Joins the support FTG chat"""
+        """Joins the support FTG chat🎪"""
         if not self.is_bot and await self.allmodules.check_security(message, security.OWNER | security.SUDO):
             await self.client(JoinChannelRequest("https://t.me/chat_ftg"))
             await utils.answer(message, self.strings("joined", message))

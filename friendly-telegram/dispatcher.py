@@ -180,7 +180,7 @@ class CommandDispatcher:
                     message.message = message.message.replace('||grep', '|grep').replace('|| grep', '| grep')
                 else:
                     grep = False
-                    if 'grep' in message.text:
+                    if '| grep' in message.text or '|grep' in message.text:
                         grep = message.text[message.text.find('grep ') + 5:]
                         message.text = message.text[:(message.text.find(' | grep') if message.text.find(' | grep') > 0 else message.text.find('|grep'))]
 

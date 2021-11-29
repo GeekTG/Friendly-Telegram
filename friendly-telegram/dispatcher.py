@@ -19,6 +19,7 @@
 import asyncio
 import collections
 import logging
+import re
 
 from . import utils, main, security
 

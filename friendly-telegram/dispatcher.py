@@ -173,7 +173,7 @@ class CommandDispatcher:
 
 
             if self._db.get(main.__name__, 'grep', False):
-                if '||grep' or '|| grep' in message.text:
+                if '||grep' in message.text or '|| grep' in message.text:
                     message.raw_text = message.raw_text.replace('||grep', '|grep').replace('|| grep', '| grep')
                     message.text = message.text.replace('||grep', '|grep').replace('|| grep', '| grep')
                     message.message = message.message.replace('||grep', '|grep').replace('|| grep', '| grep')

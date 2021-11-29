@@ -19,6 +19,7 @@
 import asyncio
 import collections
 import logging
+import re
 
 from . import utils, main, security
 
@@ -169,6 +170,76 @@ class CommandDispatcher:
                     func.__self__.__module__ not in whitelist_modules):
                 logging.debug("Command is not whitelisted in chat")
                 return
+
+
+
+            if self._db.get(main.__name__, 'grep', False):
+                if '||grep' in message.text or '|| grep' in message.text:
+                    message.raw_text = message.raw_text.replace('||grep', '|grep').replace('|| grep', '| grep')
+                    message.text = message.text.replace('||grep', '|grep').replace('|| grep', '| grep')
+                    message.message = message.message.replace('||grep', '|grep').replace('|| grep', '| grep')
+                else:
+                    grep = False
+                    if '| grep' in message.text or '|grep' in message.text:
+                        grep = message.text[message.text.find('grep ') + 5:]
+                        message.text = message.text[:(message.text.find(' | grep') if message.text.find(' | grep') > 0 else message.text.find('|grep'))]
+
+
+                    if grep:
+                        ungrep = False
+
+                        if '-v' in grep:
+                            ungrep = grep[grep.find('-v ')+3:(grep.find('grep') if 'grep' in grep else len(grep))]
+                            grep = grep[:grep.find('-v')] + (grep[grep.find('grep') + 4:] if 'grep' in grep else "")
+
+                        grep = re.sub('<.*?>', '', grep).strip() if grep else False
+                        ungrep = re.sub('<.*?>', '', ungrep).strip() if ungrep else False
+
+                        old_edit = message.edit
+                        old_reply = message.reply
+                        old_respond = message.respond
+                        def process_text(text):
+                            nonlocal grep, ungrep
+                            res = []
+                            
+
+                            for line in text.split('\n'):
+                                if grep and grep in re.sub('<.*?>', '', line) and (not ungrep or ungrep not in re.sub('<.*?>', '', line)):
+                                    res.append(line.replace(grep, f'<u>{grep}</u>'))
+
+                                if not grep and ungrep and ungrep not in re.sub('<.*?>', '', line):
+                                    res.append(line)
+
+                            cont = (("contain <b>" + grep + "</b>") if grep else "") + (" and" if grep and ungrep else "") + ((" do not contain <b>" + ungrep + "</b>") if ungrep else "")
+
+                            if res:
+                                text = f'<i>💬 Lines that {cont}:</i>\n' + ('\n'.join(res))
+                            else:
+                                text = f'💬 <i>No lines that {cont}</i>'
+
+                            return text
+
+                        async def my_edit(text, *args, **kwargs):
+                            text = process_text(text)
+                            kwargs['parse_mode'] = "HTML"
+                            return await old_edit(text, *args, **kwargs)
+
+                        async def my_reply(text, *args, **kwargs):
+                            text = process_text(text)
+                            kwargs['parse_mode'] = "HTML"
+                            return await old_reply(text, *args, **kwargs)
+
+                        async def my_respond(text, *args, **kwargs):
+                            text = process_text(text)
+                            kwargs['parse_mode'] = "HTML"
+                            return await old_respond(text, *args, **kwargs)
+
+
+                        message.edit = my_edit
+                        message.reply = my_reply
+                        message.respond = my_respond
+
+
 
             try:
                 await func(message)

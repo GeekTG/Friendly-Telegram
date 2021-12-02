@@ -274,31 +274,31 @@ class CommandDispatcher:
             if modname in bl:
                 if '*' in bl[modname] or utils.get_chat_id(message) in bl[modname]:
                     logging.debug(f'Ignored watcher of module {modname}')
-                    return
+                    continue
 
                 if 'only_chats' in bl[modname] and message.is_private:
                     logging.debug(f'Ignored watcher of module {modname}')
-                    return
+                    continue
 
                 if 'only_pm' in bl[modname] and not message.is_private:
                     logging.debug(f'Ignored watcher of module {modname}')
-                    return
+                    continue
 
                 if 'out' in bl[modname] and not message.out:
                     logging.debug(f'Ignored watcher of module {modname}')
-                    return
+                    continue
 
                 if 'in' in bl[modname] and message.out:
                     logging.debug(f'Ignored watcher of module {modname}')
-                    return
+                    continue
 
             if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
                 logging.debug("Command is blacklisted in chat")
-                return
+                continue
             if (whitelist_modules and str(utils.get_chat_id(message)) + "." +
                     func.__self__.__module__ not in whitelist_modules):
                 logging.debug("Command is not whitelisted in chat")
-                return
+                continue
             try:
                 await func(message)
             except Exception as e:

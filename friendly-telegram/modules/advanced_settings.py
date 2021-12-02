@@ -31,7 +31,7 @@ class AdvancedSettingsMod(loader.Module):
     }
 
     def get_watchers(self):
-        return [str(_.__self__.__class__.strings['name']) for _ in self.allmodules.watchers if _.__self__.__class__.strings is not None], self.db.get(main.__name__, 'disabled_watchers', [])
+        return [str(_.__self__.__class__.strings['name']) for _ in self.allmodules.watchers if _.__self__.__class__.strings is not None], self.db.get(main.__name__, 'disabled_watchers', {})
 
     async def client_ready(self, client, db):
         self.db = db

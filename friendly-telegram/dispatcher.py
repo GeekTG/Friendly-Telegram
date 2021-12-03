@@ -269,7 +269,7 @@ class CommandDispatcher:
             logging.debug("Message is blacklisted")
             return
         for func in self._modules.watchers:
-            bl = self._db.get(main.__name__, "disabled_watchers")
+            bl = self._db.get(main.__name__, "disabled_watchers", {})
             modname = str(func.__self__.__class__.strings['name'])
             if modname in bl:
                 if '*' in bl[modname] or utils.get_chat_id(message) in bl[modname]:

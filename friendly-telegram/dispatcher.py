@@ -20,6 +20,7 @@ import asyncio
 import collections
 import logging
 import re
+import telethon
 
 from . import utils, main, security
 
@@ -271,7 +272,7 @@ class CommandDispatcher:
         for func in self._modules.watchers:
             bl = self._db.get(main.__name__, "disabled_watchers", {})
             modname = str(func.__self__.__class__.strings['name'])
-            if modname in bl:
+            if modname in bl and type(message) is telethon.tl.types.Message:
                 if '*' in bl[modname] or utils.get_chat_id(message) in bl[modname]:
                     logging.debug(f'Ignored watcher of module {modname}')
                     continue

@@ -540,6 +540,7 @@ async def amain(first, client, allclients, web, arguments):
             await web.start_if_ready(len(allclients), arguments.port)
         if not web_only:
             dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test, no_nickname)
+            loader.dispatcher = dispatcher
             if is_bot:
                 modules.added_modules = functools.partial(set_commands, dispatcher.security)
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:

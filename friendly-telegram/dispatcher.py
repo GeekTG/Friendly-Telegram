@@ -21,6 +21,9 @@ import collections
 import logging
 import re
 import telethon
+import os
+import json
+import time
 
 from . import utils, main, security
 
@@ -57,6 +60,11 @@ class CommandDispatcher:
         me = await client.get_me()
         self._me = me.id
         self._cached_username = me.username.lower() if me.username else str(me.id)
+        self.stats_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'../../stats-{me.id}.json')
+        try:
+            self.stats = json.loads(open(self.stats_file, 'r').read())
+        except:
+            self.stats = {}
 
     async def _handle_ratelimit(self, message, func):
         if self._testing or await self.security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
@@ -243,6 +251,16 @@ class CommandDispatcher:
 
 
             try:
+                try:
+                    if self._me == message.from_id:
+                        module_name = func.__self__.__class__.strings['name']
+                        if module_name not in self.stats:
+                            self.stats[module_name] = []
+                        self.stats[module_name].append(round(time.time()))
+                        open(self.stats_file, 'w').write(json.dumps(self.stats))
+                except:
+                    logging.exception(f"Registering stats for {txt} failed")
+
                 await func(message)
             except Exception as e:
                 logging.exception("Command failed")

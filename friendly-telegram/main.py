@@ -42,10 +42,8 @@ from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModi
 from telethon.network.connection import ConnectionTcpFull
 from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
 from telethon.sessions import StringSession, SQLiteSession
-from telethon.tl.functions.bots import SetBotCommandsRequest
 from telethon.tl.functions.channels import DeleteChannelRequest
 from telethon.tl.functions.updates import GetStateRequest
-from telethon.tl.types import BotCommand, BotCommandScopeDefault
 
 from . import utils, loader, heroku, security
 from .database import backend, local_backend, frontend
@@ -212,17 +210,6 @@ def sigterm(app, signum, handler):  # TODO: delete unused signum, handler
                                                      "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0})
     # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
-
-
-async def set_commands(sec, modules):
-    commands = [BotCommand(name, ("/help " + getattr(getattr(func, "__self__", None), "name", "")))
-                for name, func in modules.commands.items()
-                if sec.get_flags(func) & security.PUBLIC_PERMISSIONS]
-    await modules.client(SetBotCommandsRequest(
-        BotCommandScopeDefault(),
-        'en',
-        commands
-    ))
 
 
 class SuperList(list):
@@ -540,8 +527,6 @@ async def amain(first, client, allclients, web, arguments):
             await web.start_if_ready(len(allclients), arguments.port)
         if not web_only:
             dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test, no_nickname)
-            if is_bot:
-                modules.added_modules = functools.partial(set_commands, dispatcher.security)
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
         # Loader has installed all dependencies
         return  # We are done

@@ -159,9 +159,19 @@ class SecurityManager:
         self._perms = db.get(__name__, "masks", {}).copy()
         self._db = db
 
+    async def update_owners(self):
+        self._owner = self._db.get(__name__, "owner", []).copy()
+        if self._client:
+            u = (await self._client.get_me(True)).user_id
+            if not self._owner or u not in self._owner:
+                self._owner.append(u)
+
     async def init(self, client):
-        if not self._owner:
-            self._owner.append((await client.get_me(True)).user_id)
+        u = (await client.get_me(True)).user_id
+        if not self._owner or u not in self._owner:
+            self._owner.append(u)
+
+        self._client = client
 
     def get_flags(self, func):
         if isinstance(func, int):

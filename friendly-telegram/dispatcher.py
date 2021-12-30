@@ -145,6 +145,15 @@ class CommandDispatcher:
             return  # Message is just the prefix
         utils.relocate_entities(message.entities, -len(prefix))
 
+
+        try:
+            initiator = event.from_id.user_id
+        except Exception:
+            try:
+                initiator = event.from_id
+            except Exception:
+                initiator = 0
+
         command = message.message.split(maxsplit=1)[0]
         tag = command.split("@", maxsplit=1)
         if not self._testing:
@@ -156,10 +165,14 @@ class CommandDispatcher:
                     return
             elif event.mentioned and event.message is not None and event.message.message is not None and '@' + self._cached_username not in event.message.message:
                 pass
-            elif not self.no_nickname:
-                if not event.is_private and not event.out and not self._db.get(main.__name__, 'no_nickname', False):
-                    return
-        logging.debug(tag[0])
+            elif not event.is_private and not self.no_nickname: # DM
+                if not event.out: # Outcoming message
+                    if not self._db.get(main.__name__, 'no_nickname', False): # Global NoNick
+                        if command not in self._db.get(main.__name__, 'nonickcmds', []): # NoNick for commands
+                            if initiator not in self._db.get(main.__name__, 'nonickusers', []): # NoNick for users
+                                return
+
+        # logging.debug(tag[0])
 
         txt, func = self._modules.dispatch(tag[0])
         if func is not None:

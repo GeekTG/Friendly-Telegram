@@ -55,9 +55,9 @@ class HelpMod(loader.Module):
                 return
             # Translate the format specification and the module separately
             try:
-                name = module.strings("name", message)
+                name = module.strings["name"]
             except KeyError:
-                name = getattr(module, "name", "ERROR")
+                name = "Unspecified Name"
             reply = self.strings("single_mod_header", message).format(utils.escape_html(name))
             if module.__doc__:
                 reply += "\n" + "\n".join("  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))

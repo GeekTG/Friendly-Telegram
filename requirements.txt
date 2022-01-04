@@ -1,5 +1,5 @@
 # Telegram connection
-Telethon-Mod==1.24.1
+Telethon-Mod==1.24.3
 
 # Config
 pythondialog==3.5.3
@@ -29,4 +29,4 @@ aiohttp
 Jinja2==3.0.3
 
 # Python HTTP for Humans.
-requests==2.26.0
+requests==2.27.0

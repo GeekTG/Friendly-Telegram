@@ -29,4 +29,4 @@ aiohttp
 Jinja2==3.0.3
 
 # Python HTTP for Humans.
-requests==2.27.0
+requests==2.27.1

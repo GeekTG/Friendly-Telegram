@@ -110,6 +110,8 @@ def parse_arguments():
     parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--no-nickname", "-nn", dest="no_nickname", action="store_true")
     parser.add_argument("--constant-database", "-cd", dest="constant_database", action="store_true")
+    parser.add_argument("--hosting", "-lh", dest="hosting", action="store_true")
+    parser.add_argument("--default-app", "-da", dest="default_app", action="store_true")
     parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
     parser.add_argument("--no-web", dest="web", action="store_false")
@@ -173,9 +175,11 @@ def get_phones(arguments):
     return phones, authtoken
 
 
-def get_api_token(arguments):
+def get_api_token(arguments, use_default_app=False):
     """Get API Token from disk or environment"""
     api_token_type = collections.namedtuple("api_token", ("ID", "HASH"))
+    if use_default_app:
+        return api_token_type(2040, 'b18441a1ff607e10a989891a5462e627')
     try:
         with open(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt")) as f:
             api_token = api_token_type(*[line.strip() for line in f.readlines()])
@@ -256,13 +260,14 @@ def main():  # noqa: C901
 
     clients = SuperList()
     phones, authtoken = get_phones(arguments)
-    api_token = get_api_token(arguments)
+    api_token = get_api_token(arguments, arguments.default_app)
     proxy, conn = get_proxy(arguments)
 
     if web_available:
         web = core.Web(data_root=arguments.data_root, api_token=api_token,
                        test_dc=arguments.test_dc is not False,
-                       proxy=proxy, connection=conn) if arguments.web else None
+                       proxy=proxy, connection=conn, hosting=arguments.hosting,
+                       default_app=arguments.default_app) if arguments.web else None
     elif arguments.heroku_web_internal:
         raise RuntimeError("Web required but unavailable")
     else:

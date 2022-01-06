@@ -36,6 +36,8 @@ class Web:
         self.api_token = kwargs.pop("api_token")
         self.data_root = kwargs.pop("data_root")
         self.connection = kwargs.pop("connection")
+        self.hosting = kwargs.pop("hosting")
+        self.default_app = kwargs.pop("default_app")
         self.proxy = kwargs.pop("proxy")
         self.test_dc = kwargs.pop("test_dc")
         self.redirect_url = None
@@ -67,7 +69,8 @@ class Web:
         if self.client_data and await self.check_user(request) is None:
             return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         return {"api_done": self.api_token is not None, "tg_done": bool(self.client_data),
-                "heroku_token": self.heroku_api_token}
+                "heroku_token": self.heroku_api_token, 'hosting': self.hosting,
+                'default_app': self.default_app}
 
     def wait_for_api_token_setup(self):
         return self.api_set.wait()

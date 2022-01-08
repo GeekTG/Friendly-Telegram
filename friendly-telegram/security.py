@@ -236,17 +236,6 @@ class SecurityManager:
 
                 if f_group_admin:
                     return True
-
-                if message.out:
-                    if chat.creator and f_group_owner:
-                        return True
-                    me_id = (await message.client.get_me(True)).user_id
-                    if f_owner and me_id in self._owner:
-                        return True
-                    if f_sudo and me_id in self._sudo:
-                        return True
-                    if f_support and me_id in self._support:
-                        return True
                 # TODO: when running as bot, send an inline button which allows confirmation of command
             else:
                 if f_group_admin_any or f_group_owner:
@@ -274,6 +263,17 @@ class SecurityManager:
                             return True
                         if f_group_admin_invite_users and rights.invite_users:
                             return True
+                chat = await message.get_chat()
+            if message.out:
+                if chat.creator and f_group_owner:
+                    return True
+                me_id = (await message.client.get_me(True)).user_id
+                if f_owner and me_id in self._owner:
+                    return True
+                if f_sudo and me_id in self._sudo:
+                    return True
+                if f_support and me_id in self._support:
+                    return True
         elif message.is_group:
             if f_group_admin_any or f_group_owner:
                 full_chat = await message.client(telethon.functions.messages.GetFullChatRequest(message.chat_id))

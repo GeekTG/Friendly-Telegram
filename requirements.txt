@@ -8,7 +8,7 @@ pythondialog==3.5.3
 heroku3==5.1.4
 
 # Python Git Library
-gitpython==3.1.24
+gitpython==3.1.25
 
 # Translations
 babel==2.9.1
@@ -29,4 +29,4 @@ aiohttp
 Jinja2==3.0.3
 
 # Python HTTP for Humans.
-requests==2.27.0
+requests==2.27.1

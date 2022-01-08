@@ -52,7 +52,7 @@ from .database import backend, local_backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = "2.0.0"
+__version__ = (2, 0, 1)
 
 if __debug__:
     from .core import TestManager

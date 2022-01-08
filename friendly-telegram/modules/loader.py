@@ -319,6 +319,10 @@ class LoaderMod(loader.Module):
             prefix = utils.escape_html((self._db.get(main.__name__, "command_prefix", False) or ".")[0])
             if instance.__doc__:
                 modhelp += "<i>\nℹ️ " +  utils.escape_html(inspect.getdoc(instance)) + "</i>\n"
+
+            if re.search(r'#[ ]?disable_onload_docs', doc):
+                return await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
+
             commands = {name: func for name, func in instance.commands.items()}
             for name, fun in commands.items():
                 modhelp += self.strings("single_cmd", message).format(prefix, name)

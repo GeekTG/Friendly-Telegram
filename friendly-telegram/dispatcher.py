@@ -97,6 +97,10 @@ class CommandDispatcher:
         if not hasattr(event, "message") or getattr(event.message, "message", "") == "":
             return
 
+        # Fix bug when after reacting message command gets executed
+        if getattr(event, 'reactions', False):
+            return
+
         # Empty string evaluates to False, so the `or` activates
         prefixes = self._db.get(main.__name__, "command_prefix", False) or ["."]
         if isinstance(prefixes, str):

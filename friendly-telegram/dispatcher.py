@@ -25,7 +25,7 @@ import os
 import json
 import time
 
-from . import utils, main, security
+from . import utils, main, security, loader
 
 ru_keys = """ёйцукенгшщзхъфывапролджэячсмитьбю.Ё"№;%:?ЙЦУКЕНГ
     ШЩЗХЪФЫВАПРОЛДЖЭ/ЯЧСМИТЬБЮ, """
@@ -279,6 +279,11 @@ class CommandDispatcher:
                     logging.exception(f"Registering stats for {txt} failed")
 
                 await func(message)
+
+                if getattr(loader, 'mods', False):
+                    for mod in loader.mods:
+                        if mod.name == 'CommandsLogger':
+                            await mod.process_log(message)
             except Exception as e:
                 logging.exception("Command failed")
                 try:
@@ -292,6 +297,7 @@ class CommandDispatcher:
                     await (message.edit if message.out else message.reply)(txt)
                 finally:
                     raise e
+
 
     async def handle_incoming(self, event):
         """Handle all incoming messages"""

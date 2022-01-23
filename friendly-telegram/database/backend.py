@@ -51,6 +51,47 @@ class CloudBackend():
     def close(self):
         pass
 
+    async def _find_data_channel(self):
+        async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
+            if dialog.name == f"friendly-{self._me.user_id}-data" and dialog.is_channel:
+                members = await self._client.get_participants(dialog, limit=2)
+                if len(members) != 1:
+                    continue
+                logger.debug(f"Found data chat! It is {dialog.id}.")
+                return dialog.entity
+
+    async def _make_data_channel(self):
+        async with self._anti_double_lock:
+            if self._data_already_exists:
+                return await self._find_data_channel()
+            self._data_already_exists = True
+            return (await self._client(CreateChannelRequest(f"friendly-{self._me.user_id}-data",
+                                                            "// Don't touch", megagroup=True))).chats[0]
+
+    async def do_download_tg(self):
+        # TODO: PEP 8: E101 indentation contains mixed spaces and tabs
+        """Attempt to download the database.
+        Return the database (as unparsed JSON)"""
+        if not self.db:
+            self.db = await self._find_data_channel()
+            if not self.db:
+                logging.debug("No DB, returning")
+                return '{}'
+
+        msgs = self._client.iter_messages(
+            entity=self.db,
+            reverse=True
+        )
+        data = ""
+        lastdata = ""
+        async for msg in msgs:
+            if isinstance(msg, Message):
+                data += lastdata
+                lastdata = msg.message
+            else:
+                logger.debug(f"Found service message {msg}")
+        return data
+
     async def _find_asset_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
             if dialog.name == f"friendly-{self._me.user_id}-assets" and dialog.is_channel:
@@ -76,8 +117,8 @@ class CloudBackend():
         try:
             data = json.dumps(json.loads(open(self._db_path, 'r', encoding="utf-8").read()))
         except:
-            logger.warning("Clear database loaded")
-            raise
+            data = await self.do_download_tg()
+            # raise
 
         return data
 

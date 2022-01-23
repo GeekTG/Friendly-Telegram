@@ -199,6 +199,7 @@ class Modules:
             if not isinstance(ret, Module):
                 raise TypeError("Instance is not a Module, it is %r", ret)
         self.complete_registration(ret)
+        ret.__origin__ = origin
         return ret
 
     def register_commands(self, instance):

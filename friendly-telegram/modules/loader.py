@@ -211,7 +211,7 @@ class LoaderMod(loader.Module):
         return todo
 
     async def get_repo_list(self, preset=None):
-        if preset is None:
+        if preset is None or preset == "none":
             preset = "minimal"
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()
@@ -270,7 +270,7 @@ class LoaderMod(loader.Module):
         try:
             try:
                 spec = ModuleSpec(module_name, StringLoader(doc, origin), origin=origin)
-                instance = self.allmodules.register_module(spec, module_name)
+                instance = self.allmodules.register_module(spec, module_name, origin)
             except ImportError:
                 logger.info("Module loading failed, attemping dependency installation", exc_info=True)
                 # Let's try to reinstall dependencies
@@ -330,6 +330,7 @@ class LoaderMod(loader.Module):
                     modhelp += utils.escape_html(inspect.getdoc(fun))
                 else:
                     modhelp += self.strings("undoc_cmd", message)
+
             try:
                 await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
             except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:

@@ -106,4 +106,4 @@ class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, sett
 
     async def favicon(self, request):
         # TODO: make function static and remove request
-        return web.Response(status=301, headers={"Location": "https://friendly-telegram.gitlab.io/favicon.ico"})
+        return web.Response(status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"})

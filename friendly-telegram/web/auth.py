@@ -114,7 +114,7 @@ class Web:
     async def send_code(self, request):
         uid = int(await request.text())
         if uid in self._uid_to_code.keys():
-            return web.Response(body=self._uid_to_code[uid][1].decode("utf-8"))
+            return web.Response(body=self._uid_to_code[uid][1])
         code = secrets.randbelow(100000)
         asyncio.ensure_future(asyncio.shield(self._clear_code(uid)))
         salt = b64encode(os.urandom(16))

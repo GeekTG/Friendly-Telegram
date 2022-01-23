@@ -26,7 +26,8 @@ repos = [
     ('hikariatama', 'ftg', 'master'), 
     ('hikariatama', 'host', 'master'), 
     ('Fl1yd', 'FTG-Modules', 'master'),
-    ('GeekTG', 'FTG-Modules', 'main')
+    ('GeekTG', 'FTG-Modules', 'main'),
+    ('D4n13l3k00', 'FTG-Modules', 'master')
 ]
 
 modules = []

@@ -183,7 +183,7 @@ class Modules:
             except BaseException as e:
                 logging.exception(f"Failed to load module %s due to {e}:", mod)
 
-    def register_module(self, spec, module_name):
+    def register_module(self, spec, module_name, origin="<file>"):
         """Register single module from importlib spec"""
         from .compat import uniborg
         module = importlib.util.module_from_spec(spec)

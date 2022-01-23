@@ -1,5 +1,5 @@
 #    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2019 The Authors
+#    Copyright (C) 2018-2021 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -13,18 +13,20 @@
 
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# Modded by GeekNet team, t.me/hikariatama
 
-from aiohttp import web
-import aiohttp_jinja2
-import collections
-import jinja2
-import inspect
+#    Modded by GeekTG Team
+
 import asyncio
-import time
+import collections
+import inspect
 import os
+import time
 
-from . import initial_setup, root, config, auth, translate, settings
+import aiohttp_jinja2
+import jinja2
+from aiohttp import web
+
+from . import initial_setup, root, auth, translate, config, settings
 
 
 def ratelimit(get_storage, secret_to_uid):
@@ -58,10 +60,11 @@ def ratelimit(get_storage, secret_to_uid):
                 pass
         storage["last_request"][request.remote] = time.time()
         return await handler(request)
+
     return ratelimit_middleware
 
 
-class Web(initial_setup.Web, root.Web, auth.Web, config.Web, translate.Web, settings.Web):
+class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, settings.Web):
     def __init__(self, **kwargs):
         self.runner = None
         self.port = None
@@ -84,10 +87,10 @@ class Web(initial_setup.Web, root.Web, auth.Web, config.Web, translate.Web, sett
                 await self.start(port)
             self.ready.set()
 
-    async def start(self):
+    async def start(self, port):
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        self.port = os.environ.get("PORT", 8080)
+        self.port = os.environ.get("PORT", port)
         site = web.TCPSite(self.runner, None, self.port)
         await site.start()
         self.running.set()
@@ -102,4 +105,5 @@ class Web(initial_setup.Web, root.Web, auth.Web, config.Web, translate.Web, sett
         self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
 
     async def favicon(self, request):
+        # TODO: make function static and remove request
         return web.Response(status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"})

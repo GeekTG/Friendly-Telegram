@@ -270,7 +270,7 @@ class LoaderMod(loader.Module):
         try:
             try:
                 spec = ModuleSpec(module_name, StringLoader(doc, origin), origin=origin)
-                instance = self.allmodules.register_module(spec, module_name)
+                instance = self.allmodules.register_module(spec, module_name, origin)
             except ImportError:
                 logger.info("Module loading failed, attemping dependency installation", exc_info=True)
                 # Let's try to reinstall dependencies

@@ -164,8 +164,7 @@ class LoaderMod(loader.Module):
     @loader.owner
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
-        args = utils.get_args(message)
-        if args:
+        if args := utils.get_args(message):
             args = args[0] if urllib.parse.urlparse(args[0]).netloc else args[0].lower()
             if await self.download_and_install(args, message):
                 self._db.set(__name__, "loaded_modules",
@@ -235,8 +234,7 @@ class LoaderMod(loader.Module):
         """Loads the module file"""
         msg = message if message.file else (await message.get_reply_message())
         if msg is None or msg.media is None:
-            args = utils.get_args(message)
-            if args:
+            if args := utils.get_args(message):
                 try:
                     path_ = args[0]
                     with open(path_, "rb") as f:
@@ -323,7 +321,7 @@ class LoaderMod(loader.Module):
             if re.search(r'#[ ]?disable_onload_docs', doc):
                 return await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
 
-            commands = {name: func for name, func in instance.commands.items()}
+            commands = dict(instance.commands.items())
             for name, fun in commands.items():
                 modhelp += self.strings("single_cmd", message).format(prefix, name)
                 if fun.__doc__:

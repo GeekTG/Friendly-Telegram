@@ -74,9 +74,9 @@ class CloudBackend():
         Return the database (as unparsed JSON)"""
         if not self.db:
             self.db = await self._find_data_channel()
-            if not self.db:
-                logging.debug("No DB, returning")
-                return '{}'
+        if not self.db:
+            logging.debug("No DB, returning")
+            return '{}'
 
         msgs = self._client.iter_messages(
             entity=self.db,
@@ -103,12 +103,11 @@ class CloudBackend():
 
     async def _make_asset_channel(self):
         async with self._anti_double_asset_lock:
-            if not self._assets_already_exists:
-                self._assets_already_exists = True
-                return (await self._client(CreateChannelRequest(f"friendly-{self._me.user_id}-assets",
-                                                                "// Don't touch", megagroup=True))).chats[0]
-            else:
+            if self._assets_already_exists:
                 return await self._find_data_channel()
+            self._assets_already_exists = True
+            return (await self._client(CreateChannelRequest(f"friendly-{self._me.user_id}-assets",
+                                                            "// Don't touch", megagroup=True))).chats[0]
 
     async def do_download(self):
         """Attempt to download the database.

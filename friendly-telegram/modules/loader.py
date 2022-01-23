@@ -330,6 +330,7 @@ class LoaderMod(loader.Module):
                     modhelp += utils.escape_html(inspect.getdoc(fun))
                 else:
                     modhelp += self.strings("undoc_cmd", message)
+
             try:
                 await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
             except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:

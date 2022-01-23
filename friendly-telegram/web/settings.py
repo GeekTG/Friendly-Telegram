@@ -1,5 +1,5 @@
 #    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
+#    Copyright (C) 2018-2019 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -14,18 +14,17 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#    Modded by GeekTG Team
+# Modded by GeekNet team, t.me/hikariatama
 
-import functools
-
-import aiohttp_jinja2
 from aiohttp import web
+import aiohttp_jinja2
 from jinja2.runtime import Undefined
+import functools
 
 from .. import main, security
 
 
-def format_(msg):
+def format(msg):
     if isinstance(msg, str):
         return msg
     if isinstance(msg, int):
@@ -54,10 +53,9 @@ class Web:
         db = self.client_data[uid][2]
         return {"checked": functools.partial(self.is_checked, db), "modules": self.client_data[uid][0].modules,
                 "name": lambda x: x.__name__ if x else "", **security.BITMAP,
-                **{key: format_(self.client_data[uid][2].get(mod, key, default)) for mod, key, default in keys}}
+                **{key: format(self.client_data[uid][2].get(mod, key, default)) for mod, key, default in keys}}
 
     def is_checked(self, db, bit, func, func_name):
-        # TODO: make static
         if isinstance(func, Undefined):
             ret = db.get(security.__name__, "bounding_mask", security.DEFAULT_PERMISSIONS) & bit
         else:

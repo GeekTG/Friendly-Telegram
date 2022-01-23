@@ -1,5 +1,5 @@
 #    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
+#    Copyright (C) 2018-2019 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -13,20 +13,18 @@
 
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# Modded by GeekNet team, t.me/hikariatama
 
-#    Modded by GeekTG Team
-
-import asyncio
-import collections
-import inspect
-import os
-import time
-
-import aiohttp_jinja2
-import jinja2
 from aiohttp import web
+import aiohttp_jinja2
+import collections
+import jinja2
+import inspect
+import asyncio
+import time
+import os
 
-from . import initial_setup, root, auth, translate, config, settings
+from . import initial_setup, root, config, auth, translate, settings
 
 
 def ratelimit(get_storage, secret_to_uid):
@@ -60,11 +58,10 @@ def ratelimit(get_storage, secret_to_uid):
                 pass
         storage["last_request"][request.remote] = time.time()
         return await handler(request)
-
     return ratelimit_middleware
 
 
-class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, settings.Web):
+class Web(initial_setup.Web, root.Web, auth.Web, config.Web, translate.Web, settings.Web):
     def __init__(self, **kwargs):
         self.runner = None
         self.port = None
@@ -81,16 +78,16 @@ class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, sett
         self.app.router.add_static("/static/", "web-resources/static")
         self.app.router.add_get("/favicon.ico", self.favicon)
 
-    async def start_if_ready(self, total_count, port):
+    async def start_if_ready(self, total_count):
         if total_count <= len(self.client_data):
             if not self.running.is_set():
-                await self.start(port)
+                await self.start()
             self.ready.set()
 
-    async def start(self, port):
+    async def start(self):
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        self.port = os.environ.get("PORT", port)
+        self.port = os.environ.get("PORT", 8080)
         site = web.TCPSite(self.runner, None, self.port)
         await site.start()
         self.running.set()
@@ -105,5 +102,4 @@ class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, sett
         self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
 
     async def favicon(self, request):
-        # TODO: make function static and remove request
-        return web.Response(status=301, headers={"Location": "https://friendly-telegram.gitlab.io/favicon.ico"})
+        return web.Response(status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"})

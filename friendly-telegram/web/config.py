@@ -1,5 +1,5 @@
 #    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
+#    Copyright (C) 2018-2019 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -13,35 +13,26 @@
 
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#    Modded by GeekTG Team
+# Modded by GeekNet team, t.me/hikariatama
 
 import ast
 
-import aiohttp_jinja2
 from aiohttp import web
+import aiohttp_jinja2
 
 
 class Web:
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.app.router.add_get("/config", self.config)
         self.app.router.add_put("/setConfig", self.set_config)
-
-    @aiohttp_jinja2.template("config.jinja2")
-    async def config(self, request):
-        uid = await self.check_user(request)
-        if uid is None:
-            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
-        return {"modules": self.client_data[uid][0].modules}
 
     async def set_config(self, request):
         uid = await self.check_user(request)
         if uid is None:
             return web.Response(status=401)
         data = await request.json()
-        mid, key, value = int(data["mid"]), data["key"], data["value"]
-        mod = self.client_data[uid][0].modules[mid]
+        mid, key, value = data["mid"], data["key"], data["value"]
+        mod = [_ for _ in self.client_data[uid][0].modules if _.name == mid][0]
         if value:
             try:
                 value = ast.literal_eval(value)

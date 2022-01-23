@@ -392,6 +392,10 @@ def main():  # noqa: C901
                            "that the session is not copied. If that doesn't help, delete the file named '"
                            "friendly-telegram") + (("-" + phone) if phone else "") + ".session'"))
             continue
+        except TypeError:
+            os.remove(f'{session}.session')
+            os.remove('api_token.txt')
+            main()
         except (ValueError, ApiIdInvalidError):
             # Bad API hash/ID
             run_config({}, arguments.data_root)

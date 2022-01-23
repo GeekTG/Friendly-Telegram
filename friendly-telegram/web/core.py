@@ -78,10 +78,10 @@ class Web(initial_setup.Web, root.Web, auth.Web, config.Web, translate.Web, sett
         self.app.router.add_static("/static/", "web-resources/static")
         self.app.router.add_get("/favicon.ico", self.favicon)
 
-    async def start_if_ready(self, total_count):
+    async def start_if_ready(self, total_count, port):
         if total_count <= len(self.client_data):
             if not self.running.is_set():
-                await self.start()
+                await self.start(port)
             self.ready.set()
 
     async def start(self):

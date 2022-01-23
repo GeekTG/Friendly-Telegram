@@ -17,7 +17,7 @@ class Database(dict):
             try:
                 self.update(**json.loads(db))
             except Exception:
-                logger.error('Database load failed')
+                logging.error('Database load failed')
                 raise
 
 

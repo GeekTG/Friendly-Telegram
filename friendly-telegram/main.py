@@ -394,7 +394,6 @@ def main():  # noqa: C901
             continue
         except TypeError:
             os.remove(f'{session}.session')
-            os.remove('api_token.txt')
             main()
         except (ValueError, ApiIdInvalidError):
             # Bad API hash/ID

@@ -211,7 +211,7 @@ class LoaderMod(loader.Module):
         return todo
 
     async def get_repo_list(self, preset=None):
-        if preset is None:
+        if preset is None or preset == "none":
             preset = "minimal"
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()

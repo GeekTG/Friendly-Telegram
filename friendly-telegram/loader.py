@@ -289,6 +289,8 @@ class Modules:
             mod.config_complete()
         except Exception as e:
             logging.exception(f"Failed to send mod config complete signal due to {e}")
+            raise
+
 
     async def send_ready(self, client, db, allclients):
         """Send all data to all modules"""
@@ -299,6 +301,7 @@ class Modules:
             await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
         except Exception as e:
             logging.exception(f"Failed to send mod init complete signal due to {e}")
+
         if self.added_modules:
             await self.added_modules(self)
 
@@ -309,6 +312,8 @@ class Modules:
             await mod.client_ready(client, db)
         except Exception as e:
             logging.exception(f"Failed to send mod init complete signal for %r due to {e}", mod)
+            raise
+
         if not hasattr(mod, "commands"):
             mod.commands = get_commands(mod)
 

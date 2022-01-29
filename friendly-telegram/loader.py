@@ -137,6 +137,9 @@ class Module:
     async def client_ready(self, client, db):
         """Will be called after client is ready (after config_loaded)"""
 
+    async def client_unload(self):
+        """Will be called after unloading / reloading module"""
+
     # Called after client_ready, for internal use only. Must not be used by non-core modules
     async def _client_ready2(self, client, db):
         pass
@@ -337,6 +340,9 @@ class Modules:
                 worked += [module.__module__]
                 logging.debug("Removing module for unload %r", module)
                 self.modules.remove(module)
+
+                asyncio.ensure_future(asyncio.wait_for(asyncio.gather(module.client_unload()), timeout=3))
+
                 to_remove += module.commands.values()
                 if hasattr(module, "watcher"):
                     to_remove += [module.watcher]

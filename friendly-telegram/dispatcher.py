@@ -24,6 +24,7 @@ from telethon import types
 import os
 import json
 import time
+import traceback
 
 from . import utils, main, security, loader
 
@@ -285,18 +286,22 @@ class CommandDispatcher:
                         if mod.name == 'CommandsLogger':
                             await mod.process_log(message)
             except Exception as e:
-                logging.exception("Command failed")
-                try:
-                    if await self.security.check(message, security.OWNER | security.SUDO):
-                        txt = ("<b>Request failed! Request was</b> <code>" + utils.escape_html(message.message)
-                               + "</code><b>. Please report it in the support group "
-                             "(</b><code>{0}support</code><b>) along with the logs "
-                             "(</b><code>{0}logs error</code><b>)</b>").format(prefix)
-                    else:
-                        txt = "<b>Sorry, something went wrong!</b>"
-                    await (message.edit if message.out else message.reply)(txt)
-                finally:
-                    raise e
+                                logging.exception("Command failed")
+                if not self._db.get(main.__name__, 'inlinelogs', False):
+                    try:
+                        txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>"
+                        await (message.edit if message.out else message.reply)(txt)
+                    finally:
+                        raise e
+                else:
+                    try:
+                        exc = traceback.format_exc()
+                        exc = '\n'.join(exc.split('\n')[1:]) # Remove `Traceback (most recent call last):`
+                        txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>\n\n<b>⛑ Traceback:</b>\n<code>{exc}</code>"
+                        await (message.edit if message.out else message.reply)(txt)
+                    finally:
+                        raise e
+
 
 
     async def handle_incoming(self, event):

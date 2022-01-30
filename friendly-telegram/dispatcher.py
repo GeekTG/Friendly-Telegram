@@ -286,7 +286,7 @@ class CommandDispatcher:
                         if mod.name == 'CommandsLogger':
                             await mod.process_log(message)
             except Exception as e:
-                                logging.exception("Command failed")
+                logging.exception("Command failed")
                 if not self._db.get(main.__name__, 'inlinelogs', False):
                     try:
                         txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>"

@@ -23,7 +23,6 @@ import requests
 import logging
 logger = logging.getLogger(__name__)
 repos = [
-    ('hikariatama', 'ftg', 'master'), 
     ('hikariatama', 'host', 'master'), 
     ('Fl1yd', 'FTG-Modules', 'master'),
     ('GeekTG', 'FTG-Modules', 'main'),

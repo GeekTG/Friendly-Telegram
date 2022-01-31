@@ -100,6 +100,32 @@ def save_port(port):
         config.write(config_file)
 
 
+
+def get_db_type():
+    config = configparser.ConfigParser()
+    path = "config.ini"
+    try:
+        config.read(path)
+        USE_FILE = int(config.get("Settings", "use_file_db"))
+    except NoSectionError:
+        USE_FILE = 0
+    return USE_FILE
+
+
+def save_port(USE_FILE):
+    config = configparser.ConfigParser()
+    path = "config.ini"
+    try:
+        config.read(path)
+        config.set("Settings", "use_file_db", '1' if USE_FILE else '0')
+    except NoSectionError:
+        config.add_section("Settings")
+        config.set("Settings", "use_file_db", str('1' if USE_FILE else '0'))
+
+    with open(path, "w") as config_file:
+        config.write(config_file)
+
+
 def parse_arguments():
     """Parse the arguments"""
     parser = argparse.ArgumentParser()

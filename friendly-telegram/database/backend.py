@@ -19,7 +19,6 @@ from .. import utils
 
 logger = logging.getLogger(__name__)
 
-USE_FILE: bool = False
 
 class CloudBackend:
     def __init__(self, client):
@@ -77,7 +76,7 @@ class CloudBackend:
     async def do_download(self):
         """Attempt to download the database.
         Return the database (as unparsed JSON) or None"""
-        if USE_FILE:
+        if main.get_db_type():
             try:
                 data = json.dumps(json.loads(open(self._db_path, 'r', encoding="utf-8").read()))
             except Exception:
@@ -112,7 +111,7 @@ class CloudBackend:
         """Attempt to upload the database.
         Return True or throw"""
 
-        if USE_FILE:
+        if main.get_db_type():
             try:
                 open(self._db_path, 'w', encoding='utf-8').write(data)
             except:

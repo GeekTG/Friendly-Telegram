@@ -19,7 +19,7 @@ from .. import utils
 
 logger = logging.getLogger(__name__)
 
-USE_FILE = True
+USE_FILE: bool = False
 
 class CloudBackend:
     def __init__(self, client):

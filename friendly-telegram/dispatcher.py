@@ -276,15 +276,18 @@ class CommandDispatcher:
                             self.stats[module_name] = []
                         self.stats[module_name].append(round(time.time()))
                         open(self.stats_file, 'w').write(json.dumps(self.stats))
-                except:
-                    logging.exception(f"Registering stats for {txt} failed")
+                except Exception:
+                    pass
+                    # logging.exception(f"Registering stats for {txt} failed")
 
                 await func(message)
-
-                if getattr(loader, 'mods', False):
-                    for mod in loader.mods:
-                        if mod.name == 'CommandsLogger':
-                            await mod.process_log(message)
+                try:
+                    if getattr(loader, 'mods', False):
+                        for mod in loader.mods:
+                            if mod.name == 'CommandsLogger':
+                                await mod.process_log(message)
+                except Exception:
+                    pass
             except Exception as e:
                 logging.exception("Command failed")
                 if not self._db.get(main.__name__, 'inlinelogs', False):

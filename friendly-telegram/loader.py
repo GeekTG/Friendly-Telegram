@@ -317,7 +317,8 @@ class Modules:
         try:
             await mod.client_ready(client, db)
         except Exception as e:
-            logging.exception(f"Failed to send mod init complete signal for %r due to {e}", mod)
+            logging.exception(f"Failed to send mod init complete signal for %r due to {e}, attempting unload", mod)
+            self.unload_module(mod.__class__.__name__)
             raise
 
         if not hasattr(mod, "commands"):

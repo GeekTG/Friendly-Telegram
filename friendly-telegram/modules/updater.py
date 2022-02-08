@@ -72,12 +72,12 @@ class UpdaterMod(loader.Module):
     async def prerestart_common(self, message):
         logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
         check = str(uuid.uuid4())
-        await self._db.set(__name__, "selfupdatecheck", check)
+        self._db.set(__name__, "selfupdatecheck", check)
         await asyncio.sleep(3)
         if self._db.get(__name__, "selfupdatecheck", "") != check:
             raise ValueError("An update is already in progress!")
         self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
-        await self._db.set(__name__, "selfupdatemsg", message.id)
+        self._db.set(__name__, "selfupdatemsg", message.id)
         try:
             links = self._db.get("friendly-telegram.modules.loader", "unloaded_modules", [])
             if lnk in links:

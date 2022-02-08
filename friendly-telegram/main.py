@@ -111,6 +111,9 @@ def get_db_type():
         USE_FILE = 0
         config.add_section("Settings")
         config.set("Settings", "use_file_db", '0')
+    except NoOptionError:
+        USE_FILE = 0
+        config.set("Settings", "use_file_db", '0')
     return USE_FILE
 
 
@@ -122,6 +125,7 @@ def save_db_type(USE_FILE):
         config.set("Settings", "use_file_db", '1' if USE_FILE else '0')
     except NoSectionError:
         config.add_section("Settings")
+    except NoOptionError:
         config.set("Settings", "use_file_db", str('1' if USE_FILE else '0'))
 
     with open(path, "w") as config_file:

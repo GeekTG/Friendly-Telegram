@@ -28,6 +28,7 @@ import uuid
 import zlib
 from base64 import b64decode
 from os import path
+import json
 
 import git
 from git import Repo, GitCommandError
@@ -91,7 +92,7 @@ class UpdaterMod(loader.Module):
         except Exception as e:
             logger.info(f"Error on pre-restart: {e}", exc_info=True)
 
-        await self.db._backend.do_upload(json.dumps(self.db))
+        await self._db._backend.do_upload(json.dumps(self.db))
 
     async def restart_common(self, message):
         await self.prerestart_common(message)

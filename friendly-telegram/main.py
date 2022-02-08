@@ -109,10 +109,12 @@ def get_db_type():
         USE_FILE = int(config.get("Settings", "use_file_db"))
     except NoSectionError:
         USE_FILE = 0
+        config.add_section("Settings")
+        config.set("Settings", "use_file_db", '0')
     return USE_FILE
 
 
-def save_port(USE_FILE):
+def save_db_type(USE_FILE):
     config = configparser.ConfigParser()
     path = "config.ini"
     try:
@@ -299,6 +301,7 @@ def main():  # noqa: C901
     else:
         web = None
     save_port(arguments.port)
+    save_db_type(USE_FILE)
     while api_token is None:
         if arguments.no_auth:
             return

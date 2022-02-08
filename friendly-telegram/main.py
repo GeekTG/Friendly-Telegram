@@ -301,7 +301,6 @@ def main():  # noqa: C901
     else:
         web = None
     save_port(arguments.port)
-    save_db_type(USE_FILE)
     while api_token is None:
         if arguments.no_auth:
             return

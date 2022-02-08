@@ -73,14 +73,15 @@ class CloudBackend:
             return (await self._client(CreateChannelRequest(f"friendly-{self._me.user_id}-assets",
                                                             "// Don't touch", megagroup=True))).chats[0]
 
-    async def do_download(self):
+    async def do_download(self, force_from_data_channel=False):
         """Attempt to download the database.
         Return the database (as unparsed JSON) or None"""
-        if main.get_db_type():
+        if main.get_db_type() and not force_from_data_channel:
             try:
                 data = json.dumps(json.loads(open(self._db_path, 'r', encoding="utf-8").read()))
             except Exception:
-                raise
+                data = await self.do_download(force_from_data_channel=True)
+                await self.do_upload(data)
 
             return data
 

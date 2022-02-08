@@ -104,7 +104,7 @@ def get_git_api(url):
     if path_ is not None and len(path_) > 0:
         api_url += path_
     if branch:
-        api_url += "?ref=" + branch
+        api_url += f'?ref={branch}'
     return api_url
 
 
@@ -165,8 +165,7 @@ class LoaderMod(loader.Module):
     @loader.owner
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
-        args = utils.get_args(message)
-        if args:
+        if args := utils.get_args(message):
             args = args[0] if urllib.parse.urlparse(args[0]).netloc else args[0].lower()
             if await self.download_and_install(args, message):
                 self._db.set(__name__, "loaded_modules",
@@ -176,12 +175,12 @@ class LoaderMod(loader.Module):
             await utils.answer(
                 message,
                 (
-                        "<b>"
-                        + self.strings("avail_header", message)
-                        + "</b>\n"
-                        + '\n'.join(
-                    "<code>" + i + "</code>" for i in sorted(text.split('\n'))
-                )
+                    "<b>"
+                    + self.strings("avail_header", message)
+                    + "</b>\n"
+                    + '\n'.join(
+                        f'<code>{i}</code>' for i in sorted(text.split('\n'))
+                    )
                 ),
             )
 
@@ -214,7 +213,10 @@ class LoaderMod(loader.Module):
     async def get_repo_list(self, preset=None):
         if preset is None or preset == "none":
             preset = "minimal"
-        r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
+        r = await utils.run_sync(
+            requests.get, f'{self.config["MODULES_REPO"]}/{preset}.txt'
+        )
+
         r.raise_for_status()
         return set(filter(lambda x: x, r.text.split("\n")))
 
@@ -236,8 +238,7 @@ class LoaderMod(loader.Module):
         """Loads the module file"""
         msg = message if message.file else (await message.get_reply_message())
         if msg is None or msg.media is None:
-            args = utils.get_args(message)
-            if args:
+            if args := utils.get_args(message):
                 try:
                     path_ = args[0]
                     with open(path_, "rb") as f:
@@ -271,7 +272,7 @@ class LoaderMod(loader.Module):
             uid = "__extmod_" + str(uuid.uuid4())
         else:
             uid = name.replace("%", "%%").replace(".", "%d")
-        module_name = "friendly-telegram.modules." + uid
+        module_name = f'friendly-telegram.modules.{uid}'
         try:
             try:
                 spec = ModuleSpec(module_name, StringLoader(doc, origin), origin=origin)
@@ -328,7 +329,7 @@ class LoaderMod(loader.Module):
             if re.search(r'#[ ]?scope:[ ]?disable_onload_docs', doc):
                 return await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
 
-            commands = {name: func for name, func in instance.commands.items()}
+            commands = dict(instance.commands.items())
             for name, fun in commands.items():
                 modhelp += self.strings("single_cmd", message).format(prefix, name)
                 if fun.__doc__:
@@ -506,12 +507,12 @@ class LoaderMod(loader.Module):
                     out = io.BytesIO(file.read())
             else:
                 out = io.BytesIO(r.__loader__.data)
-            out.name = f + ".py"
+            out.name = f'{f}.py'
             out.seek(0)
 
             await utils.answer(message, out, caption=text)
         except Exception as e:
-            log_text = self.strings("not_found_info", message) if by_name else self.strings("not_found_info", message)
+            log_text = self.strings("not_found_info", message)
             logger.info(log_text.format(args) + f"\nDue to {e}", exc_info=True)
             await utils.answer(message, self.strings("not_found", message))
 

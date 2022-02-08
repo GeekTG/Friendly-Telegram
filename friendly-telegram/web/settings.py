@@ -59,10 +59,22 @@ class Web:
         if isinstance(func, Undefined):
             ret = db.get(security.__name__, "bounding_mask", security.DEFAULT_PERMISSIONS) & bit
         else:
-            ret = db.get(security.__name__, "masks", {}).get(func.__module__ + "." + func_name,
-                                                             getattr(func, "security",
-                                                                     db.get(security.__name__, "default",
-                                                                            security.DEFAULT_PERMISSIONS))) & bit
+            ret = (
+                db.get(security.__name__, "masks", {}).get(
+                    f'{func.__module__}.{func_name}',
+                    getattr(
+                        func,
+                        "security",
+                        db.get(
+                            security.__name__,
+                            "default",
+                            security.DEFAULT_PERMISSIONS,
+                        ),
+                    ),
+                )
+                & bit
+            )
+
         return "checked" if ret else ""
 
     async def set_group(self, request):
@@ -107,7 +119,7 @@ class Web:
             return web.Response(status=400)
         if mod and func:
             masks = self.client_data[uid][2].get(security.__name__, "masks", {})
-            masks[mod.__module__ + "." + function.__name__] = mask
+            masks[f'{mod.__module__}.{function.__name__}'] = mask
             self.client_data[uid][2].set(security.__name__, "masks", masks)
         else:
             self.client_data[uid][2].set(security.__name__, "bounding_mask", mask)

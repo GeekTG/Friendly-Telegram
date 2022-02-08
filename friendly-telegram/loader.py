@@ -69,7 +69,7 @@ def translatable_docstring(cls):
             try:
                 func_.__doc__ = self.strings["_cmd_doc_" + command_]
             except AttributeError:
-                func_.__func__.__doc__ = self.strings["_cmd_doc_" + command_]
+                func_.__func__.__doc__ = self.strings[f'_cmd_doc_{command_}']
         self.__doc__ = self.strings["_cls_doc"]
         return self.config_complete._old_(self, *args, **kwargs)
 
@@ -179,7 +179,7 @@ class Modules:
         logging.debug(mods)
         for mod in mods:
             try:
-                module_name = __package__ + "." + MODULES_NAME + "." + os.path.basename(mod)[:-3]  # FQN
+                module_name = f'{__package__}.{MODULES_NAME}.{os.path.basename(mod)[:-3]}'
                 logging.debug(module_name)
                 spec = importlib.util.spec_from_file_location(module_name,
                                                               os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
@@ -281,7 +281,7 @@ class Modules:
                     mod.config[conf] = modcfg[conf]
                 else:
                     try:
-                        mod.config[conf] = os.environ[mod.__module__ + "." + conf]
+                        mod.config[conf] = os.environ[f'{mod.__module__}.{conf}']
                     except KeyError:
                         mod.config[conf] = mod.config.getdef(conf)
         if babel is not None and not hasattr(mod, "name"):
@@ -330,10 +330,14 @@ class Modules:
             await self.added_modules(self)
 
     def get_classname(self, name):
-        for module in reversed(self.modules):
-            if name in (module.name, module.__class__.__module__):
-                return module.__class__.__module__
-        return name
+        return next(
+            (
+                module.__class__.__module__
+                for module in reversed(self.modules)
+                if name in (module.name, module.__class__.__module__)
+            ),
+            name,
+        )
 
     def unload_module(self, classname):
         """Remove module and all stuff from it"""

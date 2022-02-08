@@ -71,7 +71,7 @@ class UpdaterMod(loader.Module):
         await self.restart_common(msg)
 
     async def prerestart_common(self, message):
-        logger.debug("Self-update. " + sys.executable + " -m " + utils.get_base_dir())
+        logger.debug(f'Self-update. {sys.executable} -m ' + utils.get_base_dir())
         check = str(uuid.uuid4())
         self._db.set(__name__, "selfupdatecheck", check)
         await asyncio.sleep(3)
@@ -159,8 +159,7 @@ class UpdaterMod(loader.Module):
                 await asyncio.gather(*[msg.delete() for msg in msgs])
             else:
                 message = (await utils.answer(msgs, self.strings("installing", message)))[0]
-            heroku_key = os.environ.get("heroku_api_token")
-            if heroku_key:
+            if heroku_key := os.environ.get("heroku_api_token"):
                 from .. import heroku
                 await self.prerestart_common(message)
                 heroku.publish(self.allclients, heroku_key)
@@ -197,8 +196,7 @@ class UpdaterMod(loader.Module):
     async def update_complete(self, client):
         logger.debug("Self update successful! Edit message")
         heroku_key = os.environ.get("heroku_api_token")
-        herokufail = ("DYNO" in os.environ) and (heroku_key is None)
-        if herokufail:
+        if herokufail := ("DYNO" in os.environ) and (heroku_key is None):
             logger.warning("heroku token not set")
             msg = self.strings("heroku_warning")
         else:

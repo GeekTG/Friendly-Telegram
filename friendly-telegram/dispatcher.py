@@ -228,7 +228,7 @@ class CommandDispatcher:
                         def process_text(text):
                             nonlocal grep, ungrep
                             res = []
-                            
+
 
                             for line in text.split('\n'):
                                 if grep and grep in re.sub('<.*?>', '', line) and (not ungrep or ungrep not in re.sub('<.*?>', '', line)):
@@ -237,7 +237,12 @@ class CommandDispatcher:
                                 if not grep and ungrep and ungrep not in re.sub('<.*?>', '', line):
                                     res.append(line)
 
-                            cont = (("contain <b>" + grep + "</b>") if grep else "") + (" and" if grep and ungrep else "") + ((" do not contain <b>" + ungrep + "</b>") if ungrep else "")
+                            cont = (
+                                (f'contain <b>{grep}</b>' if grep else "")
+                                + (" and" if grep and ungrep else "")
+                                + (f' do not contain <b>{ungrep}</b>' if ungrep else "")
+                            )
+
 
                             if res:
                                 text = f'<i>💬 Lines that {cont}:</i>\n' + ('\n'.join(res))

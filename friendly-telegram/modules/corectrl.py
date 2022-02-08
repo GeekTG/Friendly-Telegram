@@ -206,8 +206,7 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings("alias_args", message))
             return
         alias, cmd = args
-        ret = self.allmodules.add_alias(alias, cmd)
-        if ret:
+        if ret := self.allmodules.add_alias(alias, cmd):
             self._db.set(__name__, "aliases", {**self._db.get(__name__, "aliases"), alias: cmd})
             await utils.answer(message, self.strings("alias_created", message).format(utils.escape_html(alias)))
         else:
@@ -221,8 +220,7 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings("delalias_args", message))
             return
         alias = args[0]
-        ret = self.allmodules.remove_alias(alias)
-        if ret:
+        if ret := self.allmodules.remove_alias(alias):
             current = self._db.get(__name__, "aliases")
             del current[alias]
             self._db.set(__name__, "aliases", current)
@@ -252,7 +250,7 @@ class CoreMod(loader.Module):
             if not pack.isalnum():
                 await utils.answer(message, self.strings("bad_pack", message))
                 return
-            if not os.path.isfile(os.path.join("translations", pack + ".json")):
+            if not os.path.isfile(os.path.join("translations", f'{pack}.json')):
                 await utils.answer(message, self.strings("bad_pack", message))
                 return
             self._db.setdefault(main.__name__, {}).setdefault("langpacks", []).append(pack)

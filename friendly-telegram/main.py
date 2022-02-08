@@ -33,7 +33,7 @@ import socket
 import sqlite3
 import sys
 import time
-from configparser import NoSectionError
+from configparser import NoSectionError, NoOptionError
 
 import requests
 from requests import get

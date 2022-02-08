@@ -55,7 +55,11 @@ class CoreMod(loader.Module):
                "grep_on": "<b>👍 Now <u>grep</u> is working</b>",
                "grep_off": "<b>👍 Now <u>grep</u> is not working</b>",
                "grep_status": "<b>🎬 Right now you <u>can{}</u> use </b><code>| grep</code>",
-               "grep_args": "🚫<b> Usage: .grep [on/off]</b>"}
+               "grep_args": "🚫<b> Usage: .grep [on/off]</b>",
+               "inlinelogs_on": "<b>🧙‍♂️ Now <u>InlineLogs</u> are working</b>",
+               "inlinelogs_off": "<b>🧙‍♂️ Now <u>InlineLogs</u> are not working</b>",
+               "inlinelogs_status": "<b>🧙‍♂️ Right now you <u>can{}</u> view logs right after command execution</b>",
+               "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>"}
 
     async def client_ready(self, client, db):
         self._db = db
@@ -155,6 +159,22 @@ class CoreMod(loader.Module):
         self._db.set(main.__name__, "grep", args)
         await utils.answer(message, self.strings("grep_on" if args else "grep_off", message))
 
+
+    @loader.owner
+    async def ilogscmd(self, message):
+        """<on|off> - Toggle 'inlinelogs' usage"""
+        args = utils.get_args_raw(message)
+        if not args:
+            await utils.answer(message, self.strings("inlinelogs_status", message).format("'t" if not self._db.get(main.__name__, "inlinelogs", False) else ""))
+            return
+
+        if args not in ["on", "off"]:
+            await utils.answer(message, self.strings("inlinelogs_args", message))
+            return
+
+        args = args == "on"
+        self._db.set(main.__name__, "inlinelogs", args)
+        await utils.answer(message, self.strings("inlinelogs_on" if args else "inlinelogs_off", message))
 
 
     @loader.owner

@@ -1,5 +1,5 @@
 #    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
+#    Copyright (C) 2018-2019 The Authors
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -14,17 +14,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#    Modded by GeekTG Team
+# Modded by GeekNet team, t.me/hikariatama
 
 import asyncio
+from aiohttp import web
+import aiohttp_jinja2
 import hashlib
-import logging
 import os
 import secrets
-from base64 import b64encode
+import logging
+import telethon
 
-import aiohttp_jinja2
-from aiohttp import web
+logger = logging.getLogger(__name__)
+
+from base64 import b64encode
 
 from .. import security
 
@@ -40,36 +43,92 @@ class Web:
         super().__init__(**kwargs)
         self._uid_to_code = {}
         self._secret_to_uid = {}
+        self._code_to_ms = {}
         self.app.router.add_get("/auth", self.auth)
         self.app.router.add_post("/sendCode", self.send_code)
         self.app.router.add_post("/code", self.check_code)
         self.app.router.add_get("/logOut", self.log_out)
+        self.app.router.add_post("/dlmod", self.dlmod)
+        self.app.router.add_post("/unloadmod", self.unloadmod)
+        self.app.router.add_get("/modules", self.modules)
 
     @aiohttp_jinja2.template("auth.jinja2")
     async def auth(self, request):
         if await self.check_user(request) is not None:
             return web.Response(status=302, headers={"Location": "/"})  # Already authenticated
-        return {"users": self.client_data.keys(), "clients": bool(self.client_data)}
+        return {
+            "users": {
+                uid: telethon.utils.get_display_name(await _client[1].get_me())
+                for uid, _client in self.client_data.items()
+            },
+            "clients": bool(self.client_data)
+        }
+
+    async def modules(self, request):
+        uid = self._secret_to_uid[request.cookies["secret"]]
+
+        return web.json_response([
+            {
+                'origin': getattr(mod, '__origin__', False) or '<file>',
+                'name': getattr(mod, 'name', False) or mod.strings['name'],
+                'dir': dir(mod),
+                'docs': getattr(mod, '__doc__', False) or 'No docs :(',
+                'config': [{
+                    'param': param,
+                    'doc': mod.config.getdoc(param),
+                    'default': mod.config.getdef(param),
+                    'current': mod.config[param]
+                } for param in mod.config] if getattr(mod, 'config', False) else []
+            }
+
+            for mod in self.client_data[uid][0].modules
+        ])
+
+
+    async def dlmod(self, request):
+        mod = await request.text()
+        uid = self._secret_to_uid[request.cookies["secret"]]
+
+        msg = await self.client_data[uid][1].send_message('me', f'.dlmod {mod}')
+
+        await self.client_data[uid][0].commands['dlmod'](msg)
+
+        result = (await self.client_data[uid][1].get_messages('me', msg.id))[0].raw_text
+        await msg.delete()
+
+        return web.Response(status=200, text=result)
+
+    async def unloadmod(self, request):
+        mod = await request.text()
+        uid = self._secret_to_uid[request.cookies["secret"]]
+
+        msg = await self.client_data[uid][1].send_message('me', f'.unloadmod {mod}')
+
+        await self.client_data[uid][0].commands['unloadmod'](msg)
+
+        result = (await self.client_data[uid][1].get_messages('me', msg.id))[0].raw_text
+        await msg.delete()
+
+        return web.Response(status=200, text=result)
 
     async def send_code(self, request):
         uid = int(await request.text())
         if uid in self._uid_to_code.keys():
-            return web.Response(body=self._uid_to_code[uid][1].decode("utf-8"))
+            return web.Response(body=self._uid_to_code[uid][1])
         code = secrets.randbelow(100000)
         asyncio.ensure_future(asyncio.shield(self._clear_code(uid)))
         salt = b64encode(os.urandom(16))
-        msg = ("Your code is <code>{:05d}</code>\nDo <b>not</b> share this code with anyone!\n"
-               "The code will expire in 2 minutes.".format(code))
+        msg = ("Your GeekTG Auth code: <code>{:05d}</code>\nDo <b>not</b> share it with <b>anyone</b>!".format(code))
         owners = self.client_data[uid][2].get(security.__name__, "owner", None) or ["me"]
+        msgs = []
         for owner in owners:
             try:
-                await self.client_data[uid][1].send_message(owner, msg)
-            except Exception as e:
-                logging.warning(f"Failed to send code to owner due to {e}", exc_info=True)
+                msgs += [await self.client_data[uid][1].send_message(owner, msg)]
+            except Exception:
+                logging.warning("Failed to send code to owner", exc_info=True)
         print(humanfriendly.terminal.html.html_to_ansi(msg) if humanfriendly else html.parse(msg)[0])  # noqa: T001
-        self._uid_to_code[uid] = (b64encode(hashlib.scrypt((str(code).zfill(5) + str(uid)).encode("utf-8"),
-                                                           salt=salt, n=16384, r=8, p=1, dklen=64)).decode("utf-8"),
-                                  salt)
+        self._uid_to_code[uid] = str(code).zfill(5)
+        self._code_to_ms[str(code)] = msgs
         return web.Response(body=salt.decode("utf-8"))
 
     async def _clear_code(self, uid):
@@ -84,25 +143,31 @@ class Web:
         uid = int(uid)
         if uid not in self._uid_to_code:
             return web.Response(status=404)
-        if self._uid_to_code[uid][0] != code:
+        if str(self._uid_to_code[uid]) == str(code):
+            del self._uid_to_code[uid]
+            for msg in self._code_to_ms[str(code)]:
+                try:
+                    await msg.delete()
+                except Exception:
+                    pass
+            del self._code_to_ms[str(code)]
+            if "DYNO" in os.environ:
+                # Trust the X-Forwarded-For on Heroku, because all requests are proxied
+                source = request.headers["X-Forwarded-For"]
+            else:  # TODO allow other proxies to be supported
+                source = request.transport.get_extra_info("peername")
+                if source is not None:
+                    source = source[0]
+            await self.client_data[uid][0].log("new_login", data=str(source))
+            secret = secrets.token_urlsafe()
+            asyncio.ensure_future(asyncio.shield(self._clear_secret(secret)))
+            self._secret_to_uid[secret] = uid  # If they just signed in, they automatically are authenticated
+            return web.Response(text=secret)
+        else:
             return web.Response(status=401)
 
-        del self._uid_to_code[uid]
-        if "DYNO" in os.environ:
-            # Trust the X-Forwarded-For on Heroku, because all requests are proxied
-            source = request.headers["X-Forwarded-For"]
-        else:  # TODO allow other proxies to be supported
-            source = request.transport.get_extra_info("peername")
-            if source is not None:
-                source = source[0]
-        await self.client_data[uid][0].log("new_login", data=str(source))
-        secret = secrets.token_urlsafe()
-        asyncio.ensure_future(asyncio.shield(self._clear_secret(secret)))
-        self._secret_to_uid[secret] = uid  # If they just signed in, they automatically are authenticated
-        return web.Response(text=secret)
-
     async def _clear_secret(self, secret):
-        await asyncio.sleep(60**2 * 6)
+        await asyncio.sleep(60 * 60 * 6)  # You must authenticate once per 6 hours
         try:
             del self._secret_to_uid[secret]
         except KeyError:

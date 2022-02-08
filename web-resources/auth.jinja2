@@ -17,62 +17,79 @@
 -->
 
 <!--
-    Modded by GeekTG Team
+    Modded by GeekNet team, t.me/hikariatama
 -->
 
 
 {% extends "base.jinja2" %}
 
 {% block head %}
-	<script src="https://cdn.jsdelivr.net/npm/scrypt-async@2.0.1/scrypt-async.min.js"></script>
-	<script src="{{ static('auth.js') }}"></script>
-{% endblock %}
+  <script src="https://cdn.jsdelivr.net/npm/scrypt-async@2.0.1/scrypt-async.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{{ static('auth.js') }}"></script>
+  <style>
+    .button {
+      border-radius: 10px;
+      padding: 10px 20px;
+      border: none;
+      color: #898989;
+      width: 100%;
+      margin: 5px 0;
+      background: #181818;
+      cursor: pointer;
+      transition: box-shadow .2s ease;
+    }
+    .button:hover {
+      box-shadow: inset 5px 5px 10px #0b0b0b, 
+                  inset -5px -5px 10px #252525;
+    }
 
-{% block title %}
-	Authentication
+    .signin_block {
+      display: inline-block;
+    }
+
+    .signin_block ul {
+      margin: 0;
+      list-style: none;
+      padding: 0;
+    }
+
+    .signin_block li {
+      width: 100%;
+    }
+
+    .signin_block h1 {
+      margin: 0;
+      color: #eee;
+      font-size: 22px;
+      padding: 20px;
+    }
+
+    .main_content {
+      justify-content: center;
+      align-items: center;
+      display: flex;
+    }
+
+    .hamburger, .menu {
+      display: none;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
-	<div class="mdl-card__title">
-		<h3 class="mdl-card__title-text">Sign In</h3>
-	</div>
-	<div class="mdl-card__supporting-text">
-		Please select the Telegram User ID to which you want to sign in
-		<ul class="mdl-list">
-			{% for uid in users %}
-				<li class="mdl-list__item">
-					<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"
-					        onclick="beginAuthFlow(this.innerText);">
-						{{ uid }}
-					</button>
-				</li>
-			{% endfor %}
-		</ul>
-	</div>
+  <div class="signin_block">
+    <h1>Select an account to sign in</h1>
+    <ul>
+      {% for uid, name in users.items() %}
+        <li>
+          <button class="button" onclick="beginAuthFlow({{uid}});">
+            {{ name }}
+          </button>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endblock %}
 
-{% block after %}
-	<dialog class="mdl-dialog" id="codeentry">
-		<h4 class="mdl-dialog__title">Enter Code</h4>
-		<div class="mdl-dialog__content">
-			<p>
-				Please enter the code sent to your Telegram account
-			</p>
-
-			<div class="mdl-textfield mdl-js-textfield">
-				<input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code"
-				       oninput="codeChanged(this);">
-				<label class="mdl-textfield__label" for="code">Code</label>
-				<span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
-			</div>
-		</div>
-		<div class="mdl-dialog__actions">
-			<button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
-		</div>
-	</dialog>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
-	<script>
-		'use strict';
-		dialogPolyfill.registerDialog(document.getElementById("codeentry"));
-	</script>
-{% endblock %}

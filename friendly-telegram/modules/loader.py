@@ -152,7 +152,8 @@ class LoaderMod(loader.Module):
                "repo_unloaded": "<b>🔄 Repository unloaded, but restart is required to unload repository modules</b>",
                "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
                "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
-               "undoc_cmd": "👁‍🗨 No docs"
+               "undoc_cmd": "👁‍🗨 No docs",
+               "create_bot": "🚫 <b>This module requires GeekTG inline feature</b>\n<i>Automatic bot creation failed. Please, remove on of your bots in @BotFather to proceed</i>"
             }
 
     def __init__(self):
@@ -211,7 +212,7 @@ class LoaderMod(loader.Module):
         return todo
 
     async def get_repo_list(self, preset=None):
-        if preset is None:
+        if preset is None or preset == "none":
             preset = "minimal"
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()
@@ -262,6 +263,10 @@ class LoaderMod(loader.Module):
             await self.load_module(doc, message)
 
     async def load_module(self, doc, message, name=None, origin="<string>", did_requirements=False):
+        if re.search(r'#[ ]?scope:[ ]?inline_control', doc):
+            await utils.answer(message, self.strings('create_bot'))
+            return
+
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
@@ -270,7 +275,7 @@ class LoaderMod(loader.Module):
         try:
             try:
                 spec = ModuleSpec(module_name, StringLoader(doc, origin), origin=origin)
-                instance = self.allmodules.register_module(spec, module_name)
+                instance = self.allmodules.register_module(spec, module_name, origin)
             except ImportError:
                 logger.info("Module loading failed, attemping dependency installation", exc_info=True)
                 # Let's try to reinstall dependencies
@@ -320,7 +325,7 @@ class LoaderMod(loader.Module):
             if instance.__doc__:
                 modhelp += "<i>\nℹ️ " +  utils.escape_html(inspect.getdoc(instance)) + "</i>\n"
 
-            if re.search(r'#[ ]?disable_onload_docs', doc):
+            if re.search(r'#[ ]?scope:[ ]?disable_onload_docs', doc):
                 return await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
 
             commands = {name: func for name, func in instance.commands.items()}
@@ -330,6 +335,7 @@ class LoaderMod(loader.Module):
                     modhelp += utils.escape_html(inspect.getdoc(fun))
                 else:
                     modhelp += self.strings("undoc_cmd", message)
+
             try:
                 await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
             except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:

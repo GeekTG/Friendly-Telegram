@@ -1,20 +1,3 @@
-#    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#    Modded by GeekTG Team
 
 import asyncio
 import logging
@@ -24,6 +7,13 @@ from telethon.errors.rpcerrorlist import MessageEditTimeExpiredError, MessageNot
 from telethon.tl.custom import Message as CustomMessage
 from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
 from telethon.tl.types import Message
+import json
+import os
+
+from .. import main
+
+ORIGIN = '/'.join(main.__file__.split('/')[:-2])
+
 
 from .. import utils
 
@@ -43,6 +33,7 @@ class CloudBackend:
 
     async def init(self, trigger_refresh):
         self._me = await self._client.get_me(True)
+        self._db_path = os.path.join(ORIGIN, f'config-{self._me.user_id}.json')
         self._callback = trigger_refresh
 
     def close(self):
@@ -83,9 +74,17 @@ class CloudBackend:
                                                             "// Don't touch", megagroup=True))).chats[0]
 
     async def do_download(self):
-        # TODO: PEP 8: E101 indentation contains mixed spaces and tabs
         """Attempt to download the database.
         Return the database (as unparsed JSON) or None"""
+        if main.get_db_type():
+            try:
+                data = json.dumps(json.loads(open(self._db_path, 'r', encoding="utf-8").read()))
+            except Exception:
+                raise
+
+            return data
+
+
         if not self.db:
             self.db = await self._find_data_channel()
             if not self.db:
@@ -111,6 +110,16 @@ class CloudBackend:
     async def do_upload(self, data):
         """Attempt to upload the database.
         Return True or throw"""
+
+        if main.get_db_type():
+            try:
+                open(self._db_path, 'w', encoding='utf-8').write(data)
+            except:
+                logger.exception("Database save failed!")
+                raise
+
+            return True
+
         if not self.db:
             self.db = await self._find_data_channel()
             if not self.db:

@@ -1,6 +1,6 @@
-<!--
+<!-- 
     Friendly Telegram (telegram userbot)
-    Copyright (C) 2018-2021 The Authors
+    Copyright (C) 2018-2019 The Authors
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -14,29 +14,549 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    Modded by GeekNet team, t.me/hikariatama
 -->
-
-<!--
-    Modded by GeekTG Team
--->
-
-
 {% extends "base.jinja2" %}
 
-{% block title %}
-	Friendly-Telegram
+{% block head %}
+<style>
+  .modules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    column-count: 5;
+    column-gap: 10px;
+    width: 100%;
+  }
+
+  .modules li {
+    width: 100%;
+    border-radius: 5px;
+    margin: 5px 0;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, .1);
+    background: #141414;
+    box-sizing: border-box;
+    padding: 10px 0;
+  }
+
+  .button {
+    border-radius: 5px;
+    padding: 5px 10px;
+    border: none;
+    color: #898989;
+    width: 50%;
+    margin: 5px;
+    margin-left: 25%;
+    cursor: pointer;
+    border: 1px solid green;
+    background: transparent;
+    transition: all .1s ease;
+  }
+
+  .button:hover {
+    background: rgba(0, 255, 0, .1);
+  }
+
+  .button.red {
+    border: 1px solid red;
+  }
+
+  .button.red:hover {
+    background: rgba(255, 0, 0, .1);
+  }
+
+  .button.blue {
+    border: 1px solid blue;
+  }
+
+  .button.blue:hover {
+    background: rgba(0, 0, 255, .1);
+  }
+
+
+  .modules li h1 {
+    margin: 0;
+    font-size: 16px;
+    color: #eee;
+    text-align: center;
+  }
+
+  @media screen and (max-width: 736px) {
+    .modules {
+      column-count: 1;
+    }
+  }
+
+  .user h1 {
+    font-size: 22px;
+    color: #eee;
+    margin: 0;
+    line-height: 40px;
+    margin-left: 10px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  .user {
+    display: flex;
+    margin: 10px 0 10px 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .author_nav {
+    margin: 30px 10px;
+  }
+
+  .user_button {
+    padding: 15px;
+    background: rgba(100, 100, 100, .1);
+    border-radius: 10px;
+    display: flex;
+    user-select: none;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+
+  .user_button:hover {
+    background: rgba(100, 100, 100, .15);
+  }
+
+  .user * {
+    text-decoration: none;
+  }
+
+  hr {
+    border: 0;
+    height: 1px;
+    background: #333;
+    background-image: -webkit-linear-gradient(left, #111, #333, #111);
+    background-image: -moz-linear-gradient(left, #111, #333, #111);
+    background-image: -ms-linear-gradient(left, #111, #333, #111);
+    background-image: -o-linear-gradient(left, #111, #333, #111);
+  }
+
+  .installed_modules {
+    margin-bottom: 30px;
+  }
+
+  .docs {
+    font-size: 13px;
+    color: #555;
+    /*margin: 5px;*/
+    padding: 5px;
+    text-align: center;
+    margin: 0;
+    line-height: 14px;
+    font-style: italic;
+    max-width: 90%;
+    margin-left: 2%;
+  }
+
+  .button.small {
+    width: auto;
+    padding: 4px 5px 1px 5px;
+    margin: 0;
+    margin-left: 5px;
+  }
+
+  .button.small i {
+    font-size: 16px;
+  }
+
+  .configure_window {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    padding: 15px;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    box-sizing: border-box;
+    z-index: 52;
+    background: linear-gradient(145deg, #121212, #0f0f0f);
+    visibility: hidden;
+    opacity: 0;
+    transition: all .2s ease;
+  }
+
+  .configure_window.active {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .configure_window h1 {
+    font-size: 22px;
+    text-align: center;
+    margin: 0;
+    padding: 10px 0;
+    color: #aaa;
+  }
+
+  .configure_window table {
+    width: 100%;
+    color: #aaa;
+    margin-top: 15px;
+  }
+
+  .configure_window tr {
+    border-bottom: 1px solid #444;
+    margin: 2px 0;
+  }
+
+  .configure_window td {
+    width: 25%;
+    padding: 0 5px;
+  }
+
+  .configure_param_name {
+    font-style: bold;
+  }
+
+  .configure_text {
+    border: none;
+    padding: 5px 15px;
+    border: 1px solid #444;
+    background: transparent;
+    color: #888;
+    border-radius: 10px;
+    outline: none;
+    transition: all .2s ease;
+  }
+
+  .configure_text:focus {
+    border: 1px solid rgba(100, 100, 255, .1);
+  }
+
+  .configure_text:placeholder {
+    color: #555;
+  }
+
+  .configure_window .button.save {
+    display: flex;
+    line-height: 20px;
+    height: 20px;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 20px;
+    width: auto;
+    margin: 0;
+    bottom: 0;
+    margin: auto;
+    position: absolute;
+    margin-bottom: 20px;
+  }
+
+  .configure_window .button.save i {
+    font-size: 18px;
+    margin: 0 2px;
+  }
+
+  @media screen and (max-width:  736px) {
+
+  }
+
+  i {
+    user-select: none;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-	<div class="mdl-card__title">
-		<h3 class="mdl-card__title-text">Welcome to the Friendly-Telegram web interface</h3>
-	</div>
-	<div class="mdl-card__supporting-text">
-		Here you can configure various features of Friendly-Telegram, as well as access debugging tools and status
-		reports
-		<br>
-		You are signed in as {{ name }} ({{ uid }}).
-		<br>
-		Click the hamburger menu to the left to begin.
-	</div>
+<div class="installed_modules modules">
+  
+</div>
+
+<hr>
+
+<div class="author_nav">
+
+</div>
+<div class="modules_wrapper">
+  
+</div>
+<div class="configure_window">
+  <h1>Configuring <b id="configure_modname">Yoomoney</b></h1>
+  <table>
+    
+  </table>
+  <span style="display:flex; justify-content: center;align-items: center;"><button class="button save red"><i class="material-icons">close</i> Close</button></span>
+</div>
+<script>
+  modules = {{ modules | tojson }};
+  function scrollToSmoothly(pos, time) {
+    var currentPos = window.pageYOffset;
+    var start = null;
+    if(time == null) time = 500;
+    pos = +pos, time = +time;
+    window.requestAnimationFrame(function step(currentTime) {
+        start = !start ? currentTime : start;
+        var progress = currentTime - start;
+        if (currentPos < pos) {
+            window.scrollTo(0, ((pos - currentPos) * progress / time) + currentPos);
+        } else {
+            window.scrollTo(0, currentPos - ((currentPos - pos) * progress / time));
+        }
+        if (progress < time) {
+            window.requestAnimationFrame(step);
+        } else {
+            window.scrollTo(0, pos);
+        }
+    });
+  }
+
+  function setConfig(obj) {
+    const key = obj.dataset.key;
+    fetch("/setConfig", {method: "PUT", body: JSON.stringify({mid: window.configuring, key: key,
+      value: obj.value}), credentials: "include"})
+    .then(function(response) {
+      if (response.ok) {
+        Swal.fire({
+          'toast': true,
+          'icon': 'success',
+          'position': 'bottom-end',
+          'timer': 1500,
+          'timerProgressBar': true,
+          'title': 'Config saved successfully',
+          'showConfirmButton': false,
+          'padding': '.5rem'
+        })
+      }
+    })
+    .catch(function(response) {
+      console.log(response);
+      Swal.fire({
+          'toast': true,
+          'icon': 'error',
+          'title': 'Error saving config'
+        })
+    });
+  }
+
+  String.prototype.replaceAll = function(search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+  };
+
+  remove_gh = (str) => {
+    return str.replace('https://raw.githubusercontent.com/', '').replace('/raw/', '/').replace('https://github.com/', '')
+  }
+
+  camelize = (str) => {
+    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+      return word.toUpperCase();
+    }).replace(/\s+/g, '');
+  }
+
+  var comments = {
+    'hikariatama_ftg': {
+      'photo': 'https://i.imgur.com/5awLJly.jpeg',
+      'name': 'hikari.',
+      'link': "https://me.hikariatama.ru"
+    },
+    'hikariatama_host': {
+      'photo': "https://i.imgur.com/8WNSHJJ.jpeg",
+      'name': "HikariMods Database",
+      'link': "https://me.hikariatama.ru"
+    },
+    'Fl1yd_FTG-Modules': {
+      "photo": "https://i.imgur.com/Cm4Mdsz.jpeg",
+      'name': "Fl1yd",
+      'link': "tg://resolve?domain=Fl1yd"
+    },
+    'GeekTG_FTG-Modules': {
+      "photo": "https://i.imgur.com/TmbTPn5.jpeg",
+      'name': "GeekTG",
+      'link': "tg://resolve?domain=chat_ftg"
+    },
+    'D4n13l3k00_FTG-Modules': {
+      "photo": "https://i.imgur.com/INbGgkX.jpeg",
+      'name': 'D4n13l3k00',
+      'link': 'https://D4n13l3k00.ru'
+    }
+  }
+
+  function installModule(mod, name) {
+    Swal.fire({
+      title: 'Load module ' + name + '?',
+      showCancelButton: true,
+      confirmButtonText: 'Load',
+      showLoaderOnConfirm: true,
+      preConfirm: (login) => {
+        return fetch("/dlmod", {method: "POST", body: mod})
+              .then(function(response) {
+                return response.text();
+              })
+              .catch(function(error) {
+                Swal.showValidationMessage(
+                  error
+                )
+              });
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          'icon': 'info',
+          'title': 'Installation log',
+          'html': result.value.substr(0, result.value.search('\n') > 0 ? result.value.search('\n') : result.value.length),
+          'timer': 2000
+        })
+        buildDOM();
+      }
+    })
+  }
+
+  function uninstallModule(name) {
+    Swal.fire({
+      title: 'Unload module ' + name + '?',
+      showCancelButton: true,
+      confirmButtonText: 'Unload',
+      showLoaderOnConfirm: true,
+      preConfirm: (login) => {
+        return fetch("/unloadmod", {method: "POST", body: '"' + name + '"'})
+              .then(function(response) {
+                return response.text();
+              })
+              .catch(function(error) {
+                Swal.showValidationMessage(
+                  error
+                )
+              });
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          'icon': 'info',
+          'title': 'Uninstall log',
+          'html': result.value.substr(0, result.value.search('\n') > 0 ? result.value.search('\n') : result.value.length),
+          'timer': 2000
+        })
+        buildDOM();
+      }
+    })
+  }
+
+  var config = {};
+
+  function configure(mod) {
+    t = document.querySelector('.configure_window table');
+    document.querySelector('#configure_modname').innerHTML = mod;
+    t.innerHTML = "";
+    for(var cfg in config[mod]) {
+      t.innerHTML += '<tr> <td class="configure_param_name">' + config[mod][cfg]['param'] + '</td> <td class="configure_description">' + config[mod][cfg]['doc'] + '</td> <td class="configure_default">Default: ' + config[mod][cfg]['default'] + '</td> <td><input placeholder="Current" value="' + config[mod][cfg]['current'] + '" data-key="' + config[mod][cfg]['param'] + '" class="configure_text" type="text" autocomplete="false" onchange="setConfig(this);"></td> </tr>';
+    }
+
+    document.querySelector('.configure_window').classList.add('active');
+
+    window.configuring = mod;
+  }
+
+  document.querySelector('.configure_window .button.save').onclick = () => {
+    document.querySelector('.configure_window').classList.remove('active');
+  }
+
+
+
+  function buildDOM() {
+    console.log('Rebuilding DOM');
+
+    fetch("/modules", {method: "GET"})
+    .then(function(response) {
+      response.json().then((json) => {
+        installed = json;
+        var installed_links = [];
+        for (var mod in installed) {
+          m = installed[mod];
+          installed_links.push(remove_gh(m['origin']));
+        }
+
+        var current_author = "";
+        document.querySelector('.modules_wrapper').innerHTML = "";
+        document.querySelector('.author_nav').innerHTML = "";
+        document.querySelector('.installed_modules').innerHTML = "";
+        installed.forEach((mod) => {
+          name = mod['name'];
+          link = mod['origin'];
+          origin = mod['origin'].split('/')[0] + '_' + mod['origin'].split('/')[1];
+
+          let m = document.querySelectorAll('.installed_modules');
+          btn = '<button class="button red" style="margin:0;width:auto;" onclick="uninstallModule(\'' + name.replace('\'', '\\\'') + '\')">Uninstall</button>';
+
+          if(mod['config'].length > 0) {
+            btn += '<button class="button small blue" onclick="configure(\'' + name.replace('\'', '\\\'') + '\')"><i class="material-icons">tune</i></button>';
+            config[name] = mod['config'];
+          }
+
+          by = ""
+
+          if (link.includes('github')) {
+            repo = remove_gh(link).split('/')[0] + '_' + remove_gh(link).split('/')[1];
+            if(comments[repo] !== undefined) {
+              by = "<img class='avatar' style='width: 22px; height: 22px; margin: 0 5px;' src='" + comments[repo]['photo'] + "'>";
+            }
+          }
+
+          m[m.length - 1].innerHTML += '<li><span style="display: flex; align-items: center; justify-content: center;">' + by + '<h1>' + name + '</h1></span><p class="docs">' + mod['docs'] + '</p><div style="display: flex; align-items:center; justify-content:center;">' + btn + '</div></li>';
+        });
+
+        modules.forEach((mod) => {
+          name = camelize(mod['name'].substr(0, mod['name'].length - 3).replaceAll('_', ' '));
+          link = mod['link'];
+          author = mod['author'] + "_" + mod['repo'];
+          if (author != current_author) {
+            if(current_author != "")
+              document.querySelector('.modules_wrapper').innerHTML += "</ul>";
+            
+            
+
+            current_author = author;
+            author_ = comments[author];
+            document.querySelector('.modules_wrapper').innerHTML += "<hr><div class='user' id='" + author + "'><img class='avatar' src='" + author_['photo'] + "'><h1>" + author_['name'] + "</h1></div>";
+
+            document.querySelector('.modules_wrapper').innerHTML += "<ul class='modules'>";
+          }
+          let m = document.querySelectorAll('.modules_wrapper .modules');
+
+          // https://github.com/hikariatama/host/raw/master/gg.gg.py
+          // https://raw.githubusercontent.com/hikariatama/host/master/Information.py
+          var orig_name = name;
+          for (var _mod in installed) {
+            _m = installed[_mod];
+            if(_m['origin'] == link) {
+              orig_name = _m['name'];
+              break;
+            }
+          }
+
+          if(installed_links.includes(remove_gh(link))) {
+            btn = '<button class="button red" onclick="uninstallModule(\'' + orig_name + '\')">Uninstall</button></li>';
+          } else {
+            btn = '<button class="button" onclick="installModule(\'' + link + '\', \'' + orig_name + '\')">Install</button></li>'
+          }
+
+          m[m.length - 1].innerHTML += '<li><h1>' + orig_name + '</h1>' + btn;
+        });
+        document.querySelector('.modules_wrapper').innerHTML += "</ul>";
+
+        for (var author in comments) {
+          var info = comments[author];
+          document.querySelector('.author_nav').innerHTML += '<div class="user nav"><div class="user_button" onclick="scrollToSmoothly(document.querySelector(\'#' + author + '\').offsetTop - 20, 500)"><img class="avatar" src="' + info['photo'] + '"><h1>' + info['name'] + '</h1></div></div>';
+        }
+
+        console.log('DOM build finished');
+      });
+    })
+  }
+
+  buildDOM();
+</script>
 {% endblock %}

@@ -137,6 +137,10 @@ class Module:
     async def client_ready(self, client, db):
         """Will be called after client is ready (after config_loaded)"""
 
+    async def on_unload(self):
+        """Will be called after unloading / reloading module"""
+        pass
+
     # Called after client_ready, for internal use only. Must not be used by non-core modules
     async def _client_ready2(self, client, db):
         pass
@@ -183,7 +187,7 @@ class Modules:
             except BaseException as e:
                 logging.exception(f"Failed to load module %s due to {e}:", mod)
 
-    def register_module(self, spec, module_name):
+    def register_module(self, spec, module_name, origin="<file>"):
         """Register single module from importlib spec"""
         from .compat import uniborg
         module = importlib.util.module_from_spec(spec)
@@ -199,6 +203,7 @@ class Modules:
             if not isinstance(ret, Module):
                 raise TypeError("Instance is not a Module, it is %r", ret)
         self.complete_registration(ret)
+        ret.__origin__ = origin
         return ret
 
     def register_commands(self, instance):
@@ -237,6 +242,8 @@ class Modules:
             if module.__class__.__name__ == instance.__class__.__name__:
                 logging.debug("Removing module for update %r", module)
                 self.modules.remove(module)
+                asyncio.ensure_future(asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5))
+
         self.modules += [instance]
 
     def dispatch(self, command):
@@ -288,6 +295,8 @@ class Modules:
             mod.config_complete()
         except Exception as e:
             logging.exception(f"Failed to send mod config complete signal due to {e}")
+            raise
+
 
     async def send_ready(self, client, db, allclients):
         """Send all data to all modules"""
@@ -298,6 +307,7 @@ class Modules:
             await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
         except Exception as e:
             logging.exception(f"Failed to send mod init complete signal due to {e}")
+
         if self.added_modules:
             await self.added_modules(self)
 
@@ -307,7 +317,10 @@ class Modules:
         try:
             await mod.client_ready(client, db)
         except Exception as e:
-            logging.exception(f"Failed to send mod init complete signal for %r due to {e}", mod)
+            logging.exception(f"Failed to send mod init complete signal for %r due to {e}, attempting unload", mod)
+            self.modules.remove(mod)
+            raise
+
         if not hasattr(mod, "commands"):
             mod.commands = get_commands(mod)
 
@@ -331,6 +344,9 @@ class Modules:
                 worked += [module.__module__]
                 logging.debug("Removing module for unload %r", module)
                 self.modules.remove(module)
+
+                asyncio.ensure_future(asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5))
+
                 to_remove += module.commands.values()
                 if hasattr(module, "watcher"):
                     to_remove += [module.watcher]

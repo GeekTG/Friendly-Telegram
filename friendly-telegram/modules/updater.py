@@ -92,7 +92,7 @@ class UpdaterMod(loader.Module):
         except Exception as e:
             logger.info(f"Error on pre-restart: {e}", exc_info=True)
 
-        await self._db._backend.do_upload(json.dumps(self.db))
+        await self._db._backend.do_upload(json.dumps(self._db))
 
     async def restart_common(self, message):
         await self.prerestart_common(message)

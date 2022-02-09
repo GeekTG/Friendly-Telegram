@@ -321,6 +321,19 @@ class InlineManager:
                             await query.answer()
 
                     query.edit = edit
+
+                    async def delete() -> bool:
+                        nonlocal form, form_uid
+                        try:
+                            await self._client.delete_messages(form['chat'], [form['message_id']])
+                            del self._forms[form_uid]
+                        except Exception:
+                            return False
+
+                        return True
+
+                    query.delete = delete
+
                     for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
                             hasattr(module, button['callback'].split('.')[1]):
@@ -365,11 +378,15 @@ class InlineManager:
             'buttons': reply_markup,
             'live_until': round(time.time()) + self._markup_ttl,
             'force_me': force_me,
-            'always_allow': always_allow
+            'always_allow': always_allow,
+            'chat': None,
+            'message_id': None
         }
 
         q = await self._client.inline_query(self._bot_username, form_uid)
-        await q[0].click(utils.get_chat_id(message) if isinstance(message, Message) else message)
+        m = await q[0].click(utils.get_chat_id(message) if isinstance(message, Message) else message)
+        self._forms[form_uid]['chat'] = utils.get_chat_id(m)
+        self._forms[form_uid]['message_id'] = m.id
         if isinstance(message, Message):
             await message.delete()
 

@@ -79,19 +79,6 @@ class UpdaterMod(loader.Module):
             raise ValueError("An update is already in progress!")
         self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
         self._db.set(__name__, "selfupdatemsg", message.id)
-        try:
-            links = self._db.get("friendly-telegram.modules.loader", "unloaded_modules", [])
-            if lnk in links:
-                links.remove(lnk)
-                self._db.set("friendly-telegram.modules.loader", "unloaded_modules", links)
-            links = self._db.get("friendly-telegram.modules.loader", "loaded_modules", [])
-            if lnk in links:
-                links.remove(lnk)
-            links.insert(0, lnk)
-            self._db.set("friendly-telegram.modules.loader", "loaded_modules", links)
-        except Exception as e:
-            logger.info(f"Error on pre-restart: {e}", exc_info=True)
-
         await self._db._backend.do_upload(json.dumps(self._db))
 
     async def restart_common(self, message):

@@ -84,6 +84,10 @@ def gen_port():
         port = random.randint(1024, 65536)
         while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
             port = random.randint(1024, 65536)
+    except NoOptionError:
+        port = random.randint(1024, 65536)
+        while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
+            port = random.randint(1024, 65536)
     return port
 
 
@@ -424,9 +428,6 @@ def main():  # noqa: C901
                            "that the session is not copied. If that doesn't help, delete the file named '"
                            "friendly-telegram") + (("-" + phone) if phone else "") + ".session'"))
             continue
-        except TypeError:
-            os.remove(f'{session}.session')
-            main()
         except (ValueError, ApiIdInvalidError):
             # Bad API hash/ID
             run_config({}, arguments.data_root)

@@ -35,7 +35,7 @@ import telethon
 
 import requests
 
-from .. import loader, utils, main
+from .. import loader, utils, main, inline
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class LoaderMod(loader.Module):
                "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
                "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
                "undoc_cmd": "👁‍🗨 No docs",
-               "create_bot": "🚫 <b>This module requires GeekTG inline feature</b>\n<i>Automatic bot creation failed. Please, remove on of your bots in @BotFather to proceed</i>"
+               "inline_init_failed": "🚫 <b>This module requires GeekTG inline feature</b>\n<i>Please, wait until init is fully complete or remove one of your old bots from @BotFather</i>"
             }
 
     def __init__(self):
@@ -263,8 +263,8 @@ class LoaderMod(loader.Module):
             await self.load_module(doc, message)
 
     async def load_module(self, doc, message, name=None, origin="<string>", did_requirements=False):
-        if re.search(r'#[ ]?scope:[ ]?inline_control', doc):
-            await utils.answer(message, self.strings('create_bot'))
+        if re.search(r'#[ ]?scope:[ ]?inline_control', doc) and not self.inline.init_complete:
+            await utils.answer(message, self.strings('inline_init_failed'))
             return
 
         if name is None:
@@ -307,6 +307,8 @@ class LoaderMod(loader.Module):
             if message is not None:
                 await utils.answer(message, self.strings("load_failed", message))
             return False
+
+        instance.inline = self.inline
         try:
             self.allmodules.send_config_one(instance, self._db, self.babel)
             await self.allmodules.send_ready_one(instance, self._client, self._db, self.allclients)
@@ -524,6 +526,9 @@ class LoaderMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._client = client
+        inline_manager = inline.InlineManager(client, db, self.allmodules)
+        await inline_manager._register_manager()
+        self.inline = inline_manager
         await self._update_modules()
 
 

@@ -84,6 +84,10 @@ def gen_port():
         port = random.randint(1024, 65536)
         while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
             port = random.randint(1024, 65536)
+    except NoOptionError:
+        port = random.randint(1024, 65536)
+        while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
+            port = random.randint(1024, 65536)
     return port
 
 

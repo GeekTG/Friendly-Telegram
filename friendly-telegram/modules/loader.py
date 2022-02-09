@@ -153,7 +153,7 @@ class LoaderMod(loader.Module):
                "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
                "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
                "undoc_cmd": "👁‍🗨 No docs",
-               "inline_init_failed": "🚫 <b>This module requires GeekTG inline feature</b>\n<i>Please, wait until init is fully complete or remove one of your old bots from @BotFather</i>"
+               "inline_init_failed": "🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>\n<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>"
             }
 
     def __init__(self):

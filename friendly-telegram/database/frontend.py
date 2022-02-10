@@ -30,7 +30,7 @@ class Database(dict):
             self._backend.close()
 
     def save(self):
-        asyncio.ensure_future(self._backend.do_upload(json.dumps(self, indent=4, ensure_ascii=False)))
+        asyncio.ensure_future(self._backend.do_upload(json.dumps(self, indent=4)))
 
     def get(self, owner, key, default=None):
         try:

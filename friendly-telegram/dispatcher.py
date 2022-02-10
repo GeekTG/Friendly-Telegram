@@ -95,7 +95,7 @@ class CommandDispatcher:
 
     async def handle_command(self, event):
         """Handle all commands"""
-        if not hasattr(event, "message") or getattr(event.message, "message", "") == "":
+        if not hasattr(event, "message") or not getattr(event.message, "message"):
             return
 
         # Fix bug when after reacting message command gets executed

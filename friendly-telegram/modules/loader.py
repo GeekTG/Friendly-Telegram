@@ -526,7 +526,8 @@ class LoaderMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._client = client
-        inline_manager = inline.InlineManager(client, db, self.allmodules)
+        self.dispatcher = loader.dispatcher
+        inline_manager = inline.InlineManager(client, db, self)
         await inline_manager._register_manager()
         self.inline = inline_manager
         await self._update_modules()

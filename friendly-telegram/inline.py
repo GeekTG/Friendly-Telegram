@@ -30,6 +30,7 @@ from . import utils
 import logging
 import requests
 import io
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -56,19 +57,26 @@ def array_sum(array: list) -> Any:
 
 
 class InlineManager:
-    def __init__(self, client, db, allmodules) -> None:
+    def __init__(self, client, db, loader) -> None:
         """Initialize InlineManager to create forms"""
         self._client = client
         self._db = db
-        self._allmodules = allmodules
+        self._loader = loader
 
         self._token = db.get('geektg.inline', 'bot_token', False)
 
         self._forms = {}
 
-        self._markup_ttl = 60 * 60 * 5
+        self._forms_db_path = os.path.join(utils.get_base_dir(), '../inline-forms-db.json')
+
+        self._markup_ttl = 60 * 60 * 24
 
         self.init_complete = False
+
+        try:
+            self._forms = json.loads(open(self._forms_db_path, 'r').read())
+        except Exception:
+            pass
 
     async def _create_bot(self) -> None:
         # This is called outside of conversation, so we can start the new one
@@ -204,6 +212,23 @@ class InlineManager:
             # will be set to `False`
             return False
 
+    async def _cleaner(self) -> None:
+        """Cleans outdated _forms"""
+        while True:
+            for form_uid, form in self._forms.copy().items():
+                if form['ttl'] < time.time():
+                    del self._forms[form_uid]
+
+            try:
+                open(self._forms_db_path, 'w').write(json.dumps(self._forms, indent=4, ensure_ascii=False))
+            except Exception:
+                # If we are on Heroku, or Termux, we can't properly save forms,
+                # but it's not critical. Just ignore it.
+                # On these platforms forms will be reset after every restart
+                pass
+
+            await asyncio.sleep(10)
+
     async def _register_manager(self) -> None:
         # Get info about user to use it in this class
         me = await self._client.get_me()
@@ -235,6 +260,7 @@ class InlineManager:
         # to force stop this coro. It should be cancelled only by `stop`
         # because it stops the bot from getting updates
         self._task = asyncio.ensure_future(self._dp.start_polling())
+        self._cleaner_task = asyncio.ensure_future(self._cleaner())
 
     async def stop(self) -> None:
         await self._bot.close()
@@ -298,6 +324,7 @@ class InlineManager:
                 if button.get('_callback_data', None) == query.data:
                     if form['force_me'] and \
                         query.from_user.id != self._me and \
+                        query.from_user.id not in self._loader.dispatcher.security._owner and \
                         query.from_user.id not in form['always_allow']:
                         await query.answer('You are not allowed to press this button!')
                         return
@@ -334,7 +361,9 @@ class InlineManager:
 
                     query.delete = delete
 
-                    for module in self._allmodules.modules:
+                    query.form = form
+
+                    for module in self._loader.allmodules.modules:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
                             hasattr(module, button['callback'].split('.')[1]):
                             return await getattr(module, button['callback'].split('.')[1])\
@@ -376,7 +405,7 @@ class InlineManager:
         self._forms[form_uid] = {
             'text': text,
             'buttons': reply_markup,
-            'live_until': round(time.time()) + self._markup_ttl,
+            'ttl': round(time.time()) + self._markup_ttl,
             'force_me': force_me,
             'always_allow': always_allow,
             'chat': None,

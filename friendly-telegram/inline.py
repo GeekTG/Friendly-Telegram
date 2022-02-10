@@ -57,11 +57,11 @@ def array_sum(array: list) -> Any:
 
 
 class InlineManager:
-    def __init__(self, client, db, loader) -> None:
+    def __init__(self, client, db, allmodules) -> None:
         """Initialize InlineManager to create forms"""
         self._client = client
         self._db = db
-        self._loader = loader
+        self._allmodules = allmodules
 
         self._token = db.get('geektg.inline', 'bot_token', False)
 
@@ -319,6 +319,13 @@ class InlineManager:
 
     async def _callback_query_handler(self, query: aiogram.types.CallbackQuery, reply_markup: List[List[dict]] = []) -> None:
         """Callback query handler (buttons' presses)"""
+        # Find Loader instance to access security layers
+        if not hasattr(self, '_loader'):
+            for mod in self._allmodules.modules:
+                if mod.__class__.__name__ == "LoaderMod":
+                    self._loader = mod
+                    break
+
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):
                 if button.get('_callback_data', None) == query.data:
@@ -363,7 +370,7 @@ class InlineManager:
 
                     query.form = form
 
-                    for module in self._loader.allmodules.modules:
+                    for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
                             hasattr(module, button['callback'].split('.')[1]):
                             return await getattr(module, button['callback'].split('.')[1])\

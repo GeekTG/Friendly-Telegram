@@ -35,7 +35,7 @@ import telethon
 
 import requests
 
-from .. import loader, utils, main, inline
+from .. import loader, utils, main
 
 logger = logging.getLogger(__name__)
 
@@ -527,9 +527,6 @@ class LoaderMod(loader.Module):
         self._db = db
         self._client = client
         self.dispatcher = loader.dispatcher
-        inline_manager = inline.InlineManager(client, db, self)
-        await inline_manager._register_manager()
-        self.inline = inline_manager
         await self._update_modules()
 
 

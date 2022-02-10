@@ -1,18 +1,20 @@
 """
-    Copyright 2021 t.me/innocoffee
-    Licensed under the Apache License, Version 2.0
-    
-    Author is not responsible for any consequencies caused by using this
-    software or any of its parts. If you have any questions or wishes, feel
-    free to contact Dan by sending pm to @innocoffee_alt.
-"""
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-#<3 title: AdvancedSettings
-#<3 pic: https://img.icons8.com/fluency/48/000000/voice-id.png
-#<3 desc: Расширенные настройки для GeekTG форка FTG.
+    Copyright 2022 t.me/hikariatama
+    Licensed under the Creative Commons CC BY-NC-ND 4.0
+
+    Full license text can be found at:
+    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+
+    Human-friendly one:
+    https://creativecommons.org/licenses/by-nc-nd/4.0
+"""
 
 from .. import loader, utils, main
 import logging
+from telethon.tl.types import *
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class AdvancedSettingsMod(loader.Module):
     async def client_ready(self, client, db):
         self.db = db
 
-    async def watcherscmd(self, message):
+    async def watcherscmd(self, message: Message) -> None:
         """List current watchers"""
         watchers, disabled_watchers = self.get_watchers()
         watchers = [f'♻️ {_}' for _ in watchers if _ not in list(disabled_watchers.keys())]
@@ -44,7 +46,7 @@ class AdvancedSettingsMod(loader.Module):
         await utils.answer(message, self.strings('watchers').format('\n'.join(watchers)))
 
 
-    async def watcherblcmd(self, message):
+    async def watcherblcmd(self, message: Message) -> None:
         """<module> - Toggle watcher in current chat"""
         args = utils.get_args_raw(message)
         if not args:
@@ -83,7 +85,7 @@ class AdvancedSettingsMod(loader.Module):
 
         self.db.set(main.__name__, 'disabled_watchers', disabled_watchers)
 
-    async def watchercmd(self, message):
+    async def watchercmd(self, message: Message) -> None:
         """<module> - Toggle global watcher rules
 Args:
 [-c - only in chats]

@@ -27,7 +27,7 @@ import logging
 import os
 import sys
 
-from . import utils, security
+from . import utils, security, inline
 from .translations.dynamic import Strings
 
 if __debug__:
@@ -301,6 +301,11 @@ class Modules:
     async def send_ready(self, client, db, allclients):
         """Send all data to all modules"""
         self.client = client
+
+        inline_manager = inline.InlineManager(client, db, self)
+        await inline_manager._register_manager()
+        self.inline = inline_manager
+
         await self._compat_layer.client_ready(client)
         try:
             await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
@@ -313,6 +318,7 @@ class Modules:
 
     async def send_ready_one(self, mod, client, db, allclients):
         mod.allclients = allclients
+        mod.inline = self.inline
 
         try:
             await mod.client_ready(client, db)

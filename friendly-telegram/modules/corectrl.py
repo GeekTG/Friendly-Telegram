@@ -26,40 +26,44 @@ from .. import loader, main, utils
 @loader.tds
 class CoreMod(loader.Module):
     """Control core userbot settings"""
-    strings = {"name": "Settings",
-               "too_many_args": "🚫 <b>Too many args</b>",
-               "blacklisted": "✅ <b>Chat {} blacklisted from userbot</b>",
-               "unblacklisted": "✅ <b>Chat {} unblacklisted from userbot</b>",
-               "user_blacklisted": "✅ <b>User {} blacklisted from userbot</b>",
-               "user_unblacklisted": "✅ <b>User {} unblacklisted from userbot</b>",
-               "what_prefix": "❓ <b>What should the prefix be set to?</b>",
-               "prefix_set": ("✅ <b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}"
-                              "</code> <b>to change it back</b>"),
-               "alias_created": "✅ <b>Alias created. Access it with</b> <code>{}</code>",
-               "aliases": "<b>Aliases:</b>",
-               "no_command": "🚫 <b>Command</b> <code>{}</code> <b>does not exist</b>",
-               "alias_args": "🚫 <b>You must provide a command and the alias for it</b>",
-               "delalias_args": "🚫 <b>You must provide the alias name</b>",
-               "alias_removed": "✅ <b>Alias</b> <code>{}</code> <b>removed.",
-               "no_alias": "<b>🚫 Alias</b> <code>{}</code> <b>does not exist</b>",
-               "no_pack": "<b>❓ What translation pack should be added?</b>",
-               "bad_pack": "<b>✅ Invalid translation pack specified</b>",
-               "trnsl_saved": "<b>✅ Translation pack added</b>",
-               "packs_cleared": "<b>✅ Translations cleared</b>",
-               "lang_set": "<b>✅ Language changed</b>",
-               "db_cleared": "<b>✅ Database cleared</b>",
-               "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
-               "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
-               "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
-               "nn_args": "🚫<b> Usage: .nonick [on/off]</b>",
-               "grep_on": "<b>👍 Now <u>grep</u> is working</b>",
-               "grep_off": "<b>👍 Now <u>grep</u> is not working</b>",
-               "grep_status": "<b>🎬 Right now you <u>can{}</u> use </b><code>| grep</code>",
-               "grep_args": "🚫<b> Usage: .grep [on/off]</b>",
-               "inlinelogs_on": "<b>🧙‍♂️ Now <u>InlineLogs</u> are working</b>",
-               "inlinelogs_off": "<b>🧙‍♂️ Now <u>InlineLogs</u> are not working</b>",
-               "inlinelogs_status": "<b>🧙‍♂️ Right now you <u>can{}</u> view logs right after command execution</b>",
-               "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>"}
+    strings = {
+        "name": "Settings",
+        "too_many_args": "🚫 <b>Too many args</b>",
+        "blacklisted": "✅ <b>Chat {} blacklisted from userbot</b>",
+        "unblacklisted": "✅ <b>Chat {} unblacklisted from userbot</b>",
+        "user_blacklisted": "✅ <b>User {} blacklisted from userbot</b>",
+        "user_unblacklisted": "✅ <b>User {} unblacklisted from userbot</b>",
+        "what_prefix": "❓ <b>What should the prefix be set to?</b>",
+        "prefix_set": "✅ <b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}</code> <b>to change it back</b>",
+        "alias_created": "✅ <b>Alias created. Access it with</b> <code>{}</code>",
+        "aliases": "<b>Aliases:</b>",
+        "no_command": "🚫 <b>Command</b> <code>{}</code> <b>does not exist</b>",
+        "alias_args": "🚫 <b>You must provide a command and the alias for it</b>",
+        "delalias_args": "🚫 <b>You must provide the alias name</b>",
+        "alias_removed": "✅ <b>Alias</b> <code>{}</code> <b>removed.",
+        "no_alias": "<b>🚫 Alias</b> <code>{}</code> <b>does not exist</b>",
+        "no_pack": "<b>❓ What translation pack should be added?</b>",
+        "bad_pack": "<b>✅ Invalid translation pack specified</b>",
+        "trnsl_saved": "<b>✅ Translation pack added</b>",
+        "packs_cleared": "<b>✅ Translations cleared</b>",
+        "lang_set": "<b>✅ Language changed</b>",
+        "db_cleared": "<b>✅ Database cleared</b>",
+        
+        "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
+        "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
+        "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
+        "nn_args": "🚫<b> Usage: .nonick [on/off]</b>",
+        
+        "grep_on": "<b>👍 Now <u>grep</u> is working</b>",
+        "grep_off": "<b>👍 Now <u>grep</u> is not working</b>",
+        "grep_status": "<b>🎬 Right now you <u>can{}</u> use </b><code>| grep</code>",
+        "grep_args": "🚫<b> Usage: .grep [on/off]</b>",
+
+        "inlinelogs_on": "<b>🧙‍♂️ Now <u>InlineLogs</u> are working</b>",
+        "inlinelogs_off": "<b>🧙‍♂️ Now <u>InlineLogs</u> are not working</b>",
+        "inlinelogs_status": "<b>🧙‍♂️ Right now you <u>can{}</u> view logs right after command execution</b>",
+        "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>"
+    }
 
     async def client_ready(self, client, db):
         self._db = db

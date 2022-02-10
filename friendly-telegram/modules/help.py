@@ -29,17 +29,19 @@ logger = logging.getLogger(__name__)
 @loader.tds
 class HelpMod(loader.Module):
     """Provides this help message"""
-    strings = {"name": "Help",
-               "bad_module": "<b>Invalid module name specified</b>",
-               "single_mod_header": "<b>Help for</b> <u>{}</u>:",
-               "single_cmd": "\n• <code><u>{}</u></code>\n",
-               "undoc_cmd": "No docs",
-               "all_header": "<b>Available FTG Modules:</b>",
-               "mod_tmpl": "\n• <b>{}</b>",
-               "first_cmd_tmpl": ": <code>{}",
-               "cmd_tmpl": ", {}",
-               "joined": "<b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
-               "join": "<b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>"}
+    strings = {
+        "name": "Help",
+        "bad_module": "🚫 <b>Invalid module name specified</b>",
+        "single_mod_header": "ℹ️ <b>Help for</b> <u>{}</u>:",
+        "single_cmd": "\n• <code><u>{}</u></code>\n",
+        "undoc_cmd": "👁‍🗨 No docs",
+        "all_header": "<b>Available GeekTG Modules:</b>",
+        "mod_tmpl": "\n• <b>{}</b>",
+        "first_cmd_tmpl": ": <code>{}",
+        "cmd_tmpl": ", {}",
+        "joined": "👩‍💼 <b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
+        "join": "👩‍💼 <b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>"
+    }
 
     @loader.unrestricted
     async def helpcmd(self, message):
@@ -58,9 +60,12 @@ class HelpMod(loader.Module):
                 name = module.strings["name"]
             except KeyError:
                 name = "Unspecified Name"
-            reply = self.strings("single_mod_header", message).format(utils.escape_html(name))
+            reply = self.strings("single_mod_header", message).format(
+                utils.escape_html(name))
             if module.__doc__:
-                reply += "\n" + "\n".join("  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
+                reply += "\n" + \
+                    "\n".join(
+                        "  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
             else:
                 logger.warning("Module %s is missing docstring!", module)
             commands = {name: func for name, func in module.commands.items()
@@ -68,7 +73,8 @@ class HelpMod(loader.Module):
             for name, fun in commands.items():
                 reply += self.strings("single_cmd", message).format(name)
                 if fun.__doc__:
-                    reply += utils.escape_html("\n".join("  " + t for t in inspect.getdoc(fun).split("\n")))
+                    reply += utils.escape_html("\n".join("  " +
+                                                         t for t in inspect.getdoc(fun).split("\n")))
                 else:
                     reply += self.strings("undoc_cmd", message)
         else:
@@ -92,10 +98,12 @@ class HelpMod(loader.Module):
                                     if await self.allmodules.check_security(message, func)]
                         for cmd in commands:
                             if first:
-                                reply += self.strings("first_cmd_tmpl", message).format(cmd)
+                                reply += self.strings("first_cmd_tmpl",
+                                                      message).format(cmd)
                                 first = False
                             else:
-                                reply += self.strings("cmd_tmpl", message).format(cmd)
+                                reply += self.strings("cmd_tmpl",
+                                                      message).format(cmd)
                         reply += "</code>"
                     except:
                         # TODO: FIX THAT SHIT

@@ -31,6 +31,7 @@ import logging
 import requests
 import io
 import json
+import functools
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,12 @@ photo.name = "avatar.png"
 class InlineError(Exception):
     """Exception raised when implemented error is occured in InlineManager"""
     pass
+
+class InlineCall:
+    def __init__(self):
+        self.delete = None
+        self.unload = None
+        self.edit = None
 
 
 def rand(size: int) -> str:
@@ -55,6 +62,43 @@ def array_sum(array: list) -> Any:
 
     return result
 
+
+async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[bool, None] = None, always_allow: Union[List[int], None] = None, self: Any = None, query: Any = None, form: Any = None, form_uid: Any = None, inline_message_id: Union[str, None] = None) -> None:
+    """Do not edit or pass `self`, `query`, `form`, `form_uid` params, they are for internal use only"""
+    assert isinstance(text, str)
+    if isinstance(reply_markup, list):
+        form['buttons'] = reply_markup
+    if isinstance(force_me, bool):
+        form['force_me'] = force_me
+    if isinstance(always_allow, list):
+        form['always_allow'] = always_allow
+    try:
+        await self._bot.edit_message_text(text,
+                            inline_message_id=inline_message_id or query.inline_message_id,
+                            parse_mode="HTML",
+                            disable_web_page_preview=True,
+                            reply_markup=self._generate_markup(form_uid))
+    except aiogram.utils.exceptions.MessageNotModified:
+        await query.answer()
+
+async def delete(self: Any = None, form: Any = None, form_uid: Any = None) -> bool:
+    """Params `self`, `form`, `form_uid` are for internal use only, do not try to pass them"""
+    try:
+        await self._client.delete_messages(form['chat'], [form['message_id']])
+        del self._forms[form_uid]
+    except Exception:
+        return False
+
+    return True
+
+async def unload(self: Any = None, form_uid: Any = None) -> bool:
+    """Params `self`, `form_uid` are for internal use only, do not try to pass them"""
+    try:
+        del self._forms[form_uid]
+    except Exception:
+        return False
+
+    return True
 
 class InlineManager:
     def __init__(self, client, db, allmodules) -> None:
@@ -72,6 +116,13 @@ class InlineManager:
         self._markup_ttl = 60 * 60 * 24
 
         self.init_complete = False
+        self._empty_markup = aiogram.types.inline_keyboard.InlineKeyboardMarkup()
+        self._empty_markup.row(
+            aiogram.types.inline_keyboard.InlineKeyboardButton(
+                "✌️ Wait",
+                url="https://t.me/chat_ftg"
+            )
+        )
 
         try:
             self._forms = json.loads(open(self._forms_db_path, 'r').read())
@@ -207,6 +258,24 @@ class InlineManager:
                         await m.delete()
                         await r.delete()
 
+                        m = await conv.send_message('/setinlinefeedback')
+                        r = await conv.get_response()
+
+                        await m.delete()
+                        await r.delete()
+
+                        m = await conv.send_message(button.text)
+                        r = await conv.get_response()
+
+                        await m.delete()
+                        await r.delete()
+
+                        m = await conv.send_message('Enabled')
+                        r = await conv.get_response()
+
+                        await m.delete()
+                        await r.delete()
+
                         # Save token to database, now this bot is ready-to-use
                         self._db.set('geektg.inline', 'bot_token', token)
                         self._token = token
@@ -267,6 +336,7 @@ class InlineManager:
         # Register required event handlers inside aiogram
         self._dp.register_inline_handler(self._inline_handler, lambda inline_query: True)
         self._dp.register_callback_query_handler(self._callback_query_handler, lambda query: True)
+        self._dp.register_chosen_inline_handler(self._chosen_inline_handler, lambda chosen_inline_query: True)
 
         # And get bot username to call inline queries
         self._bot_username = (await self._bot.get_me()).username
@@ -281,12 +351,13 @@ class InlineManager:
         await self._bot.close()
         self._task.cancel()
 
-    def _generate_markup(self, form_uid: int) -> "aiogram.types.inline_keyboard.InlineKeyboardMarkup":
+    def _generate_markup(self, form_uid: Union[str, list]) -> "aiogram.types.inline_keyboard.InlineKeyboardMarkup":
         """Generate markup for form"""
         markup = aiogram.types.inline_keyboard.InlineKeyboardMarkup()
 
-        for row in self._forms[form_uid]['buttons']:
+        for row in (self._forms[form_uid]['buttons'] if isinstance(form_uid, str) else form_uid):
             for button in row:
+                # logger.info(button)
                 if 'callback' in button and \
                     not isinstance(button['callback'], str):
                     func = button['callback']
@@ -296,15 +367,31 @@ class InlineManager:
                     '_callback_data' not in button:
                     button['_callback_data'] = rand(30)
 
-        for row in self._forms[form_uid]['buttons']:
+                if 'handler' in button and \
+                    not isinstance(button['handler'], str):
+                    func = button['handler']
+                    button['handler'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
+
+                if 'input' in button and \
+                    '_switch_query' not in button:
+                    button['_switch_query'] = rand(10)
+
+
+        for row in (self._forms[form_uid]['buttons'] if isinstance(form_uid, str) else form_uid):
             markup.row(*[
                 aiogram.types.inline_keyboard.InlineKeyboardButton(
                     button['text'],
                     url=button.get('url', None)
                 ) if 'url' in button else \
-                aiogram.types.inline_keyboard.InlineKeyboardButton(
-                    button['text'],
-                    callback_data=button['_callback_data']
+                (
+                    aiogram.types.inline_keyboard.InlineKeyboardButton(
+                        button['text'],
+                        callback_data=button['_callback_data']
+                    ) if 'callback' in button else \
+                    aiogram.types.inline_keyboard.InlineKeyboardButton(
+                        button['text'],
+                        switch_inline_query_current_chat=button['_switch_query'] + ' '
+                    )
                 ) for button in row
             ]
             )
@@ -315,6 +402,37 @@ class InlineManager:
         """Inline query handler (forms' calls)"""
         # Retrieve query from passed object
         query = inline_query.query
+
+        if not query:
+            return
+
+        # Find Loader instance to access security layers
+        if not hasattr(self, '_loader'):
+            for mod in self._allmodules.modules:
+                if mod.__class__.__name__ == "LoaderMod":
+                    self._loader = mod
+                    break
+
+        for form_uid, form in self._forms.copy().items():
+            for button in array_sum(form.get('buttons', [])):
+                if '_switch_query' in button and \
+                    'input' in button and \
+                    button['_switch_query'] == query.split()[0] and \
+                    inline_query.from_user.id in [self._me] + \
+                    self._loader.dispatcher.security._owner + \
+                    form['always_allow']:
+                    await inline_query.answer([aiogram.types.inline_query_result.InlineQueryResultArticle(
+                        id=rand(20),
+                        title=button['input'],
+                        description="⚠️ Please, do not remove identifier!",
+                        input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                            '🔄 <b>Transfering value to usebot...</b>\n<i>This message is gonna be deleted...</i>',
+                            'HTML',
+                            disable_web_page_preview=False
+                        ),
+                        reply_markup=self._empty_markup,
+                    )], cache_time=60)
+                    return
 
         # If we don't know, what this query is for, just ignore it
         if query not in self._forms:
@@ -334,13 +452,6 @@ class InlineManager:
 
     async def _callback_query_handler(self, query: aiogram.types.CallbackQuery, reply_markup: List[List[dict]] = []) -> None:
         """Callback query handler (buttons' presses)"""
-        # Find Loader instance to access security layers
-        if not hasattr(self, '_loader'):
-            for mod in self._allmodules.modules:
-                if mod.__class__.__name__ == "LoaderMod":
-                    self._loader = mod
-                    break
-
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):
                 if button.get('_callback_data', None) == query.data:
@@ -351,48 +462,11 @@ class InlineManager:
                         await query.answer('You are not allowed to press this button!')
                         return
 
-                    async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[bool, None] = None, always_allow: Union[List[int], None] = None) -> None:
-                        nonlocal self, query, form
-                        assert isinstance(text, str)
-                        if isinstance(reply_markup, list):
-                            form['buttons'] = reply_markup
-                        if isinstance(force_me, bool):
-                            form['force_me'] = force_me
-                        if isinstance(always_allow, list):
-                            form['always_allow'] = always_allow
-                        try:
-                            await self._bot.edit_message_text(text,
-                                                inline_message_id=query.inline_message_id,
-                                                parse_mode="HTML",
-                                                disable_web_page_preview=True,
-                                                reply_markup=self._generate_markup(form_uid))
-                        except aiogram.utils.exceptions.MessageNotModified:
-                            await query.answer()
+                    query.delete = functools.partial(delete, self=self, form=form, form_uid=form_uid)
+                    query.unload = functools.partial(unload, self=self, form_uid=form_uid)
+                    query.edit = functools.partial(edit, self=self, query=query, form=form, form_uid=form_uid)
 
-                    async def delete() -> bool:
-                        nonlocal form, form_uid
-                        try:
-                            await self._client.delete_messages(form['chat'], [form['message_id']])
-                            del self._forms[form_uid]
-                        except Exception:
-                            return False
-
-                        return True
-
-                    async def unload() -> bool:
-                        nonlocal form_uid
-                        try:
-                            del self._forms[form_uid]
-                        except Exception:
-                            return False
-
-                        return True
-
-                    query.delete = delete
-                    query.unload = unload
-                    query.edit = edit
-
-                    query.form = form
+                    query.form = {'id': form_uid, **form}
 
                     for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
@@ -401,6 +475,33 @@ class InlineManager:
                                         (query, *button.get('args', []), **button.get('kwargs', {}))
 
                     del self._forms[form_uid]
+
+    async def _chosen_inline_handler(self, chosen_inline_query: aiogram.types.ChosenInlineResult) -> None:
+        query = chosen_inline_query.query
+
+        for form_uid, form in self._forms.copy().items():
+            for button in array_sum(form.get('buttons', [])):
+                if '_switch_query' in button and \
+                    'input' in button and \
+                    button['_switch_query'] == query.split()[0] and \
+                    chosen_inline_query.from_user.id in [self._me] + \
+                    self._loader.dispatcher.security._owner + \
+                    form['always_allow']:
+
+                    query = query.split(maxsplit=1)[1] if len(query.split()) > 1 else ''
+
+                    call = InlineCall()
+
+                    call.delete = functools.partial(delete, self=self, form=form, form_uid=form_uid)
+                    call.unload = functools.partial(unload, self=self, form_uid=form_uid)
+                    call.edit = functools.partial(edit, self=self, query=chosen_inline_query, form=form, form_uid=form_uid)
+
+                    for module in self._allmodules.modules:
+                        if module.__class__.__name__ == button['handler'].split('.')[0] and \
+                            hasattr(module, button['handler'].split('.')[1]):
+                            return await getattr(module, button['handler'].split('.')[1])\
+                                        (call, query, *button.get('args', []), **button.get('kwargs', {}))
+
 
     async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = [], force_me: bool = True, always_allow: List[int] = []) -> bool:
         """Creates inline form with callback

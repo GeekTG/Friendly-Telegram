@@ -3,14 +3,10 @@
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
     Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
-
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    Licensed under the Apache License, Version 2.0
 """
+
+# scope: inline_content
 
 from datetime import datetime
 import time
@@ -45,7 +41,8 @@ class TestMod(loader.Module):
         "suspended": "🥶 <b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
         "results_ping": "⏱ <b>Ping:</b> <code>{}</code> <b>ms</b>",
         "confidential": "⚠️ <b>Log level </b><code>{}</code><b> may reveal your confidential info, be careful</b>",
-        "confidential_text": "⚠️ <b>Log level </b><code>{0}</code><b> may reveal your confidential info, be careful</b>\n<b>Type </b><code>.logs {0} force_insecure</code><b> to ignore this warning</b>"
+        "confidential_text": "⚠️ <b>Log level </b><code>{0}</code><b> may reveal your confidential info, be careful</b>\n<b>Type </b><code>.logs {0} force_insecure</code><b> to ignore this warning</b>",
+        "choose_loglevel": "💁‍♂️ <b>Choose log level</b>"
     }
 
     async def dumpcmd(self, message: Message) -> None:
@@ -72,7 +69,50 @@ class TestMod(loader.Module):
                 lvl = getattr(logging, args.upper(), None)
 
         if not isinstance(lvl, int):
-            await utils.answer(message, self.strings("bad_loglevel"))
+            await self.inline.form(text=self.strings('choose_loglevel'), reply_markup=[
+                [
+                    {
+                        'text': "🚨 Critical",
+                        'callback': self.logscmd,
+                        'args': (False, 50)
+                    },
+                    {
+                        'text': "🚫 Error",
+                        'callback': self.logscmd,
+                        'args': (False, 40)
+                    }
+                ],
+                [
+                    {
+                        'text': "⚠️ Warning",
+                        'callback': self.logscmd,
+                        'args': (False, 30)
+                    },
+                    {
+                        'text': "ℹ️ Info",
+                        'callback': self.logscmd,
+                        'args': (False, 20)
+                    }
+                ],
+                [
+                    {
+                        'text': "🧑‍💻 Debug",
+                        'callback': self.logscmd,
+                        'args': (False, 10)
+                    },
+                    {
+                        'text': "👁 All",
+                        'callback': self.logscmd,
+                        'args': (False, 0)
+                    }
+                ],
+                [
+                    {
+                        'text': '🚫 Cancel',
+                        'callback': self.cancel
+                    }
+                ]
+            ], message=message)
             return
 
         handler = logging.getLogger().handlers[0]
@@ -80,19 +120,26 @@ class TestMod(loader.Module):
 
         named_lvl = lvl if lvl not in logging._levelToName else logging._levelToName[lvl]
 
-        if lvl < logging.WARNING and not (force or 'force_insecure' in message.raw_text.lower()):
+        if lvl < logging.WARNING and not (force or (isinstance(message, Message) and 'force_insecure' in message.raw_text.lower())):
             try:
-                await self.inline.form(text=self.strings('confidential').format(named_lvl), reply_markup=[[
-                    {
-                        'text': '📤 Send anyway',
-                        'callback': self.logscmd,
-                        'args': [True, lvl]
-                    },
-                    {
-                        'text': '🚫 Cancel',
-                        'callback': self.cancel
-                    }
-                ]], message=message)
+                cfg = {
+                    'text': self.strings('confidential').format(named_lvl), 
+                    'reply_markup': [[
+                        {
+                            'text': '📤 Send anyway',
+                            'callback': self.logscmd,
+                            'args': [True, lvl]
+                        },
+                        {
+                            'text': '🚫 Cancel',
+                            'callback': self.cancel
+                        }
+                        ]]
+                }
+                if isinstance(message, Message):
+                    await self.inline.form(**cfg, message=message)
+                else:
+                    await message.edit(**cfg)
             except ChatSendInlineForbiddenError:
                 await utils.answer(message, self.strings('confidential_text').format(named_lvl))
 
@@ -103,6 +150,7 @@ class TestMod(loader.Module):
                 await utils.answer(message, self.strings("no_logs").format(named_lvl))
             else:
                 await message.edit(self.strings('no_logs').format(named_lvl))
+                await message.unload()
 
             return
 

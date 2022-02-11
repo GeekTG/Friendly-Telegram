@@ -52,7 +52,7 @@ from .database import backend, local_backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 0, 2)
+__version__ = (3, 0, 3)
 
 if __debug__:
     from .core import TestManager

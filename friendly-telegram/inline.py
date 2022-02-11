@@ -369,8 +369,6 @@ class InlineManager:
                         except aiogram.utils.exceptions.MessageNotModified:
                             await query.answer()
 
-                    query.edit = edit
-
                     async def delete() -> bool:
                         nonlocal form, form_uid
                         try:
@@ -381,7 +379,18 @@ class InlineManager:
 
                         return True
 
+                    async def unload() -> bool:
+                        nonlocal form_uid
+                        try:
+                            del self._forms[form_uid]
+                        except Exception:
+                            return False
+
+                        return True
+
                     query.delete = delete
+                    query.unload = unload
+                    query.edit = edit
 
                     query.form = form
 
@@ -389,7 +398,7 @@ class InlineManager:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
                             hasattr(module, button['callback'].split('.')[1]):
                             return await getattr(module, button['callback'].split('.')[1])\
-                                        (query, *button.get('args', []))
+                                        (query, *button.get('args', []), **button.get('kwargs', {}))
 
                     del self._forms[form_uid]
 

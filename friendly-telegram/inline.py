@@ -173,7 +173,10 @@ class InlineManager:
             await m.delete()
             await r.delete()
 
-            
+            # User do not have any bots yet, so just create new one
+            if not hasattr(r, 'reply_markup') or not hasattr(r.reply_markup, 'rows'):
+                return await self._create_bot()
+
             for row in r.reply_markup.rows:
                 for button in row.buttons:
                     if re.search(r'@geektg_[0-9a-zA-Z]{6}_bot', button.text):

@@ -293,7 +293,7 @@ class CoreMod(loader.Module):
     async def cleardbcmd(self, message):
         """Clears the entire database, effectively performing a factory reset"""
         self._db.clear()
-        await self._db.save()
+        self._db.save()
         await utils.answer(message, self.strings("db_cleared", message))
 
     async def _client_ready2(self, client, db):

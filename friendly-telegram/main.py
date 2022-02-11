@@ -80,11 +80,11 @@ def gen_port():
     try:
         config.read(path)
         port = int(config.get("Settings", "port"))
-    except NoSectionError:
+    except NoOptionError:
         port = random.randint(1024, 65536)
         while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
             port = random.randint(1024, 65536)
-    except NoOptionError:
+    except NoSectionError:
         port = random.randint(1024, 65536)
         while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
             port = random.randint(1024, 65536)
@@ -111,13 +111,14 @@ def get_db_type():
     try:
         config.read(path)
         USE_FILE = int(config.get("Settings", "use_file_db"))
+    except NoOptionError:
+        USE_FILE = 0
+        config.set("Settings", "use_file_db", '0')
     except NoSectionError:
         USE_FILE = 0
         config.add_section("Settings")
         config.set("Settings", "use_file_db", '0')
-    except NoOptionError:
-        USE_FILE = 0
-        config.set("Settings", "use_file_db", '0')
+    
     return USE_FILE
 
 

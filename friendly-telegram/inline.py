@@ -83,6 +83,12 @@ class InlineManager:
         # We create new bot
         logger.info('User don\'t have bot, attemping creating new one')
         async with self._client.conversation('@BotFather') as conv:
+            m = await conv.send_message('/cancel')
+            r = await conv.get_response()
+
+            await m.delete()
+            await r.delete()
+
             m = await conv.send_message('/newbot')
             r = await conv.get_response()
 
@@ -147,20 +153,26 @@ class InlineManager:
             # Wrap it in try-except in case user banned BotFather
             try:
                 # Try sending command
-                m = await conv.send_message('/token')
+                m = await conv.send_message('/cancel')
             except telethon.errors.rpcerrorlist.YouBlockedUserError:
                 # If user banned BotFather, unban him
                 await self._client(telethon.tl.functions.contacts.UnblockRequest(
                     id='@BotFather'
                 ))
                 # And resend message
-                m = await conv.send_message('/token')
+                m = await conv.send_message('/cancel')
 
-            # Get response with botlist
             r = await conv.get_response()
 
             await m.delete()
             await r.delete()
+
+            m = await conv.send_message('/token')
+            r = await conv.get_response()
+
+            await m.delete()
+            await r.delete()
+
             
             for row in r.reply_markup.rows:
                 for button in row.buttons:

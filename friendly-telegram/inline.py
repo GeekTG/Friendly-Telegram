@@ -503,7 +503,7 @@ class InlineManager:
                                         (call, query, *button.get('args', []), **button.get('kwargs', {}))
 
 
-    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = [], force_me: bool = True, always_allow: List[int] = []) -> bool:
+    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = [], force_me: bool = True, always_allow: List[int] = [], ttl: Union[int, bool] = False) -> bool:
         """Creates inline form with callback
 
                 Args:
@@ -516,28 +516,49 @@ class InlineManager:
                         reply_markup
                                 List of buttons to insert in markup. List of dicts with
                                 keys: text, callback
+
                         force_me
                                 Either this form buttons must be pressed only by owner scope or no
+
+                        always_allow
+                                Users, that are allowed to press buttons in addition to previous rules
+
+                        ttl
+                                Time, when the form is going to be unloaded. Unload means, that the form
+                                buttons with inline queries and callback queries will become unusable, but
+                                buttons with type url will still work as usual. Pay attention, that ttl can't
+                                be bigger, than default one (1 day) and must be either `int` or `False`
+                        
+
         """
+
+        if not isinstance(text, str):
+            raise InlineError('Invalid type for `text`')
 
         if not isinstance(message, (Message, int)):
             raise InlineError('Invalid type for `message`')
 
         if not isinstance(reply_markup, list):
-            raise InlineError('Invalid type for `buttons`')
+            raise InlineError('Invalid type for `reply_markup`')
 
         if not isinstance(force_me, bool):
             raise InlineError('Invalid type for `force_me`')
 
-        if not isinstance(text, str):
-            raise InlineError('Invalid type for `text`')
+        if not isinstance(always_allow, list):
+            raise InlineError('Invalid type for `always_allow`')
+
+        if not isinstance(ttl, int) and ttl:
+            raise InlineError('Invalid type for `ttl`')
+
+        if isinstance(ttl, int) and (ttl > self._markup_ttl or ttl < 10):
+            raise InlineError(f'Invalid `ttl` (10 <= ttl <= {self._markup_ttl})')
 
         form_uid = rand(30)
 
         self._forms[form_uid] = {
             'text': text,
             'buttons': reply_markup,
-            'ttl': round(time.time()) + self._markup_ttl,
+            'ttl': round(time.time()) + ttl or self._markup_ttl,
             'force_me': force_me,
             'always_allow': always_allow,
             'chat': None,

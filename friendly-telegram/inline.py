@@ -432,7 +432,7 @@ class InlineManager:
                         input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
                             '🔄 <b>Transfering value to usebot...</b>\n<i>This message is gonna be deleted...</i>',
                             'HTML',
-                            disable_web_page_preview=False
+                            disable_web_page_preview=True
                         ),
                         reply_markup=self._empty_markup,
                     )], cache_time=60)
@@ -449,7 +449,7 @@ class InlineManager:
             input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
                 self._forms[query]['text'],
                 'HTML',
-                disable_web_page_preview=False
+                disable_web_page_preview=True
             ),
             reply_markup=self._generate_markup(query)
         )], cache_time=60)

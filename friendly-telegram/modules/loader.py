@@ -393,12 +393,11 @@ class LoaderMod(loader.Module):
     @loader.owner
     async def unloadmodcmd(self, message):
         """Unload module by class name"""
-        args = utils.get_args(message)
+        args = utils.get_args_raw(message)
         if not args:
             await utils.answer(message, self.strings("no_class", message))
             return
-        clazz = ' '.join(args)
-        worked = self.allmodules.unload_module(clazz.capitalize()) + self.allmodules.unload_module(clazz)
+        worked = self.allmodules.unload_module(args.capitalize()) + self.allmodules.unload_module(args)
         without_prefix = []
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod

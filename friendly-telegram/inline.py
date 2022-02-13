@@ -556,7 +556,7 @@ class InlineManager:
 
         if isinstance(ttl, int) and (ttl > self._markup_ttl or ttl < 10):
             ttl = self._markup_ttl
-            logger.warning("Defaulted ttl, because it breaks out of limits")
+            logger.debug("Defaulted ttl, because it breaks out of limits")
 
         form_uid = rand(30)
 

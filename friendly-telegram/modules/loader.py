@@ -15,7 +15,6 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #    Modded by GeekTG Team
-#    Backup authors: @mishase, @tshipenchko
 
 import asyncio
 import importlib
@@ -32,6 +31,7 @@ from importlib.abc import SourceLoader
 from importlib.machinery import ModuleSpec
 from os import path
 import telethon
+from telethon.tl.types import *
 
 import requests
 
@@ -44,9 +44,6 @@ VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*
 USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
 GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$",
                        flags=re.IGNORECASE)
-fname = "ModulesBackup.bin"
-enc = "utf-8"
-d = [b"\xFD", b"\xFF"]
 
 
 class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
@@ -111,50 +108,45 @@ def get_git_api(url):
 @loader.tds
 class LoaderMod(loader.Module):
     """Loads modules"""
-    strings = {"name": "Loader",
-               "repo_config_doc": "Fully qualified URL to a module repo",
-               "avail_header": "<b>📥 Available official modules from repo</b>",
-               "select_preset": "<b>⚠️ Please select a preset</b>",
-               "no_preset": "<b>🚫 Preset not found</b>",
-               "preset_loaded": "<b>✅ Preset loaded</b>",
-               "no_module": "<b>🚫 Module not available in repo.</b>",
-               "no_file": "<b>🚫 File not found</b>",
-               "provide_module": "<b>⚠️ Provide a module to load</b>",
-               "bad_unicode": "<b>🚫 Invalid Unicode formatting in module</b>",
-               "load_failed": "<b>🚫 Loading failed. See logs for details</b>",
-               "loaded": "<b>📥 Module </b><code>{}</code><b> loaded.</b>{}",
-               "no_class": "<b>What class needs to be unloaded?</b>",
-               "unloaded": "<b>📤 Module unloaded.</b>",
-               "not_unloaded": "<b>🚫 Module not unloaded.</b>",
-               "requirements_failed": "<b>🚫 Requirements installation failed</b>",
-               "requirements_installing": "<b>🔄 Installing requirements...</b>",
-               "requirements_restart": "<b>🔄 Requirements installed, but a restart is required</b>",
-               "all_modules_deleted": "<b>✅ All modules deleted</b>",
-               "reply_to_txt": "<b>⚠️ Reply to .txt file<b>",
-               "restored_modules": "<b>📥 Loaded:</b> <code>{}</code>\n<b>📋 Already loaded:</b> <code>{}</code>",
-               "backup_completed": "<b>📤 Modules backup completed</b>\n<b>📋 Quantity:</b> <code>{}</code>",
-               "no_modules": "<b>⚠️ You have no custom modules!</b>",
-               "no_name_module": "<b>⚠️ Type module name in arguments</b>",
-               "no_command_module": "<b>⚠️ Type module command in arguments</b>",
-               "command_not_found": "<b>🚫 Command was not found!</b>",
-               "searching": "<b>🔍 Searching...</b>",
-               "file": "<b>📥 File of module {}:<b>",
-               "module_link": "📥 <a href=\"{}\">Link</a> for module {}: \n<code>{}</code>",
-               "not_found_info": "🚫 Request to find module with name {} failed due to:",
-               "not_found_c_info": "🚫 Request to find module with command {} failed due to:",
-               "not_found": "<b>🚫 Module was not found</b>",
-               "file_core": "<b>File of core module {}:</b>",
-               "loading": "<b>🔄 Loading...</b>",
-               "url_invalid": "<b>🚫 URL invalid</b>",
-               "args_incorrect": "<b>🚫 Args incorrect</b>",
-               "repo_loaded": "<b>✅ Repository loaded</b>",
-               "repo_not_loaded": "<b>🚫 Repository not loaded</b>",
-               "repo_unloaded": "<b>🔄 Repository unloaded, but restart is required to unload repository modules</b>",
-               "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
-               "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
-               "undoc_cmd": "👁‍🗨 No docs",
-               "inline_init_failed": "🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>\n<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>"
-            }
+    strings = {
+        "name": "Loader",
+        "repo_config_doc": "Fully qualified URL to a module repo",
+        "avail_header": "<b>📥 Available official modules from repo</b>",
+        "select_preset": "<b>⚠️ Please select a preset</b>",
+        "no_preset": "<b>🚫 Preset not found</b>",
+        "preset_loaded": "<b>✅ Preset loaded</b>",
+        "no_module": "<b>🚫 Module not available in repo.</b>",
+        "no_file": "<b>🚫 File not found</b>",
+        "provide_module": "<b>⚠️ Provide a module to load</b>",
+        "bad_unicode": "<b>🚫 Invalid Unicode formatting in module</b>",
+        "load_failed": "<b>🚫 Loading failed. See logs for details</b>",
+        "loaded": "<b>📥 Module </b><code>{}</code><b> loaded.</b>{}",
+        "no_class": "<b>What class needs to be unloaded?</b>",
+        "unloaded": "<b>📤 Module unloaded.</b>",
+        "not_unloaded": "<b>🚫 Module not unloaded.</b>",
+        "requirements_failed": "<b>🚫 Requirements installation failed</b>",
+        "requirements_installing": "<b>🔄 Installing requirements...</b>",
+        "requirements_restart": "<b>🔄 Requirements installed, but a restart is required</b>",
+        "all_modules_deleted": "<b>✅ All modules deleted</b>",
+        "no_modules": "<b>⚠️ You have no custom modules!</b>",
+        "searching": "<b>🔍 Searching...</b>",
+        "file": "<b>📥 File of module {}:<b>",
+        "module_link": "📥 <a href=\"{}\">Link</a> for module {}: \n<code>{}</code>",
+        "not_found_info": "🚫 Request to find module with name {} failed due to:",
+        "not_found_c_info": "🚫 Request to find module with command {} failed due to:",
+        "not_found": "<b>🚫 Module was not found</b>",
+        "file_core": "<b>File of core module {}:</b>",
+        "loading": "<b>🔄 Loading...</b>",
+        "url_invalid": "<b>🚫 URL invalid</b>",
+        "args_incorrect": "<b>🚫 Args incorrect</b>",
+        "repo_loaded": "<b>✅ Repository loaded</b>",
+        "repo_not_loaded": "<b>🚫 Repository not loaded</b>",
+        "repo_unloaded": "<b>🔄 Repository unloaded, but restart is required to unload repository modules</b>",
+        "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
+        "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
+        "undoc_cmd": "👁‍🗨 No docs",
+        "inline_init_failed": "🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>\n<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>"
+    }
 
     def __init__(self):
         super().__init__()
@@ -419,102 +411,6 @@ class LoaderMod(loader.Module):
         await utils.answer(message, self.strings("all_modules_deleted", message))
         self._db.set(__name__, "chosen_preset", "none")
         await self.allmodules.commands["restart"](await message.reply("_"))
-
-    @loader.owner
-    async def backupcmd(self, message):
-        """Backup all your modules"""
-        modules = map(get_module, self.allmodules.modules)
-        b = zlib.compress(d[1].join(
-            map(lambda mod: d[0].join(map(lambda s: s if isinstance(s, bytes) else s.encode(enc), mod)),
-                filter(lambda mod: None not in mod and mod[1] != "path", modules))))
-        f = io.BytesIO(b)
-        f.name = fname
-        await message.client.send_file(message.to_id, f, caption="<b>Backup completed!</b>")
-        await message.delete()
-
-    @loader.owner
-    async def restorecmd(self, message):
-        """Restore modules from backup file"""
-        reply = await message.get_reply_message()
-        if not reply or not reply.file or not reply.file.name.endswith(".bin"):
-            return await message.edit("<b>Reply to backup file</b>")
-        await message.edit("<b>Downloading backup...</b>")
-        f = io.BytesIO()
-        await reply.download_media(f)
-        f.seek(0)
-        b = zlib.decompress(f.read())
-        modules = list(map(lambda e: list(map(lambda x: x.decode(enc), e.split(d[0]))), b.split(d[1])))
-        await message.edit("<b>Loading backup...</b>")
-        for [_, mtype, data] in modules:
-            if mtype == "link":
-                if await self.download_and_install(data):
-                    self._db.set(__name__, "loaded_modules",
-                                 list(set(self._db.get(__name__, "loaded_modules", [])).union([data])))
-            elif mtype == "text":
-                await self.load_module(data, None)
-        await message.edit("<b>Restore completed!</b>")
-
-    @loader.owner
-    async def moduleinfocmd(self, message):
-        """Get link on module by one's command or name"""
-        args = utils.get_args_raw(message).lower()
-        if args.startswith(*self._db.get(__name__, "command_prefix", ["."])):
-            args = args[1:]
-            if not args:
-                return await utils.answer(message, self.strings("no_command_module", message))
-            if args in self.allmodules.commands.keys():
-                args = self.allmodules.commands[args].__self__.strings["name"]
-            elif args in self.allmodules.aliases.keys():
-                args = self.allmodules.aliases[args]
-                args = self.allmodules.commands[args].__self__.strings["name"]
-            else:
-                return await utils.answer(message, self.strings("command_not_found", message))
-            message = await utils.answer(message, self.strings("searching", message))
-            await self.send_module(message, args, False)
-        else:
-            args = utils.get_args_raw(message).lower()
-            if not args:
-                return await utils.answer(message, self.strings("no_name_module", message))
-            message = await utils.answer(message, self.strings("searching", message))
-            await self.send_module(message, args, True)
-
-    async def send_module(self, message, args, by_name):
-        """Sends module by name"""
-        try:
-            f = ' '.join(x.strings["name"] for x in self.allmodules.modules if
-                         args.lower() == x.strings("name", message).lower())
-            r = inspect.getmodule(
-                next(filter(lambda x: args.lower() == x.strings("name", message).lower(), self.allmodules.modules)))
-            link = r.__spec__.origin
-
-            core_module = False
-
-            if link.startswith("http"):
-                text = self.strings("module_link", message).format(link, f, link)
-            elif (
-                    not link.startswith("http")
-                    and link == "<string>"
-                    or not link.startswith("http")
-                    and link != "<string>"
-                    and not path.isfile(link)
-            ):
-                text = self.strings("file", message).format(f)
-            else:
-                core_module = True
-                text = self.strings("file_core", message).format(f)
-            if core_module:
-                with open(link, "rb") as file:
-                    out = io.BytesIO(file.read())
-            else:
-                out = io.BytesIO(r.__loader__.data)
-            out.name = f + ".py"
-            out.seek(0)
-
-            await utils.answer(message, out, caption=text)
-        except Exception as e:
-            log_text = self.strings("not_found_info", message) if by_name else self.strings("not_found_info", message)
-            logger.info(log_text.format(args) + f"\nDue to {e}", exc_info=True)
-            await utils.answer(message, self.strings("not_found", message))
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()

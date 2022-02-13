@@ -52,10 +52,7 @@ from .database import backend, local_backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 0, 6)
-
-if __debug__:
-    from .core import TestManager
+__version__ = (3, 0, 7)
 
 try:
     from .web import core
@@ -163,11 +160,6 @@ def parse_arguments():
                         help="MTProto proxy port")
     parser.add_argument("--proxy-secret", dest="proxy_secret", action="store",
                         help="MTProto proxy secret")
-    if __debug__:
-        parser.add_argument("--self-test", dest="self_test", const=1, nargs="?", default=False, type=int,
-                            help=("Run self-tests then exit.\nAs this is designed for testing on an unprivileged "
-                                  "environment, this will use a DB which is initialised as to prevent anyone "
-                                  "with access to the Telegram account being tested from using the bot."))
     parser.add_argument("--heroku-web-internal", dest="heroku_web_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-deps-internal", dest="heroku_deps_internal", action="store_true",
@@ -569,10 +561,6 @@ async def amain(first, client, allclients, web, arguments):
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
         to_load = ["loader.py"]
 
-    if __debug__ and arguments.self_test:
-        tester = TestManager(client, db, allclients, arguments.self_test)
-        to_load = await tester.init()
-
     babelfish = Translator(db.get(__name__, "langpacks", []),
                            db.get(__name__, "language", ["en"]), arguments.data_root)
     await babelfish.init(client)
@@ -585,7 +573,7 @@ async def amain(first, client, allclients, web, arguments):
             await web.add_loader(client, modules, db)
             await web.start_if_ready(len(allclients), arguments.port)
         if not web_only:
-            dispatcher = CommandDispatcher(modules, db, is_bot, __debug__ and arguments.self_test, no_nickname)
+            dispatcher = CommandDispatcher(modules, db, no_nickname)
             loader.dispatcher = dispatcher
             if is_bot:
                 modules.added_modules = functools.partial(set_commands, dispatcher.security)
@@ -609,16 +597,7 @@ async def amain(first, client, allclients, web, arguments):
     modules.send_config(db, babelfish)
     await modules.send_ready(client, db, allclients)
     if first:
-        if __debug__ and arguments.self_test:
-            await client(GetStateRequest())  # Start receiving updates
         print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
-    if __debug__ and arguments.self_test:
-        await asyncio.wait([client.disconnected, tester.restart], return_when=asyncio.FIRST_COMPLETED)
-    else:
-        await client.run_until_disconnected()
+    await client.run_until_disconnected()
     await db.close()
-    if __debug__ and arguments.self_test and tester.should_restart():
-        for cb, _ in client.list_event_handlers():
-            client.remove_event_handler(cb)
-        return True
     return False

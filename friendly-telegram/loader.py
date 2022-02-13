@@ -30,13 +30,8 @@ import sys
 from . import utils, security, inline
 from .translations.dynamic import Strings
 
-if __debug__:
-    from . import decorators
-
-    test = decorators.test
-else:
-    def test(*args, **kwargs):
-        return lambda func: func
+def test(*args, **kwargs):
+    return lambda func: func
 
 owner = security.owner
 sudo = security.sudo

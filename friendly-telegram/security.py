@@ -147,7 +147,7 @@ if __debug__:
 
 
 class SecurityManager:
-    def __init__(self, db, bot):
+    def __init__(self, db):
         # We read the db during init to prevent people manipulating it at runtime
         # TODO in the future this will be backed up by blocking the inspect module at runtime and blocking __setattr__
         self._any_admin = db.get(__name__, "any_admin", False)
@@ -155,7 +155,7 @@ class SecurityManager:
         self._owner = db.get(__name__, "owner", []).copy()
         self._sudo = db.get(__name__, "sudo", []).copy()
         self._support = db.get(__name__, "support", []).copy()
-        self._bounding_mask = db.get(__name__, "bounding_mask", -1 if bot else DEFAULT_PERMISSIONS)
+        self._bounding_mask = db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
         self._perms = db.get(__name__, "masks", {}).copy()
         self._db = db
 

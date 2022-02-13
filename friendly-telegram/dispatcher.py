@@ -42,18 +42,15 @@ def _decrement_ratelimit(delay, data, key, severity):
 
 
 class CommandDispatcher:
-    def __init__(self, modules, db, bot, testing, no_nickname=False):
+    def __init__(self, modules, db, no_nickname=False):
         self._modules = modules
         self._db = db
-        self._bot = bot
-        self.security = security.SecurityManager(db, bot)
-        self._testing = testing
+        self.security = security.SecurityManager(db)
         self.no_nickname = no_nickname
-        if not testing:
-            self._ratelimit_storage_user = collections.defaultdict(int)
-            self._ratelimit_storage_chat = collections.defaultdict(int)
-            self._ratelimit_max_user = db.get(__name__, "ratelimit_max_user", 30)
-            self._ratelimit_max_chat = db.get(__name__, "ratelimit_max_chat", 100)
+        self._ratelimit_storage_user = collections.defaultdict(int)
+        self._ratelimit_storage_chat = collections.defaultdict(int)
+        self._ratelimit_max_user = db.get(__name__, "ratelimit_max_user", 30)
+        self._ratelimit_max_chat = db.get(__name__, "ratelimit_max_chat", 100)
         self.check_security = self.security.check
 
     async def init(self, client):
@@ -68,7 +65,7 @@ class CommandDispatcher:
             self.stats = {}
 
     async def _handle_ratelimit(self, message, func):
-        if self._testing or await self.security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
+        if await self.security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
             return True
         func = getattr(func, "__func__", func)
         ret = True
@@ -161,21 +158,20 @@ class CommandDispatcher:
 
         command = message.message.split(maxsplit=1)[0]
         tag = command.split("@", maxsplit=1)
-        if not self._testing:
-            if len(tag) == 2:
-                if tag[1] == "me":
-                    if not message.out:
-                        return
-                elif tag[1].lower() != self._cached_username:
+        if len(tag) == 2:
+            if tag[1] == "me":
+                if not message.out:
                     return
-            elif event.mentioned and event.message is not None and event.message.message is not None and '@' + self._cached_username not in event.message.message:
-                pass
-            elif not event.is_private and not self.no_nickname: # DM
-                if not event.out: # Outcoming message
-                    if not self._db.get(main.__name__, 'no_nickname', False): # Global NoNick
-                        if command not in self._db.get(main.__name__, 'nonickcmds', []): # NoNick for commands
-                            if initiator not in self._db.get(main.__name__, 'nonickusers', []): # NoNick for users
-                                return
+            elif tag[1].lower() != self._cached_username:
+                return
+        elif event.mentioned and event.message is not None and event.message.message is not None and '@' + self._cached_username not in event.message.message:
+            pass
+        elif not event.is_private and not self.no_nickname: # DM
+            if not event.out: # Outcoming message
+                if not self._db.get(main.__name__, 'no_nickname', False): # Global NoNick
+                    if command not in self._db.get(main.__name__, 'nonickcmds', []): # NoNick for commands
+                        if initiator not in self._db.get(main.__name__, 'nonickusers', []): # NoNick for users
+                            return
 
         # logging.debug(tag[0])
 

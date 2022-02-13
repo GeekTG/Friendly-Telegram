@@ -115,9 +115,15 @@ class HelpMod(loader.Module):
         """Joins the support FTG chat"""
         if not self.is_bot and await self.allmodules.check_security(message, security.OWNER | security.SUDO):
             await self.client(JoinChannelRequest("https://t.me/chat_ftg"))
-            await utils.answer(message, self.strings("joined", message))
+            try:
+                await self.inline.form(self.strings('joined', message), reply_markup=[[{'text': '👩‍💼 Chat', 'url': 'https://t.me/chat_ftg'}]], ttl=10, message=message)
+            except Exception:
+                await utils.answer(message, self.strings("joined", message))
         else:
-            await utils.answer(message, self.strings("join", message))
+            try:
+                await self.inline.form(self.strings('join', message), reply_markup=[[{'text': '👩‍💼 Chat', 'url': 'https://t.me/chat_ftg'}]], ttl=10, message=message)
+            except Exception:
+                await utils.answer(message, self.strings("join", message))
 
     async def client_ready(self, client, db):
         self.client = client

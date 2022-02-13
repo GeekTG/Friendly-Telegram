@@ -44,7 +44,7 @@ class BackuperMod(loader.Module):
     async def backupdbcmd(self, message: Message) -> None:
         """Backup database (will be sent in PM)"""
         txt = io.BytesIO(json.dumps(self.db).encode('utf-8'))
-        txt.name = f"ftg-db-backup-{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M')}.db"
+        txt.name = f"ftg-db-backup-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.db"
         await self.client.send_file('me', txt, caption=self.strings('backup_caption'))
         await message.delete()
 
@@ -69,7 +69,7 @@ class BackuperMod(loader.Module):
         data = json.dumps(self.db.get(
             "friendly-telegram.modules.notes", "notes", []))
         txt = io.BytesIO(data.encode('utf-8'))
-        txt.name = f"ftg-notes-{datetime.datetime.now().strftime('%d-%m-%Y-%H-%M')}.notes"
+        txt.name = f"ftg-notes-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.notes"
         await self.client.send_file(utils.get_chat_id(message),
                                     txt,
                                     caption=self.strings('notes_backup')

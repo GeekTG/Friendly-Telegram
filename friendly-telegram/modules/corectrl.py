@@ -62,14 +62,18 @@ class CoreMod(loader.Module):
         "inlinelogs_on": "<b>🧙‍♂️ Now <u>InlineLogs</u> are working</b>",
         "inlinelogs_off": "<b>🧙‍♂️ Now <u>InlineLogs</u> are not working</b>",
         "inlinelogs_status": "<b>🧙‍♂️ Right now you <u>can{}</u> view logs right after command execution</b>",
-        "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>"
+        "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>",
+
+        "geek": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}</b>\n<b>Branch: master</b>",
+        "geek_beta": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}beta</b>\n<b>Branch: beta</b>\n\n<i>🔮 You're using the unstable branch (<b>beta</b>). You receive fresh but untested updates. Report any bugs to @chat_ftg or @hikari_chat</i>",
+        "geek_alpha": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}alpha</b>\n<b>Branch: alpha</b>\n\n<i>🔮 You're using <b><u>very</u></b> unstable branch (<b>alpha</b>). You receive fresh but untested updates. You <b><u>can't ask for help, only report bugs</u></b></i>",
     }
 
     async def client_ready(self, client, db):
         self._db = db
         self._client = client
 
-    async def blacklistcommon(self, message):
+    async def blacklistcommon(self, message: Message) -> None:
         args = utils.get_args(message)
         if len(args) > 2:
             await utils.answer(message, self.strings("too_many_args", message))
@@ -88,14 +92,26 @@ class CoreMod(loader.Module):
         module = self.allmodules.get_classname(module)
         return str(chatid) + "." + module if module else chatid
 
-    async def blacklistcmd(self, message):
+    async def ftgvercmd(self, message: Message) -> None:
+        """Get GeekTG version"""
+        ver = getattr(main, '__version__', False)
+
+        branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+        if 'beta' in branch:
+            await utils.answer(message, self.strings('geek_beta').format(*version))
+        elif 'alpha' in branch:
+            await utils.answer(message, self.strings('geek_alpha').format(*version))
+        else:
+            await utils.answer(message, self.strings('geek').format(*version))
+
+    async def blacklistcmd(self, message: Message) -> None:
         """.blacklist [id]
         Blacklist the bot from operating somewhere"""
         chatid = await self.blacklistcommon(message)
         self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [chatid])
         await utils.answer(message, self.strings("blacklisted", message).format(chatid))
 
-    async def unblacklistcmd(self, message):
+    async def unblacklistcmd(self, message: Message) -> None:
         """.unblacklist [id]
         Unblacklist the bot from operating somewhere"""
         chatid = await self.blacklistcommon(message)
@@ -103,7 +119,7 @@ class CoreMod(loader.Module):
                      list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])))
         await utils.answer(message, self.strings("unblacklisted", message).format(chatid))
 
-    async def getuser(self, message):
+    async def getuser(self, message: Message) -> None:
         try:
             return int(utils.get_args(message)[0])
         except (ValueError, IndexError):
@@ -116,14 +132,14 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings("who_to_unblacklist", message))
             return
 
-    async def blacklistusercmd(self, message):
+    async def blacklistusercmd(self, message: Message) -> None:
         """.blacklistuser [id]
         Prevent this user from running any commands"""
         user = await self.getuser(message)
         self._db.set(main.__name__, "blacklist_users", self._db.get(main.__name__, "blacklist_users", []) + [user])
         await utils.answer(message, self.strings("user_blacklisted", message).format(user))
 
-    async def unblacklistusercmd(self, message):
+    async def unblacklistusercmd(self, message: Message) -> None:
         """.unblacklistuser [id]
         Allow this user to run permitted commands"""
         user = await self.getuser(message)
@@ -132,7 +148,7 @@ class CoreMod(loader.Module):
         await utils.answer(message, self.strings("user_unblacklisted", message).format(user))
 
     @loader.owner
-    async def nonickcmd(self, message):
+    async def nonickcmd(self, message: Message) -> None:
         """<on|off> - Toggle No-Nickname mode (performing commands without nickname)"""
         args = utils.get_args_raw(message)
         if not args:
@@ -148,7 +164,7 @@ class CoreMod(loader.Module):
         await utils.answer(message, self.strings("no_nickname_on" if args else "no_nickname_off", message))
 
     @loader.owner
-    async def grepcmd(self, message):
+    async def grepcmd(self, message: Message) -> None:
         """<on|off> - Toggle 'grep' usage"""
         args = utils.get_args_raw(message)
         if not args:
@@ -165,7 +181,7 @@ class CoreMod(loader.Module):
 
 
     @loader.owner
-    async def ilogscmd(self, message):
+    async def ilogscmd(self, message: Message) -> None:
         """<on|off> - Toggle 'inlinelogs' usage"""
         args = utils.get_args_raw(message)
         if not args:
@@ -182,7 +198,7 @@ class CoreMod(loader.Module):
 
 
     @loader.owner
-    async def setprefixcmd(self, message):
+    async def setprefixcmd(self, message: Message) -> None:
         """Sets command prefix"""
         args = utils.get_args(message)
         if len(args) == 0:
@@ -194,7 +210,7 @@ class CoreMod(loader.Module):
                                                                                oldprefix=utils.escape_html(oldprefix)))
 
     @loader.owner
-    async def aliasescmd(self, message):
+    async def aliasescmd(self, message: Message) -> None:
         """Print all your aliases"""
         aliases = self.allmodules.aliases
         string = self.strings("aliases", message)
@@ -203,7 +219,7 @@ class CoreMod(loader.Module):
         await utils.answer(message, string)
 
     @loader.owner
-    async def addaliascmd(self, message):
+    async def addaliascmd(self, message: Message) -> None:
         """Set an alias for a command"""
         args = utils.get_args(message)
         if len(args) != 2:
@@ -218,7 +234,7 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings("no_command", message).format(utils.escape_html(cmd)))
 
     @loader.owner
-    async def delaliascmd(self, message):
+    async def delaliascmd(self, message: Message) -> None:
         """Remove an alias for a command"""
         args = utils.get_args(message)
         if len(args) != 1:
@@ -235,7 +251,7 @@ class CoreMod(loader.Module):
             await utils.answer(message, self.strings("no_alias", message).format(utils.escape_html(alias)))
 
     @loader.owner
-    async def aliasescmd(self, message):
+    async def aliasescmd(self, message: Message) -> None:
         """Print all your aliases"""
         aliases = self.allmodules.aliases
         string = self.strings("aliases", message)
@@ -243,7 +259,7 @@ class CoreMod(loader.Module):
             string += f"\n{i}: {y}"
         await utils.answer(message, string)
 
-    async def addtrnslcmd(self, message):
+    async def addtrnslcmd(self, message: Message) -> None:
         """Add a translation pack
         .addtrnsl <pack>
         Restart required after use"""
@@ -279,12 +295,12 @@ class CoreMod(loader.Module):
             else:
                 await utils.answer(message, self.strings("bad_pack", message))
 
-    async def cleartrnslcmd(self, message):
+    async def cleartrnslcmd(self, message: Message) -> None:
         """Remove all translation packs"""
         self._db.set(main.__name__, "langpacks", [])
         await utils.answer(message, self.strings("packs_cleared", message))
 
-    async def setlangcmd(self, message):
+    async def setlangcmd(self, message: Message) -> None:
         """Change the preferred language used for translations
         Specify the language as space separated list of ISO 639-1 language codes in order of preference (e.g. fr en)
         With no parameters, all translations are disabled
@@ -294,7 +310,7 @@ class CoreMod(loader.Module):
         await utils.answer(message, self.strings("lang_set", message))
 
     @loader.owner
-    async def cleardbcmd(self, message):
+    async def cleardbcmd(self, message: Message) -> None:
         """Clears the entire database, effectively performing a factory reset"""
         self._db.clear()
         await self._db.save()

@@ -169,7 +169,7 @@ class UpdaterMod(loader.Module):
                     self.req_common()
                 await self.restart_common(message)
         except GitCommandError:
-            await self.updatecmd(self, message, True)
+            await self.updatecmd(message, True)
 
     @loader.unrestricted
     async def sourcecmd(self, message):

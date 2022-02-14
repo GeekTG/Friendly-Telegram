@@ -112,7 +112,7 @@ class CloudBackend:
         """Attempt to upload the database.
         Return True or throw"""
 
-        if main.get_db_type():
+        if main.get_config_key('use_file_db'):
             try:
                 open(self._db_path, 'w', encoding='utf-8').write(data)
             except:

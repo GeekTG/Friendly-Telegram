@@ -70,9 +70,12 @@ def translatable_docstring(cls):
 
     config_complete._old_ = cls.config_complete
     cls.config_complete = config_complete
+
     for command, func in get_commands(cls).items():
         cls.strings["_cmd_doc_" + command] = inspect.getdoc(func)
+
     cls.strings["_cls_doc"] = inspect.getdoc(cls)
+
     return cls
 
 
@@ -101,6 +104,7 @@ class ModuleConfig(dict):
                 defaults.append(entry)
             else:
                 docstrings.append(entry)
+
         super().__init__(zip(keys, values))
         self._docstrings = dict(zip(keys, docstrings))
         self._defaults = dict(zip(keys, defaults))
@@ -114,6 +118,7 @@ class ModuleConfig(dict):
             except TypeError:  # Invalid number of params
                 logging.warning("%s using legacy doc trnsl", key)
                 ret = ret()
+
         return ret
 
     def getdef(self, key):
@@ -151,7 +156,7 @@ def get_commands(mod):
 class Modules:
     """Stores all registered modules"""
 
-    def __init__(self):
+    def __init__(self, use_inline=True):
         self.commands = {}
         self.aliases = {}
         self.modules = []
@@ -161,6 +166,7 @@ class Modules:
         self.client = None
         self._initial_registration = True
         self.added_modules = None
+        self.use_inline = use_inline
 
     def register_all(self, babelfish, mods=None):
         # TODO: remove babelfish
@@ -168,10 +174,13 @@ class Modules:
         if self._compat_layer is None:
             from . import compat  # Avoid circular import
             self._compat_layer = compat.activate([])
+
         if not mods:
             mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
                           os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
+
         logging.debug(mods)
+
         for mod in mods:
             try:
                 module_name = __package__ + "." + MODULES_NAME + "." + os.path.basename(mod)[:-3]  # FQN
@@ -185,35 +194,44 @@ class Modules:
     def register_module(self, spec, module_name, origin="<file>"):
         """Register single module from importlib spec"""
         from .compat import uniborg
+
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
         module.borg = uniborg.UniborgClient(module_name)
         spec.loader.exec_module(module)
         ret = None
+
         for key, value in vars(module).items():
             if key.endswith("Mod") and issubclass(value, Module):
                 ret = value()
+
         if ret is None:
             ret = module.register(module_name)
             if not isinstance(ret, Module):
                 raise TypeError("Instance is not a Module, it is %r", ret)
+
         self.complete_registration(ret)
         ret.__origin__ = origin
+
         return ret
 
     def register_commands(self, instance):
         """Register commands from instance"""
         for command in instance.commands:
-            # Verify that command does not already exist, or, if it does, the command must be from the same class name
+            # Verify that command does not already exist, or,
+            # if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
                 if hasattr(instance.commands[command], "__self__") and \
                         hasattr(self.commands[command], "__self__") and \
                         instance.commands[command].__self__.__class__.__name__ \
                         != self.commands[command].__self__.__class__.__name__:
-                    logging.error("Duplicate command %s", command)
+                    logging.debug("Duplicate command %s", command)
+
                 logging.debug("Replacing command for %r", self.commands[command])
+
             if not instance.commands[command].__doc__:
-                logging.warning("Missing docs for %s", command)
+                logging.debug("Missing docs for %s", command)
+
             self.commands.update({command.lower(): instance.commands[command]})
 
     def register_watcher(self, instance):
@@ -279,13 +297,18 @@ class Modules:
                         mod.config[conf] = os.environ[mod.__module__ + "." + conf]
                     except KeyError:
                         mod.config[conf] = mod.config.getdef(conf)
+
         if babel is not None and not hasattr(mod, "name"):
             mod.name = mod.strings["name"]
+
         if hasattr(mod, "strings") and babel is not None:
             mod.strings = Strings(mod.__module__, mod.strings, babel)
+
         if skip_hook:
             return
+
         mod.babel = babel
+
         try:
             mod.config_complete()
         except Exception as e:
@@ -297,11 +320,21 @@ class Modules:
         """Send all data to all modules"""
         self.client = client
 
+        # Register inline manager anyway, so the modules
+        # can access its `init_complete`
         inline_manager = inline.InlineManager(client, db, self)
-        await inline_manager._register_manager()
+
+        # Register only if it is not disabled
+        if use_inline:
+            await inline_manager._register_manager()
+
+        # We save it to `Modules` attribute, so not to re-init
+        # it everytime module is loaded. Then we can just
+        # re-assign it to all modules
         self.inline = inline_manager
 
         await self._compat_layer.client_ready(client)
+
         try:
             await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
             await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
@@ -351,26 +384,32 @@ class Modules:
                 to_remove += module.commands.values()
                 if hasattr(module, "watcher"):
                     to_remove += [module.watcher]
+
         logging.debug("to_remove: %r", to_remove)
         for watcher in self.watchers.copy():
             if watcher in to_remove:
                 logging.debug("Removing watcher for unload %r", watcher)
                 self.watchers.remove(watcher)
+
         aliases_to_remove = []
+
         for name, command in self.commands.copy().items():
             if command in to_remove:
                 logging.debug("Removing command for unload %r", command)
                 del self.commands[name]
                 aliases_to_remove.append(name)
+
         for alias, command in self.aliases.copy().items():
             if command in aliases_to_remove:
                 del self.aliases[alias]
+
         return worked
 
     def add_alias(self, alias, cmd):
         """Make an alias"""
         if cmd not in self.commands.keys():
             return False
+
         self.aliases[alias.lower().strip()] = cmd
         return True
 
@@ -380,6 +419,7 @@ class Modules:
             del self.aliases[alias.lower().strip()]
         except KeyError:
             return False
+
         return True
 
     async def log(self, type_, *, group=None, affected_uids=None, data=None):

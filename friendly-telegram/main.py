@@ -168,6 +168,7 @@ def parse_arguments():
     parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--no-nickname", "-nn", dest="no_nickname", action="store_true")
+    parser.add_argument("--no-inline", dest="use_inline", action="store_false")
     parser.add_argument("--hosting", "-lh", dest="hosting", action="store_true")
     parser.add_argument("--default-app", "-da", dest="default_app", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
@@ -540,7 +541,7 @@ async def amain(first, client, allclients, web, arguments):
             pdb = json.loads(jdb)
         except (json.decoder.JSONDecodeError, TypeError):
             pdb = {}
-        modules = loader.Modules()
+        modules = loader.Modules(arguments.use_inline)
         babelfish = Translator([], [], arguments.data_root)
         await babelfish.init(client)
         modules.register_all(babelfish)

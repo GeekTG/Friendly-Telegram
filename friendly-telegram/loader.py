@@ -116,7 +116,7 @@ class ModuleConfig(dict):
             try:
                 ret = ret(message)
             except TypeError:  # Invalid number of params
-                logging.warning("%s using legacy doc trnsl", key)
+                logging.debug("%s using legacy doc trnsl", key)
                 ret = ret()
 
         return ret
@@ -149,8 +149,12 @@ class Module:
 def get_commands(mod):
     """Introspect the module to get its commands"""
     # https://stackoverflow.com/a/34452/5509575
-    return {method_name[:-3]: getattr(mod, method_name) for method_name in dir(mod)
-            if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"}
+    return {
+        method_name[:-3]: getattr(mod, method_name) \
+        for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and \
+            method_name[-3:] == "cmd"
+    }
 
 
 class Modules:
@@ -325,7 +329,7 @@ class Modules:
         inline_manager = inline.InlineManager(client, db, self)
 
         # Register only if it is not disabled
-        if use_inline:
+        if self.use_inline:
             await inline_manager._register_manager()
 
         # We save it to `Modules` attribute, so not to re-init

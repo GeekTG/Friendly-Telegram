@@ -121,8 +121,23 @@ class UpdaterMod(loader.Module):
         # Now we have downloaded new code, install requirements
         logger.debug("Installing new requirements...")
         try:
-            subprocess.run([sys.executable, "-m", "pip", "install", "-r",
-                            os.path.join(os.path.dirname(utils.get_base_dir()), "requirements.txt"), "--user"])
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    os.path.join(
+                        os.path.dirname(
+                            utils.get_base_dir()
+                        ),
+                        "requirements.txt"
+                    ),
+                    "--user"
+                ]
+            )
+
         except subprocess.CalledProcessError:
             logger.exception("Req install failed")
 
@@ -132,11 +147,13 @@ class UpdaterMod(loader.Module):
         # We don't really care about asyncio at this point, as we are shutting down
         if hard:
             os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")
+
         try:
             msgs = await utils.answer(message, self.strings("downloading", message))
             req_update = await self.download_common()
             message = (await utils.answer(msgs, self.strings("installing", message)))[0]
             heroku_key = os.environ.get("heroku_api_token")
+
             if heroku_key:
                 from .. import heroku
                 await self.prerestart_common(message)
@@ -162,8 +179,10 @@ class UpdaterMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._me = await client.get_me()
+
         if db.get(__name__, "selfupdatechat") is not None and db.get(__name__, "selfupdatemsg") is not None:
             await self.update_complete(client)
+
         self._db.set(__name__, "selfupdatechat", None)
         self._db.set(__name__, "selfupdatemsg", None)
 
@@ -171,6 +190,7 @@ class UpdaterMod(loader.Module):
         logger.debug("Self update successful! Edit message")
         heroku_key = os.environ.get("heroku_api_token")
         herokufail = ("DYNO" in os.environ) and (heroku_key is None)
+
         if herokufail:
             logger.warning("heroku token not set")
             msg = self.strings("heroku_warning")
@@ -179,9 +199,17 @@ class UpdaterMod(loader.Module):
             msg = self.strings("success")
 
         await client.edit_message(self._db.get(__name__, "selfupdatechat"),
-                                  self._db.get(__name__, "selfupdatemsg"), msg)
+                                  self._db.get(__name__, "selfupdatemsg"),
+                                  msg)
 
 
 def restart(*argv):
-    os.execl(sys.executable, sys.executable, "-m",
-             os.path.relpath(utils.get_base_dir()), *argv)
+    os.execl(
+        sys.executable,
+        sys.executable,
+        "-m",
+        os.path.relpath(
+            utils.get_base_dir()
+        ),
+        *argv
+    )

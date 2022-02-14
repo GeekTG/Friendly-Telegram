@@ -32,8 +32,10 @@ def get_cmd_name(pattern):
     logger.debug(pattern)
     if pattern.startswith("(?i)"):
         pattern = pattern[4:]
+
     if pattern.startswith("^"):
         pattern = pattern[1:]
+
     if pattern.startswith("."):
         # That seems to be the normal command prefix
         pattern = pattern[1:]
@@ -43,15 +45,18 @@ def get_cmd_name(pattern):
     else:
         logger.info("Unable to register for non-command-based outgoing messages, pattern=%s", pattern)
         return False
+
     # Find first non-alpha character and get all chars before it
     i = 0
     cmd = ""
     while i < len(pattern) and pattern[i] in COMMAND_CHARS:
         i += 1
         cmd = pattern[:i]
+
     if not cmd:
         logger.info("Unable to identify command correctly, i=%d, pattern=%s", i, pattern)
         return False
+
     return cmd
 
 
@@ -67,10 +72,13 @@ class MarkdownBotPassthrough:
         for i, arg in enumerate(args):
             if isinstance(arg, type(self)):
                 args[i] = arg.__under
+
         for key, arg in kwargs.items():
             if isinstance(arg, type(self)):
                 kwargs[key] = arg.__under
+
         kwargs.setdefault("parse_mode", "markdown")
+
         try:
             ret = func(*args, **kwargs)
         except TypeError:
@@ -87,6 +95,7 @@ class MarkdownBotPassthrough:
                     return self.__convert(ret2)
 
                 return wrapper()
+
         return self.__convert(ret)
 
     def __convert(self, ret):
@@ -95,6 +104,7 @@ class MarkdownBotPassthrough:
                 return self.__convert(await ret)
 
             return wrapper()
+
         if isinstance(ret, list):
             for i, thing in enumerate(ret):
                 ret[i] = self.__convert(thing)
@@ -104,6 +114,7 @@ class MarkdownBotPassthrough:
             if hasattr(ret, "text"):
                 logger.debug("%r(%s) %r(%s)", ret.entities, type(ret.entities), ret.message, type(ret.message))
                 ret.text = markdown.unparse(ret.message, [x.__under for x in ret.entities or []])
+
         return ret
 
     def __repr__(self):

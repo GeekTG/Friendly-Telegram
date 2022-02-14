@@ -115,8 +115,7 @@ class TestMod(loader.Module):
             ], message=message)
             return
 
-        handler = logging.getLogger().handlers[0]
-        logs = ("\n".join(handler.dumps(lvl))).encode("utf-16")
+        logs = '\n\n'.join([("\n".join(handler.dumps(lvl))).encode("utf-16") for handler in logging.getLogger().handlers])
 
         named_lvl = lvl if lvl not in logging._levelToName else logging._levelToName[lvl]
 

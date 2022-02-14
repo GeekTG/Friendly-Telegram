@@ -20,7 +20,6 @@ import argparse
 import asyncio
 import atexit
 import collections
-import configparser
 import functools
 import importlib
 import json
@@ -33,7 +32,6 @@ import socket
 import sqlite3
 import sys
 import time
-from configparser import NoSectionError, NoOptionError
 
 import requests
 from requests import get
@@ -44,15 +42,14 @@ from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermedia
 from telethon.sessions import StringSession, SQLiteSession
 from telethon.tl.functions.bots import SetBotCommandsRequest
 from telethon.tl.functions.channels import DeleteChannelRequest
-from telethon.tl.functions.updates import GetStateRequest
 from telethon.tl.types import BotCommand, BotCommandScopeDefault
 
 from . import utils, loader, heroku, security
-from .database import backend, local_backend, frontend
+from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 0, 7)
+__version__ = (3, 0, 8)
 
 try:
     from .web import core
@@ -69,68 +66,97 @@ def run_config(db, data_root, phone=None, modules=None):
     return configurator.run(db, data_root, phone, phone is None, modules)
 
 
+def get_config_key(key, again=False):
+    """Parse and return key from config"""
+    try:
+        config = json.loads(open('config.json', 'r').read())
+        return config.get(key, False)
+    except FileNotFoundError:
+        if again:
+            # If somehow we were not able to save port to file
+            return False
+
+        # In case use used ini config before, and switched
+        # to json one, we try to parse the ini one
+
+        try:
+            config = open('config.ini', 'r').read()
+        except FileNotFoundError:
+            return False
+
+        port, use_file_db = False, False
+
+        for line in config.splitlines():
+            if 'port' in line:
+                port = int(line.split('=')[1].strip())
+
+            if 'use_file_db' in line:
+                use_file_db = bool(int(line.split('=')[1].strip()))
+
+        # Then migrate config to json file
+        open('config.json', 'w').write(
+            json.dumps(
+                {
+                    'port': port,
+                    'use_file_db': use_file_db
+                }
+            )
+        )
+
+        # We already saved config to file, so we should not
+        # get an FileNotFoundError exception (hopefully)
+        return get_config_key(key, True)
+
+
+def save_config_key(key, value):
+    try:
+        # Try to open our newly created json config
+        config = json.loads(open('config.json', 'r').read())
+    except FileNotFoundError:
+        # If it doesn't exist, just default config to none
+        # It won't cause problems, bc after new save
+        # we will create new one
+        config = {}
+
+    # Assign config value
+    config[key] = value
+
+    # And save config
+    open('config.json', 'w').write(
+        json.dumps(
+            config
+        )
+    )
+
+    return True
+
+
 def gen_port():
+    # In case of heroku you always need to use 8080
     if 'DYNO' in os.environ:
         return 8080
-    config = configparser.ConfigParser()
-    path = "config.ini"
-    try:
-        config.read(path)
-        port = int(config.get("Settings", "port"))
-    except NoSectionError:
+
+    # But for own server we generate new free port, and assign to it
+
+    port = get_config_key('port')
+    if port:
+        return port
+
+    # If we didn't get port from config, generate new one
+    # First, try to randomly get port
+    port = random.randint(1024, 65536)
+
+    # Then ensure it's free
+    while socket.socket(socket.AF_INET, socket.SOCK_STREAM) \
+          .connect_ex(('localhost', port)) == 0:
+        # Until we find the free port, generate new one
         port = random.randint(1024, 65536)
-        while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
-            port = random.randint(1024, 65536)
-    except NoOptionError:
-        port = random.randint(1024, 65536)
-        while socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect_ex(('localhost', port)) == 0:
-            port = random.randint(1024, 65536)
+
     return port
 
 
-def save_port(port):
-    config = configparser.ConfigParser()
-    path = "config.ini"
-    try:
-        config.read(path)
-        config.set("Settings", "port", str(port))
-    except NoSectionError:
-        config.add_section("Settings")
-        config.set("Settings", "port", str(port))
-    with open(path, "w") as config_file:
-        config.write(config_file)
-
-
-
-def get_db_type():
-    config = configparser.ConfigParser()
-    path = "config.ini"
-    try:
-        config.read(path)
-        USE_FILE = int(config.get("Settings", "use_file_db"))
-    except NoSectionError:
-        USE_FILE = 0
-        config.add_section("Settings")
-        config.set("Settings", "use_file_db", '0')
-    except NoOptionError:
-        USE_FILE = 0
-        config.set("Settings", "use_file_db", '0')
-    return USE_FILE
-
-
-def save_db_type(USE_FILE):
-    config = configparser.ConfigParser()
-    path = "config.ini"
-    try:
-        config.read(path)
-        config.set("Settings", "use_file_db", '1' if USE_FILE else '0')
-    except NoSectionError:
-        config.add_section("Settings")
-    except NoOptionError:
-        config.set("Settings", "use_file_db", str('1' if USE_FILE else '0'))
-
-    with open(path, "w") as config_file:
-        config.write(config_file)
+def save_db_type(use_file_db):
+    return save_config_key('use_file_db', use_file_db)
 
 
 def parse_arguments():
@@ -142,18 +168,14 @@ def parse_arguments():
     parser.add_argument("--token", "-t", action="append", dest="tokens")
     parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--no-nickname", "-nn", dest="no_nickname", action="store_true")
-    parser.add_argument("--constant-database", "-cd", dest="constant_database", action="store_true")
     parser.add_argument("--hosting", "-lh", dest="hosting", action="store_true")
     parser.add_argument("--default-app", "-da", dest="default_app", action="store_true")
-    parser.add_argument("--local-db", dest="local", action="store_true")
     parser.add_argument("--web-only", dest="web_only", action="store_true")
     parser.add_argument("--no-web", dest="web", action="store_false")
     parser.add_argument("--data-root", dest="data_root", default="",
                         help="Root path to store session files in")
     parser.add_argument("--no-auth", dest="no_auth", action="store_true",
                         help="Disable authentication and API token input, exitting if needed")
-    parser.add_argument("--test-dc", dest="test_dc", const=None, nargs="?", default=False,
-                        help="Connect to the test DC")
     parser.add_argument("--proxy-host", dest="proxy_host", action="store",
                         help="MTProto proxy host, without port")
     parser.add_argument("--proxy-port", dest="proxy_port", action="store", type=int,
@@ -206,10 +228,23 @@ def get_phones(arguments):
 def get_api_token(arguments, use_default_app=False):
     """Get API Token from disk or environment"""
     api_token_type = collections.namedtuple("api_token", ("ID", "HASH"))
+
+    # Allow user to use default API credintials
+    # These are android ones
     if use_default_app:
         return api_token_type(2040, 'b18441a1ff607e10a989891a5462e627')
+
+    # Try to retrieve credintials from file, or from env vars
     try:
-        with open(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt")) as f:
+        with open(
+            os.path.join(
+                arguments.data_root or
+                os.path.dirname(
+                    utils.get_base_dir()
+                ),
+                "api_token.txt"
+            )
+        ) as f:
             api_token = api_token_type(*[line.strip() for line in f.readlines()])
     except FileNotFoundError:
         try:
@@ -292,15 +327,21 @@ def main():  # noqa: C901
     proxy, conn = get_proxy(arguments)
 
     if web_available:
-        web = core.Web(data_root=arguments.data_root, api_token=api_token,
-                       test_dc=arguments.test_dc is not False,
-                       proxy=proxy, connection=conn, hosting=arguments.hosting,
-                       default_app=arguments.default_app) if arguments.web else None
+        web = core.Web(
+                data_root=arguments.data_root,
+                api_token=api_token,
+                proxy=proxy,
+                connection=conn,
+                hosting=arguments.hosting,
+                default_app=arguments.default_app
+            ) if arguments.web else None
     elif arguments.heroku_web_internal:
         raise RuntimeError("Web required but unavailable")
     else:
         web = None
-    save_port(arguments.port)
+
+    save_config_key('port', arguments.port)
+
     while api_token is None:
         if arguments.no_auth:
             return
@@ -349,15 +390,26 @@ def main():  # noqa: C901
     if authtoken:
         for phone, token in authtoken.items():
             try:
-                clients += [TelegramClient(StringSession(token), api_token.ID, api_token.HASH,
-                                           connection=conn, proxy=proxy, connection_retries=None).start()]
+                clients += [
+                    TelegramClient(
+                        StringSession(token),
+                        api_token.ID,
+                        api_token.HASH,
+                        connection=conn,
+                        proxy=proxy,
+                        connection_retries=None
+                    ).start()
+                ]
             except ValueError:
                 run_config({}, arguments.data_root)
                 return
+
             clients[-1].phone = phone  # for consistency
+
     if not clients and not phones:
         if arguments.no_auth:
             return
+
         if web:
             if not web.running.is_set():
                 loop.run_until_complete(web.start(arguments.port))
@@ -389,7 +441,25 @@ def main():  # noqa: C901
                 phone = input("Please enter your phone or bot token: ")
                 phones = {phone.split(":", maxsplit=1)[0]: phone}
             except EOFError:
-                _extracted_from_main_108()
+                print("=" * 30)
+                print("""Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!
+It is likely that you tried to deploy to heroku -
+you cannot do this via the web interface.
+
+To deploy to heroku, go to
+https://friendly-telegram.gitlab.io/heroku to learn more
+
+In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!
+You should remove the forked repo, and read https://friendly-telegram.gitlab.io
+
+If you're not using Heroku, then you are using a non-interactive prompt but
+you have not got a session configured, meaning authentication to Telegram is
+impossible.
+
+THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!
+Goodbye.""")
+                sys.exit(1)
+
     for phone_id, phone in phones.items():
         if arguments.heroku:
             session = StringSession()
@@ -399,26 +469,19 @@ def main():  # noqa: C901
         try:
             client = TelegramClient(session, api_token.ID, api_token.HASH,
                                     connection=conn, proxy=proxy, connection_retries=None)
-            if arguments.test_dc is not False:
-                client.session.set_dc(client.session.dc_id, "149.154.167.40", 80)
             if ":" in phone:
                 client.start(bot_token=phone)
                 client.phone = None
                 del phone
             else:
-                if arguments.test_dc:
-                    client.start(phone, code_callback=lambda: arguments.test_dc)
-                else:
-                    client.start(phone)
+                client.start(phone)
                 client.phone = phone
             clients.append(client)
         except sqlite3.OperationalError as ex:
-            print(((
-                           "Error initialising phone " +
-                           (phone or "unknown") + " " + ",".join(ex.args) +
-                           ": this is probably your fault. Try checking that this is the only instance running and "
-                           "that the session is not copied. If that doesn't help, delete the file named '"
-                           "friendly-telegram") + (("-" + phone) if phone else "") + ".session'"))
+            print(f"""Error initialising phone {(phone or "unknown")} {",".join(ex.args)}
+: this is probably your fault. Try checking that this is the only instance running and
+that the session is not copied. If that doesn't help, delete the file named
+'friendly-telegram-{phone if phone else ""}.session'""")
             continue
         except TypeError:
             os.remove(f'{session}.session')
@@ -454,42 +517,6 @@ def main():  # noqa: C901
     loop.run_until_complete(asyncio.gather(*loops))
 
 
-def _extracted_from_main_108():
-    print()  # noqa: T001
-    print("=" * 30)  # noqa: T001
-    _extracted_from_main_110(
-        "Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!",
-        "It is likely that you tried to deploy to heroku - "  # noqa: T001
-        "you cannot do this via the web interface.",
-        "To deploy to heroku, go to "  # noqa: T001
-        "https://friendly-telegram.gitlab.io/heroku to learn more",
-    )
-    _extracted_from_main_117(
-        "In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!",
-        "You should remove the forked repo, and read https://friendly-telegram.gitlab.io",
-    )
-    _extracted_from_main_110(
-        "If you're not using Heroku, then you are using a non-interactive prompt but "  # noqa: T001
-        "you have not got a session configured, meaning authentication to Telegram is "
-        "impossible.",
-        "THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!",
-        "Goodbye.",
-    )
-    sys.exit(1)
-
-
-def _extracted_from_main_117(arg0, arg1):
-    print()  # noqa: T001
-    print(arg0)
-    print(arg1)
-
-
-def _extracted_from_main_110(arg0, arg1, arg2):
-    print()  # noqa: T001
-    print(arg0)
-    _extracted_from_main_117(arg1, arg2)
-
-
 async def amain_wrapper(client, *args, **kwargs):
     """Wrapper around amain so we don't have to manually clear all locals on soft restart"""
     async with client:
@@ -501,15 +528,11 @@ async def amain_wrapper(client, *args, **kwargs):
 async def amain(first, client, allclients, web, arguments):
     """Entrypoint for async init, run once for each user"""
     setup = arguments.setup
-    local = arguments.local or arguments.test_dc
     web_only = arguments.web_only
     client.parse_mode = "HTML"
     await client.start()
-    is_bot = await client.is_bot()
-    if is_bot:
-        local = True
-    [handler] = logging.getLogger().handlers
-    db = local_backend.LocalBackend(client, arguments.data_root) if local else backend.CloudBackend(client)
+    handlers = logging.getLogger().handlers
+    db = backend.CloudBackend(client)
     if setup:
         await db.init(lambda e: None)
         jdb = await db.do_download()
@@ -525,7 +548,7 @@ async def amain(first, client, allclients, web, arguments):
         await fdb.init()
         modules.send_config(fdb, babelfish)
         await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
-        handler.setLevel(50)
+        [handler.setLevel(50) for handler in handlers]
         pdb = run_config(pdb, arguments.data_root, getattr(client, "phone", "Unknown Number"), modules)
         if pdb is None:
             await client(DeleteChannelRequest(db.db))
@@ -535,34 +558,24 @@ async def amain(first, client, allclients, web, arguments):
         except MessageNotModifiedError:
             pass
         return False
+
     db = frontend.Database(db, arguments.heroku_deps_internal or arguments.docker_deps_internal)
     await db.init()
+
     logging.debug("got db")
     logging.info("Loading logging config...")
-    handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
-
-    if arguments.constant_database:
-        logging.debug("starting patch database")
-        async with asyncio.Lock():
-            filename = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()),
-                                    "constant_database.json")
-            if not os.path.isfile(filename):
-                logging.debug("nothing to patch")
-                with open(filename, "w+") as file:
-                    json.dump({}, file)
-            else:
-                with open(filename, "r") as file:
-                    constant = json.load(file)
-                    db = utils.merge(constant, db)
-                    await db.save()
-                    logging.debug("successfully patched")
+    [handler.setLevel(db.get(__name__, "loglevel", logging.WARNING)) for handler in handlers]
 
     to_load = None
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
         to_load = ["loader.py"]
 
-    babelfish = Translator(db.get(__name__, "langpacks", []),
-                           db.get(__name__, "language", ["en"]), arguments.data_root)
+    babelfish = Translator(
+                    db.get(__name__, "langpacks", []),
+                    db.get(__name__, "language", ["en"]),
+                    arguments.data_root
+                )
+
     await babelfish.init(client)
 
     modules = loader.Modules()
@@ -575,8 +588,6 @@ async def amain(first, client, allclients, web, arguments):
         if not web_only:
             dispatcher = CommandDispatcher(modules, db, no_nickname)
             loader.dispatcher = dispatcher
-            if is_bot:
-                modules.added_modules = functools.partial(set_commands, dispatcher.security)
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
         # Loader has installed all dependencies
         return  # We are done
@@ -592,12 +603,20 @@ async def amain(first, client, allclients, web, arguments):
                                  events.NewMessage(forwards=False))
         client.add_event_handler(dispatcher.handle_command,
                                  events.MessageEdited())
+
     modules.register_all(babelfish, to_load)
 
     modules.send_config(db, babelfish)
+
     await modules.send_ready(client, db, allclients)
+
     if first:
-        print("Started for " + str((await client.get_me(True)).user_id))  # noqa: T001
+        print("Started for", (await client.get_me(True)).user_id)  # noqa: T001
+
     await client.run_until_disconnected()
+
+    # Previous line will stop code execution, so this part is
+    # reached only when client is by some reason disconnected
+    # At this point we need to close database
     await db.close()
     return False

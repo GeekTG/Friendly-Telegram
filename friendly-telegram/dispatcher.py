@@ -321,7 +321,7 @@ class CommandDispatcher:
                     pass
             except Exception as e:
                 logging.exception("Command failed")
-                if not self._db.get(main.__name__, 'inlinelogs', False):
+                if not self._db.get(main.__name__, 'inlinelogs', True):
                     try:
                         txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>"
                         await (message.edit if message.out else message.reply)(txt)

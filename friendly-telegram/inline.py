@@ -137,7 +137,7 @@ class InlineManager:
         # This is called outside of conversation, so we can start the new one
         # We create new bot
         logger.info('User don\'t have bot, attemping creating new one')
-        async with self._client.conversation('@BotFather') as conv:
+        async with self._client.conversation('@BotFather', exclusive=False) as conv:
             m = await conv.send_message('/cancel')
             r = await conv.get_response()
 
@@ -230,6 +230,9 @@ class InlineManager:
 
             # User do not have any bots yet, so just create new one
             if not hasattr(r, 'reply_markup') or not hasattr(r.reply_markup, 'rows'):
+                # Cancel current conversation (search)
+                # bc we don't need it anymore
+                await conv.cancel_all()
                 return await self._create_bot()
 
             for row in r.reply_markup.rows:

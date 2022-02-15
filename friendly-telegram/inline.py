@@ -147,7 +147,7 @@ class InlineManager:
             m = await conv.send_message('/newbot')
             r = await conv.get_response()
 
-            if '20' in m.raw_text:
+            if '20' in r.raw_text:
                 return False
 
             await m.delete()

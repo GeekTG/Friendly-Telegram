@@ -19,7 +19,6 @@
 import asyncio
 from aiohttp import web
 import aiohttp_jinja2
-import hashlib
 import os
 import secrets
 import logging

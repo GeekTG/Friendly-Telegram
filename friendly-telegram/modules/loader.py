@@ -19,17 +19,14 @@
 import asyncio
 import importlib
 import inspect
-import io
 import logging
 import os
 import re
 import sys
 import urllib
 import uuid
-import zlib
 from importlib.abc import SourceLoader
 from importlib.machinery import ModuleSpec
-from os import path
 import telethon
 from telethon.tl.types import *
 

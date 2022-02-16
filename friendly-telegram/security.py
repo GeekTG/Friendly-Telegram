@@ -16,7 +16,6 @@
 
 #    Modded by GeekTG Team
 
-import functools
 import logging
 
 import telethon

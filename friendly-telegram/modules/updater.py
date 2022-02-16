@@ -19,7 +19,6 @@
 import asyncio
 import atexit
 import functools
-import io
 import logging
 import os
 import subprocess

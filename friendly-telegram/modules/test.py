@@ -14,12 +14,10 @@
 
 # scope: inline_content
 
-from datetime import datetime
 import time
 
 import logging
 from io import BytesIO
-import functools
 
 from .. import loader, utils
 

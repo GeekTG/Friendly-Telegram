@@ -12,7 +12,7 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-from .. import loader, utils, main
+from .. import loader, utils
 import logging
 import time
 from telethon.tl.types import *

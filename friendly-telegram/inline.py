@@ -12,10 +12,9 @@
     https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
-from types import FunctionType
 from typing import Union, Any, List
 
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher
 import aiogram
 
 import re
@@ -32,6 +31,7 @@ import requests
 import io
 import json
 import functools
+import os
 
 logger = logging.getLogger(__name__)
 

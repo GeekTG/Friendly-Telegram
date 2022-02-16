@@ -13,16 +13,11 @@
 """
 
 from .. import loader, utils
-import asyncio
 import datetime
 import io
 import json
-import requests
-import re
 
 from telethon.tl.types import *
-
-# requires: requests
 
 
 @loader.tds

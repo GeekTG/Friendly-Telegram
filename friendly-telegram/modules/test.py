@@ -38,7 +38,6 @@ class TestMod(loader.Module):
     """Perform operations based on userbot self-testing"""
     strings = {
         "name": "Tester",
-        "bad_loglevel": "🚫 <b>Invalid loglevel.</b>",
         "set_loglevel": "🚫 <b>Please specify verbosity as an integer or string</b>",
         "no_logs": "ℹ️ <b>You don't have any logs at verbosity {}.</b>",
         "logs_filename": "geektg-logs.txt",
@@ -75,50 +74,54 @@ class TestMod(loader.Module):
                 lvl = getattr(logging, args.upper(), None)
 
         if not isinstance(lvl, int):
-            await self.inline.form(text=self.strings('choose_loglevel'), reply_markup=[
-                [
-                    {
-                        'text': "🚨 Critical",
-                        'callback': self.logscmd,
-                        'args': (False, 50)
-                    },
-                    {
-                        'text': "🚫 Error",
-                        'callback': self.logscmd,
-                        'args': (False, 40)
-                    }
-                ],
-                [
-                    {
-                        'text': "⚠️ Warning",
-                        'callback': self.logscmd,
-                        'args': (False, 30)
-                    },
-                    {
-                        'text': "ℹ️ Info",
-                        'callback': self.logscmd,
-                        'args': (False, 20)
-                    }
-                ],
-                [
-                    {
-                        'text': "🧑‍💻 Debug",
-                        'callback': self.logscmd,
-                        'args': (False, 10)
-                    },
-                    {
-                        'text': "👁 All",
-                        'callback': self.logscmd,
-                        'args': (False, 0)
-                    }
-                ],
-                [
-                    {
-                        'text': '🚫 Cancel',
-                        'callback': self.cancel
-                    }
-                ]
-            ], message=message)
+            if self.inline.init_complete:
+                await self.inline.form(text=self.strings('choose_loglevel'), reply_markup=[
+                    [
+                        {
+                            'text': "🚨 Critical",
+                            'callback': self.logscmd,
+                            'args': (False, 50)
+                        },
+                        {
+                            'text': "🚫 Error",
+                            'callback': self.logscmd,
+                            'args': (False, 40)
+                        }
+                    ],
+                    [
+                        {
+                            'text': "⚠️ Warning",
+                            'callback': self.logscmd,
+                            'args': (False, 30)
+                        },
+                        {
+                            'text': "ℹ️ Info",
+                            'callback': self.logscmd,
+                            'args': (False, 20)
+                        }
+                    ],
+                    [
+                        {
+                            'text': "🧑‍💻 Debug",
+                            'callback': self.logscmd,
+                            'args': (False, 10)
+                        },
+                        {
+                            'text': "👁 All",
+                            'callback': self.logscmd,
+                            'args': (False, 0)
+                        }
+                    ],
+                    [
+                        {
+                            'text': '🚫 Cancel',
+                            'callback': self.cancel
+                        }
+                    ]
+                ], message=message)
+            else:
+                await utils.answer(message, self.strings('set_loglevel'))
+
             return
 
         logs = '\n\n'.join([("\n".join(handler.dumps(lvl))) for handler in logging.getLogger().handlers]).encode("utf-16")
@@ -126,26 +129,29 @@ class TestMod(loader.Module):
         named_lvl = lvl if lvl not in logging._levelToName else logging._levelToName[lvl]
 
         if lvl < logging.WARNING and not (force or (isinstance(message, Message) and 'force_insecure' in message.raw_text.lower())):
-            try:
-                cfg = {
-                    'text': self.strings('confidential').format(named_lvl), 
-                    'reply_markup': [[
-                        {
-                            'text': '📤 Send anyway',
-                            'callback': self.logscmd,
-                            'args': [True, lvl]
-                        },
-                        {
-                            'text': '🚫 Cancel',
-                            'callback': self.cancel
-                        }
-                        ]]
-                }
-                if isinstance(message, Message):
-                    await self.inline.form(**cfg, message=message)
-                else:
-                    await message.edit(**cfg)
-            except ChatSendInlineForbiddenError:
+            if self.inline.init_complete:
+                try:
+                    cfg = {
+                        'text': self.strings('confidential').format(named_lvl), 
+                        'reply_markup': [[
+                            {
+                                'text': '📤 Send anyway',
+                                'callback': self.logscmd,
+                                'args': [True, lvl]
+                            },
+                            {
+                                'text': '🚫 Cancel',
+                                'callback': self.cancel
+                            }
+                            ]]
+                    }
+                    if isinstance(message, Message):
+                        await self.inline.form(**cfg, message=message)
+                    else:
+                        await message.edit(**cfg)
+                except ChatSendInlineForbiddenError:
+                    await utils.answer(message, self.strings('confidential_text').format(named_lvl))
+            else:
                 await utils.answer(message, self.strings('confidential_text').format(named_lvl))
 
             return

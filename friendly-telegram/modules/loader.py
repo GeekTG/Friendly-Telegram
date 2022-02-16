@@ -73,35 +73,45 @@ def unescape_percent(text):
     ln = len(text)
     is_handling_percent = False
     out = ""
+
     while i < ln:
         char = text[i]
+
         if char == "%" and not is_handling_percent:
             is_handling_percent = True
             i += 1
             continue
+
         if char == "d" and is_handling_percent:
             out += "."
             is_handling_percent = False
             i += 1
             continue
+
         out += char
         is_handling_percent = False
         i += 1
+
     return out
 
 
 def get_git_api(url):
     m = GIT_REGEX.search(url)
+
     if m is None:
         return None
+
     repo = m.group(1)  # TODO: remove unused repo
     branch = m.group(2)
     path_ = m.group(3)
     api_url = "https://api.github.com/repos{}/contents".format(m.group(1))
+
     if path_ is not None and len(path_) > 0:
         api_url += path_
+
     if branch:
         api_url += "?ref=" + branch
+
     return api_url
 
 
@@ -159,8 +169,10 @@ class LoaderMod(loader.Module):
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
         args = utils.get_args(message)
+
         if args:
             args = args[0] if urllib.parse.urlparse(args[0]).netloc else args[0].lower()
+
             if await self.download_and_install(args, message):
                 self._db.set(__name__, "loaded_modules",
                              list(set(self._db.get(__name__, "loaded_modules", [])).union([args])))
@@ -182,19 +194,24 @@ class LoaderMod(loader.Module):
     async def dlpresetcmd(self, message):
         """Set preset. Defaults to full"""
         args = utils.get_args(message)
+
         if not args:
             await utils.answer(message, self.strings("select_preset", message))
             return
+
         try:
             await self.get_repo_list(args[0])
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 await utils.answer(message, self.strings("no_preset", message))
                 return
+
             raise
+
         self._db.set(__name__, "chosen_preset", args[0])
         self._db.set(__name__, "loaded_modules", [])
         self._db.set(__name__, "unloaded_modules", [])
+
         await utils.answer(message, self.strings("preset_loaded", message))
         await self.allmodules.commands["restart"](await message.reply("_"))
 
@@ -207,6 +224,7 @@ class LoaderMod(loader.Module):
     async def get_repo_list(self, preset=None):
         if preset is None or preset == "none":
             preset = "minimal"
+
         r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
         r.raise_for_status()
         return set(filter(lambda x: x, r.text.split("\n")))
@@ -216,11 +234,15 @@ class LoaderMod(loader.Module):
             url = module_name
         else:
             url = self.config["MODULES_REPO"] + module_name + ".py"
+
         r = await utils.run_sync(requests.get, url)
+
         if r.status_code == 404:
             if message is not None:
                 await utils.answer(message, self.strings("no_module", message))
+
             return False
+
         r.raise_for_status()
         return await self.load_module(r.content.decode("utf-8"), message, module_name, url)
 
@@ -228,8 +250,10 @@ class LoaderMod(loader.Module):
     async def loadmodcmd(self, message):
         """Loads the module file"""
         msg = message if message.file else (await message.get_reply_message())
+
         if msg is None or msg.media is None:
             args = utils.get_args(message)
+
             if args:
                 try:
                     path_ = args[0]
@@ -384,9 +408,11 @@ class LoaderMod(loader.Module):
     async def dlrepocmd(self, message):
         """Downloads and installs all modules from repo"""
         args = utils.get_args(message)
+
         if len(args) == 1:
             repo_url = args[0]
             git_api = get_git_api(repo_url)
+
             if git_api is None:
                 return await utils.answer(message, self.strings("url_invalid", message))
 
@@ -413,6 +439,7 @@ class LoaderMod(loader.Module):
     async def unloadrepocmd(self, message):
         """Removes loaded repository"""
         args = utils.get_args(message)
+
         if len(args) == 1:
             repoUrl = args[0]
             repos = set(self._db.get(__name__, "loaded_repositories", []))
@@ -423,6 +450,7 @@ class LoaderMod(loader.Module):
                 return await utils.answer(message, self.strings("repo_not_unloaded", message))
 
             self._db.set(__name__, "loaded_repositories", list(repos))
+
             await utils.answer(message, self.strings("repo_unloaded", message))
         else:
             await utils.answer(message, self.strings("args_incorrect", message))
@@ -463,24 +491,35 @@ class LoaderMod(loader.Module):
         it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)
         self._db.set(__name__, "unloaded_modules", list(it))
 
-        if worked:
-            await utils.answer(message, self.strings("unloaded", message))
-        else:
-            await utils.answer(message, self.strings("not_unloaded", message))
+        await utils.answer(
+            message,
+            self.strings(
+                "unloaded" \
+                if worked \
+                else "not_unloaded",
+                message
+            )
+        )
 
     @loader.owner
     async def clearmodulescmd(self, message):
         """Delete all installed modules"""
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", [])
         self._db.set("friendly-telegram.modules.loader", "unloaded_modules", [])
+
         await utils.answer(message, self.strings("all_modules_deleted", message))
+
         self._db.set(__name__, "chosen_preset", "none")
+
         await self.allmodules.commands["restart"](await message.reply("_"))
 
     async def _update_modules(self):
         todo = await self._get_modules_to_load()
+
         await asyncio.gather(*[self.download_and_install(mod) for mod in todo])
+
         repos = set(self._db.get(__name__, "loaded_repositories", []))
+
         await asyncio.gather(*[self.load_repo(get_git_api(url)) for url in repos])
 
     async def client_ready(self, client, db):
@@ -497,6 +536,7 @@ def get_module(module):
     loader_ = sysmod.__loader__
     cname = type(loader_).__name__
     r = [name, None, None]
+
     if cname == "SourceFileLoader":
         r[1] = "path"
         r[2] = loader_.get_filename()

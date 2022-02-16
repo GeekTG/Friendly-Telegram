@@ -45,47 +45,70 @@ class HelpMod(loader.Module):
 
     @loader.unrestricted
     async def helpcmd(self, message):
-        """.help [module]"""
+        """[module] - Get help for module, or get the list of modules"""
         args = utils.get_args_raw(message)
+
         if args:
             module = None
+
             for mod in self.allmodules.modules:
                 if mod.strings("name", message).lower() == args.lower():
                     module = mod
+
             if module is None:
                 await utils.answer(message, self.strings("bad_module", message))
                 return
-            # Translate the format specification and the module separately
+
             try:
                 name = module.strings["name"]
             except KeyError:
                 name = "Unspecified Name"
             reply = self.strings("single_mod_header", message).format(
                 utils.escape_html(name))
+
             if module.__doc__:
                 reply += "\n" + \
                     "\n".join(
                         "  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
             else:
                 logger.warning("Module %s is missing docstring!", module)
-            commands = {name: func for name, func in module.commands.items()
-                        if await self.allmodules.check_security(message, func)}
+
+            commands = {
+                name: func \
+                for name, func in module.commands.items()
+                if await self.allmodules.check_security(message, func)
+            }
+
             for name, fun in commands.items():
                 reply += self.strings("single_cmd", message).format(name)
+
                 if fun.__doc__:
-                    reply += utils.escape_html("\n".join("  " +
-                                                         t for t in inspect.getdoc(fun).split("\n")))
+                    reply += utils.escape_html(
+                        "\n".join(
+                            "  " + t \
+                            for t in inspect.getdoc(fun) \
+                                            .split("\n")
+                        )
+                    )
                 else:
                     reply += self.strings("undoc_cmd", message)
         else:
-            reply = self.strings("all_header", message).format(utils.escape_html((self.db.get(main.__name__,
-                                                                                              "command_prefix",
-                                                                                              False) or ".")[0]))
+            reply = self.strings("all_header", message) \
+                    .format(
+                        utils.escape_html(
+                            (
+                                self.db.get(main.__name__, "command_prefix", False) or \
+                                "."
+                            )[0]
+                        )
+                    )
+
             for mod in self.allmodules.modules:
                 try:
                     name = mod.strings("name", message)
                 except KeyError:
                     name = getattr(mod, "name", "ERROR")
+
                 if name not in [
                     "Logger",
                     "Raphielgang Configuration Placeholder",
@@ -108,13 +131,15 @@ class HelpMod(loader.Module):
                     except:
                         # TODO: FIX THAT SHIT
                         pass
+
         await utils.answer(message, reply)
 
     @loader.unrestricted
     async def supportcmd(self, message):
-        """Joins the support FTG chat"""
-        if not self.is_bot and await self.allmodules.check_security(message, security.OWNER | security.SUDO):
+        """Joins the support GeekTG chat"""
+        if await self.allmodules.check_security(message, security.OWNER | security.SUDO):
             await self.client(JoinChannelRequest("https://t.me/chat_ftg"))
+
             try:
                 await self.inline.form(self.strings('joined', message), reply_markup=[[{'text': '👩‍💼 Chat', 'url': 'https://t.me/chat_ftg'}]], ttl=10, message=message)
             except Exception:
@@ -127,5 +152,4 @@ class HelpMod(loader.Module):
 
     async def client_ready(self, client, db):
         self.client = client
-        self.is_bot = await client.is_bot()
         self.db = db

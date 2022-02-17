@@ -180,7 +180,10 @@ class UpdaterMod(loader.Module):
         self._me = await client.get_me()
 
         if db.get(__name__, "selfupdatechat") is not None and db.get(__name__, "selfupdatemsg") is not None:
-            await self.update_complete(client)
+            try:
+                await self.update_complete(client)
+            except Exception:
+                logger.exception('Failed to complete update!')
 
         self._db.set(__name__, "selfupdatechat", None)
         self._db.set(__name__, "selfupdatemsg", None)

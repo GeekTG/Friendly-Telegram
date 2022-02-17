@@ -291,50 +291,50 @@ class CommandDispatcher:
                         message.respond = my_respond
 
             try:
-                try:
-                    # Note, that on Heroku or on read-only
-                    # Termux, this will fail to save, so
-                    # just ignore it
+                # Note, that on Heroku or on read-only
+                # Termux, this will fail to save, so
+                # just ignore it
 
-                    if self._me == message.from_id:
-                        module_name = func.__self__.__class__.strings['name']
-                        if module_name not in self.stats:
-                            self.stats[module_name] = []
-                        self.stats[module_name].append(round(time.time()))
-                        open(self.stats_file, 'w').write(
-                            json.dumps(
-                                self.stats
-                            )
+                if self._me == message.from_id:
+                    module_name = func.__self__.__class__.strings['name']
+                    if module_name not in self.stats:
+                        self.stats[module_name] = []
+                    self.stats[module_name].append(round(time.time()))
+                    open(self.stats_file, 'w').write(
+                        json.dumps(
+                            self.stats
                         )
-                except Exception:
-                    pass
+                    )
+            except Exception:
+                pass
 
+            # Feature for CommandsLogger module
+            try:
+                if getattr(loader, 'mods', False):
+                    for mod in loader.mods:
+                        if mod.name == 'CommandsLogger':
+                            await mod.process_log(message)
+            except Exception:
+                pass
+
+            try:
                 await func(message)
-
-                # Feature for CommandsLogger module
-                try:
-                    if getattr(loader, 'mods', False):
-                        for mod in loader.mods:
-                            if mod.name == 'CommandsLogger':
-                                await mod.process_log(message)
-                except Exception:
-                    pass
             except Exception as e:
                 logging.exception("Command failed")
                 if not self._db.get(main.__name__, 'inlinelogs', True):
                     try:
                         txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>"
                         await (message.edit if message.out else message.reply)(txt)
-                    finally:
-                        raise e
+                    except Exception:
+                        pass
                 else:
                     try:
                         exc = traceback.format_exc()
                         exc = '\n'.join(exc.split('\n')[1:]) # Remove `Traceback (most recent call last):`
                         txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>\n\n<b>⛑ Traceback:</b>\n<code>{exc}</code>"
                         await (message.edit if message.out else message.reply)(txt)
-                    finally:
-                        raise e
+                    except Exception:
+                        pass
 
     async def handle_incoming(self, event):
         """Handle all incoming messages"""

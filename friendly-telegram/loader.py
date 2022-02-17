@@ -153,7 +153,19 @@ def get_commands(mod):
         method_name[:-3]: getattr(mod, method_name) \
         for method_name in dir(mod)
             if callable(getattr(mod, method_name)) and \
+            len(method_name) > 3 and \
             method_name[-3:] == "cmd"
+    }
+
+
+def get_inline_handlers(mod):
+    """Introspect the module to get its inline handlers"""
+    return {
+        method_name[:-15]: getattr(mod, method_name) \
+        for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and \
+            len(method_name) > 15 and \
+            method_name[-15:] == "_inline_handler"
     }
 
 
@@ -361,6 +373,9 @@ class Modules:
 
         if not hasattr(mod, "commands"):
             mod.commands = get_commands(mod)
+
+        if not hasattr(mod, "inline_handlers"):
+            mod.inline_handlers = get_inline_handlers(mod)
 
         self.register_commands(mod)
         self.register_watcher(mod)

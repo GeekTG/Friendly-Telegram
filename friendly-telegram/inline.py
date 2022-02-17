@@ -49,6 +49,31 @@ class InlineCall:
         self.edit = None
 
 
+class GeekInlineQuery:
+    def __init__(self, inline_query: aiogram.types.InlineQuery) -> None:
+        self.inline_query = inline_query
+
+        # Inherit original `InlineQuery` attributes for
+        # easy access
+        for attr in dir(inline_query):
+            if attr == "__init__":
+                continue
+
+            try:
+                setattr(self, attr, getattr(inline_query, attr, None))
+            except AttributeError:
+                pass # There are some non-writable native attrs
+                # So just ignore them
+
+    def __str__(self) -> str:
+        return self.inline_query.query
+
+    def args(self) -> str:
+        return self.inline_query.query.split(maxsplit=1)[1] \
+                if len(self.inline_query.query.split()) > 1 \
+                else ''
+
+
 def rand(size: int) -> str:
     """Return random string of len `size`"""
     return ''.join([random.choice('abcdefghijklmnopqrstuvwzyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ') for _ in range(size)])
@@ -132,6 +157,52 @@ class InlineManager:
             self._forms = json.loads(open(self._forms_db_path, 'r').read())
         except Exception:
             pass
+
+    def _check_inline_security(self, func, user):
+        allow = user in [self._me] + \
+                    self._loader.dispatcher.security._owner
+
+        if not hasattr(func, '__doc__') or \
+            not func.__doc__ or \
+            allow:
+            return allow
+
+        doc = func.__doc__
+
+        for line in doc.splitlines():
+            line = line.strip()
+            if line.startswith('@allow:'):
+                allow_line = line.split(':')[1].strip()
+
+                # First we check for possible group limits
+                # like `sudo`, `support`, `all`. Then check
+                # for the occurence of user in overall string
+                # This allows dev to use any delimiter he wants
+                if 'all' in allow_line or \
+                    'sudo' in allow_line and \
+                    user in self._loader.dispatcher.security._sudo or \
+                    'support' in allow_line and \
+                    user in self._loader.dispatcher.security._support or \
+                    str(user) in allow_line:
+                    allow = True
+
+        # But don't hurry to return value, we need to check, 
+        # if there are any limits
+        for line in doc.splitlines():
+            line = line.strip()
+            if line.startswith('@restrict:'):
+                restrict = line.split(':')[1].strip()
+
+                if 'all' in restrict or \
+                    'sudo' in restrict and \
+                    user in self._loader.dispatcher.security._sudo or \
+                    'support' in restrict and \
+                    user in self._loader.dispatcher.security._support or \
+                    str(user) in restrict:
+                    allow = True
+
+        return allow
+
 
     async def _create_bot(self) -> None:
         # This is called outside of conversation, so we can start the new one
@@ -407,11 +478,6 @@ class InlineManager:
 
     async def _inline_handler(self, inline_query: aiogram.types.InlineQuery) -> None:
         """Inline query handler (forms' calls)"""
-        # Retrieve query from passed object
-        query = inline_query.query
-
-        if not query:
-            return
 
         # Find Loader instance to access security layers
         if not hasattr(self, '_loader'):
@@ -419,6 +485,28 @@ class InlineManager:
                 if mod.__class__.__name__ == "LoaderMod":
                     self._loader = mod
                     break
+
+        # Retrieve query from passed object
+        query = inline_query.query
+
+        if not query:
+            return
+
+        # First, dispatch all registered inline handlers
+        for mod in self._allmodules.modules:
+            if not hasattr(mod, 'inline_handlers') or \
+                not isinstance(mod.inline_handlers, dict):
+                continue
+            
+            instance = GeekInlineQuery(inline_query)
+
+            for query_text, query_func in mod.inline_handlers.items():
+                if inline_query.query.split()[0].lower() == query_text.lower() and \
+                    self._check_inline_security(query_func, inline_query.from_user.id):
+                    try:
+                        await query_func(instance)
+                    except BaseException:
+                        logger.exception('Error on running inline watcher!')
 
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):
@@ -436,8 +524,7 @@ class InlineManager:
                             '🔄 <b>Transfering value to usebot...</b>\n<i>This message is gonna be deleted...</i>',
                             'HTML',
                             disable_web_page_preview=True
-                        ),
-                        reply_markup=self._empty_markup,
+                        )
                     )], cache_time=60)
                     return
 

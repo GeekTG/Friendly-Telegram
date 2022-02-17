@@ -141,15 +141,12 @@ def _sec(func, flags):
 
 class SecurityManager:
     def __init__(self, db):
-        # We read the db during init to prevent people manipulating it at runtime
-        # TODO in the future this will be backed up by blocking the inspect module at runtime and blocking __setattr__
         self._any_admin = db.get(__name__, "any_admin", False)
         self._default = db.get(__name__, "default", DEFAULT_PERMISSIONS)
         self._owner = db.get(__name__, "owner", []).copy()
         self._sudo = db.get(__name__, "sudo", []).copy()
         self._support = db.get(__name__, "support", []).copy()
         self._bounding_mask = db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
-        self._perms = db.get(__name__, "masks", {}).copy()
         self._db = db
 
     async def update_owners(self):
@@ -157,7 +154,7 @@ class SecurityManager:
         if self._client:
             u = (await self._client.get_me(True)).user_id
             if not self._owner or u not in self._owner:
-                self._owner.append(u)
+                self._owner += [u]
 
     async def init(self, client):
         u = (await client.get_me(True)).user_id
@@ -170,16 +167,24 @@ class SecurityManager:
         if isinstance(func, int):
             config = func
         else:
-            config = self._perms.get(func.__module__ + "." + func.__name__, getattr(func, "security", self._default))
+            # Return masks there so user don't need to reboot
+            # every time he changes permissions. It doesn't
+            # decrease security at all, bc user anyway can
+            # access this attribute
+            config = self._db.get(__name__, "masks", {}).get(func.__module__ + "." + func.__name__, getattr(func, "security", self._default))
+
         if config & ~ALL:
             logger.error("Security config contains unknown bits")
             return False
+
         return config & self._bounding_mask
 
     async def _check(self, message, func):
         config = self.get_flags(func)
+
         if not config:  # Either False or 0, either way we can failfast
             return False
+
         logger.debug("Checking security match for %d", config)
 
         f_owner = config & OWNER

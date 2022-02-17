@@ -56,8 +56,8 @@ class GeekInlineQuery:
         # Inherit original `InlineQuery` attributes for
         # easy access
         for attr in dir(inline_query):
-            if attr == "__init__":
-                continue
+            if attr.startswith('__') and attr.endswith('__'):
+                continue # Ignore magic attrs
 
             try:
                 setattr(self, attr, getattr(inline_query, attr, None))
@@ -65,13 +65,9 @@ class GeekInlineQuery:
                 pass # There are some non-writable native attrs
                 # So just ignore them
 
-    def __str__(self) -> str:
-        return self.inline_query.query
-
-    def args(self) -> str:
-        return self.inline_query.query.split(maxsplit=1)[1] \
-                if len(self.inline_query.query.split()) > 1 \
-                else ''
+        self.args = self.inline_query.query.split(maxsplit=1)[1] \
+                    if len(self.inline_query.query.split()) > 1 \
+                    else ''
 
 
 def rand(size: int) -> str:

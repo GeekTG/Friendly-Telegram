@@ -70,9 +70,7 @@ class UpdaterMod(loader.Module):
         if self._db.get(__name__, "selfupdatecheck", "") != check:
             raise ValueError("An update is already in progress!")
         self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
-        self._db.set(__name__, "selfupdatemsg", message.id)
-        
-        await self._db._backend.do_upload(json.dumps(self._db))
+        await self._db.set(__name__, "selfupdatemsg", message.id)
 
     async def restart_common(self, message):
         await self.prerestart_common(message)

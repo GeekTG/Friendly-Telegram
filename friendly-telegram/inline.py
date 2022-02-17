@@ -415,6 +415,10 @@ class InlineManager:
         # And get bot username to call inline queries
         self._bot_username = (await self._bot.get_me()).username
 
+        # Start the bot in case it can send you messages
+        m = await self._client.send_message(self._bot_username, '/start')
+        await self._client.delete_messages(self._bot_username, m)
+
         # Start polling as the separate task, just in case we will need
         # to force stop this coro. It should be cancelled only by `stop`
         # because it stops the bot from getting updates

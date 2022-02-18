@@ -219,17 +219,20 @@ class LoaderMod(loader.Module):
         return set(filter(lambda x: x, r.text.split("\n")))
 
     async def download_and_install(self, module_name, message=None):
-        if urllib.parse.urlparse(module_name).netloc:
-            url = module_name
-        else:
-            url = self.config["MODULES_REPO"] + module_name + ".py"
-        r = await utils.run_sync(requests.get, url)
-        if r.status_code == 404:
-            if message is not None:
-                await utils.answer(message, self.strings("no_module", message))
-            return False
-        r.raise_for_status()
-        return await self.load_module(r.content.decode("utf-8"), message, module_name, url)
+        try:
+            if urllib.parse.urlparse(module_name).netloc:
+                url = module_name
+            else:
+                url = self.config["MODULES_REPO"] + module_name + ".py"
+            r = await utils.run_sync(requests.get, url)
+            if r.status_code == 404:
+                if message is not None:
+                    await utils.answer(message, self.strings("no_module", message))
+                return False
+            r.raise_for_status()
+            return await self.load_module(r.content.decode("utf-8"), message, module_name, url)
+        except Exception:
+            logger.exception(f'Failed to load {module_name}')
 
     @loader.owner
     async def loadmodcmd(self, message):

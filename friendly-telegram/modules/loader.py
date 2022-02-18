@@ -152,6 +152,10 @@ class LoaderMod(loader.Module):
         "repo_not_unloaded": "<b>🚫 Repository not unloaded</b>",
         "single_cmd": "\n📍 <code>{}{}</code> 👉🏻 ",
         "undoc_cmd": "👁‍🗨 No docs",
+        "ihandler": "\n🎹 <i>Inline</i>: <code>{}</code> 👉🏻 ",
+        "undoc_ihandler": "👁‍🗨 No docs",
+        "chandler": "\n🖱 <i>Callback</i>: <code>{}</code> 👉🏻 ",
+        "undoc_chandler": "👁‍🗨 No docs",
         "inline_init_failed": """🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>
 <i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>"""
     }
@@ -396,6 +400,27 @@ class LoaderMod(loader.Module):
                     modhelp += utils.escape_html(inspect.getdoc(fun))
                 else:
                     modhelp += self.strings("undoc_cmd", message)
+
+            if self.inline.init_complete:
+                if hasattr(instance, 'inline_handlers'):
+                    inline_handlers = {name: func for name, func in instance.inline_handlers.items()}
+                    for name, fun in inline_handlers.items():
+                        modhelp += self.strings("ihandler", message).format(f"@{self.inline._bot_username} {name}")
+
+                        if fun.__doc__:
+                            modhelp += utils.escape_html('\n'.join([line.strip() for line in inspect.getdoc(fun).splitlines() if not line.strip().startswith('@')]))
+                        else:
+                            modhelp += self.strings("undoc_ihandler", message)
+
+                if hasattr(instance, 'callback_handlers'):
+                    callback_handlers = {name: func for name, func in instance.callback_handlers.items()}
+                    for name, fun in callback_handlers.items():
+                        modhelp += self.strings("chandler", message).format(name)
+
+                        if fun.__doc__:
+                            modhelp += utils.escape_html('\n'.join([line.strip() for line in inspect.getdoc(fun).splitlines() if not line.strip().startswith('@')]))
+                        else:
+                            modhelp += self.strings("undoc_chandler", message)
 
             try:
                 await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))

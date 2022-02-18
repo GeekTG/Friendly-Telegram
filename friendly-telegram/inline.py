@@ -84,7 +84,7 @@ def array_sum(array: list) -> Any:
     return result
 
 
-async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[bool, None] = None, always_allow: Union[List[int], None] = None, self: Any = None, query: Any = None, form: Any = None, form_uid: Any = None, inline_message_id: Union[str, None] = None) -> None:
+async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[bool, None] = None, always_allow: Union[List[int], None] = None, self: Any = None, query: Any = None, form: Any = None, form_uid: Any = None, inline_message_id: Union[str, None] = None, disable_web_page_preview: bool = True) -> None:
     """Do not edit or pass `self`, `query`, `form`, `form_uid` params, they are for internal use only"""
     assert isinstance(text, str)
     if isinstance(reply_markup, list):
@@ -97,7 +97,7 @@ async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[b
         await self._bot.edit_message_text(text,
                             inline_message_id=inline_message_id or query.inline_message_id,
                             parse_mode="HTML",
-                            disable_web_page_preview=True,
+                            disable_web_page_preview=disable_web_page_preview,
                             reply_markup=self._generate_markup(form_uid))
     except aiogram.utils.exceptions.MessageNotModified:
         await query.answer()
@@ -642,7 +642,7 @@ class InlineManager:
                                         (call, query, *button.get('args', []), **button.get('kwargs', {}))
 
 
-    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = [], force_me: bool = True, always_allow: List[int] = [], ttl: Union[int, bool] = False) -> bool:
+    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = [], force_me: bool = True, always_allow: List[int] = [], ttl: Union[int, bool] = False) -> str:
         """Creates inline form with callback
 
                 Args:
@@ -702,7 +702,8 @@ class InlineManager:
             'force_me': force_me,
             'always_allow': always_allow,
             'chat': None,
-            'message_id': None
+            'message_id': None,
+            'uid': form_uid
         }
 
         q = await self._client.inline_query(self._bot_username, form_uid)
@@ -711,6 +712,8 @@ class InlineManager:
         self._forms[form_uid]['message_id'] = m.id
         if isinstance(message, Message):
             await message.delete()
+
+        return form_uid
 
 
 if __name__ == "__main__":

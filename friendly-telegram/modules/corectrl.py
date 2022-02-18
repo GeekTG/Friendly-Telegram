@@ -106,11 +106,11 @@ class CoreMod(loader.Module):
         branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
 
         if 'beta' in branch:
-            await utils.answer(message, self.strings('geek_beta').format(*version))
+            await utils.answer(message, self.strings('geek_beta').format(*ver))
         elif 'alpha' in branch:
-            await utils.answer(message, self.strings('geek_alpha').format(*version))
+            await utils.answer(message, self.strings('geek_alpha').format(*ver))
         else:
-            await utils.answer(message, self.strings('geek').format(*version))
+            await utils.answer(message, self.strings('geek').format(*ver))
 
     async def blacklistcmd(self, message: Message) -> None:
         """.blacklist [id]

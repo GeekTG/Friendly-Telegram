@@ -221,7 +221,7 @@ class InlineManager:
             await r.delete()
 
             # Set its name to user's name + GeekTG Userbot
-            m = await conv.send_message(f"{self._name}'s GeekTG Userbot")
+            m = await conv.send_message(f"🕶 GeekTG Userbot of {self._name}")
             r = await conv.get_response()
 
             await m.delete()
@@ -350,6 +350,25 @@ class InlineManager:
                         await m.delete()
                         await r.delete()
 
+                        # Set bot profile pic
+                        m = await conv.send_message('/setuserpic')
+                        r = await conv.get_response()
+
+                        await m.delete()
+                        await r.delete()
+
+                        m = await conv.send_message(button.text)
+                        r = await conv.get_response()
+
+                        await m.delete()
+                        await r.delete()
+
+                        m = await conv.send_file(photo)
+                        r = await conv.get_response()
+
+                        await m.delete()
+                        await r.delete()
+
                         # Save token to database, now this bot is ready-to-use
                         self._db.set('geektg.inline', 'bot_token', token)
                         self._token = token
@@ -387,7 +406,7 @@ class InlineManager:
 
             await asyncio.sleep(10)
 
-    async def _register_manager(self) -> None:
+    async def _register_manager(self, after_break=False) -> None:
         # Get info about user to use it in this class
         me = await self._client.get_me()
         self._me = me.id
@@ -407,17 +426,28 @@ class InlineManager:
         self._bot = Bot(token=self._token)
         self._dp = Dispatcher(self._bot)
 
+        # Get bot username to call inline queries
+        self._bot_username = (await self._bot.get_me()).username
+
+        # Start the bot in case it can send you messages
+        try:
+            m = await self._client.send_message(self._bot_username, '/start')
+        except Exception:
+            self._db.set('geektg.inline', 'bot_token', None)
+            self._token = False
+
+            if not after_break:
+                return await self._register_manager(True)
+
+            init_complete = False
+            return False
+
+        await self._client.delete_messages(self._bot_username, m)
+
         # Register required event handlers inside aiogram
         self._dp.register_inline_handler(self._inline_handler, lambda inline_query: True)
         self._dp.register_callback_query_handler(self._callback_query_handler, lambda query: True)
         self._dp.register_chosen_inline_handler(self._chosen_inline_handler, lambda chosen_inline_query: True)
-
-        # And get bot username to call inline queries
-        self._bot_username = (await self._bot.get_me()).username
-
-        # Start the bot in case it can send you messages
-        m = await self._client.send_message(self._bot_username, '/start')
-        await self._client.delete_messages(self._bot_username, m)
 
         # Start polling as the separate task, just in case we will need
         # to force stop this coro. It should be cancelled only by `stop`
@@ -495,7 +525,8 @@ class InlineManager:
         # First, dispatch all registered inline handlers
         for mod in self._allmodules.modules:
             if not hasattr(mod, 'inline_handlers') or \
-                not isinstance(mod.inline_handlers, dict):
+                not isinstance(mod.inline_handlers, dict) or \
+                not mod.inline_handlers:
                 continue
             
             instance = GeekInlineQuery(inline_query)
@@ -546,6 +577,20 @@ class InlineManager:
 
     async def _callback_query_handler(self, query: aiogram.types.CallbackQuery, reply_markup: List[List[dict]] = []) -> None:
         """Callback query handler (buttons' presses)"""
+        # First, dispatch all registered callback handlers
+        for mod in self._allmodules.modules:
+            if not hasattr(mod, 'callback_handlers') or \
+                not isinstance(mod.callback_handlers, dict) or \
+                not mod.callback_handlers:
+                continue
+
+            for query_text, query_func in mod.callback_handlers.items():
+                if self._check_inline_security(query_func, query.from_user.id):
+                    try:
+                        await query_func(query)
+                    except BaseException:
+                        logger.exception('Error on running callback watcher!')
+
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):
                 if button.get('_callback_data', None) == query.data:

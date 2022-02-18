@@ -168,6 +168,16 @@ def get_inline_handlers(mod):
             method_name[-15:] == "_inline_handler"
     }
 
+def get_callback_handlers(mod):
+    """Introspect the module to get its callback handlers"""
+    return {
+        method_name[:-17]: getattr(mod, method_name) \
+        for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and \
+            len(method_name) > 17 and \
+            method_name[-17:] == "_callback_handler"
+    }
+
 
 class Modules:
     """Stores all registered modules"""
@@ -376,6 +386,9 @@ class Modules:
 
         if not hasattr(mod, "inline_handlers"):
             mod.inline_handlers = get_inline_handlers(mod)
+
+        if not hasattr(mod, "callback_handlers"):
+            mod.callback_handlers = get_callback_handlers(mod)
 
         self.register_commands(mod)
         self.register_watcher(mod)

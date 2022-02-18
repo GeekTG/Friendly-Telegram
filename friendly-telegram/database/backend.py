@@ -114,7 +114,7 @@ class CloudBackend:
 
         if main.get_config_key('use_file_db'):
             try:
-                open(self._db_path, 'w', encoding='utf-8').write(data)
+                open(self._db_path, 'w', encoding='utf-8').write(data or "{}")
             except:
                 logger.exception("Database save failed!")
                 raise

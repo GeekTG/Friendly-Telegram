@@ -29,20 +29,26 @@
   <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{{ static('auth.js') }}"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Open+Sans:wght@300&display=swap');
     .button {
-      border-radius: 10px;
+      border-radius: 5px;
       padding: 10px 20px;
       border: none;
-      color: #898989;
+      color: #eee;
       width: 100%;
       margin: 5px 0;
-      background: #181818;
+      background: transparent;
+      border: 2px solid #aaa;
       cursor: pointer;
       transition: box-shadow .2s ease;
+      user-select: none;
     }
+
+
+    
     .button:hover {
-      box-shadow: inset 5px 5px 10px #0b0b0b, 
-                  inset -5px -5px 10px #252525;
+      box-shadow: inset 5px 5px 3px rgba(255, 255, 255, .1), 
+                  inset -5px -5px 3px rgba(255, 255, 255, .1);
     }
 
     .signin_block {
@@ -63,33 +69,328 @@
       margin: 0;
       color: #eee;
       font-size: 22px;
-      padding: 20px;
-    }
-
-    .main_content {
-      justify-content: center;
-      align-items: center;
-      display: flex;
+      padding: 10px;
+      font-family: "Open Sans";
     }
 
     .hamburger, .menu {
       display: none;
     }
   </style>
+
+  <style type="text/css">
+    body, html {
+      background: linear-gradient(-45deg, #007700 0%, #004400 100%);
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #sky {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    #shootingstars {
+      margin: 0;
+      padding: 0;
+      width: 150vh;
+      height: 100vw;
+      position: fixed;
+      overflow: hidden;
+      transform: translatex(calc(50vw - 50%)) translatey(calc(50vh - 50%))
+        rotate(120deg);
+    }
+
+    .wish {
+      height: 2px;
+      top: 300px;
+      width: 100px;
+      margin: 0;
+      opacity: 0;
+      padding: 0;
+      background-color: white;
+      position: absolute;
+      background: linear-gradient(-45deg, white, rgba(0, 0, 255, 0));
+      filter: drop-shadow(0 0 6px white);
+      overflow: hidden;
+    }
+
+    .title {
+      font-size: 50px; 
+      font-family: 'Josefin Sans';
+      text-align: center;
+      color: #fff;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+    }
+
+    .description {
+      font-size: 24px;
+      color: #eee;
+      text-align: center;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+      padding-top: 20px;
+      line-height: 1.1;
+      font-family: "Open Sans";
+    }
+
+    .wrapper {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #root {
+      position: absolute;
+      top:  0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      margin: auto;
+    }
+
+    .darken {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: rgba(0, 0, 0, .2);
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      margin: auto;
+    }
+
+    .main_content {
+      display: none;
+    }
+
+    .center {
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      position: relative;
+      z-index: 2;
+      margin-top: 20px;
+    }
+
+    .border {
+      padding: 40px 60px 60px 50px;
+    }
+
+    .center::before {
+      background: radial-gradient(circle at 0% 0%, #263c5d, #31175b);
+      animation: anim 30s infinite linear;
+      /*background: transparent;*/
+      border-radius: 30% 70% 53% 47% / 26% 46% 54% 74%;
+      box-shadow: 0 -10px 20px #463f40 inset, 0 10px 20px #201535 inset,
+                  0 -20px 40px #130d38 inset;
+      content: "";
+      filter: drop-shadow(0 0 10px Thistle);
+      width: 100%;
+      height: 100%;
+      content: '';
+      z-index: -1;
+      position: absolute;
+    }
+
+    @keyframes anim {
+      0%,
+      100% {
+        border-radius: 30% 70% 70% 30% / 30% 52% 48% 40%;
+        
+      }
+
+      10% {
+        border-radius: 50% 50% 20% 50% / 25% 80% 20% 45%;
+      }
+
+      20% {
+        border-radius: 67% 33% 47% 53% / 37% 20% 80% 63%;
+      }
+
+      30% {
+        border-radius: 39% 61% 47% 53% / 37% 40% 60% 63%;
+        
+      }
+
+      40% {
+        border-radius: 39% 61% 82% 18% / 74% 40% 60% 26%;
+      }
+
+      50% {
+        border-radius: 100%;
+        
+      }
+
+      60% {
+        border-radius: 50% 50% 53% 47% / 72% 69% 31% 28%;
+      }
+
+      70% {
+        border-radius: 50% 50% 53% 47% / 26% 22% 78% 74%;
+        
+      }
+
+      80% {
+        border-radius: 50% 50% 53% 47% / 26% 69% 31% 74%;
+      }
+
+      90% {
+        border-radius: 20% 80% 20% 80% / 20% 80% 20% 80%;
+      }
+    }
+
+
+  </style>
 {% endblock %}
 
 {% block content %}
-  <div class="signin_block">
-    <h1>Select an account to sign in</h1>
-    <ul>
-      {% for uid, name in users.items() %}
-        <li>
-          <button class="button" onclick="beginAuthFlow({{uid}});">
-            {{ name }}
-          </button>
-        </li>
-      {% endfor %}
-    </ul>
+{% endblock %}
+
+{% block after %}
+<div class="wrapper">
+  <div class="title">GeekTG</div>
+  <div class="description">Ultimate userbot.<br>Best userbot ever.</div>
+  <div class="center">
+    <div class="border">
+      <div class="signin_block">
+        <h1>Select an account to sign in</h1>
+        <ul>
+          {% for uid, name in users.items() %}
+            <li>
+              <button class="button" onclick="beginAuthFlow({{uid}});">
+                {{ name }}
+              </button>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
   </div>
+  
+  <div class="darken"></div>
+  <div id="root">
+
+  </div>
+</div>
+<script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.1.0/anime.min.js"></script>
+<script type="text/javascript">
+  function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;} // Twinkling Night Sky by Sharna
+
+  class StarrySky extends React.Component {constructor(...args) {super(...args);_defineProperty(this, "state",
+      {
+        num: 60,
+        vw: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
+        vh: Math.max(document.documentElement.clientHeight, window.innerHeight || 0) });_defineProperty(this, "starryNight",
+
+      () => {
+        anime({
+          targets: ["#sky .star"],
+          opacity: [
+          {
+            duration: 700,
+            value: "0" },
+
+          {
+            duration: 700,
+            value: "1" }],
+
+
+          easing: "linear",
+          loop: true,
+          delay: (el, i) => 50 * i });
+
+      });_defineProperty(this, "shootingStars",
+      () => {
+        anime({
+          targets: ["#shootingstars .wish"],
+          easing: "linear",
+          loop: true,
+          delay: (el, i) => 1000 * i,
+          opacity: [
+          {
+            duration: 700,
+            value: "1" }],
+
+
+          width: [
+          {
+            value: "150px" },
+
+          {
+            value: "0px" }],
+
+
+          translateX: 350 });
+
+      });_defineProperty(this, "randomRadius",
+      () => {
+        return Math.random() * 0.7 + 0.6;
+      });_defineProperty(this, "getRandomX",
+      () => {
+        return Math.floor(Math.random() * Math.floor(this.state.vw)).toString();
+      });_defineProperty(this, "getRandomY",
+      () => {
+        return Math.floor(Math.random() * Math.floor(this.state.vh)).toString();
+      });}
+    componentDidMount() {
+      this.starryNight();
+      this.shootingStars();
+    }
+    render() {
+      const { num } = this.state;
+      return /*#__PURE__*/(
+        React.createElement("div", { id: "App" }, /*#__PURE__*/
+        React.createElement("svg", { id: "sky" },
+        [...Array(num)].map((x, y) => /*#__PURE__*/
+        React.createElement("circle", {
+          cx: this.getRandomX(),
+          cy: this.getRandomY(),
+          r: this.randomRadius(),
+          stroke: "none",
+          strokeWidth: "0",
+          fill: "white",
+          key: y,
+          className: "star" }))), /*#__PURE__*/
+
+
+
+        React.createElement("div", { id: "shootingstars" },
+        [...Array(60)].map((x, y) => /*#__PURE__*/
+        React.createElement("div", {
+          key: y,
+          className: "wish",
+          style: {
+            left: `${this.getRandomY()}px`,
+            top: `${this.getRandomX()}px` } })))));
+
+
+
+
+
+
+    }}
+
+
+  ReactDOM.render( /*#__PURE__*/React.createElement(StarrySky, null), document.getElementById("root"));
+
+</script>
 {% endblock %}
 

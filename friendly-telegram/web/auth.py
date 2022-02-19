@@ -36,6 +36,8 @@ except ImportError:
     humanfriendly = False
     from telethon.extensions import html
 
+from telethon.tl.types import *
+
 
 class Web:
     def __init__(self, **kwargs):
@@ -117,15 +119,19 @@ class Web:
         code = secrets.randbelow(100000)
         asyncio.ensure_future(asyncio.shield(self._clear_code(uid)))
         salt = b64encode(os.urandom(16))
-        msg = ("Your GeekTG Auth code: <code>{:05d}</code>\nDo <b>not</b> share it with <b>anyone</b>!".format(code))
+        msg = ("🔐 <b>Your GeekTG Auth code: </b><code>{:05d}</code>\n<b>Do not share it with anyone!</b>".format(code))
         owners = self.client_data[uid][2].get(security.__name__, "owner", None) or ["me"]
         msgs = []
         for owner in owners:
             try:
+                u = await self.client_data[uid][1].get_input_entity(owner)
+                if isinstance(u, InputPeerChannel):
+                    logging.debug('Ignoring code send to channel')
+                    continue
+
                 msgs += [await self.client_data[uid][1].send_message(owner, msg)]
             except Exception:
                 logging.warning("Failed to send code to owner", exc_info=True)
-        print(humanfriendly.terminal.html.html_to_ansi(msg) if humanfriendly else html.parse(msg)[0])  # noqa: T001
         self._uid_to_code[uid] = str(code).zfill(5)
         self._code_to_ms[str(code)] = msgs
         return web.Response(body=salt.decode("utf-8"))

@@ -49,7 +49,7 @@ from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 1, 2)
+__version__ = (3, 1, 3)
 
 try:
     from .web import core
@@ -612,7 +612,40 @@ async def amain(first, client, allclients, web, arguments):
     await modules.send_ready(client, db, allclients)
 
     if first:
-        print("Started for", (await client.get_me(True)).user_id)  # noqa: T001
+        import git
+        import os
+        repo = git.Repo()
+
+        build = repo.heads[0].commit.hexsha
+        diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
+        upd = '\33[31mUpdate required' if diff else '\33[92mUp-to-date'
+
+        termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
+        heroku = os.environ.get("DYNO", False)
+
+        platform = "\x1b[0;30;47mTermux\x1b[0m" if termux else ("\x1b[0;30;45mHeroku\x1b[0m" if heroku else "VDS")
+
+        logo1 = f"""
+              \x1b[7;30;41m                    )  \x1b[0m
+              \x1b[7;30;41m (               ( /(  \x1b[0m
+              \x1b[7;30;41m )\ )   (   (    )\()) \x1b[0m
+              \x1b[7;30;41m(()/(   )\  )\ |((_)\  \x1b[0m
+              \x1b[7;30;41m /((\x1b[7;30;42m_\x1b[7;30;41m)\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m)((\x1b[7;30;42m_\x1b[7;30;41m)|\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m) \x1b[0m
+              \x1b[7;30;41m(_)\x1b[0m\x1b[7;30;42m/ __| __| __| |/ /  \x1b[0m
+              \x1b[7;30;42m  | (_ | _|| _|  ' <   \x1b[0m
+              \x1b[7;30;42m   \___|___|___|_|\_\ \x1b[0m
+
+                 • \33[95mBuild: \33[97m{build[:7]}\x1b[0m
+                 • \33[95mVersion: \33[97m{'.'.join(list(map(str, list(__version__))))}\x1b[0m
+                 • {upd}\x1b[0m
+                 • \33[95mPlatform: \33[97m{platform}\x1b[0m
+                 - Started for {(await client.get_me(True)).user_id} -"""
+
+        print(logo1)
+
+        logging.info(f"=== BUILD: {build} ===")
+        logging.info(f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ===")
+        logging.info(f"=== PLATFORM: {'Termux' if termux else ('Heroku' if heroku else 'VDS')} ===")
 
     await client.run_until_disconnected()
 

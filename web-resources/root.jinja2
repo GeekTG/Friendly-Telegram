@@ -421,7 +421,7 @@
       confirmButtonText: 'Unload',
       showLoaderOnConfirm: true,
       preConfirm: (login) => {
-        return fetch("/unloadmod", {method: "POST", body: '"' + name + '"'})
+        return fetch("/unloadmod", {method: "POST", body: name})
               .then(function(response) {
                 return response.text();
               })

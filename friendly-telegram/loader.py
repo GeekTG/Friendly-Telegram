@@ -55,6 +55,12 @@ en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
         }ASDFGHJKL:"|ZXCVBNM<>? """
 
 
+LOADED_MODULES_DIR = os.path.join(utils.get_base_dir(), 'loaded_modules')
+
+if not os.path.isdir(LOADED_MODULES_DIR):
+    os.mkdir(LOADED_MODULES_DIR, mode=0o755)
+
+
 def translatable_docstring(cls):
     """ Decorator that makes triple-quote docstrings translatable """
 
@@ -193,6 +199,7 @@ class Modules:
         self._initial_registration = True
         self.added_modules = None
         self.use_inline = use_inline
+        self._fs = 'DYNO' not in os.environ
 
     def register_all(self, babelfish, mods=None):
         # TODO: remove babelfish
@@ -202,8 +209,44 @@ class Modules:
             self._compat_layer = compat.activate([])
 
         if not mods:
-            mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
-                          os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
+            mods = [
+                os.path.join(
+                    utils.get_base_dir(),
+                    MODULES_NAME,
+                    mod
+                ) \
+                for mod in
+                filter(
+                    lambda x: (
+                        len(x) > 3 and \
+                        x[-3:] == ".py" and \
+                        x[0] != "_"
+                    ),
+                    os.listdir(
+                        os.path.join(
+                            utils.get_base_dir(),
+                            MODULES_NAME
+                        )
+                    )
+                )
+            ]
+
+            if self._fs:
+                mods += [
+                    os.path.join(
+                        LOADED_MODULES_DIR,
+                        mod
+                    ) \
+                    for mod in
+                    filter(
+                        lambda x: (
+                            len(x) > 3 and \
+                            x[-3:] == ".py" and \
+                            x[0] != "_"
+                        ),
+                        os.listdir(LOADED_MODULES_DIR)
+                    )
+                ]
 
         logging.debug(mods)
 
@@ -211,8 +254,7 @@ class Modules:
             try:
                 module_name = __package__ + "." + MODULES_NAME + "." + os.path.basename(mod)[:-3]  # FQN
                 logging.debug(module_name)
-                spec = importlib.util.spec_from_file_location(module_name,
-                                                              os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
+                spec = importlib.util.spec_from_file_location(module_name, mod)
                 self.register_module(spec, module_name)
             except BaseException as e:
                 logging.exception(f"Failed to load module %s due to {e}:", mod)
@@ -220,6 +262,8 @@ class Modules:
     def register_module(self, spec, module_name, origin="<file>"):
         """Register single module from importlib spec"""
         from .compat import uniborg
+
+        s = __import__('copy').deepcopy(spec)
 
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
@@ -238,6 +282,18 @@ class Modules:
 
         self.complete_registration(ret)
         ret.__origin__ = origin
+
+        cls_name = ret.__class__.__name__
+        
+        if self._fs:
+            path = os.path.join(
+                        LOADED_MODULES_DIR,
+                        f"{cls_name}.py"
+                    )
+
+            if not os.path.isfile(path) and origin == "<string>":
+                open(path, 'w').write(spec.loader.data.decode('utf-8'))
+                logging.debug(f'Saved {cls_name} to file')
 
         return ret
 
@@ -405,13 +461,33 @@ class Modules:
         """Remove module and all stuff from it"""
         worked = []
         to_remove = []
+
         for module in self.modules:
             if classname in (module.name, module.__class__.__name__):
                 worked += [module.__module__]
+
+                name = module.__class__.__name__
+                if self._fs:
+                    path = os.path.join(
+                        LOADED_MODULES_DIR,
+                        f"{name}.py"
+                    )
+
+                    if os.path.isfile(path):
+                        os.remove(path)
+                        logging.debug(f'Removed {name} file')
+
                 logging.debug("Removing module for unload %r", module)
                 self.modules.remove(module)
 
-                asyncio.ensure_future(asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5))
+                asyncio.ensure_future(
+                    asyncio.wait_for(
+                        asyncio.gather(
+                            module.on_unload()
+                        ),
+                        timeout=5
+                    )
+                )
 
                 to_remove += module.commands.values()
                 if hasattr(module, "watcher"):

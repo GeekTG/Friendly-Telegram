@@ -1,198 +1,722 @@
 <!--
-    Friendly Telegram (telegram userbot)
-    Copyright (C) 2018-2021 The Authors
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Copyright 2022 t.me/hikariatama
+    Licensed under the Creative Commons CC BY-NC-ND 4.0
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+    Full license text can be found at:
+    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    Human-friendly one:
+    https://creativecommons.org/licenses/by-nc-nd/4.0
 -->
-
-<!--
-    Modded by GeekTG Team
--->
-
 
 {% extends "base.jinja2" %}
 
 {% block head %}
-	<script src="{{ static('initial_root.js') }}"></script>
-{% endblock %}
+  <script src="https://cdn.jsdelivr.net/npm/scrypt-async@2.0.1/scrypt-async.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{{ static('auth.js') }}"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Open+Sans:wght@300&display=swap');
+    .button {
+      border-radius: 5px;
+      padding: 10px 20px;
+      border: none;
+      color: #eee;
+      width: 100%;
+      margin: 5px 0;
+      background: transparent;
+      border: 2px solid #aaa;
+      cursor: pointer;
+      transition: box-shadow .2s ease;
+      user-select: none;
+    }
 
-{% block title %}
-	Friendly-Telegram
+
+
+    .button:hover {
+      box-shadow: inset 5px 5px 3px rgba(255, 255, 255, .1),
+                  inset -5px -5px 3px rgba(255, 255, 255, .1);
+    }
+
+    .signin_block {
+      display: inline-block;
+    }
+
+    .signin_block ul {
+      margin: 0;
+      list-style: none;
+      padding: 0;
+    }
+
+    .signin_block li {
+      width: 100%;
+    }
+
+    .signin_block h1 {
+      margin: 0;
+      color: #eee;
+      font-size: 22px;
+      padding: 10px;
+      font-family: "Open Sans";
+    }
+
+    .hamburger, .menu {
+      display: none;
+    }
+  </style>
+
+  <style type="text/css">
+    body, html {
+      background: linear-gradient(-45deg, #007700 0%, #004400 100%);
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #sky {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    #shootingstars {
+      margin: 0;
+      padding: 0;
+      width: 150vh;
+      height: 100vw;
+      position: fixed;
+      overflow: hidden;
+      transform: translatex(calc(50vw - 50%)) translatey(calc(50vh - 50%))
+        rotate(120deg);
+    }
+
+    .wish {
+      height: 2px;
+      top: 300px;
+      width: 100px;
+      margin: 0;
+      opacity: 0;
+      padding: 0;
+      background-color: white;
+      position: absolute;
+      background: linear-gradient(-45deg, white, rgba(0, 0, 255, 0));
+      filter: drop-shadow(0 0 6px white);
+      overflow: hidden;
+    }
+
+    .title {
+      font-size: 50px;
+      font-family: 'Josefin Sans';
+      text-align: center;
+      color: #fff;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+    }
+
+    .description {
+      font-size: 24px;
+      color: #eee;
+      text-align: center;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+      padding-top: 20px;
+      line-height: 1.1;
+      font-family: "Open Sans";
+    }
+
+    .wrapper {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #root {
+      position: absolute;
+      top:  0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      margin: auto;
+    }
+
+    .darken {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: rgba(0, 0, 0, .2);
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      margin: auto;
+    }
+
+    .main_content {
+      display: none;
+    }
+
+    .center {
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      position: relative;
+      z-index: 2;
+      margin-top: 20px;
+    }
+
+    .border {
+      padding: 40px 60px 60px 50px;
+    }
+
+    .center::before {
+      background: radial-gradient(circle at 0% 0%, #263c5d, #31175b);
+      animation: anim 30s infinite linear;
+      /*background: transparent;*/
+      border-radius: 30% 70% 53% 47% / 26% 46% 54% 74%;
+      box-shadow: 0 -10px 20px #463f40 inset, 0 10px 20px #201535 inset,
+                  0 -20px 40px #130d38 inset;
+      content: "";
+      filter: drop-shadow(0 0 10px Thistle);
+      width: 100%;
+      height: 100%;
+      content: '';
+      z-index: -1;
+      position: absolute;
+    }
+
+    @keyframes anim {
+      0%,
+      100% {
+        border-radius: 30% 70% 70% 30% / 30% 52% 48% 40%;
+
+      }
+
+      10% {
+        border-radius: 50% 50% 20% 50% / 25% 80% 20% 45%;
+      }
+
+      20% {
+        border-radius: 67% 33% 47% 53% / 37% 20% 80% 63%;
+      }
+
+      30% {
+        border-radius: 39% 61% 47% 53% / 37% 40% 60% 63%;
+
+      }
+
+      40% {
+        border-radius: 39% 61% 82% 18% / 74% 40% 60% 26%;
+      }
+
+      50% {
+        border-radius: 100%;
+
+      }
+
+      60% {
+        border-radius: 50% 50% 53% 47% / 72% 69% 31% 28%;
+      }
+
+      70% {
+        border-radius: 50% 50% 53% 47% / 26% 22% 78% 74%;
+
+      }
+
+      80% {
+        border-radius: 50% 50% 53% 47% / 26% 69% 31% 74%;
+      }
+
+      90% {
+        border-radius: 20% 80% 20% 80% / 20% 80% 20% 80%;
+      }
+    }
+
+
+    input {
+    	background: transparent;
+    	border: 1px solid #eee;
+    	outline: none;
+    	padding: 10px 15px;
+    	border-radius: 10px;
+    	color: #fff;
+    	text-align: center;
+    }
+    label {
+    	margin: 0 10px;
+    	color: #eee;
+    	user-select: none;
+    }
+
+    #continue_btn {
+    	padding: 10px 15px;
+    	background: #0d47a1;
+    	border-radius: 10px;
+    	user-select: none;
+    	color: #fff;
+    	cursor: pointer;
+    	text-align: center;
+    	border: 1px solid #1a237e;
+    	margin: 10px 0;
+    	transition: all .3s ease;
+    }
+
+    #continue_btn:hover {
+    	background-color: #1a237e;
+    }
+
+    #continue_btn:active {
+    	background-color: #311b92;
+    }
+
+    #continue_btn.error {
+    	background-color: #c62828;
+    	transition: all .3s ease;
+    }
+
+    #block_api_hash, #block_phone, #block_2fa {
+    	display: none;
+    }
+
+  </style>
 {% endblock %}
 
 {% block content %}
-	<div class="mdl-card__title">
-		<h3 class="mdl-card__title-text">Welcome to the Friendly-Telegram web interface</h3>
-	</div>
-	<div class="mdl-card__supporting-text">
-		Here you can configure various features of Friendly-Telegram, as well as access debugging tools and status
-		reports
-		<br>
-		You are currently in initial configuration mode.
-	</div>
 {% endblock %}
 
 {% block after %}
-	{% if not default_app %}
-		<br>
-		<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-			<div class="mdl-card__title">
-				<h3 class="mdl-card__title-text">Telegram API</h3>
-			</div>
-			<div class="mdl-card__supporting-text">
-				{% if api_done %}
-					Your Telegram API configuration is already completed. Please proceed to the next step.
-				{% endif %}
-				In this section you must enter the API Hash and ID from <a href="https://my.telegram.org">the Telegram
-				website</a>
-				<form onsubmit="return false;">
-					<div class="mdl-textfield mdl-js-textfield">
-						<input class="mdl-textfield__input" type="number" pattern="[0-9]+" id="api_id" onchange="setApi();">
-						<label class="mdl-textfield__label" for="api_id">API ID</label>
-						<span class="mdl-textfield__error">Input is not a number!</span>
-					</div>
-					<br>
-					<div class="mdl-textfield mdl-js-textfield">
-						<input class="mdl-textfield__input" type="text" pattern="[0-9a-f]{32}" id="api_hash"
-						       onchange="setApi();">
-						<label class="mdl-textfield__label" for="api_hash">API hash</label>
-						<span class="mdl-textfield__error">Input is not a valid hash!</span>
-					</div>
-				</form>
-			</div>
-		</div>
-	{% endif %}
+<div class="wrapper">
+  <div class="title">GeekTG</div>
+  <div class="description">Ultimate userbot.<br>Best userbot ever.</div>
+  <div class="center">
+  	<div class="border">
+  		<span id="block_api_id">
+        <label class="api_id" for="api_id">API ID: </label>
+    		<input class="api_id" id="api_id" placeholder="2020" style="width: 4em;">
+      </span>
+      <span id="block_api_hash">
+    		<label class="api_hash" for="api_hash">API HASH: </label>
+    		<input class="api_hash" id="api_hash" placeholder="w7i07l02i6hymgg03ncq6esmr3t4c9kl" style="width: 24em;">
+      </span>
+      <span id="block_phone">
+        <label class="phone" for="phone">Phone: </label>
+        <input class="phone" id="phone" placeholder="+79999999999" style="width: 12em;">
+      </span>
+      <span id="block_2fa">
+        <label class="_2fa" for="_2fa">2FA Password: </label>
+        <input class="_2fa" id="_2fa" placeholder="passw0rd" style="width: 12em;" type="password">
+      </span>
+  		<br>
+  		<div id="continue_btn" current-step="api_id">Continue</div>
+  	</div>
+  </div>
+  <div class="darken"></div>
+  <div id="root">
 
-	<br>
-	<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-		<div class="mdl-card__title">
-			<h3 class="mdl-card__title-text">Telegram Authentication</h3>
-		</div>
-		<div class="mdl-card__supporting-text">
-			{% if tg_done %}
-				Your Telegram Authentication is already completed. Please login.
-			{% endif %}
-			In this section you must enter the One-Time-Password you will receive from the Telegram Service account.
-			Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
-			<br><br>
-			<form onsubmit="return false;">
-				<div class="mdl-textfield mdl-js-textfield">
-					<input class="mdl-textfield__input" type="phone" pattern="^([0-9\(\)\/\+ \-]*)$" id="phone">
-					<label class="mdl-textfield__label" for="phone">Phone</label>
-					<span class="mdl-textfield__error" id="phoneerror">Phone number can't possibly be correct</span>
-				</div>
-				<br><br>
-				<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
-				        onclick="sendCode(document.getElementById('phone'));">
-					Send Code
-				</button>
-			</form>
-		</div>
-	</div>
+  </div>
+</div>
+<script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.1.0/anime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="text/javascript">
+	function isInt(value) {
+		var x = parseFloat(value);
+		return !isNaN(value) && (x | 0) === x;
+	}
 
-	<br>
-	<div class="mdl-card mdl-shadow--2dp padded" style="{{"width:100%; display: none;" if hosting else "width:100%;"}}">
-		<div class="mdl-card__title">
-			<h3 class="mdl-card__title-text">Heroku</h3>
-		</div>
-		<div class="mdl-card__supporting-text">
-			In this section you can choose to enter the Heroku API Token from <a
-				href="https://dashboard.heroku.com/account">the Heroku dashboard</a>
-			Please be careful that this connection is made over HTTPS to prevent eavesdropping or hijacking.
-			{% if heroku_token %}
-				This token has already been configured, and only needs to be changed if you changed your Heroku account
-				password.
-				Click Continue to save all settings to Heroku.
-			{% endif %}
-			<br>
-			If you do not want to deploy to Heroku, please ignore this step.
-			<br><br>
-			<form onsubmit="return false;">
-				<div class="mdl-textfield mdl-js-textfield">
-					<input class="mdl-textfield__input" type="password"
-					       pattern="[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}" id="heroku"
-					       value="{{ heroku_token or "" }}">
-					<label class="mdl-textfield__label" for="heroku">Heroku API Token</label>
-					<span class="mdl-textfield__error" id="herokuerror">Invalid API Token</span>
-				</div>
-				<br>
-			</form>
-		</div>
-	</div>
+  function isValidPhone(p) {
+    var phoneRe = /^[+]\d{11,}$/;
+    return phoneRe.test(p);
+  }
 
-	<br>
-	<div class="mdl-card mdl-shadow--2dp padded" style="width:100%;">
-		<div class="mdl-card__title">
-			<h3 class="mdl-card__title-text">Save Changes</h3>
-		</div>
-		<div class="mdl-card__supporting-text">
-			<form onsubmit="return false;">
-				<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect"
-				        onclick="finishLogin();">
-					Continue
-				</button>
-				<br><br>
-				<div id="heroku_progress" style="display: none;">
-					<div class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
-				</div>
-			</form>
-		</div>
-	</div>
+	var _api_id = "", _api_hash = "", _phone = "", _2fa_pass = "", _tg_pass = "";
+
+	const cnt_btn = document.querySelector('#continue_btn');
+	cnt_btn.onclick = (e) => {
+		if(cnt_btn.disabled) return;
+
+		let step = cnt_btn.getAttribute('current-step');
+		if(step == "api_id") {
+			let api_id = document.querySelector('#api_id').value;
+			if(api_id.length != 4 || !isInt(api_id)) {
+				cnt_btn.classList.add('error');
+				cnt_btn.disabled = true;
+				setTimeout(() => {
+					cnt_btn.disabled = false;
+					cnt_btn.classList.remove('error');
+				}, 1000);
+				return;
+			}
+
+			_api_id = parseInt(api_id);
+			cnt_btn.setAttribute('current-step', 'api_hash');
+			document.querySelector('#block_api_id').style.display = "none";
+			document.querySelector('#block_api_hash').style.display = "inline-block";
+		} else if (step == "api_hash") {
+      let api_hash = document.querySelector('#api_hash').value;
+      if(api_hash.length != 32) {
+        cnt_btn.classList.add('error');
+        cnt_btn.disabled = true;
+        setTimeout(() => {
+          cnt_btn.disabled = false;
+          cnt_btn.classList.remove('error');
+        }, 1000);
+        return;
+      }
+
+      _api_hash = api_hash;
+      fetch("/setApi", {
+        method: "PUT",
+        body: _api_hash + _api_id,
+        credentials: "include"
+      })
+      .then(function (response) {
+        if (!response.ok) {
+          Swal.fire({
+            'icon': 'error', 
+            'title': 'Error occured while saving credentials'
+          });
+        } else {
+          cnt_btn.setAttribute('current-step', 'phone');
+          document.querySelector('#block_api_hash').style.display = "none";
+          document.querySelector('#block_phone').style.display = "inline-block";
+        }
+      })
+      .catch(function (response) {
+        Swal.fire({
+          'icon': 'error', 
+          'title': 'Error occured while saving credentials'
+        });
+      });
+    } else if (step == "phone" || step == "2fa") {
+      if(step == "phone") {
+        let phone = document.querySelector('#phone').value;
+        if(!isValidPhone(phone)) {
+          cnt_btn.classList.add('error');
+          cnt_btn.disabled = true;
+          setTimeout(() => {
+            cnt_btn.disabled = false;
+            cnt_btn.classList.remove('error');
+          }, 1000);
+          return;
+        }
+
+        _phone = phone;
+        fetch("/sendTgCode", {method: "POST", body: _phone, credentials: "include"})
+        .then(function (response) {
+          if (!response.ok) {
+            Swal.fire({
+              'icon': 'error', 
+              'title': 'Code send failed'
+            });
+          } else {
+            Swal.fire({
+              title: 'Enter received code',
+              input: 'text',
+              inputAttributes: {
+                autocapitalize: 'off'
+              },
+              showCancelButton: false,
+              confirmButtonText: 'Confirm',
+              showLoaderOnConfirm: true,
+              preConfirm: (login) => {
+                _tg_pass = login
+                return fetch("/tgCode", {method: "POST", body: _tg_pass + "\n" + _phone + "\n" + _2fa_pass})
+                  .then(function(response) {
+                    if (!response.ok) {
+                      console.log(response);
+                      if (response.status == 403) {
+                        Swal.showValidationMessage('Code is incorrect!');
+                      } else if (response.status == 401) {
+                        cnt_btn.setAttribute('current-step', '2fa');
+                        document.querySelector('#block_phone').style.display = "none";
+                        document.querySelector('#block_2fa').style.display = "inline-block";
+                      } else if (response.status == 404) {
+                        // Code expired, must re-send code request. Close dialog and wait for user action.
+                        Swal.showValidationMessage('Code is expired!');
+                      } else {
+                        Swal.showValidationMessage('Internal server error');
+                      }
+                    } else {
+                      Swal.fire({
+                        title: 'Enter Heroku token',
+                        text: 'Leave empty to NOT install to Heroku',
+                        input: 'text',
+                        inputAttributes: {
+                          autocapitalize: 'off'
+                        },
+                        showCancelButton: false,
+                        confirmButtonText: 'Confirm',
+                        showLoaderOnConfirm: true,
+                        preConfirm: (heroku_token) => {
+                          return fetch("/finishLogin", {method: "POST", body: heroku_token, credentials: "include"})
+                                .then(function (response) {
+                                  if (!response.ok) {
+                                    Swal.fire({
+                                      'icon': 'error',
+                                      'text': 'Login confirmation error'
+                                    })
+                                  } else {
+                                    Swal.fire({
+                                      'icon': 'success',
+                                      'text': 'Auth successful!',
+                                      'timer': 1000
+                                    })
+                                  }
+                                })
+                                .catch(function (response) {
+                                  Swal.fire({
+                                    'icon': 'error',
+                                    'text': 'Login confirmation error'
+                                  })
+                                });
+                        },
+                        allowOutsideClick: () => !Swal.isLoading()
+                      })
+                    }
+                  })
+                  .catch(error => {
+                    Swal.showValidationMessage(
+                      'Auth failed: ' + error.toString()
+                    )
+                  })
+              },
+              allowOutsideClick: () => !Swal.isLoading()
+            })
+          }
+        })
+        .catch(function (error) {
+          Swal.fire({
+            'icon': 'error', 
+            'title': 'Code send failed'
+          });
+        });
+      } else {
+        let _2fa = document.querySelector('#_2fa').value;
+        _2fa_pass = _2fa;
+        fetch("/tgCode", {method: "POST", body: _tg_pass + "\n" + _phone + "\n" + _2fa_pass})
+        .then(function(response) {
+          if (!response.ok) {
+            console.log(response);
+            if (response.status == 403) {
+              Swal.showValidationMessage('Code is incorrect!');
+            } else if (response.status == 401) {
+              cnt_btn.setAttribute('current-step', '2fa');
+              document.querySelector('#block_phone').style.display = "none";
+              document.querySelector('#block_2fa').style.display = "inline-block";
+            } else if (response.status == 404) {
+              // Code expired, must re-send code request. Close dialog and wait for user action.
+              Swal.showValidationMessage('Code is expired!');
+            } else {
+              Swal.showValidationMessage('Internal server error');
+            }
+          } else {
+            Swal.fire({
+              title: 'Enter Heroku token',
+              text: 'Leave empty to NOT install to Heroku',
+              input: 'text',
+              inputAttributes: {
+                autocapitalize: 'off'
+              },
+              showCancelButton: false,
+              confirmButtonText: 'Confirm',
+              showLoaderOnConfirm: true,
+              preConfirm: (heroku_token) => {
+                return fetch("/finishLogin", {method: "POST", body: heroku_token, credentials: "include"})
+                      .then(function (response) {
+                        if (!response.ok) {
+                          Swal.fire({
+                            'icon': 'error',
+                            'text': 'Login confirmation error'
+                          })
+                        } else {
+                          Swal.fire({
+                            'icon': 'success',
+                            'text': 'Auth successful!',
+                            'timer': 1000
+                          })
+                        }
+                      })
+                      .catch(function (response) {
+                        Swal.fire({
+                          'icon': 'error',
+                          'text': 'Login confirmation error'
+                        })
+                      });
+              },
+              allowOutsideClick: () => !Swal.isLoading()
+            })
+          }
+        })
+        .catch(error => {
+          Swal.showValidationMessage(
+            'Auth failed: ' + error.toString()
+          )
+        })
+      }
+    }
+	}
+</script>
+<script type="text/javascript">
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        }
+      );
+    } else {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  class StarrySky extends React.Component {
+    constructor(...args) {
+      super(...args);
+
+      _defineProperty(this, "state",
+        {
+          num: 60,
+          vw: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
+          vh: Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
+        }
+      );
+
+      _defineProperty(this, "starryNight",
+        () => {
+          anime(
+            {
+              targets: ["#sky .star"],
+              opacity: [
+              {
+                duration: 700,
+                value: "0" },
+
+              {
+                duration: 700,
+                value: "1" }],
 
 
-	<dialog class="mdl-dialog" id="codeentry">
-		<h4 class="mdl-dialog__title">Enter Code</h4>
-		<div class="mdl-dialog__content">
-			<p>
-				Please enter the code sent to you by Telegram
-			</p>
-			<div class="mdl-textfield mdl-js-textfield">
-				<input class="mdl-textfield__input" type="password" pattern="[0-9]{5}" id="code"
-				       oninput="codeChanged();">
-				<label class="mdl-textfield__label" for="code">Code</label>
-				<span class="mdl-textfield__error" id="codeerror">Code must be 5 numerical digits</span>
-			</div>
-		</div>
-		<div class="mdl-dialog__actions">
-			<button class="mdl-button" onclick="cancelCodeInput();">Cancel</button>
-		</div>
-	</dialog>
+              easing: "linear",
+              loop: true,
+              delay: (el, i) => 50 * i
+            }
+          );
+        }
+      );
+      
+      _defineProperty(this, "shootingStars",
+        () => {
+          anime({
+            targets: ["#shootingstars .wish"],
+            easing: "linear",
+            loop: true,
+            delay: (el, i) => 1000 * i,
+            opacity: [
+              {
+                duration: 700,
+                value: "1"
+              }
+            ],
+            width: [
+              {value: "150px"},
+              {value: "0px"}
+            ],
+            translateX: 350
+          });
+
+        }
+      );
+
+      _defineProperty(this, "randomRadius",
+        () => {
+          return Math.random() * 0.7 + 0.6;
+        }
+      );
+
+      _defineProperty(this, "getRandomX",
+        () => {
+          return Math.floor(Math.random() * Math.floor(this.state.vw)).toString();
+        }
+      );
+
+      _defineProperty(this, "getRandomY",
+        () => {
+          return Math.floor(Math.random() * Math.floor(this.state.vh)).toString();
+        }
+      );
+    }
+
+    componentDidMount() {
+      this.starryNight();
+      this.shootingStars();
+    }
+
+    render() {
+      const { num } = this.state;
+      return (
+        React.createElement("div", {
+            id: "App"
+          },
+          React.createElement("svg", { id: "sky" },
+          [...Array(num)]
+            .map((x, y) =>
+              React.createElement("circle",
+                {
+                  cx: this.getRandomX(),
+                  cy: this.getRandomY(),
+                  r: this.randomRadius(),
+                  stroke: "none",
+                  strokeWidth: "0",
+                  fill: "white",
+                  key: y,
+                  className: "star"
+                }
+              )
+            )
+          ),
+          React.createElement("div", {
+              id: "shootingstars"
+            },
+            [...Array(60)]
+              .map((x, y) =>
+                React.createElement("div", {
+                    key: y,
+                    className: "wish",
+                    style: {
+                      left: `${this.getRandomY()}px`,
+                      top: `${this.getRandomX()}px`
+                    }
+                  }
+                )
+              )
+          )
+        )
+      );
+    }}
 
 
-	<dialog class="mdl-dialog" id="passwordentry">
-		<h4 class="mdl-dialog__title">Enter your Cloud Password</h4>
-		<div class="mdl-dialog__content">
-			<p>
-				Please enter your two-factor-authentication password for Telegram
-			</p>
-			<div class="mdl-textfield mdl-js-textfield">
-				<input class="mdl-textfield__input" type="password" pattern=".+" id="password">
-				<label class="mdl-textfield__label" for="password">Password</label>
-				<span class="mdl-textfield__error" id="passworderror">Password cannot be blank</span>
-			</div>
-		</div>
-		<div class="mdl-dialog__actions">
-			<button class="mdl-button" onclick="codeChanged();">Submit</button>
-			<button class="mdl-button" onclick="cancelPasswordInput();">Cancel</button>
-		</div>
-	</dialog>
+  ReactDOM.render(React.createElement(StarrySky, null), document.getElementById("root"));
 
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.0/dialog-polyfill.min.js"></script>
-	<script>
-		'use strict';
-		dialogPolyfill.registerDialog(document.getElementById("codeentry"));
-		dialogPolyfill.registerDialog(document.getElementById("passwordentry"));
-	</script>
+</script>
 {% endblock %}
+

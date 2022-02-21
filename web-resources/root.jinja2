@@ -1,562 +1,382 @@
-<!-- 
-    Friendly Telegram (telegram userbot)
-    Copyright (C) 2018-2019 The Authors
+<!--
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Copyright 2022 t.me/hikariatama
+    Licensed under the Creative Commons CC BY-NC-ND 4.0
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+    Full license text can be found at:
+    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    Modded by GeekNet team, t.me/hikariatama
+    Human-friendly one:
+    https://creativecommons.org/licenses/by-nc-nd/4.0
 -->
+
 {% extends "base.jinja2" %}
 
 {% block head %}
-<style>
-  .modules {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    column-count: 5;
-    column-gap: 10px;
-    width: 100%;
-  }
-
-  .modules li {
-    width: 100%;
-    border-radius: 5px;
-    margin: 5px 0;
-    display: inline-block;
-    border: 1px solid rgba(255, 255, 255, .1);
-    background: #141414;
-    box-sizing: border-box;
-    padding: 10px 0;
-  }
-
-  .button {
-    border-radius: 5px;
-    padding: 5px 10px;
-    border: none;
-    color: #898989;
-    width: 50%;
-    margin: 5px;
-    margin-left: 25%;
-    cursor: pointer;
-    border: 1px solid green;
-    background: transparent;
-    transition: all .1s ease;
-  }
-
-  .button:hover {
-    background: rgba(0, 255, 0, .1);
-  }
-
-  .button.red {
-    border: 1px solid red;
-  }
-
-  .button.red:hover {
-    background: rgba(255, 0, 0, .1);
-  }
-
-  .button.blue {
-    border: 1px solid blue;
-  }
-
-  .button.blue:hover {
-    background: rgba(0, 0, 255, .1);
-  }
-
-
-  .modules li h1 {
-    margin: 0;
-    font-size: 16px;
-    color: #eee;
-    text-align: center;
-  }
-
-  @media screen and (max-width: 736px) {
-    .modules {
-      column-count: 1;
+  <script src="https://cdn.jsdelivr.net/npm/scrypt-async@2.0.1/scrypt-async.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="{{ static('auth.js') }}"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Open+Sans:wght@300&display=swap');
+    .button {
+      border-radius: 5px;
+      padding: 10px 20px;
+      border: none;
+      color: #eee;
+      margin: 5px 0;
+      background: transparent;
+      border: 2px solid #aaa;
+      cursor: pointer;
+      transition: box-shadow .2s ease;
+      user-select: none;
     }
-  }
 
-  .user h1 {
-    font-size: 22px;
-    color: #eee;
-    margin: 0;
-    line-height: 40px;
-    margin-left: 10px;
-  }
 
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-  }
 
-  .user {
-    display: flex;
-    margin: 10px 0 10px 0;
-    align-items: center;
-    justify-content: center;
-  }
+    .button:hover {
+      box-shadow: inset 5px 5px 3px rgba(255, 255, 255, .1),
+                  inset -5px -5px 3px rgba(255, 255, 255, .1);
+    }
 
-  .author_nav {
-    margin: 30px 10px;
-  }
+    .signin_block {
+      display: inline-block;
+    }
 
-  .user_button {
-    padding: 15px;
-    background: rgba(100, 100, 100, .1);
-    border-radius: 10px;
-    display: flex;
-    user-select: none;
-    cursor: pointer;
-    transition: all .15s ease;
-  }
+    .signin_block ul {
+      margin: 0;
+      list-style: none;
+      padding: 0;
+    }
 
-  .user_button:hover {
-    background: rgba(100, 100, 100, .15);
-  }
+    .signin_block li {
+      width: 100%;
+    }
 
-  .user * {
-    text-decoration: none;
-  }
+    .signin_block h1 {
+      margin: 0;
+      color: #eee;
+      font-size: 22px;
+      padding: 10px;
+      font-family: "Open Sans";
+    }
 
-  hr {
-    border: 0;
-    height: 1px;
-    background: #333;
-    background-image: -webkit-linear-gradient(left, #111, #333, #111);
-    background-image: -moz-linear-gradient(left, #111, #333, #111);
-    background-image: -ms-linear-gradient(left, #111, #333, #111);
-    background-image: -o-linear-gradient(left, #111, #333, #111);
-  }
+    .hamburger, .menu {
+      display: none;
+    }
+  </style>
 
-  .installed_modules {
-    margin-bottom: 30px;
-  }
+  <style type="text/css">
+    body, html {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
 
-  .docs {
-    font-size: 13px;
-    color: #555;
-    /*margin: 5px;*/
-    padding: 5px;
-    text-align: center;
-    margin: 0;
-    line-height: 14px;
-    font-style: italic;
-    max-width: 90%;
-    margin-left: 2%;
-  }
+    body {
+      background: linear-gradient(-45deg, #007700 0%, #004400 100%);
+      transition: all 2s ease;
+    }
 
-  .button.small {
-    width: auto;
-    padding: 4px 5px 1px 5px;
-    margin: 0;
-    margin-left: 5px;
-  }
+    #sky {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
 
-  .button.small i {
-    font-size: 16px;
-  }
+    #shootingstars {
+      margin: 0;
+      padding: 0;
+      width: 150vh;
+      height: 100vw;
+      position: fixed;
+      overflow: hidden;
+      transform: translatex(calc(50vw - 50%)) translatey(calc(50vh - 50%))
+        rotate(120deg);
+    }
 
-  .configure_window {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    padding: 15px;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    box-sizing: border-box;
-    z-index: 52;
-    background: linear-gradient(145deg, #121212, #0f0f0f);
-    visibility: hidden;
-    opacity: 0;
-    transition: all .2s ease;
-  }
+    .wish {
+      height: 2px;
+      top: 300px;
+      width: 100px;
+      margin: 0;
+      opacity: 0;
+      padding: 0;
+      background-color: white;
+      position: absolute;
+      background: linear-gradient(-45deg, white, rgba(0, 0, 255, 0));
+      filter: drop-shadow(0 0 6px white);
+      overflow: hidden;
+    }
 
-  .configure_window.active {
-    visibility: visible;
-    opacity: 1;
-  }
+    .title {
+      font-size: 50px;
+      font-family: 'Josefin Sans';
+      text-align: center;
+      color: #fff;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+    }
 
-  .configure_window h1 {
-    font-size: 22px;
-    text-align: center;
-    margin: 0;
-    padding: 10px 0;
-    color: #aaa;
-  }
+    .description {
+      font-size: 24px;
+      color: #eee;
+      text-align: center;
+      width: 100%;
+      z-index: 2;
+      position: relative;
+      padding-top: 20px;
+      line-height: 1.1;
+      font-family: "Open Sans";
+    }
 
-  .configure_window table {
-    width: 100%;
-    color: #aaa;
-    margin-top: 15px;
-  }
+    .wrapper {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+    }
 
-  .configure_window tr {
-    border-bottom: 1px solid #444;
-    margin: 2px 0;
-  }
+    #root {
+      position: absolute;
+      top:  0;
+      right: 0;
+      left: 0;
+      bottom: 0;
+      margin: auto;
+    }
 
-  .configure_window td {
-    width: 25%;
-    padding: 0 5px;
-  }
+    .darken {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: rgba(0, 0, 0, .2);
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      margin: auto;
+    }
 
-  .configure_param_name {
-    font-style: bold;
-  }
+    .main_content {
+      display: none;
+    }
 
-  .configure_text {
-    border: none;
-    padding: 5px 15px;
-    border: 1px solid #444;
-    background: transparent;
-    color: #888;
-    border-radius: 10px;
-    outline: none;
-    transition: all .2s ease;
-  }
-
-  .configure_text:focus {
-    border: 1px solid rgba(100, 100, 255, .1);
-  }
-
-  .configure_text:placeholder {
-    color: #555;
-  }
-
-  .configure_window .button.save {
-    display: flex;
-    line-height: 20px;
-    height: 20px;
-    justify-content: center;
-    align-items: center;
-    padding: 15px 20px;
-    width: auto;
-    margin: 0;
-    bottom: 0;
-    margin: auto;
-    position: absolute;
-    margin-bottom: 20px;
-  }
-
-  .configure_window .button.save i {
-    font-size: 18px;
-    margin: 0 2px;
-  }
-
-  @media screen and (max-width:  736px) {
-
-  }
-
-  i {
-    user-select: none;
-  }
-</style>
+    .center {
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      position: relative;
+      z-index: 2;
+      margin-top: 20px;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
-<div class="installed_modules modules">
-  
+{% endblock %}
+
+{% block after %}
+<div class="wrapper">
+  <div class="title">GeekTG</div>
+  <div class="description">Ultimate userbot.<br>Best userbot ever.</div>
+  <div class="center">
+    <div class="button" id="restart">Restart</div>
+  </div>
+  <div class="darken"></div>
+  <div id="root">
+
+  </div>
 </div>
-
-<hr>
-
-<div class="author_nav">
-
-</div>
-<div class="modules_wrapper">
-  
-</div>
-<div class="configure_window">
-  <h1>Configuring <b id="configure_modname">Yoomoney</b></h1>
-  <table>
-    
-  </table>
-  <span style="display:flex; justify-content: center;align-items: center;"><button class="button save red"><i class="material-icons">close</i> Close</button></span>
-</div>
-<script>
-  modules = {{ modules | tojson }};
-  function scrollToSmoothly(pos, time) {
-    var currentPos = window.pageYOffset;
-    var start = null;
-    if(time == null) time = 500;
-    pos = +pos, time = +time;
-    window.requestAnimationFrame(function step(currentTime) {
-        start = !start ? currentTime : start;
-        var progress = currentTime - start;
-        if (currentPos < pos) {
-            window.scrollTo(0, ((pos - currentPos) * progress / time) + currentPos);
-        } else {
-            window.scrollTo(0, currentPos - ((currentPos - pos) * progress / time));
-        }
-        if (progress < time) {
-            window.requestAnimationFrame(step);
-        } else {
-            window.scrollTo(0, pos);
-        }
-    });
-  }
-
-  function setConfig(obj) {
-    const key = obj.dataset.key;
-    fetch("/setConfig", {method: "PUT", body: JSON.stringify({mid: window.configuring, key: key,
-      value: obj.value}), credentials: "include"})
-    .then(function(response) {
-      if (response.ok) {
-        Swal.fire({
-          'toast': true,
-          'icon': 'success',
-          'position': 'bottom-end',
-          'timer': 1500,
-          'timerProgressBar': true,
-          'title': 'Config saved successfully',
-          'showConfirmButton': false,
-          'padding': '.5rem'
-        })
-      }
-    })
-    .catch(function(response) {
-      console.log(response);
-      Swal.fire({
-          'toast': true,
-          'icon': 'error',
-          'title': 'Error saving config'
-        })
-    });
-  }
-
-  String.prototype.replaceAll = function(search, replacement) {
-      var target = this;
-      return target.split(search).join(replacement);
-  };
-
-  remove_gh = (str) => {
-    return str.replace('https://raw.githubusercontent.com/', '').replace('/raw/', '/').replace('https://github.com/', '')
-  }
-
-  camelize = (str) => {
-    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
-      return word.toUpperCase();
-    }).replace(/\s+/g, '');
-  }
-
-  var comments = {
-    'hikariatama_ftg': {
-      'photo': 'https://i.imgur.com/5awLJly.jpeg',
-      'name': 'hikari.',
-      'link': "https://me.hikariatama.ru"
-    },
-    'hikariatama_host': {
-      'photo': "https://i.imgur.com/8WNSHJJ.jpeg",
-      'name': "HikariMods Database",
-      'link': "https://me.hikariatama.ru"
-    },
-    'Fl1yd_FTG-Modules': {
-      "photo": "https://i.imgur.com/Cm4Mdsz.jpeg",
-      'name': "Fl1yd",
-      'link': "tg://resolve?domain=Fl1yd"
-    },
-    'GeekTG_FTG-Modules': {
-      "photo": "https://i.imgur.com/TmbTPn5.jpeg",
-      'name': "GeekTG",
-      'link': "tg://resolve?domain=chat_ftg"
-    },
-    'D4n13l3k00_FTG-Modules': {
-      "photo": "https://i.imgur.com/INbGgkX.jpeg",
-      'name': 'D4n13l3k00',
-      'link': 'https://D4n13l3k00.ru'
-    }
-  }
-
-  function installModule(mod, name) {
+<script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.1.0/anime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="text/javascript">
+  $("#restart").click(() => {
     Swal.fire({
-      title: 'Load module ' + name + '?',
+      title: 'Are you sure, you want to restart?',
       showCancelButton: true,
-      confirmButtonText: 'Load',
+      confirmButtonText: 'Restart',
       showLoaderOnConfirm: true,
-      preConfirm: (login) => {
-        return fetch("/dlmod", {method: "POST", body: mod})
-              .then(function(response) {
-                return response.text();
-              })
-              .catch(function(error) {
-                Swal.showValidationMessage(
-                  error
-                )
-              });
+      preConfirm: () => {
+        return fetch("/restart", {method: "POST"})
+          .then(function(response) {
+            $("body").css('background', '#007700');
+            $("body").css('background', 'rgb(3, 5, 19)');
+            $("#restart").fadeOut(100);
+            $(".description").html('Restarting...');
+            setInterval(() => {
+              fetch("/is_restart_complete", {method: "GET"})
+              .then(() => {window.location.reload();})
+            }, 1000);
+          })
+          .catch(error => {
+            Swal.showValidationMessage(
+              'Restart failed: ' + error.toString()
+            )
+          })
       },
       allowOutsideClick: () => !Swal.isLoading()
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          'icon': 'info',
-          'title': 'Installation log',
-          'html': result.value.substr(0, result.value.search('\n') > 0 ? result.value.search('\n') : result.value.length),
-          'timer': 2000
-        })
-        buildDOM();
-      }
     })
+  });
+
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        }
+      );
+    } else {
+      obj[key] = value;
+    }
+    return obj;
   }
 
-  function uninstallModule(name) {
-    Swal.fire({
-      title: 'Unload module ' + name + '?',
-      showCancelButton: true,
-      confirmButtonText: 'Unload',
-      showLoaderOnConfirm: true,
-      preConfirm: (login) => {
-        return fetch("/unloadmod", {method: "POST", body: name})
-              .then(function(response) {
-                return response.text();
-              })
-              .catch(function(error) {
-                Swal.showValidationMessage(
-                  error
-                )
-              });
-      },
-      allowOutsideClick: () => !Swal.isLoading()
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          'icon': 'info',
-          'title': 'Uninstall log',
-          'html': result.value.substr(0, result.value.search('\n') > 0 ? result.value.search('\n') : result.value.length),
-          'timer': 2000
-        })
-        buildDOM();
-      }
-    })
-  }
+  class StarrySky extends React.Component {
+    constructor(...args) {
+      super(...args);
 
-  var config = {};
+      _defineProperty(this, "state",
+        {
+          num: 60,
+          vw: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
+          vh: Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
+        }
+      );
 
-  function configure(mod) {
-    t = document.querySelector('.configure_window table');
-    document.querySelector('#configure_modname').innerHTML = mod;
-    t.innerHTML = "";
-    for(var cfg in config[mod]) {
-      t.innerHTML += '<tr> <td class="configure_param_name">' + config[mod][cfg]['param'] + '</td> <td class="configure_description">' + config[mod][cfg]['doc'] + '</td> <td class="configure_default">Default: ' + config[mod][cfg]['default'] + '</td> <td><input placeholder="Current" value="' + config[mod][cfg]['current'] + '" data-key="' + config[mod][cfg]['param'] + '" class="configure_text" type="text" autocomplete="false" onchange="setConfig(this);"></td> </tr>';
+      _defineProperty(this, "starryNight",
+        () => {
+          anime(
+            {
+              targets: ["#sky .star"],
+              opacity: [
+              {
+                duration: 700,
+                value: "0" },
+
+              {
+                duration: 700,
+                value: "1" }],
+
+
+              easing: "linear",
+              loop: true,
+              delay: (el, i) => 50 * i
+            }
+          );
+        }
+      );
+      
+      _defineProperty(this, "shootingStars",
+        () => {
+          anime({
+            targets: ["#shootingstars .wish"],
+            easing: "linear",
+            loop: true,
+            delay: (el, i) => 1000 * i,
+            opacity: [
+              {
+                duration: 700,
+                value: "1"
+              }
+            ],
+            width: [
+              {value: "150px"},
+              {value: "0px"}
+            ],
+            translateX: 350
+          });
+
+        }
+      );
+
+      _defineProperty(this, "randomRadius",
+        () => {
+          return Math.random() * 0.7 + 0.6;
+        }
+      );
+
+      _defineProperty(this, "getRandomX",
+        () => {
+          return Math.floor(Math.random() * Math.floor(this.state.vw)).toString();
+        }
+      );
+
+      _defineProperty(this, "getRandomY",
+        () => {
+          return Math.floor(Math.random() * Math.floor(this.state.vh)).toString();
+        }
+      );
     }
 
-    document.querySelector('.configure_window').classList.add('active');
+    componentDidMount() {
+      this.starryNight();
+      this.shootingStars();
+    }
 
-    window.configuring = mod;
-  }
+    render() {
+      const { num } = this.state;
+      return (
+        React.createElement("div", {
+            id: "App"
+          },
+          React.createElement("svg", { id: "sky" },
+          [...Array(num)]
+            .map((x, y) =>
+              React.createElement("circle",
+                {
+                  cx: this.getRandomX(),
+                  cy: this.getRandomY(),
+                  r: this.randomRadius(),
+                  stroke: "none",
+                  strokeWidth: "0",
+                  fill: "white",
+                  key: y,
+                  className: "star"
+                }
+              )
+            )
+          ),
+          React.createElement("div", {
+              id: "shootingstars"
+            },
+            [...Array(60)]
+              .map((x, y) =>
+                React.createElement("div", {
+                    key: y,
+                    className: "wish",
+                    style: {
+                      left: `${this.getRandomY()}px`,
+                      top: `${this.getRandomX()}px`
+                    }
+                  }
+                )
+              )
+          )
+        )
+      );
+    }}
 
-  document.querySelector('.configure_window .button.save').onclick = () => {
-    document.querySelector('.configure_window').classList.remove('active');
-  }
 
+  ReactDOM.render(React.createElement(StarrySky, null), document.getElementById("root"));
 
-
-  function buildDOM() {
-    console.log('Rebuilding DOM');
-
-    fetch("/modules", {method: "GET"})
-    .then(function(response) {
-      response.json().then((json) => {
-        installed = json;
-        var installed_links = [];
-        for (var mod in installed) {
-          m = installed[mod];
-          installed_links.push(remove_gh(m['origin']));
-        }
-
-        var current_author = "";
-        document.querySelector('.modules_wrapper').innerHTML = "";
-        document.querySelector('.author_nav').innerHTML = "";
-        document.querySelector('.installed_modules').innerHTML = "";
-        installed.forEach((mod) => {
-          name = mod['name'];
-          link = mod['origin'];
-          origin = mod['origin'].split('/')[0] + '_' + mod['origin'].split('/')[1];
-
-          let m = document.querySelectorAll('.installed_modules');
-          btn = '<button class="button red" style="margin:0;width:auto;" onclick="uninstallModule(\'' + name.replace('\'', '\\\'') + '\')">Uninstall</button>';
-
-          if(mod['config'].length > 0) {
-            btn += '<button class="button small blue" onclick="configure(\'' + name.replace('\'', '\\\'') + '\')"><i class="material-icons">tune</i></button>';
-            config[name] = mod['config'];
-          }
-
-          by = ""
-
-          if (link.includes('github')) {
-            repo = remove_gh(link).split('/')[0] + '_' + remove_gh(link).split('/')[1];
-            if(comments[repo] !== undefined) {
-              by = "<img class='avatar' style='width: 22px; height: 22px; margin: 0 5px;' src='" + comments[repo]['photo'] + "'>";
-            }
-          }
-
-          m[m.length - 1].innerHTML += '<li><span style="display: flex; align-items: center; justify-content: center;">' + by + '<h1>' + name + '</h1></span><p class="docs">' + mod['docs'] + '</p><div style="display: flex; align-items:center; justify-content:center;">' + btn + '</div></li>';
-        });
-
-        modules.forEach((mod) => {
-          name = camelize(mod['name'].substr(0, mod['name'].length - 3).replaceAll('_', ' '));
-          link = mod['link'];
-          author = mod['author'] + "_" + mod['repo'];
-          if (author != current_author) {
-            if(current_author != "")
-              document.querySelector('.modules_wrapper').innerHTML += "</ul>";
-            
-            
-
-            current_author = author;
-            author_ = comments[author];
-            document.querySelector('.modules_wrapper').innerHTML += "<hr><div class='user' id='" + author + "'><img class='avatar' src='" + author_['photo'] + "'><h1>" + author_['name'] + "</h1></div>";
-
-            document.querySelector('.modules_wrapper').innerHTML += "<ul class='modules'>";
-          }
-          let m = document.querySelectorAll('.modules_wrapper .modules');
-
-          // https://github.com/hikariatama/host/raw/master/gg.gg.py
-          // https://raw.githubusercontent.com/hikariatama/host/master/Information.py
-          var orig_name = name;
-          for (var _mod in installed) {
-            _m = installed[_mod];
-            if(_m['origin'] == link) {
-              orig_name = _m['name'];
-              break;
-            }
-          }
-
-          if(installed_links.includes(remove_gh(link))) {
-            btn = '<button class="button red" onclick="uninstallModule(\'' + orig_name + '\')">Uninstall</button></li>';
-          } else {
-            btn = '<button class="button" onclick="installModule(\'' + link + '\', \'' + orig_name + '\')">Install</button></li>'
-          }
-
-          m[m.length - 1].innerHTML += '<li><h1>' + orig_name + '</h1>' + btn;
-        });
-        document.querySelector('.modules_wrapper').innerHTML += "</ul>";
-
-        for (var author in comments) {
-          var info = comments[author];
-          document.querySelector('.author_nav').innerHTML += '<div class="user nav"><div class="user_button" onclick="scrollToSmoothly(document.querySelector(\'#' + author + '\').offsetTop - 20, 500)"><img class="avatar" src="' + info['photo'] + '"><h1>' + info['name'] + '</h1></div></div>';
-        }
-
-        console.log('DOM build finished');
-      });
-    })
-  }
-
-  buildDOM();
 </script>
 {% endblock %}
+

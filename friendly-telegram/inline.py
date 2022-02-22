@@ -102,13 +102,25 @@ async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[b
                             disable_web_page_preview=disable_web_page_preview,
                             reply_markup=self._generate_markup(form_uid))
     except aiogram.utils.exceptions.MessageNotModified:
-        await query.answer()
+        try:
+            await query.answer()
+        except aiogram.utils.exceptions.InvalidQueryID:
+            pass # Just ignore that error, bc we need to just
+            # remove preloader from user's button, if message
+            # was deleted
+
     except aiogram.utils.exceptions.RetryAfter as e:
         logger.info(f'Sleeping {e.timeout}s on aiogram FloodWait...')
         await asyncio.sleep(e.timeout)
         return await edit(text, reply_markup, force_me, always_allow, self, query, form, form_uid, inline_message_id)
     except aiogram.utils.exceptions.MessageIdInvalid:
-        await query.answer('I should have edited some message, but it is deleted :(')
+        try:
+            await query.answer('I should have edited some message, but it is deleted :(')
+        except aiogram.utils.exceptions.InvalidQueryID:
+            pass # Just ignore that error, bc we need to just
+            # remove preloader from user's button, if message
+            # was deleted
+
 
 async def delete(self: Any = None, form: Any = None, form_uid: Any = None) -> bool:
     """Params `self`, `form`, `form_uid` are for internal use only, do not try to pass them"""

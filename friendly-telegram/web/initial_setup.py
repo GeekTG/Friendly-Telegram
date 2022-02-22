@@ -20,7 +20,6 @@ import asyncio
 import collections
 import os
 import re
-import secrets
 import string
 
 import aiohttp_jinja2
@@ -39,7 +38,6 @@ class Web:
         self.hosting = kwargs.pop("hosting")
         self.default_app = kwargs.pop("default_app")
         self.proxy = kwargs.pop("proxy")
-        self.test_dc = kwargs.pop("test_dc")
         self.redirect_url = None
         super().__init__(**kwargs)
         self.app.router.add_get("/initialSetup", self.initial_setup)
@@ -52,7 +50,6 @@ class Web:
         self.clients = []
         self.clients_set = asyncio.Event()
         self.root_redirected = asyncio.Event()
-        self._pending_secret_to_uid = {}
 
     async def root(self, request):
         if self.clients_set.is_set():
@@ -66,8 +63,6 @@ class Web:
 
     @aiohttp_jinja2.template("initial_root.jinja2")
     async def initial_setup(self, request):
-        if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         return {"api_done": self.api_token is not None, "tg_done": bool(self.client_data),
                 "heroku_token": self.heroku_api_token, 'hosting': self.hosting,
                 'default_app': self.default_app}
@@ -79,8 +74,6 @@ class Web:
         return self.clients_set.wait()
 
     async def set_tg_api(self, request):
-        if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         text = await request.text()
         if len(text) < 36:
             return web.Response(status=400)
@@ -95,8 +88,6 @@ class Web:
         return web.Response()
 
     async def send_tg_code(self, request):
-        if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         text = await request.text()
         phone = telethon.utils.parse_phone(text)
         if not phone:
@@ -104,16 +95,12 @@ class Web:
         client = telethon.TelegramClient(telethon.sessions.MemorySession(), self.api_token.ID,
                                          self.api_token.HASH, connection=self.connection,
                                          proxy=self.proxy, connection_retries=None)
-        if self.test_dc:
-            client.session.set_dc(client.session.dc_id, "149.154.167.40", 80)
         await client.connect()
         await client.send_code_request(phone)
         self.sign_in_clients[phone] = client
         return web.Response()
 
     async def tg_code(self, request):
-        if self.client_data and await self.check_user(request) is None:
-            return web.Response(status=302, headers={"Location": "/"})  # They gotta sign in.
         text = await request.text()
         if len(text) < 6:
             return web.Response(status=400)
@@ -145,11 +132,9 @@ class Web:
             except telethon.errors.FloodWaitError:
                 return web.Response(status=421)
         del self.sign_in_clients[phone]
-        client.phone = "+" + user.phone
+        client.phone = f'+{user.phone}'
         self.clients.append(client)
-        secret = secrets.token_urlsafe()
-        self._pending_secret_to_uid[secret] = user.id
-        return web.Response(text=secret)
+        return web.Response()
 
     async def finish_login(self, request):
         if not self.clients:
@@ -161,6 +146,5 @@ class Web:
             self.heroku_api_token = text
         else:
             self.heroku_api_token = None
-        self._secret_to_uid.update(self._pending_secret_to_uid)
         self.clients_set.set()
         return web.Response()

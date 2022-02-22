@@ -44,7 +44,7 @@ class UniborgClient(MarkdownBotPassthrough):
             self.commands = borg._commands
             for func in self.commands.values():
                 func.__self__ = self
-            self.strings = {"name": "UniBorg" + str(self._borg.instance_id)}
+            self.strings = {"name": f'UniBorg{str(self._borg.instance_id)}'}
             self.__module__ = borg._module
             self._client = None
 
@@ -57,7 +57,10 @@ class UniborgClient(MarkdownBotPassthrough):
             self._borg.__under = client
 
     def registerfunc(self, _):
-        self._wrapper = type("UniborgShim__" + self._module, (self.__UniborgShimMod__Base,), dict())(self)
+        self._wrapper = type(
+            f'UniborgShim__{self._module}', (self.__UniborgShimMod__Base,), dict()
+        )(self)
+
         return self._wrapper
 
     def __init__(self, module_name):
@@ -74,7 +77,7 @@ class UniborgClient(MarkdownBotPassthrough):
         sys.modules[self._module].__dict__["Config"] = self._config
 
     def _ensure_unknowns(self):
-        self._commands["borgcmd" + str(self.instance_id)] = self._unknown_command()
+        self._commands[f'borgcmd{str(self.instance_id)}'] = self._unknown_command()
 
     def _unknown_command(self):
         # this way, the `self` is wrapped as a nonlocal, so __self__ can be modified
@@ -101,7 +104,9 @@ class UniborgClient(MarkdownBotPassthrough):
                 if not event.pattern:
                     self._ensure_unknowns()
                     use_unknown = True
+
                 cmd = get_cmd_name(event.pattern.__self__.pattern)
+
                 if not cmd:
                     self._ensure_unknowns()
                     use_unknown = True
@@ -110,8 +115,9 @@ class UniborgClient(MarkdownBotPassthrough):
                 def commandhandler(message, pre="."):
                     """Closure to execute command when handler activated and regex matched"""
                     logger.debug("Command triggered")
-                    match = re.match(event.pattern.__self__.pattern, pre + message.message, re.I)
-                    if match:
+                    if match := re.match(
+                        event.pattern.__self__.pattern, pre + message.message, re.I
+                    ):
                         logger.debug("and matched")
                         message.message = pre + message.message  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
@@ -122,23 +128,28 @@ class UniborgClient(MarkdownBotPassthrough):
                         sys.modules[self._module].__dict__["borg"] = MarkdownBotPassthrough(self._wrapper._client)
 
                         return func(event2)
-                    # Return a coroutine
                     else:
-                        logger.debug("but not matched cmd " + message.message
-                                     + " regex " + event.pattern.__self__.pattern)
+                        logger.debug(
+                            (
+                                (f'but not matched cmd {message.message}' + " regex ")
+                                + event.pattern.__self__.pattern
+                            )
+                        )
 
                 if use_unknown:
                     self._unknowns += [commandhandler]
                 else:
                     if commandhandler.__doc__ is None:
                         commandhandler.__doc__ = "Undocumented external command"
+
                     self._commands[cmd] = commandhandler
             elif event.incoming:
                 @wraps(func)
                 def watcherhandler(message):
                     """Closure to execute watcher when handler activated and regex matched"""
-                    match = re.match(event.pattern.__self__.pattern, message.message, re.I)
-                    if match:
+                    if match := re.match(
+                        event.pattern.__self__.pattern, message.message, re.I
+                    ):
                         logger.debug("and matched")
                         message.message = message.message  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
@@ -147,14 +158,15 @@ class UniborgClient(MarkdownBotPassthrough):
                         event2.message = MarkdownBotPassthrough(message)
 
                         return func(event2)
+
                     return asyncio.gather()
 
                 # Return a coroutine
-
                 self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
             else:
                 logger.error("event not incoming or outgoing")
                 return func
+
             return func
 
         return subreg
@@ -174,15 +186,20 @@ class UniborgUtil:
         if len(args) > 0:
             if len(args) != 1:
                 raise TypeError("Takes exactly 0 or 1 args")
+
             kwargs["pattern"] = args[0]
         else:
             kwargs.setdefault("pattern", ".*")
+
         if not (kwargs["pattern"].startswith(".") or kwargs["pattern"].startswith(r"\.")):
             kwargs["pattern"] = r"\." + kwargs["pattern"]
+
         if "incoming" not in kwargs.keys() and "outgoing" not in kwargs.keys():
             kwargs["outgoing"] = True
+
         if "allow_sudo" in kwargs.keys():
             del kwargs["allow_sudo"]
+
         return telethon.events.NewMessage(**kwargs)
 
     async def progress(self, *args, **kwargs):
@@ -192,7 +209,7 @@ class UniborgUtil:
         return False  # Meh.
 
     def humanbytes(self, size):
-        return str(size) + " bytes"  # Meh.
+        return f'{str(size)} bytes'
 
     def time_formatter(self, ms):
         return str(datetime.timedelta(milliseconds=ms))

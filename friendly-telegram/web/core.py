@@ -17,63 +17,24 @@
 #    Modded by GeekTG Team
 
 import asyncio
-import collections
 import inspect
 import os
-import time
 
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
 
-from . import initial_setup, root, auth, translate, config, settings
+from . import initial_setup, root
 
 
-def ratelimit(get_storage, secret_to_uid):
-    @web.middleware
-    async def ratelimit_middleware(request, handler):
-        storage = get_storage(handler)
-        if not hasattr(storage, "_ratelimit"):
-            storage.setdefault("ratelimit", collections.defaultdict(lambda: 0))
-            storage.setdefault("ratelimit_last", collections.defaultdict(lambda: 1))
-            storage.setdefault("last_request", collections.defaultdict(lambda: 0))
-        if storage["last_request"][request.remote] > time.time() - 30:
-            # Maybe ratelimit, was requested within 30 seconds
-            if "secret" in request.cookies:
-                if storage["ratelimit"][request.remote] > 50:
-                    return web.Response(status=429)
-                await asyncio.sleep(storage["ratelimit"][request.remote] / 10)
-                if secret_to_uid(request.cookies["secret"]) is not None:
-                    return await handler(request)  # don't ratelimit authenticated requests
-            last = storage["ratelimit_last"][request.remote]
-            storage["ratelimit_last"][request.remote] = storage["ratelimit"][request.remote]
-            storage["ratelimit"][request.remote] += last
-            if storage["ratelimit"][request.remote] > 50:
-                # If they have to wait more than 5 seconds (10 requests), kill em.
-                return web.Response(status=429)
-            await asyncio.sleep(storage["ratelimit"][request.remote] / 10)
-        else:
-            try:
-                del storage["ratelimit"][request.remote]
-                del storage["ratelimit_last"][request.remote]
-            except KeyError:
-                pass
-        storage["last_request"][request.remote] = time.time()
-        return await handler(request)
-
-    return ratelimit_middleware
-
-
-class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, settings.Web):
+class Web(initial_setup.Web, root.Web):
     def __init__(self, **kwargs):
         self.runner = None
         self.port = None
         self.running = asyncio.Event()
         self.ready = asyncio.Event()
         self.client_data = {}
-        self._ratelimit_data = collections.defaultdict(dict)
-        self.app = web.Application(middlewares=[ratelimit(lambda f: self._ratelimit_data[f],
-                                                          lambda s: self._secret_to_uid.get(s, None))])
+        self.app = web.Application()
         aiohttp_jinja2.setup(self.app, filters={"getdoc": inspect.getdoc, "ascii": ascii},
                              loader=jinja2.FileSystemLoader("web-resources"))
         self.app["static_root_url"] = "/static"
@@ -105,5 +66,4 @@ class Web(initial_setup.Web, root.Web, auth.Web, translate.Web, config.Web, sett
         self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
 
     async def favicon(self, request):
-        # TODO: make function static and remove request
         return web.Response(status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"})

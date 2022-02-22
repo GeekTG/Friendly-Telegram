@@ -1,29 +1,24 @@
 """
-    Copyright 2021 t.me/innocoffee
-    Licensed under the Apache License, Version 2.0
-    
-    Author is not responsible for any consequencies caused by using this
-    software or any of its parts. If you have any questions or wishes, feel
-    free to contact Dan by sending pm to @innocoffee_alt.
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
+
+    Copyright 2022 t.me/hikariatama
+    Licensed under the GNU GPLv3
 """
 
-#<3 title: Stats
-#<3 pic: https://img.icons8.com/fluency/48/000000/voice-id.png
-#<3 desc: Статистика выполнения модулей
-
-from .. import loader, utils, main
+from .. import loader, utils
 import logging
 import time
+from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
 
 
 @loader.tds
 class StatsMod(loader.Module):
-    """Stats for modules usage for GeekTG only (won't work on classic FTG)"""
+    """Stats for modules usage"""
     strings = {
-        "name": "Stats", 
-        "update_required": "🚫 Please, make sure you have GeekTG correctly installed and it's latest version.",
+        "name": "Stats",
         "stats": "📊 <b><u>Stats for last {}</u>:\n{}</b>"
     }
 
@@ -31,13 +26,10 @@ class StatsMod(loader.Module):
         self.db = db
         self.client = client
 
-    async def statscmd(self, message):
+    async def statscmd(self, message: Message) -> None:
         """[hour | day | week | month] - Get stats for chosen period"""
         args = utils.get_args_raw(message)
-        try:
-            stats = loader.dispatcher.stats
-        except AttributeError:
-            return await utils.answer(message, self.strings('update_required'))
+        stats = loader.dispatcher.stats
 
         args = args if args in ['hour', 'day', 'week', 'month'] else 'hour'
         offset = {
@@ -50,9 +42,13 @@ class StatsMod(loader.Module):
         res = ""
         for mod, stat in stats.items():
             count = len([_ for _ in stat if round(time.time()) - _ <= offset])
-            if not count: continue
+            if not count:
+                continue
+            if all(
+                module.strings('name') != mod for module in self.allmodules.modules
+            ):
+                continue
+
             res += f"   🔹 {mod}: {count} call(-s)\n"
 
-        return await utils.answer(message, self.strings('stats').format(args, res))
-
-
+        await utils.answer(message, self.strings('stats').format(args, res))

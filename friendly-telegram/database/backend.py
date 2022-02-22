@@ -76,9 +76,10 @@ class CloudBackend:
     async def do_download(self, force_from_data_channel=False):
         """Attempt to download the database.
         Return the database (as unparsed JSON) or None"""
-        if main.get_db_type() and not force_from_data_channel:
+        if main.get_config_key('use_file_db') and not force_from_data_channel:
             try:
-                data = json.dumps(json.loads(open(self._db_path, 'r', encoding="utf-8").read()))
+                with open(self._db_path, 'r', encoding="utf-8") as f:
+                    data = json.dumps(json.loads(f.read()))
             except Exception:
                 data = await self.do_download(force_from_data_channel=True)
                 await self.do_upload(data)
@@ -112,9 +113,10 @@ class CloudBackend:
         """Attempt to upload the database.
         Return True or throw"""
 
-        if main.get_db_type():
+        if main.get_config_key('use_file_db'):
             try:
-                open(self._db_path, 'w', encoding='utf-8').write(data)
+                with open(self._db_path, 'w', encoding='utf-8') as f:
+                    f.write(data or "{}")
             except:
                 logger.exception("Database save failed!")
                 raise

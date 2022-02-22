@@ -1,18 +1,14 @@
 """
-    Copyright 2021 t.me/innocoffee
-    Licensed under the Apache License, Version 2.0
-    
-    Author is not responsible for any consequencies caused by using this
-    software or any of its parts. If you have any questions or wishes, feel
-    free to contact Dan by sending pm to @innocoffee_alt.
-"""
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-#<3 title: AdvancedSettings
-#<3 pic: https://img.icons8.com/fluency/48/000000/voice-id.png
-#<3 desc: Расширенные настройки для GeekTG форка FTG.
+    Copyright 2022 t.me/hikariatama
+    Licensed under the GNU GPLv3
+"""
 
 from .. import loader, utils, main
 import logging
+from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
 
@@ -31,20 +27,23 @@ class AdvancedSettingsMod(loader.Module):
     }
 
     def get_watchers(self):
-        return [str(_.__self__.__class__.strings['name']) for _ in self.allmodules.watchers if _.__self__.__class__.strings is not None], self.db.get(main.__name__, 'disabled_watchers', {})
+        return [
+            str(_.__self__.__class__.strings['name'])
+            for _ in self.allmodules.watchers
+            if _.__self__.__class__.strings is not None
+        ], self.db.get(main.__name__, 'disabled_watchers', {})
 
     async def client_ready(self, client, db):
         self.db = db
 
-    async def watcherscmd(self, message):
+    async def watcherscmd(self, message: Message) -> None:
         """List current watchers"""
         watchers, disabled_watchers = self.get_watchers()
         watchers = [f'♻️ {_}' for _ in watchers if _ not in list(disabled_watchers.keys())]
         watchers += [f'💢 {k} {v}' for k, v in disabled_watchers.items()]
         await utils.answer(message, self.strings('watchers').format('\n'.join(watchers)))
 
-
-    async def watcherblcmd(self, message):
+    async def watcherblcmd(self, message: Message) -> None:
         """<module> - Toggle watcher in current chat"""
         args = utils.get_args_raw(message)
         if not args:
@@ -57,7 +56,8 @@ class AdvancedSettingsMod(loader.Module):
 
         args = [_ for _ in watchers if _.lower() == args.lower()][0]
 
-        current_bl = [v for k, v in disabled_watchers.items() if k.lower() == args.lower()]
+        current_bl = [v for k, v in disabled_watchers.items()
+                      if k.lower() == args.lower()]
         current_bl = current_bl[0] if current_bl else []
 
         chat = utils.get_chat_id(message)
@@ -83,7 +83,7 @@ class AdvancedSettingsMod(loader.Module):
 
         self.db.set(main.__name__, 'disabled_watchers', disabled_watchers)
 
-    async def watchercmd(self, message):
+    async def watchercmd(self, message: Message) -> None:
         """<module> - Toggle global watcher rules
 Args:
 [-c - only in chats]
@@ -112,8 +112,10 @@ Args:
             args = args.replace('-i', '').replace('  ', ' ').strip()
             incoming = True
 
-        if chats and pm: pm = False
-        if out and incoming: incoming = False
+        if chats and pm:
+            pm = False
+        if out and incoming:
+            incoming = False
 
         watchers, disabled_watchers = self.get_watchers()
 
@@ -124,27 +126,22 @@ Args:
 
         if chats or pm or out or incoming:
             disabled_watchers[args] = [
-                *(['only_chats'] if chats else []), 
-                *(['only_pm'] if pm else []), 
-                *(['out'] if out else []), 
-                *(['in'] if incoming else []), 
+                *(['only_chats'] if chats else []),
+                *(['only_pm'] if pm else []),
+                *(['out'] if out else []),
+                *(['in'] if incoming else []),
             ]
             self.db.set(main.__name__, 'disabled_watchers', disabled_watchers)
             await utils.answer(message, self.strings('enabled').format(args) + f' (<code>{disabled_watchers[args]}</code>)')
             return
 
-
-        if args in disabled_watchers:
-            if '*' in disabled_watchers[args]:
-                await utils.answer(message, self.strings('enabled').format(args))
-                del disabled_watchers[args]
-                self.db.set(main.__name__, 'disabled_watchers', disabled_watchers)
-                return
-            else:
-                disabled_watchers[args] = ['*']
+        if args in disabled_watchers and '*' in disabled_watchers[args]:
+            await utils.answer(message, self.strings('enabled').format(args))
+            del disabled_watchers[args]
+            self.db.set(main.__name__, 'disabled_watchers',
+                        disabled_watchers)
+            return
         else:
             disabled_watchers[args] = ['*']
-        
         self.db.set(main.__name__, 'disabled_watchers', disabled_watchers)
         await utils.answer(message, self.strings('disabled').format(args))
-

@@ -33,6 +33,8 @@ import json
 import functools
 import os
 
+import inspect
+
 logger = logging.getLogger(__name__)
 
 photo = io.BytesIO(requests.get('https://github.com/GeekTG/Friendly-Telegram/raw/beta/friendly-telegram/bot_avatar.png').content)
@@ -520,7 +522,46 @@ class InlineManager:
         query = inline_query.query
 
         if not query:
+            _help = ""
+            for mod in self._allmodules.modules:
+                if not hasattr(mod, 'inline_handlers') or \
+                    not isinstance(mod.inline_handlers, dict) or \
+                    not mod.inline_handlers:
+                    continue
+
+                _ihandlers = {name: func for name, func in mod.inline_handlers.items()}
+                for name, fun in _ihandlers.items():
+                    doc = utils.escape_html(
+                        '\n'.join(
+                            [
+                                line.strip() \
+                                for line in inspect.getdoc(fun)\
+                                            .splitlines() \
+                                if not line.strip()\
+                                        .startswith('@')
+                            ]
+                        )
+                    )
+
+                    _help += f"🎹 <code>@{self._bot_username} {name}</code> - {doc}\n"
+
+                await inline_query.answer([aiogram.types.inline_query_result.InlineQueryResultArticle(
+                    id=rand(20),
+                    title='Show available inline commands',
+                    description=f"You have {len(_help.splitlines())} available command(-s)",
+                    input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                        f'<b>ℹ️ Available inline commands:</b>\n\n{_help}',
+                        'HTML',
+                        disable_web_page_preview=True
+                    ),
+                    thumb_url="https://img.icons8.com/fluency/50/000000/info-squared.png",
+                    thumb_width=128,
+                    thumb_height=128
+                )], cache_time=0)
+
             return
+
+
 
         # First, dispatch all registered inline handlers
         for mod in self._allmodules.modules:

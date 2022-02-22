@@ -263,8 +263,6 @@ class Modules:
         """Register single module from importlib spec"""
         from .compat import uniborg
 
-        s = __import__('copy').deepcopy(spec)
-
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
         module.borg = uniborg.UniborgClient(module_name)
@@ -292,7 +290,9 @@ class Modules:
                     )
 
             if not os.path.isfile(path) and origin == "<string>":
-                open(path, 'w').write(spec.loader.data.decode('utf-8'))
+                with open(path, 'w') as f:
+                    f.write(spec.loader.data.decode('utf-8'))
+
                 logging.debug(f'Saved {cls_name} to file')
 
         return ret

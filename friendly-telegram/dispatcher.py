@@ -61,7 +61,8 @@ class CommandDispatcher:
         self._cached_username = me.username.lower() if me.username else str(me.id)
         self.stats_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'../stats-{me.id}.json')
         try:
-            self.stats = json.loads(open(self.stats_file, 'r').read())
+            with open(self.stats_file, 'r') as f:
+                self.stats = json.loads(f.read())
         except:
             # Don't worry if we couldn't load stats, just create
             # new
@@ -95,7 +96,7 @@ class CommandDispatcher:
 
     async def handle_command(self, event):
         """Handle all commands"""
-        if not hasattr(event, "message") or not getattr(event.message, "message"):
+        if not hasattr(event, "message") or not hasattr(event.message, "message"):
             return
 
         # Fix bug when after reacting message command gets executed
@@ -137,10 +138,11 @@ class CommandDispatcher:
         whitelist_modules = self._db.get(main.__name__, "whitelist_modules", [])
 
         if utils.get_chat_id(message) in blacklist_chats or \
-            (whitelist_chats and
-                utils.get_chat_id(message) \
-                not in whitelist_chats
-            ):
+                (
+                    whitelist_chats and
+                    utils.get_chat_id(message) \
+                    not in whitelist_chats
+                ):
             logging.debug("Message is blacklisted")
             return
 
@@ -186,14 +188,18 @@ class CommandDispatcher:
                     return
             elif tag[1].lower() != self._cached_username:
                 return
-        elif event.mentioned and event.message is not None and event.message.message is not None and '@' + self._cached_username not in event.message.message:
+        elif event.mentioned and \
+             event.message is not None and \
+             event.message.message is not None and \
+             '@' + self._cached_username not in event.message.message:
             pass
-        elif not event.is_private and not self.no_nickname: # DM
-            if not event.out and \
-                not self._db.get(main.__name__, 'no_nickname', False) and \
-                command not in self._db.get(main.__name__, 'nonickcmds', []) and \
-                initiator not in self._db.get(main.__name__, 'nonickusers', []):
-                return
+        elif not event.is_private and \
+             not self.no_nickname and \
+             not event.out and \
+             not self._db.get(main.__name__, 'no_nickname', False) and \
+             command not in self._db.get(main.__name__, 'nonickcmds', []) and \
+             initiator not in self._db.get(main.__name__, 'nonickusers', []):
+            return
 
         txt, func = self._modules.dispatch(tag[0])
 
@@ -300,11 +306,12 @@ class CommandDispatcher:
                     if module_name not in self.stats:
                         self.stats[module_name] = []
                     self.stats[module_name].append(round(time.time()))
-                    open(self.stats_file, 'w').write(
-                        json.dumps(
-                            self.stats
+                    with open(self.stats_file, 'w') as f:
+                        f.write(
+                            json.dumps(
+                                self.stats
+                            )
                         )
-                    )
             except Exception:
                 pass
 
@@ -319,7 +326,7 @@ class CommandDispatcher:
 
             try:
                 await func(message)
-            except Exception as e:
+            except Exception:
                 logging.exception("Command failed")
                 if not self._db.get(main.__name__, 'inlinelogs', True):
                     try:
@@ -355,15 +362,18 @@ class CommandDispatcher:
         for func in self._modules.watchers:
             bl = self._db.get(main.__name__, "disabled_watchers", {})
             modname = str(func.__self__.__class__.strings['name'])
-            if modname in bl and isinstance(message, types.Message):
-                if '*' in bl[modname] or \
+            if modname in bl and \
+                isinstance(message, types.Message) and \
+                (
+                    '*' in bl[modname] or \
                     utils.get_chat_id(message) in bl[modname] or \
                     'only_chats' in bl[modname] and message.is_private or \
                     'only_pm' in bl[modname] and not message.is_private or \
                     'out' in bl[modname] and not message.out or \
-                    'in' in bl[modname] and message.out:
-                    logging.debug(f'Ignored watcher of module {modname}')
-                    continue
+                    'in' in bl[modname] and message.out
+                ):
+                logging.debug(f'Ignored watcher of module {modname}')
+                continue
 
             if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
                 logging.debug("Command is blacklisted in chat")

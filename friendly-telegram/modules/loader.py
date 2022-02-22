@@ -28,7 +28,7 @@ import uuid
 from importlib.abc import SourceLoader
 from importlib.machinery import ModuleSpec
 import telethon
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 import requests
 

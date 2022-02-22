@@ -14,13 +14,11 @@
 
 from types import FunctionType
 from typing import Union, List
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 from .. import loader, utils, main, security
 import logging
 import aiogram
-import os
-import json
 from ..security import \
     OWNER, \
     SUDO, \
@@ -144,7 +142,6 @@ class GeekSecurityMod(loader.Module):
         await call.delete()
 
     def _build_markup(self, command: FunctionType) -> List[List[dict]]:
-        markup = aiogram.types.InlineKeyboardMarkup()
         perms = self._get_current_perms(command)
         buttons = [
             {
@@ -162,7 +159,6 @@ class GeekSecurityMod(loader.Module):
         }]]
 
     def _build_markup_global(self) -> List[List[dict]]:
-        markup = aiogram.types.InlineKeyboardMarkup()
         perms = self._get_current_bm()
         buttons = [
             {

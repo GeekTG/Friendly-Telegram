@@ -12,8 +12,8 @@
 
 # scope: inline_content
 
-from .. import loader, utils, main
-from telethon.tl.types import *
+from .. import loader, main
+from telethon.tl.types import Message
 import logging
 import aiogram
 import os

@@ -9,7 +9,7 @@
 from .. import loader, utils
 import logging
 import time
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
 

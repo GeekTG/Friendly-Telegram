@@ -19,7 +19,7 @@
 import os
 
 import telethon
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 from .. import loader, main, utils
 
@@ -171,7 +171,19 @@ class CoreMod(loader.Module):
         args = utils.get_args_raw(message)
 
         if not args:
-            await utils.answer(message, self.strings("no_nickname_status", message).format("'t" if not self._db.get(main.__name__, "no_nickname", False) else ""))
+            await utils.answer(
+                message,
+                self.strings("no_nickname_status", message)\
+                .format(
+                    "'t" \
+                    if not self._db.get(
+                        main.__name__,
+                        "no_nickname",
+                        False
+                    ) \
+                    else ""
+                )
+            )
             return
 
         if args not in ["on", "off"]:
@@ -208,7 +220,19 @@ class CoreMod(loader.Module):
         args = utils.get_args_raw(message)
 
         if not args:
-            await utils.answer(message, self.strings("inlinelogs_status", message).format("'t" if not self._db.get(main.__name__, "inlinelogs", False) else ""))
+            await utils.answer(
+                message,
+                self.strings("inlinelogs_status", message)\
+                .format(
+                    "'t" \
+                    if not self._db.get(
+                        main.__name__,
+                        "inlinelogs",
+                        False
+                    ) \
+                    else ""
+                )
+            )
             return
 
         if args not in ["on", "off"]:

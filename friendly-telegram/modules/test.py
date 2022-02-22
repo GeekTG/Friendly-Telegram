@@ -16,7 +16,7 @@ from io import BytesIO
 from .. import loader, utils
 
 from typing import Union
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 from telethon.errors.rpcerrorlist import ChatSendInlineForbiddenError
 

@@ -80,9 +80,14 @@ def array_sum(array: list) -> Any:
     return result
 
 
-async def edit(text: str, reply_markup: List[List[dict]] = [], force_me: Union[bool, None] = None, always_allow: Union[List[int], None] = None, self: Any = None, query: Any = None, form: Any = None, form_uid: Any = None, inline_message_id: Union[str, None] = None, disable_web_page_preview: bool = True) -> None:
+async def edit(text: str, reply_markup: List[List[dict]] = None, force_me: Union[bool, None] = None, always_allow: Union[List[int], None] = None, self: Any = None, query: Any = None, form: Any = None, form_uid: Any = None, inline_message_id: Union[str, None] = None, disable_web_page_preview: bool = True) -> None:
     """Do not edit or pass `self`, `query`, `form`, `form_uid` params, they are for internal use only"""
-    assert isinstance(text, str)
+    if reply_markup is None:
+        reply_markup = []
+
+    if not isinstance(text, str):
+        raise InlineError("Invalid type for `text`")
+
     if isinstance(reply_markup, list):
         form['buttons'] = reply_markup
     if isinstance(force_me, bool):
@@ -160,7 +165,8 @@ class InlineManager:
         )
 
         try:
-            self._forms = json.loads(open(self._forms_db_path, 'r').read())
+            with open(self._forms_db_path, 'r') as f:
+                self._forms = json.loads(f.read())
         except Exception:
             pass
 
@@ -169,8 +175,8 @@ class InlineManager:
                     self._loader.dispatcher.security._owner
 
         if not hasattr(func, '__doc__') or \
-            not func.__doc__ or \
-            allow:
+                not func.__doc__ or \
+                allow:
             return allow
 
         doc = func.__doc__
@@ -407,7 +413,8 @@ class InlineManager:
                     del self._forms[form_uid]
 
             try:
-                open(self._forms_db_path, 'w').write(json.dumps(self._forms, indent=4, ensure_ascii=False))
+                with open(self._forms_db_path, 'w') as f:
+                    f.write(json.dumps(self._forms, indent=4, ensure_ascii=False))
             except Exception:
                 # If we are on Heroku, or Termux, we can't properly save forms,
                 # but it's not critical. Just ignore it.
@@ -449,7 +456,7 @@ class InlineManager:
             if not after_break:
                 return await self._register_manager(True)
 
-            init_complete = False
+            self.init_complete = False
             return False
 
         await self._client.delete_messages(self._bot_username, m)
@@ -475,23 +482,22 @@ class InlineManager:
 
         for row in (self._forms[form_uid]['buttons'] if isinstance(form_uid, str) else form_uid):
             for button in row:
-                # logger.info(button)
                 if 'callback' in button and \
-                    not isinstance(button['callback'], str):
+                        not isinstance(button['callback'], str):
                     func = button['callback']
                     button['callback'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
 
                 if 'callback' in button and \
-                    '_callback_data' not in button:
+                        '_callback_data' not in button:
                     button['_callback_data'] = rand(30)
 
                 if 'handler' in button and \
-                    not isinstance(button['handler'], str):
+                        not isinstance(button['handler'], str):
                     func = button['handler']
                     button['handler'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
 
                 if 'input' in button and \
-                    '_switch_query' not in button:
+                        '_switch_query' not in button:
                     button['_switch_query'] = rand(10)
 
 
@@ -533,8 +539,8 @@ class InlineManager:
             _help = ""
             for mod in self._allmodules.modules:
                 if not hasattr(mod, 'inline_handlers') or \
-                    not isinstance(mod.inline_handlers, dict) or \
-                    not mod.inline_handlers:
+                        not isinstance(mod.inline_handlers, dict) or \
+                        not mod.inline_handlers:
                     continue
 
                 _ihandlers = {name: func for name, func in mod.inline_handlers.items()}
@@ -574,21 +580,21 @@ class InlineManager:
         # First, dispatch all registered inline handlers
         for mod in self._allmodules.modules:
             if not hasattr(mod, 'inline_handlers') or \
-                not isinstance(mod.inline_handlers, dict) or \
-                not mod.inline_handlers:
+                    not isinstance(mod.inline_handlers, dict) or \
+                    not mod.inline_handlers:
                 continue
             
             instance = GeekInlineQuery(inline_query)
 
             for query_text, query_func in mod.inline_handlers.items():
                 if inline_query.query.split()[0].lower() == query_text.lower() and \
-                    self._check_inline_security(query_func, inline_query.from_user.id):
+                        self._check_inline_security(query_func, inline_query.from_user.id):
                     try:
                         await query_func(instance)
                     except BaseException:
                         logger.exception('Error on running inline watcher!')
 
-        for form_uid, form in self._forms.copy().items():
+        for form in self._forms.copy().values():
             for button in array_sum(form.get('buttons', [])):
                 if '_switch_query' in button and \
                     'input' in button and \
@@ -624,16 +630,19 @@ class InlineManager:
             reply_markup=self._generate_markup(query)
         )], cache_time=60)
 
-    async def _callback_query_handler(self, query: aiogram.types.CallbackQuery, reply_markup: List[List[dict]] = []) -> None:
+    async def _callback_query_handler(self, query: aiogram.types.CallbackQuery, reply_markup: List[List[dict]] = None) -> None:
         """Callback query handler (buttons' presses)"""
+        if reply_markup is None:
+            reply_markup = []
+
         # First, dispatch all registered callback handlers
         for mod in self._allmodules.modules:
             if not hasattr(mod, 'callback_handlers') or \
-                not isinstance(mod.callback_handlers, dict) or \
-                not mod.callback_handlers:
+                    not isinstance(mod.callback_handlers, dict) or \
+                    not mod.callback_handlers:
                 continue
 
-            for query_text, query_func in mod.callback_handlers.items():
+            for query_func in mod.callback_handlers.values():
                 if self._check_inline_security(query_func, query.from_user.id):
                     try:
                         await query_func(query)
@@ -670,11 +679,11 @@ class InlineManager:
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):
                 if '_switch_query' in button and \
-                    'input' in button and \
-                    button['_switch_query'] == query.split()[0] and \
-                    chosen_inline_query.from_user.id in [self._me] + \
-                    self._loader.dispatcher.security._owner + \
-                    form['always_allow']:
+                        'input' in button and \
+                        button['_switch_query'] == query.split()[0] and \
+                        chosen_inline_query.from_user.id in [self._me] + \
+                        self._loader.dispatcher.security._owner + \
+                        form['always_allow']:
 
                     query = query.split(maxsplit=1)[1] if len(query.split()) > 1 else ''
 
@@ -691,7 +700,7 @@ class InlineManager:
                                         (call, query, *button.get('args', []), **button.get('kwargs', {}))
 
 
-    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = [], force_me: bool = True, always_allow: List[int] = [], ttl: Union[int, bool] = False) -> str:
+    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = None, force_me: bool = True, always_allow: List[int] = None, ttl: Union[int, bool] = False) -> str:
         """Creates inline form with callback
 
                 Args:
@@ -719,6 +728,12 @@ class InlineManager:
                         
 
         """
+
+        if reply_markup is None:
+            reply_markup = []
+        
+        if always_allow is None:
+            always_allow = []
 
         if not isinstance(text, str):
             raise InlineError('Invalid type for `text`')

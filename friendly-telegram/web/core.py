@@ -19,7 +19,6 @@
 import asyncio
 import inspect
 import os
-import time
 
 import aiohttp_jinja2
 import jinja2

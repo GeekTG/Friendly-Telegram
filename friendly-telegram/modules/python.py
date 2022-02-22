@@ -13,7 +13,7 @@ from .. import loader, utils
 from traceback import format_exc
 import itertools
 from types import ModuleType
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class PythonMod(loader.Module):
                 globals(),
                 **await self.getattrs(message)
             )
-        except BaseException:
+        except Exception:
             exc = format_exc().replace(phone, '📵')
             await utils.answer(message,
                                self.strings("err", message)

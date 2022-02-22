@@ -68,7 +68,9 @@ def run_config(db, data_root, phone=None, modules=None):
 def get_config_key(key, again=False):
     """Parse and return key from config"""
     try:
-        config = json.loads(open('config.json', 'r').read())
+        with open('config.json', 'r') as f:
+            config = json.loads(f.read())
+
         return config.get(key, False)
     except FileNotFoundError:
         if again:
@@ -612,19 +614,18 @@ async def amain(first, client, allclients, web, arguments):
 
     if first:
         import git
-        import os
         repo = git.Repo()
 
         build = repo.heads[0].commit.hexsha
         diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
-        upd = '\33[31mUpdate required' if diff else '\33[92mUp-to-date'
+        upd = r'\33[31mUpdate required' if diff else r'\33[92mUp-to-date'
 
         termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
         heroku = os.environ.get("DYNO", False)
 
-        platform = "\x1b[0;30;47mTermux\x1b[0m" if termux else ("\x1b[0;30;45mHeroku\x1b[0m" if heroku else "VDS")
+        platform = r"\x1b[0;30;47mTermux\x1b[0m" if termux else (r"\x1b[0;30;45mHeroku\x1b[0m" if heroku else "VDS")
 
-        logo1 = f"""
+        logo1 = fr"""
               \x1b[7;30;41m                    )  \x1b[0m
               \x1b[7;30;41m (               ( /(  \x1b[0m
               \x1b[7;30;41m )\ )   (   (    )\()) \x1b[0m

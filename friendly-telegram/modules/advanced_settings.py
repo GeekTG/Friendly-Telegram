@@ -8,7 +8,7 @@
 
 from .. import loader, utils, main
 import logging
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
 

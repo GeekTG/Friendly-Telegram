@@ -11,7 +11,7 @@ import datetime
 import io
 import json
 
-from telethon.tl.types import *
+from telethon.tl.types import Message
 
 
 @loader.tds
@@ -49,7 +49,6 @@ class BackuperMod(loader.Module):
         self.db.clear()
         self.db.update(**decoded_text)
         self.db.save()
-        # print(decoded_text)
         await utils.answer(message, self.strings('db_restored', message))
         await self.allmodules.commands['restart'](await message.respond('_'))
 
@@ -59,17 +58,18 @@ class BackuperMod(loader.Module):
             "friendly-telegram.modules.notes", "notes", []))
         txt = io.BytesIO(data.encode('utf-8'))
         txt.name = f"ftg-notes-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.notes"
-        await self.client.send_file(utils.get_chat_id(message),
-                                    txt,
-                                    caption=self.strings('notes_backup')
-                                    .format(
-                                        len(
-                                            self.db.get("friendly-telegram.modules.notes",
-                                                        "notes",
-                                                        []
-                                                        )
-                                        )
-                                    )
+        await self.client.send_file(
+            utils.get_chat_id(message),
+            txt,
+            caption=self.strings('notes_backup')
+            .format(
+                len(
+                    self.db.get("friendly-telegram.modules.notes",
+                                "notes",
+                                []
+                                )
+                )
+            )
         )
         await message.delete()
 

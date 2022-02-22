@@ -78,7 +78,8 @@ class CloudBackend:
         Return the database (as unparsed JSON) or None"""
         if main.get_config_key('use_file_db') and not force_from_data_channel:
             try:
-                data = json.dumps(json.loads(open(self._db_path, 'r', encoding="utf-8").read()))
+                with open(self._db_path, 'r', encoding="utf-8") as f:
+                    data = json.dumps(json.loads(f.read()))
             except Exception:
                 data = await self.do_download(force_from_data_channel=True)
                 await self.do_upload(data)
@@ -114,7 +115,8 @@ class CloudBackend:
 
         if main.get_config_key('use_file_db'):
             try:
-                open(self._db_path, 'w', encoding='utf-8').write(data or "{}")
+                with open(self._db_path, 'w', encoding='utf-8') as f:
+                    f.write(data or "{}")
             except:
                 logger.exception("Database save failed!")
                 raise

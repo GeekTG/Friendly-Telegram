@@ -77,7 +77,12 @@ class TDialog:
         biggest = max(len(k) for k, d in choices)
 
         for i, (k, v) in enumerate(choices, 1):
-            print(" " + str(i) + ". " + k + (" " * (biggest + 2 - len(k))) + (v.replace("\n", "...\n      ")))
+            print(
+                f' {str(i)}. {k}'
+                + " " * (biggest + 2 - len(k))
+                + (v.replace("\n", "...\n      "))
+            )
+
 
         while True:
             inp = _safe_input("Please enter your selection as a number, or 0 to cancel: ")
@@ -121,7 +126,11 @@ class TDialog:
         """Ask yes or no, default to no"""
         print(self._title)
         print()
-        return self.OK if (_safe_input(question + " (y/N): ") or "").lower() == "y" else self.NOT_OK
+        return (
+            self.OK
+            if (_safe_input(f'{question} (y/N): ') or "").lower() == "y"
+            else self.NOT_OK
+        )
 
 
 TITLE = ""

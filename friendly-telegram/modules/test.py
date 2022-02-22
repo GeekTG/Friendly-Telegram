@@ -120,7 +120,14 @@ class TestMod(loader.Module):
 
         named_lvl = lvl if lvl not in logging._levelToName else logging._levelToName[lvl]
 
-        if lvl < logging.WARNING and not (force or (isinstance(message, Message) and 'force_insecure' in message.raw_text.lower())):
+        if (
+            lvl < logging.WARNING
+            and not force
+            and (
+                not isinstance(message, Message)
+                or 'force_insecure' not in message.raw_text.lower()
+            )
+        ):
             if self.inline.init_complete:
                 try:
                     cfg = {

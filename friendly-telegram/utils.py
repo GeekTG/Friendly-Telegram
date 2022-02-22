@@ -262,9 +262,7 @@ async def answer(message, response, **kwargs):
         if isinstance(response, str):
             response = io.BytesIO(response.encode("utf-8"))
 
-        name = kwargs.pop("filename", None)
-
-        if name:
+        if name := kwargs.pop("filename", None):
             response.name = name
 
         if message.media is not None and edit:

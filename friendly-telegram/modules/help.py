@@ -67,9 +67,11 @@ class HelpMod(loader.Module):
                 utils.escape_html(name))
 
             if module.__doc__:
-                reply += "\n" + \
-                    "\n".join(
-                        "  " + t for t in utils.escape_html(inspect.getdoc(module)).split("\n"))
+                reply += "\n" + "\n".join(
+                    f'  {t}'
+                    for t in utils.escape_html(inspect.getdoc(module)).split("\n")
+                )
+
             else:
                 logger.warning("Module %s is missing docstring!", module)
 
@@ -83,13 +85,8 @@ class HelpMod(loader.Module):
                 reply += self.strings("single_cmd", message).format(name)
 
                 if fun.__doc__:
-                    reply += utils.escape_html(
-                        "\n".join(
-                            "  " + t \
-                            for t in inspect.getdoc(fun) \
-                                            .split("\n")
-                        )
-                    )
+                    reply += utils.escape_html("\n".join(f'  {t}' for t in inspect.getdoc(fun) \
+                                                            .split("\n")))
                 else:
                     reply += self.strings("undoc_cmd", message)
         else:

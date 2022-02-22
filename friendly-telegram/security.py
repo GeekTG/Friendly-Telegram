@@ -287,11 +287,14 @@ class SecurityManager:
             if f_group_admin_any or f_group_owner:
                 full_chat = await message.client(telethon.functions.messages.GetFullChatRequest(message.chat_id))
                 participants = full_chat.full_chat.participants.participants
-                participant = None
-                for possible_participant in participants:
-                    if possible_participant.user_id == message.sender_id:
-                        participant = possible_participant
-                        break
+                participant = next(
+                    (
+                        possible_participant
+                        for possible_participant in participants
+                        if possible_participant.user_id == message.sender_id
+                    ),
+                    None,
+                )
 
                 if not participant:
                     return
@@ -299,8 +302,8 @@ class SecurityManager:
                 if isinstance(participant, telethon.types.ChatParticipantCreator):
                     return True
 
-                if isinstance(participant, telethon.types.ChatParticipantAdmin) and f_group_admin_any:
-                    return True
+            if isinstance(participant, telethon.types.ChatParticipantAdmin) and f_group_admin_any:
+                return True
 
         return False
     

@@ -132,7 +132,7 @@ class Web:
             except telethon.errors.FloodWaitError:
                 return web.Response(status=421)
         del self.sign_in_clients[phone]
-        client.phone = "+" + user.phone
+        client.phone = f'+{user.phone}'
         self.clients.append(client)
         return web.Response()
 

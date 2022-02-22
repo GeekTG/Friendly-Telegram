@@ -107,7 +107,7 @@ def get_git_api(url):
         api_url += path_
 
     if branch:
-        api_url += "?ref=" + branch
+        api_url += f'?ref={branch}'
 
     return api_url
 
@@ -169,9 +169,7 @@ class LoaderMod(loader.Module):
     @loader.owner
     async def dlmodcmd(self, message):
         """Downloads and installs a module from the official module repo"""
-        args = utils.get_args(message)
-
-        if args:
+        if args := utils.get_args(message):
             args = args[0] if urllib.parse.urlparse(args[0]).netloc else args[0].lower()
 
             if await self.download_and_install(args, message):
@@ -182,12 +180,12 @@ class LoaderMod(loader.Module):
             await utils.answer(
                 message,
                 (
-                        "<b>"
-                        + self.strings("avail_header", message)
-                        + "</b>\n"
-                        + '\n'.join(
-                            "<code>" + i + "</code>" for i in sorted(text.split('\n'))
-                        )
+                    "<b>"
+                    + self.strings("avail_header", message)
+                    + "</b>\n"
+                    + '\n'.join(
+                        f'<code>{i}</code>' for i in sorted(text.split('\n'))
+                    )
                 ),
             )
 
@@ -256,9 +254,7 @@ class LoaderMod(loader.Module):
         msg = message if message.file else (await message.get_reply_message())
 
         if msg is None or msg.media is None:
-            args = utils.get_args(message)
-
-            if args:
+            if args := utils.get_args(message):
                 try:
                     path_ = args[0]
                     with open(path_, "rb") as f:

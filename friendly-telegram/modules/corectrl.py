@@ -97,7 +97,7 @@ class CoreMod(loader.Module):
             chatid = utils.get_chat_id(message)
 
         module = self.allmodules.get_classname(module)
-        return str(chatid) + "." + module if module else chatid
+        return f'{str(chatid)}.{module}' if module else chatid
 
     async def ftgvercmd(self, message: Message) -> None:
         """Get GeekTG version"""

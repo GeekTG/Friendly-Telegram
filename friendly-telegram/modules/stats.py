@@ -44,7 +44,9 @@ class StatsMod(loader.Module):
             count = len([_ for _ in stat if round(time.time()) - _ <= offset])
             if not count:
                 continue
-            if not any([module.strings('name') == mod for module in self.allmodules.modules]):
+            if all(
+                module.strings('name') != mod for module in self.allmodules.modules
+            ):
                 continue
 
             res += f"   🔹 {mod}: {count} call(-s)\n"

@@ -264,7 +264,12 @@ class CommandDispatcher:
                                 if not grep and ungrep and ungrep not in re.sub('<.*?>', '', line):
                                     res.append(line)
 
-                            cont = (("contain <b>" + grep + "</b>") if grep else "") + (" and" if grep and ungrep else "") + ((" do not contain <b>" + ungrep + "</b>") if ungrep else "")
+                            cont = (
+                                (f'contain <b>{grep}</b>' if grep else "")
+                                + (" and" if grep and ungrep else "")
+                                + ((" do not contain <b>" + ungrep + "</b>") if ungrep else "")
+                            )
+
 
                             if res:
                                 text = f'<i>💬 Lines that {cont}:</i>\n' + ('\n'.join(res))
@@ -375,12 +380,21 @@ class CommandDispatcher:
                 logging.debug(f'Ignored watcher of module {modname}')
                 continue
 
-            if str(utils.get_chat_id(message)) + "." + func.__self__.__module__ in blacklist_chats:
+            if (
+                f'{str(utils.get_chat_id(message))}.{func.__self__.__module__}'
+                in blacklist_chats
+            ):
                 logging.debug("Command is blacklisted in chat")
                 continue
 
-            if (whitelist_modules and str(utils.get_chat_id(message)) + "." +
-                    func.__self__.__module__ not in whitelist_modules):
+            if (
+                whitelist_modules
+                and (
+                    f'{str(utils.get_chat_id(message))}.'
+                    + func.__self__.__module__
+                )
+                not in whitelist_modules
+            ):
                 logging.debug("Command is not whitelisted in chat")
                 continue
 

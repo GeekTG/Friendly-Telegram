@@ -325,7 +325,7 @@ class InlineManager:
                         r = await conv.get_response()
 
                         token = r.raw_text.splitlines()[1]
-                        
+
                         await m.delete()
                         await r.delete()
 
@@ -393,17 +393,7 @@ class InlineManager:
                         return True
 
         # And we are not returned after creation
-        if create_new_if_needed:
-            # Create new bot. It's recursive, so we will return
-            # the result from this `if` branch
-            return await self._create_bot()
-        else:
-            # User reached the limit of bots, or other error occured
-            # while creating new bot, so just return `False`,
-            # in case modules/loader.py knows, that we don't have
-            # inline mode currently available. `init_complete`
-            # will be set to `False`
-            return False
+        return await self._create_bot() if create_new_if_needed else False
 
     async def _cleaner(self) -> None:
         """Cleans outdated _forms"""
@@ -543,7 +533,7 @@ class InlineManager:
                         not mod.inline_handlers:
                     continue
 
-                _ihandlers = {name: func for name, func in mod.inline_handlers.items()}
+                _ihandlers = dict(mod.inline_handlers.items())
                 for name, fun in _ihandlers.items():
                     doc = utils.escape_html(
                         '\n'.join(
@@ -583,7 +573,7 @@ class InlineManager:
                     not isinstance(mod.inline_handlers, dict) or \
                     not mod.inline_handlers:
                 continue
-            
+
             instance = GeekInlineQuery(inline_query)
 
             for query_text, query_func in mod.inline_handlers.items():

@@ -148,14 +148,11 @@ class GeekConfigMod(loader.Module):
             mod, 'config') and mod.strings('name') not in blacklist]
         kb = []
         for mod_row in chunks(to_config, 3):
-            row = []
-            for btn in mod_row:
-                row += [{
+            row = [{
                     'text': btn,
                     'callback': self.inline__configure,
                     'args': (btn,)
-                }]
-
+                } for btn in mod_row]
             kb += [row]
 
         kb += [[{

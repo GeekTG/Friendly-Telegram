@@ -135,17 +135,13 @@ Args:
             await utils.answer(message, self.strings('enabled').format(args) + f' (<code>{disabled_watchers[args]}</code>)')
             return
 
-        if args in disabled_watchers:
-            if '*' in disabled_watchers[args]:
-                await utils.answer(message, self.strings('enabled').format(args))
-                del disabled_watchers[args]
-                self.db.set(main.__name__, 'disabled_watchers',
-                            disabled_watchers)
-                return
-            else:
-                disabled_watchers[args] = ['*']
+        if args in disabled_watchers and '*' in disabled_watchers[args]:
+            await utils.answer(message, self.strings('enabled').format(args))
+            del disabled_watchers[args]
+            self.db.set(main.__name__, 'disabled_watchers',
+                        disabled_watchers)
+            return
         else:
             disabled_watchers[args] = ['*']
-
         self.db.set(main.__name__, 'disabled_watchers', disabled_watchers)
         await utils.answer(message, self.strings('disabled').format(args))

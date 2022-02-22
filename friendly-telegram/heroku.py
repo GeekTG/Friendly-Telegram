@@ -49,7 +49,7 @@ def publish(clients, key, api_token=None, create_new=True, full_match=False):
                            "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"])
 
     repo = get_repo()
-    url = app.git_url.replace("https://", "https://api:" + key + "@")
+    url = app.git_url.replace("https://", f'https://api:{key}@')
 
     if "heroku" in repo.remotes:
         remote = repo.remote("heroku")

@@ -62,8 +62,10 @@ class UpdaterMod(loader.Module):
         await self.restart_common(msg)
 
     async def prerestart_common(self, message):
-        logger.debug("Self-update. " + sys.executable +
-                     " -m " + utils.get_base_dir())
+        logger.debug(
+            (f'Self-update. {sys.executable}' + " -m ") + utils.get_base_dir()
+        )
+
         check = str(uuid.uuid4())
         await self._db.set(__name__, "selfupdatecheck", check)
         await asyncio.sleep(3)
@@ -149,9 +151,7 @@ class UpdaterMod(loader.Module):
             msgs = await utils.answer(message, self.strings("downloading", message))
             req_update = await self.download_common()
             message = (await utils.answer(msgs, self.strings("installing", message)))[0]
-            heroku_key = os.environ.get("heroku_api_token")
-
-            if heroku_key:
+            if heroku_key := os.environ.get("heroku_api_token"):
                 from .. import heroku
                 await self.prerestart_common(message)
                 heroku.publish(self.allclients, heroku_key)
@@ -159,7 +159,7 @@ class UpdaterMod(loader.Module):
                 # So this only happens when remote is already up to date (remote is heroku, where we are running)
                 self._db.set(__name__, "selfupdatechat", None)
                 self._db.set(__name__, "selfupdatemsg", None)
-                
+
                 await utils.answer(message, self.strings("already_updated", message))
             else:
                 if req_update:

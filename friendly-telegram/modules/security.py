@@ -90,14 +90,11 @@ class GeekSecurityMod(loader.Module):
         mask = self.db.get(
             security.__name__, "masks", {}
         ) \
-            .get(
-            cmd.__module__ + "." + cmd.__name__,
-            getattr(
+            .get(f'{cmd.__module__}.{cmd.__name__}', getattr(
                 cmd,
                 "security",
                 security.DEFAULT_PERMISSIONS
-            )
-        )
+            ))
 
         bit = security.BITMAP[group.upper()]
 
@@ -107,7 +104,7 @@ class GeekSecurityMod(loader.Module):
             mask &= ~bit
 
         masks = self.db.get(security.__name__, "masks", {})
-        masks[cmd.__module__ + "." + cmd.__name__] = mask
+        masks[f'{cmd.__module__}.{cmd.__name__}'] = mask
         self.db.set(security.__name__, "masks", masks)
 
         await call.answer('Security value set!')

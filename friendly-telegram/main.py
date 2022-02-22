@@ -81,7 +81,8 @@ def get_config_key(key, again=False):
         # to json one, we try to parse the ini one
 
         try:
-            config = open('config.ini', 'r').read()
+            with open('config.ini', 'r') as f:
+                config = f.read()
         except FileNotFoundError:
             return False
 
@@ -95,14 +96,15 @@ def get_config_key(key, again=False):
                 use_file_db = bool(int(line.split('=')[1].strip()))
 
         # Then migrate config to json file
-        open('config.json', 'w').write(
-            json.dumps(
-                {
-                    'port': port,
-                    'use_file_db': use_file_db
-                }
+        with open('config.json', 'w') as f:
+            f.write(
+                json.dumps(
+                    {
+                        'port': port,
+                        'use_file_db': use_file_db
+                    }
+                )
             )
-        )
 
         # We already saved config to file, so we should not
         # get an FileNotFoundError exception (hopefully)
@@ -123,11 +125,12 @@ def save_config_key(key, value):
     config[key] = value
 
     # And save config
-    open('config.json', 'w').write(
-        json.dumps(
-            config
+    with open('config.json', 'w') as f:
+        f.write(
+            json.dumps(
+                config
+            )
         )
-    )
 
     return True
 

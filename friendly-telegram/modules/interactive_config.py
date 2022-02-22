@@ -15,6 +15,8 @@
 from .. import loader, utils
 from telethon.tl.types import Message
 import logging
+from typing import Union, List
+import aiogram
 
 logger = logging.getLogger(__name__)
 

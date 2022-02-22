@@ -29,4 +29,4 @@ Jinja2==3.0.3
 requests==2.27.1
 
 # Inline buttons support
-aiogram==2.18
+aiogram==2.19

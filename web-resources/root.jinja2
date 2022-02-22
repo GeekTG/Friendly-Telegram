@@ -218,10 +218,12 @@
             $("body").css('background', 'rgb(3, 5, 19)');
             $("#restart").fadeOut(100);
             $(".description").html('Restarting...');
-            setInterval(() => {
-              fetch("/is_restart_complete", {method: "GET"})
-              .then(() => {window.location.reload();})
-            }, 1000);
+            setTimeout(() => {
+              setInterval(() => {
+                fetch("/is_restart_complete", {method: "GET"})
+                .then(() => {window.location.reload();})
+              }, 1000);
+            }, 3000);
           })
           .catch(error => {
             Swal.showValidationMessage(

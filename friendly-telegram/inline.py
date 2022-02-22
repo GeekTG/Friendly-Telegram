@@ -31,7 +31,7 @@ import inspect
 
 logger = logging.getLogger(__name__)
 
-photo = io.BytesIO(requests.get('https://github.com/GeekTG/Friendly-Telegram/raw/beta/friendly-telegram/bot_avatar.png').content)
+photo = io.BytesIO(requests.get('https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png').content)
 photo.name = "avatar.png"
 
 class InlineError(Exception):

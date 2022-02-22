@@ -554,19 +554,19 @@ class InlineManager:
 
                     _help += f"🎹 <code>@{self._bot_username} {name}</code> - {doc}\n"
 
-                await inline_query.answer([aiogram.types.inline_query_result.InlineQueryResultArticle(
-                    id=rand(20),
-                    title='Show available inline commands',
-                    description=f"You have {len(_help.splitlines())} available command(-s)",
-                    input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
-                        f'<b>ℹ️ Available inline commands:</b>\n\n{_help}',
-                        'HTML',
-                        disable_web_page_preview=True
-                    ),
-                    thumb_url="https://img.icons8.com/fluency/50/000000/info-squared.png",
-                    thumb_width=128,
-                    thumb_height=128
-                )], cache_time=0)
+            await inline_query.answer([aiogram.types.inline_query_result.InlineQueryResultArticle(
+                id=rand(20),
+                title='Show available inline commands',
+                description=f"You have {len(_help.splitlines())} available command(-s)",
+                input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                    f'<b>ℹ️ Available inline commands:</b>\n\n{_help}',
+                    'HTML',
+                    disable_web_page_preview=True
+                ),
+                thumb_url="https://img.icons8.com/fluency/50/000000/info-squared.png",
+                thumb_width=128,
+                thumb_height=128
+            )], cache_time=0)
 
             return
 

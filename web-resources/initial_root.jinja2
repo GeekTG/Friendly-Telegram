@@ -348,7 +348,7 @@
 		let step = cnt_btn.getAttribute('current-step');
 		if(step == "api_id") {
 			let api_id = document.querySelector('#api_id').value;
-			if(api_id.length != 4 || !isInt(api_id)) {
+			if(api_id.length < 4 || !isInt(api_id)) {
 				cnt_btn.classList.add('error');
 				cnt_btn.disabled = true;
 				setTimeout(() => {

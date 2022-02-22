@@ -3,7 +3,7 @@
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
     Copyright 2022 t.me/hikariatama
-    Licensed under the Apache License, Version 2.0
+    Licensed under the GNU GPLv3
 """
 
 # <3 title: GeekConfig [geek]

@@ -617,39 +617,42 @@ async def amain(first, client, allclients, web, arguments):
     await modules.send_ready(client, db, allclients)
 
     if first:
-        import git
-        repo = git.Repo()
+        try:
+            import git
+            repo = git.Repo()
 
-        build = repo.heads[0].commit.hexsha
-        diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
-        upd = r'\33[31mUpdate required' if diff else r'\33[92mUp-to-date'
+            build = repo.heads[0].commit.hexsha
+            diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
+            upd = r'\33[31mUpdate required' if diff else r'\33[92mUp-to-date'
 
-        termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
-        heroku = os.environ.get("DYNO", False)
+            termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
+            heroku = os.environ.get("DYNO", False)
 
-        platform = r"\x1b[0;30;47mTermux\x1b[0m" if termux else (r"\x1b[0;30;45mHeroku\x1b[0m" if heroku else "VDS")
+            platform = r"\x1b[0;30;47mTermux\x1b[0m" if termux else (r"\x1b[0;30;45mHeroku\x1b[0m" if heroku else "VDS")
 
-        logo1 = fr"""
-              \x1b[7;30;41m                    )  \x1b[0m
-              \x1b[7;30;41m (               ( /(  \x1b[0m
-              \x1b[7;30;41m )\ )   (   (    )\()) \x1b[0m
-              \x1b[7;30;41m(()/(   )\  )\ |((_)\  \x1b[0m
-              \x1b[7;30;41m /((\x1b[7;30;42m_\x1b[7;30;41m)\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m)((\x1b[7;30;42m_\x1b[7;30;41m)|\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m) \x1b[0m
-              \x1b[7;30;41m(_)\x1b[0m\x1b[7;30;42m/ __| __| __| |/ /  \x1b[0m
-              \x1b[7;30;42m  | (_ | _|| _|  ' <   \x1b[0m
-              \x1b[7;30;42m   \___|___|___|_|\_\ \x1b[0m
+            logo1 = fr"""
+                  \x1b[7;30;41m                    )  \x1b[0m
+                  \x1b[7;30;41m (               ( /(  \x1b[0m
+                  \x1b[7;30;41m )\ )   (   (    )\()) \x1b[0m
+                  \x1b[7;30;41m(()/(   )\  )\ |((_)\  \x1b[0m
+                  \x1b[7;30;41m /((\x1b[7;30;42m_\x1b[7;30;41m)\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m)((\x1b[7;30;42m_\x1b[7;30;41m)|\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m) \x1b[0m
+                  \x1b[7;30;41m(_)\x1b[0m\x1b[7;30;42m/ __| __| __| |/ /  \x1b[0m
+                  \x1b[7;30;42m  | (_ | _|| _|  ' <   \x1b[0m
+                  \x1b[7;30;42m   \___|___|___|_|\_\ \x1b[0m
 
-                 • \33[95mBuild: \33[97m{build[:7]}\x1b[0m
-                 • \33[95mVersion: \33[97m{'.'.join(list(map(str, list(__version__))))}\x1b[0m
-                 • {upd}\x1b[0m
-                 • \33[95mPlatform: \33[97m{platform}\x1b[0m
-                 - Started for {(await client.get_me(True)).user_id} -"""
+                     • \33[95mBuild: \33[97m{build[:7]}\x1b[0m
+                     • \33[95mVersion: \33[97m{'.'.join(list(map(str, list(__version__))))}\x1b[0m
+                     • {upd}\x1b[0m
+                     • \33[95mPlatform: \33[97m{platform}\x1b[0m
+                     - Started for {(await client.get_me(True)).user_id} -"""
 
-        print(logo1)
+            print(logo1)
 
-        logging.info(f"=== BUILD: {build} ===")
-        logging.info(f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ===")
-        logging.info(f"=== PLATFORM: {'Termux' if termux else ('Heroku' if heroku else 'VDS')} ===")
+            logging.info(f"=== BUILD: {build} ===")
+            logging.info(f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ===")
+            logging.info(f"=== PLATFORM: {'Termux' if termux else ('Heroku' if heroku else 'VDS')} ===")
+        except Exception:
+            pass # This part is not so necessary, so if error occures, ignore it
 
     await client.run_until_disconnected()
 

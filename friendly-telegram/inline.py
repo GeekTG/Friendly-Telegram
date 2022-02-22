@@ -16,7 +16,7 @@ import time
 import random
 import asyncio
 
-from telethon.tl.types import *
+from telethon.tl.types import Message
 import telethon
 
 from . import utils

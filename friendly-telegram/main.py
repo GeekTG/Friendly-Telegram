@@ -114,7 +114,8 @@ def get_config_key(key, again=False):
 def save_config_key(key, value):
     try:
         # Try to open our newly created json config
-        config = json.loads(open('config.json', 'r').read())
+        with open('config.json', 'r') as f:
+            config = json.loads(f.read())
     except FileNotFoundError:
         # If it doesn't exist, just default config to none
         # It won't cause problems, bc after new save

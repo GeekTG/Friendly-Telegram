@@ -153,33 +153,6 @@ def gen_port():
 
     return port
 
-def get_db_type():
-    config = configparser.ConfigParser()
-    path = "config.ini"
-    try:
-        config.read(path)
-        USE_FILE = int(config.get("Settings", "use_file_db"))
-    except NoOptionError:
-        USE_FILE = 0
-        config.set("Settings", "use_file_db", '0')
-    except NoSectionError:
-        USE_FILE = 0
-        config.add_section("Settings")
-        config.set("Settings", "use_file_db", '0')
-    
-    return USE_FILE
-
-
-def save_db_type(USE_FILE):
-    config = configparser.ConfigParser()
-    path = "config.ini"
-    try:
-        config.read(path)
-        config.set("Settings", "use_file_db", '1' if USE_FILE else '0')
-    except NoSectionError:
-        config.add_section("Settings")
-    except NoOptionError:
-        config.set("Settings", "use_file_db", str('1' if USE_FILE else '0'))
 
 def save_db_type(use_file_db):
     return save_config_key('use_file_db', use_file_db)

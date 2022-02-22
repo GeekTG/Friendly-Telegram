@@ -1,29 +1,33 @@
-##### forked from [friendly-telegram/friendly-telegram](https://gitlab.com/friendly-telegram/friendly-telegram)
-
-# Friendly Telegram Userbot
+# GeekTG Userbot
 
 A fast, easy to set up telegram userbot running Python 3 which uses fork of
 the [Telethon](https://github.com/GeekTG/Telethon) Library.
 
-Friendly Telegram, also known as FTG, is not your average Telegram userbot: it's faster, can load modules dynamically
-and is very easy to use!
-
 ## Changes
 
 - Latest Telethon lib
-- Security improvements (.session file name not contain full phone number, DeleteAccountRequest disabled, and more)
-- UX improvements (IP address in config script, random port on first launch, etc)
-- Stock modules updates (New functions, bug fixed)
-- [Modules Repo](https://github.com/GeekTG/FTG-Modules) with a great variety of modules
-- FFmpeg support for Heroku
-- Fixed bugs
-- Adaptability of modules
+- Security improvements
+- UX improvements
+- Differrent core modules
+- Native FFmpeg support for Heroku
+- Quick bug fixes (compared to official FTG with its delays =D)
+- Inline Buttons, available not only for core modules, but for every developer
+- Full backward compatibility with older version and with official FTG modules
+
+## Small, but useful
+
+- InlineLogs - traceback directly in message, caused error
+- Grep - execute command and get only wanted lines
+- NoNick - enable global nonickname feature
+- NoNickUser - NoNickname for certain users
+- NoNickCmd - Allow exectuing some command w\o username
 
 ### Requirements
 
 - Python 3.6 or above
-- API ID and Hash from [Telegram](https://my.telegram.org/apps)
-- Some basic knowledge (although you can usually mindlessly copy&paste from the docs)
+- Requirements from `requirements.txt`
+- API ID and Hash from [Telegram](https://my.telegram.org/apps) or use default ones
+- Some basic knowledge of terminal
 
 ### Documentation
 
@@ -32,6 +36,7 @@ We've made docs to help you to set up the bot. They can be found [here](https://
 ### Support
 
 We also have a dedicated Telegram support group. Got any doubts or issues while setting-up? Shoot 'em here! **Please
-read the docs first** though, to make sure your question isn't already answered!
+read the docs first** tho, to make sure your question isn't already answered!
 
 [GeekTG Support Group](https://t.me/chat_ftg "Telegram").
+[Hikari Modules Support](https://t.me/hikari_chat "Telegram").

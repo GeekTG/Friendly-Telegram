@@ -27,16 +27,11 @@ import logging
 import os
 import sys
 
-from . import utils, security
+from . import utils, security, inline
 from .translations.dynamic import Strings
 
-if __debug__:
-    from . import decorators
-
-    test = decorators.test
-else:
-    def test(*args, **kwargs):
-        return lambda func: func
+def test(*args, **kwargs):
+    return lambda func: func
 
 owner = security.owner
 sudo = security.sudo
@@ -60,6 +55,12 @@ en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
         }ASDFGHJKL:"|ZXCVBNM<>? """
 
 
+LOADED_MODULES_DIR = os.path.join(utils.get_base_dir(), 'loaded_modules')
+
+if not os.path.isdir(LOADED_MODULES_DIR):
+    os.mkdir(LOADED_MODULES_DIR, mode=0o755)
+
+
 def translatable_docstring(cls):
     """ Decorator that makes triple-quote docstrings translatable """
 
@@ -75,9 +76,12 @@ def translatable_docstring(cls):
 
     config_complete._old_ = cls.config_complete
     cls.config_complete = config_complete
+
     for command, func in get_commands(cls).items():
         cls.strings["_cmd_doc_" + command] = inspect.getdoc(func)
+
     cls.strings["_cls_doc"] = inspect.getdoc(cls)
+
     return cls
 
 
@@ -106,6 +110,7 @@ class ModuleConfig(dict):
                 defaults.append(entry)
             else:
                 docstrings.append(entry)
+
         super().__init__(zip(keys, values))
         self._docstrings = dict(zip(keys, docstrings))
         self._defaults = dict(zip(keys, defaults))
@@ -117,8 +122,9 @@ class ModuleConfig(dict):
             try:
                 ret = ret(message)
             except TypeError:  # Invalid number of params
-                logging.warning("%s using legacy doc trnsl", key)
+                logging.debug("%s using legacy doc trnsl", key)
                 ret = ret()
+
         return ret
 
     def getdef(self, key):
@@ -149,14 +155,40 @@ class Module:
 def get_commands(mod):
     """Introspect the module to get its commands"""
     # https://stackoverflow.com/a/34452/5509575
-    return {method_name[:-3]: getattr(mod, method_name) for method_name in dir(mod)
-            if callable(getattr(mod, method_name)) and method_name[-3:] == "cmd"}
+    return {
+        method_name[:-3]: getattr(mod, method_name) \
+        for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and \
+            len(method_name) > 3 and \
+            method_name[-3:] == "cmd"
+    }
+
+
+def get_inline_handlers(mod):
+    """Introspect the module to get its inline handlers"""
+    return {
+        method_name[:-15]: getattr(mod, method_name) \
+        for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and \
+            len(method_name) > 15 and \
+            method_name[-15:] == "_inline_handler"
+    }
+
+def get_callback_handlers(mod):
+    """Introspect the module to get its callback handlers"""
+    return {
+        method_name[:-17]: getattr(mod, method_name) \
+        for method_name in dir(mod)
+            if callable(getattr(mod, method_name)) and \
+            len(method_name) > 17 and \
+            method_name[-17:] == "_callback_handler"
+    }
 
 
 class Modules:
     """Stores all registered modules"""
 
-    def __init__(self):
+    def __init__(self, use_inline=True):
         self.commands = {}
         self.aliases = {}
         self.modules = []
@@ -166,6 +198,8 @@ class Modules:
         self.client = None
         self._initial_registration = True
         self.added_modules = None
+        self.use_inline = use_inline
+        self._fs = 'DYNO' not in os.environ
 
     def register_all(self, babelfish, mods=None):
         # TODO: remove babelfish
@@ -173,16 +207,54 @@ class Modules:
         if self._compat_layer is None:
             from . import compat  # Avoid circular import
             self._compat_layer = compat.activate([])
+
         if not mods:
-            mods = filter(lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
-                          os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)))
+            mods = [
+                os.path.join(
+                    utils.get_base_dir(),
+                    MODULES_NAME,
+                    mod
+                ) \
+                for mod in
+                filter(
+                    lambda x: (
+                        len(x) > 3 and \
+                        x[-3:] == ".py" and \
+                        x[0] != "_"
+                    ),
+                    os.listdir(
+                        os.path.join(
+                            utils.get_base_dir(),
+                            MODULES_NAME
+                        )
+                    )
+                )
+            ]
+
+            if self._fs:
+                mods += [
+                    os.path.join(
+                        LOADED_MODULES_DIR,
+                        mod
+                    ) \
+                    for mod in
+                    filter(
+                        lambda x: (
+                            len(x) > 3 and \
+                            x[-3:] == ".py" and \
+                            x[0] != "_"
+                        ),
+                        os.listdir(LOADED_MODULES_DIR)
+                    )
+                ]
+
         logging.debug(mods)
+
         for mod in mods:
             try:
                 module_name = __package__ + "." + MODULES_NAME + "." + os.path.basename(mod)[:-3]  # FQN
                 logging.debug(module_name)
-                spec = importlib.util.spec_from_file_location(module_name,
-                                                              os.path.join(utils.get_base_dir(), MODULES_NAME, mod))
+                spec = importlib.util.spec_from_file_location(module_name, mod)
                 self.register_module(spec, module_name)
             except BaseException as e:
                 logging.exception(f"Failed to load module %s due to {e}:", mod)
@@ -190,35 +262,58 @@ class Modules:
     def register_module(self, spec, module_name, origin="<file>"):
         """Register single module from importlib spec"""
         from .compat import uniborg
+
+        s = __import__('copy').deepcopy(spec)
+
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
         module.borg = uniborg.UniborgClient(module_name)
         spec.loader.exec_module(module)
         ret = None
+
         for key, value in vars(module).items():
             if key.endswith("Mod") and issubclass(value, Module):
                 ret = value()
+
         if ret is None:
             ret = module.register(module_name)
             if not isinstance(ret, Module):
                 raise TypeError("Instance is not a Module, it is %r", ret)
+
         self.complete_registration(ret)
         ret.__origin__ = origin
+
+        cls_name = ret.__class__.__name__
+        
+        if self._fs:
+            path = os.path.join(
+                        LOADED_MODULES_DIR,
+                        f"{cls_name}.py"
+                    )
+
+            if not os.path.isfile(path) and origin == "<string>":
+                open(path, 'w').write(spec.loader.data.decode('utf-8'))
+                logging.debug(f'Saved {cls_name} to file')
+
         return ret
 
     def register_commands(self, instance):
         """Register commands from instance"""
         for command in instance.commands:
-            # Verify that command does not already exist, or, if it does, the command must be from the same class name
+            # Verify that command does not already exist, or,
+            # if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
                 if hasattr(instance.commands[command], "__self__") and \
                         hasattr(self.commands[command], "__self__") and \
                         instance.commands[command].__self__.__class__.__name__ \
                         != self.commands[command].__self__.__class__.__name__:
-                    logging.error("Duplicate command %s", command)
+                    logging.debug("Duplicate command %s", command)
+
                 logging.debug("Replacing command for %r", self.commands[command])
+
             if not instance.commands[command].__doc__:
-                logging.warning("Missing docs for %s", command)
+                logging.debug("Missing docs for %s", command)
+
             self.commands.update({command.lower(): instance.commands[command]})
 
     def register_watcher(self, instance):
@@ -284,13 +379,18 @@ class Modules:
                         mod.config[conf] = os.environ[mod.__module__ + "." + conf]
                     except KeyError:
                         mod.config[conf] = mod.config.getdef(conf)
+
         if babel is not None and not hasattr(mod, "name"):
             mod.name = mod.strings["name"]
+
         if hasattr(mod, "strings") and babel is not None:
             mod.strings = Strings(mod.__module__, mod.strings, babel)
+
         if skip_hook:
             return
+
         mod.babel = babel
+
         try:
             mod.config_complete()
         except Exception as e:
@@ -301,7 +401,22 @@ class Modules:
     async def send_ready(self, client, db, allclients):
         """Send all data to all modules"""
         self.client = client
+
+        # Register inline manager anyway, so the modules
+        # can access its `init_complete`
+        inline_manager = inline.InlineManager(client, db, self)
+
+        # Register only if it is not disabled
+        if self.use_inline:
+            await inline_manager._register_manager()
+
+        # We save it to `Modules` attribute, so not to re-init
+        # it everytime module is loaded. Then we can just
+        # re-assign it to all modules
+        self.inline = inline_manager
+
         await self._compat_layer.client_ready(client)
+
         try:
             await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
             await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
@@ -313,6 +428,7 @@ class Modules:
 
     async def send_ready_one(self, mod, client, db, allclients):
         mod.allclients = allclients
+        mod.inline = self.inline
 
         try:
             await mod.client_ready(client, db)
@@ -323,6 +439,12 @@ class Modules:
 
         if not hasattr(mod, "commands"):
             mod.commands = get_commands(mod)
+
+        if not hasattr(mod, "inline_handlers"):
+            mod.inline_handlers = get_inline_handlers(mod)
+
+        if not hasattr(mod, "callback_handlers"):
+            mod.callback_handlers = get_callback_handlers(mod)
 
         self.register_commands(mod)
         self.register_watcher(mod)
@@ -339,37 +461,63 @@ class Modules:
         """Remove module and all stuff from it"""
         worked = []
         to_remove = []
+
         for module in self.modules:
             if classname in (module.name, module.__class__.__name__):
                 worked += [module.__module__]
+
+                name = module.__class__.__name__
+                if self._fs:
+                    path = os.path.join(
+                        LOADED_MODULES_DIR,
+                        f"{name}.py"
+                    )
+
+                    if os.path.isfile(path):
+                        os.remove(path)
+                        logging.debug(f'Removed {name} file')
+
                 logging.debug("Removing module for unload %r", module)
                 self.modules.remove(module)
 
-                asyncio.ensure_future(asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5))
+                asyncio.ensure_future(
+                    asyncio.wait_for(
+                        asyncio.gather(
+                            module.on_unload()
+                        ),
+                        timeout=5
+                    )
+                )
 
                 to_remove += module.commands.values()
                 if hasattr(module, "watcher"):
                     to_remove += [module.watcher]
+
         logging.debug("to_remove: %r", to_remove)
         for watcher in self.watchers.copy():
             if watcher in to_remove:
                 logging.debug("Removing watcher for unload %r", watcher)
                 self.watchers.remove(watcher)
+
         aliases_to_remove = []
+
         for name, command in self.commands.copy().items():
             if command in to_remove:
                 logging.debug("Removing command for unload %r", command)
                 del self.commands[name]
                 aliases_to_remove.append(name)
+
         for alias, command in self.aliases.copy().items():
             if command in aliases_to_remove:
                 del self.aliases[alias]
+
         return worked
 
     def add_alias(self, alias, cmd):
         """Make an alias"""
         if cmd not in self.commands.keys():
             return False
+
         self.aliases[alias.lower().strip()] = cmd
         return True
 
@@ -379,6 +527,7 @@ class Modules:
             del self.aliases[alias.lower().strip()]
         except KeyError:
             return False
+
         return True
 
     async def log(self, type_, *, group=None, affected_uids=None, data=None):

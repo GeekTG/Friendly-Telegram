@@ -2,6 +2,7 @@
 *.pyc
 friendly-telegram/api_token.py
 friendly-telegram/FTG-Modules
+friendly-telegram/loaded_modules
 friendly-telegram*.session*
 database-*.json
 *.swp

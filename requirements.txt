@@ -19,9 +19,6 @@ meval==2.5
 # Web
 aiohttp_jinja2==1.5
 
-# Speedtest
-speedtest-cli==2.1.3
-
 # Async http client/server framework
 aiohttp
 
@@ -30,3 +27,6 @@ Jinja2==3.0.3
 
 # Python HTTP for Humans.
 requests==2.27.1
+
+# Inline buttons support
+aiogram==2.18

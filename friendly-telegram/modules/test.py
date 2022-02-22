@@ -1,114 +1,173 @@
-#    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
+"""
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+    Copyright 2022 t.me/hikariatama
+    Licensed under the GNU GPLv3
+"""
 
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
+# scope: inline_content
 
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#    Modded by GeekTG Team
+import time
 
 import logging
-import time
-from datetime import datetime
 from io import BytesIO
 
-import speedtest
-
 from .. import loader, utils
+
+from typing import Union
+from telethon.tl.types import *
+
+from telethon.errors.rpcerrorlist import ChatSendInlineForbiddenError
+
+import aiogram
 
 logger = logging.getLogger(__name__)
 
 
-@loader.test(args=None)
-async def dumptest(conv):
-    m = await conv.send_message("test")
-    await conv.send_message(".dump", reply_to=m)
-    r = await conv.get_response()
-    assert r.message.startswith("Message(") and "test" in r.message, r
-
-
-@loader.test(args=("0", "FORCE_INSECURE"))
-async def logstest(conv):
-    r = await conv.get_response()
-    assert r.message == "Loading media...", r
-    r2 = await conv.get_response()
-    assert r2.document, r2
-
-
 @loader.tds
 class TestMod(loader.Module):
-    """Self-tests"""
-    strings = {"name": "Tester",
-               "bad_loglevel": ("<b>Invalid loglevel. Please refer to </b>"
-                                "<a href='https://docs.python.org/3/library/logging.html#logging-levels'>"
-                                "the docs</a><b>.</b>"),
-               "set_loglevel": "<b>Please specify verbosity as an integer or string</b>",
-               "uploading_logs": "<b>Uploading logs...</b>",
-               "no_logs": "<b>You don't have any logs at verbosity {}.</b>",
-               "logs_filename": "ftg-logs.txt",
-               "logs_caption": "friendly-telegram logs with verbosity {}",
-               "logs_unsafe": ("<b>Warning: running this command may reveal personal or dangerous information. "
-                               "You can write</b> <code>{}</code> <b>at the end to accept the risks</b>"),
-               "logs_force": "FORCE_INSECURE",
-               "suspend_invalid_time": "<b>Invalid time to suspend</b>",
-               "suspended": "<b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
-               "running": "<b>Running speedtest...</b>",
-               "results": "<b>Speedtest Results:</b>",
-               "results_download": "<b>Download:</b> <code>{}</code> <b>MiB/s</b>",
-               "results_upload": "<b>Upload:</b> <code>{}</code> <b>MiB/s</b>",
-               "results_ping": "<b>Ping:</b> <code>{}</code> <b>ms</b>"
-               }
+    """Perform operations based on userbot self-testing"""
+    strings = {
+        "name": "Tester",
+        "set_loglevel": "🚫 <b>Please specify verbosity as an integer or string</b>",
+        "no_logs": "ℹ️ <b>You don't have any logs at verbosity {}.</b>",
+        "logs_filename": "geektg-logs.txt",
+        "logs_caption": "🗞 GeekTG logs with verbosity {}",
+        "suspend_invalid_time": "🚫 <b>Invalid time to suspend</b>",
+        "suspended": "🥶 <b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
+        "results_ping": "⏱ <b>Ping:</b> <code>{}</code> <b>ms</b>",
+        "confidential": "⚠️ <b>Log level </b><code>{}</code><b> may reveal your confidential info, be careful</b>",
+        "confidential_text": "⚠️ <b>Log level </b><code>{0}</code><b> may reveal your confidential info, be careful</b>\n<b>Type </b><code>.logs {0} force_insecure</code><b> to ignore this warning</b>",
+        "choose_loglevel": "💁‍♂️ <b>Choose log level</b>"
+    }
 
-    @loader.test(func=dumptest)
-    async def dumpcmd(self, message):
+    async def dumpcmd(self, message: Message) -> None:
         """Use in reply to get a dump of a message"""
         if not message.is_reply:
             return
-        await utils.answer(message, "<code>"
-                           + utils.escape_html((await message.get_reply_message()).stringify()) + "</code>")
 
-    @loader.test(func=logstest)
-    async def logscmd(self, message):
-        """.logs <level>
-        Dumps logs. Loglevels below WARNING may contain personal info."""
-        args = utils.get_args(message)
-        if len(args) not in [1, 2]:
-            await utils.answer(message, self.strings("set_loglevel", message))
-            return
-        try:
-            lvl = int(args[0])
-        except ValueError:
-            # It's not an int. Maybe it's a loglevel
-            lvl = getattr(logging, args[0].upper(), None)
+        await utils.answer(message, "<code>" +
+                           utils.escape_html(
+                               (await message.get_reply_message()).stringify())
+                           + "</code>")
+
+    async def cancel(self, call: aiogram.types.CallbackQuery) -> None:
+        await call.delete()
+
+    async def logscmd(self, message: Union[Message, aiogram.types.CallbackQuery], force: bool = False, lvl: Union[int, None] = None) -> None:
+        """<level> - Dumps logs. Loglevels below WARNING may contain personal info."""
         if not isinstance(lvl, int):
-            await utils.answer(message, self.strings("bad_loglevel", message))
+            args = utils.get_args_raw(message)
+
+            try:
+                lvl = int(args)
+            except ValueError:
+                lvl = getattr(logging, args.upper(), None)
+
+        if not isinstance(lvl, int):
+            if self.inline.init_complete:
+                await self.inline.form(text=self.strings('choose_loglevel'), reply_markup=[
+                    [
+                        {
+                            'text': "🚨 Critical",
+                            'callback': self.logscmd,
+                            'args': (False, 50)
+                        },
+                        {
+                            'text': "🚫 Error",
+                            'callback': self.logscmd,
+                            'args': (False, 40)
+                        }
+                    ],
+                    [
+                        {
+                            'text': "⚠️ Warning",
+                            'callback': self.logscmd,
+                            'args': (False, 30)
+                        },
+                        {
+                            'text': "ℹ️ Info",
+                            'callback': self.logscmd,
+                            'args': (False, 20)
+                        }
+                    ],
+                    [
+                        {
+                            'text': "🧑‍💻 Debug",
+                            'callback': self.logscmd,
+                            'args': (False, 10)
+                        },
+                        {
+                            'text': "👁 All",
+                            'callback': self.logscmd,
+                            'args': (False, 0)
+                        }
+                    ],
+                    [
+                        {
+                            'text': '🚫 Cancel',
+                            'callback': self.cancel
+                        }
+                    ]
+                ], message=message)
+            else:
+                await utils.answer(message, self.strings('set_loglevel'))
+
             return
-        if lvl < logging.WARNING and (len(args) != 2 or
-                                      args[1] != self.strings("logs_force", message)):
-            await utils.answer(message,
-                               self.strings("logs_unsafe", message).format(utils.escape_html(self.strings("logs_force",
-                                                                                                          message))))
+
+        logs = '\n\n'.join([("\n".join(handler.dumps(lvl))) for handler in logging.getLogger().handlers]).encode("utf-16")
+
+        named_lvl = lvl if lvl not in logging._levelToName else logging._levelToName[lvl]
+
+        if lvl < logging.WARNING and not (force or (isinstance(message, Message) and 'force_insecure' in message.raw_text.lower())):
+            if self.inline.init_complete:
+                try:
+                    cfg = {
+                        'text': self.strings('confidential').format(named_lvl), 
+                        'reply_markup': [[
+                            {
+                                'text': '📤 Send anyway',
+                                'callback': self.logscmd,
+                                'args': [True, lvl]
+                            },
+                            {
+                                'text': '🚫 Cancel',
+                                'callback': self.cancel
+                            }
+                            ]]
+                    }
+                    if isinstance(message, Message):
+                        await self.inline.form(**cfg, message=message)
+                    else:
+                        await message.edit(**cfg)
+                except ChatSendInlineForbiddenError:
+                    await utils.answer(message, self.strings('confidential_text').format(named_lvl))
+            else:
+                await utils.answer(message, self.strings('confidential_text').format(named_lvl))
+
             return
-        handler = logging.getLogger().handlers[0]
-        logs = ("\n".join(handler.dumps(lvl))).encode("utf-16")
-        if len(logs) <= 0:
-            await utils.answer(message, self.strings("no_logs", message).format(lvl))
+
+        if len(logs) <= 2:
+            if isinstance(message, Message):
+                await utils.answer(message, self.strings("no_logs").format(named_lvl))
+            else:
+                await message.edit(self.strings('no_logs').format(named_lvl))
+                await message.unload()
+
             return
+
         logs = BytesIO(logs)
-        logs.name = self.strings("logs_filename", message)
-        await utils.answer(message, logs, caption=self.strings("logs_caption", message).format(lvl))
+        logs.name = self.strings("logs_filename")
+
+        if isinstance(message, Message):
+            await utils.answer(message, logs, caption=self.strings("logs_caption").format(named_lvl))
+        else:
+            await message.delete()
+            await self.client.send_file(message.form['chat'], logs, caption=self.strings('logs_caption').format(named_lvl))
 
     @loader.owner
-    async def suspendcmd(self, message):
+    async def suspendcmd(self, message: Message) -> None:
         """.suspend <time>
         Suspends the bot for N seconds"""
         try:
@@ -118,38 +177,18 @@ class TestMod(loader.Module):
         except ValueError:
             await utils.answer(message, self.strings("suspend_invalid_time", message))
 
-    async def pingcmd(self, message):
+    async def pingcmd(self, message: Message) -> None:
         """Test your userbot ping"""
-        start = datetime.now()
+        start = time.perf_counter_ns()
         message = await utils.answer(message, "<code>Ping checking...</code>")
-        end = datetime.now()
-        ms = (end - start).microseconds / 1000
-        await utils.answer(message, "<b>Ping:</b> <code>{}ms</code>".format(ms))
+        end = time.perf_counter_ns()
 
-    async def speedtestcmd(self, message):
-        """Tests your internet speed"""
-        args = utils.get_args(message)
-        message = await utils.answer(message, self.strings("running", message))
-        servers = []
-        for server in args:
-            try:
-                servers += [int(server)]
-            except ValueError:
-                logger.warning("server failed")
-        results = await utils.run_sync(self.speedtest, servers)
-        ret = self.strings("results", message) + "\n\n"
-        ret += self.strings("results_download", message).format(round(results["download"] / 2 ** 20, 2)) + "\n"
-        ret += self.strings("results_upload", message).format(round(results["upload"] / 2 ** 20, 2)) + "\n"
-        ret += self.strings("results_ping", message).format(round(results["ping"], 2)) + "\n"
-        await utils.answer(message, ret)
+        if isinstance(message, (list, tuple, set)):
+            message = message[0]
 
-    def speedtest(self, servers):
-        speedtester = speedtest.Speedtest()
-        speedtester.get_servers(servers)
-        speedtester.get_best_server()
-        speedtester.download(threads=None)
-        speedtester.upload(threads=None)
-        return speedtester.results.dict()
+        ms = (end - start) * 0.000001
 
-    async def client_ready(self, client, db):
+        await utils.answer(message, self.strings('results_ping').format(round(ms, 3)))
+
+    async def client_ready(self, client, db) -> None:
         self.client = client

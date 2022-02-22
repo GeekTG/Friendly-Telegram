@@ -101,7 +101,9 @@ class UniborgClient(MarkdownBotPassthrough):
                 if not event.pattern:
                     self._ensure_unknowns()
                     use_unknown = True
+
                 cmd = get_cmd_name(event.pattern.__self__.pattern)
+
                 if not cmd:
                     self._ensure_unknowns()
                     use_unknown = True
@@ -111,6 +113,7 @@ class UniborgClient(MarkdownBotPassthrough):
                     """Closure to execute command when handler activated and regex matched"""
                     logger.debug("Command triggered")
                     match = re.match(event.pattern.__self__.pattern, pre + message.message, re.I)
+
                     if match:
                         logger.debug("and matched")
                         message.message = pre + message.message  # Framework strips prefix, give them a generic one
@@ -132,6 +135,7 @@ class UniborgClient(MarkdownBotPassthrough):
                 else:
                     if commandhandler.__doc__ is None:
                         commandhandler.__doc__ = "Undocumented external command"
+
                     self._commands[cmd] = commandhandler
             elif event.incoming:
                 @wraps(func)
@@ -147,14 +151,15 @@ class UniborgClient(MarkdownBotPassthrough):
                         event2.message = MarkdownBotPassthrough(message)
 
                         return func(event2)
+
                     return asyncio.gather()
 
                 # Return a coroutine
-
                 self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
             else:
                 logger.error("event not incoming or outgoing")
                 return func
+
             return func
 
         return subreg
@@ -174,15 +179,20 @@ class UniborgUtil:
         if len(args) > 0:
             if len(args) != 1:
                 raise TypeError("Takes exactly 0 or 1 args")
+
             kwargs["pattern"] = args[0]
         else:
             kwargs.setdefault("pattern", ".*")
+
         if not (kwargs["pattern"].startswith(".") or kwargs["pattern"].startswith(r"\.")):
             kwargs["pattern"] = r"\." + kwargs["pattern"]
+
         if "incoming" not in kwargs.keys() and "outgoing" not in kwargs.keys():
             kwargs["outgoing"] = True
+
         if "allow_sudo" in kwargs.keys():
             del kwargs["allow_sudo"]
+
         return telethon.events.NewMessage(**kwargs)
 
     async def progress(self, *args, **kwargs):

@@ -439,7 +439,7 @@ class InlineManager:
         # Start the bot in case it can send you messages
         try:
             m = await self._client.send_message(self._bot_username, '/start')
-        except Exception:
+        except (telethon.errors.rpcerrorlist.InputUserDeactivatedError, ValueError):
             self._db.set('geektg.inline', 'bot_token', None)
             self._token = False
 
@@ -447,6 +447,11 @@ class InlineManager:
                 return await self._register_manager(True)
 
             self.init_complete = False
+            return False
+        except Exception:
+            self.init_complete = False
+            logger.critical('Initialisation of inline manager failed!')
+            logger.exception('due to')
             return False
 
         await self._client.delete_messages(self._bot_username, m)

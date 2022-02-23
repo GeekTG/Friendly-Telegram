@@ -530,6 +530,7 @@ class InlineManager:
         # Retrieve query from passed object
         query = inline_query.query
 
+        # If we didn't get any query, return help
         if not query:
             _help = ""
             for mod in self._allmodules.modules:
@@ -540,6 +541,13 @@ class InlineManager:
 
                 _ihandlers = dict(mod.inline_handlers.items())
                 for name, fun in _ihandlers.items():
+                    # If user doesn't have enough permissions
+                    # to run this inline command, do not show it
+                    # in help
+                    if not self._check_inline_security(fun, inline_query.from_user.id):
+                        continue
+
+                    # Retrieve docs from func
                     doc = utils.escape_html(
                         '\n'.join(
                             [

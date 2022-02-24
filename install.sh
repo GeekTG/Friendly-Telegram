@@ -113,7 +113,7 @@ fi
 
 if [ -d "Friendly-Telegram/friendly-telegram" ]; then
 	cd Friendly-Telegram || {
-		endspin "Failed to chdir"
+		endspin "Error: Install git package and re-run installer"
 		exit 6
 	}
 	DIR_CHANGED="yes"
@@ -219,7 +219,7 @@ runout ${SUDO_CMD}git clone https://github.com/GeekTG/Friendly-Telegram || {
 	exit 3
 }
 cd Friendly-Telegram || {
-	endspin "Failed to chdir"
+	endspin "Error: Install git package and re-run installer"
 	exit 7
 }
 # shellcheck disable=SC2086

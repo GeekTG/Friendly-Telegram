@@ -3,7 +3,13 @@
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
     Copyright 2022 t.me/hikariatama
-    Licensed under the GNU GPLv3
+    Licensed under the Creative Commons CC BY-NC-ND 4.0
+
+    Full license text can be found at:
+    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+
+    Human-friendly one:
+    https://creativecommons.org/licenses/by-nc-nd/4.0
 """
 
 # <3 title: GeekInfo
@@ -12,8 +18,8 @@
 
 # scope: inline_content
 
-from .. import loader, main
-from telethon.tl.types import Message
+from .. import loader, utils, main
+from telethon.tl.types import *
 import logging
 import aiogram
 import os
@@ -56,11 +62,15 @@ class GeekInfoMod(loader.Module):
             @allow: all
         """
 
-        repo = git.Repo()
-        ver = repo.heads[0].commit.hexsha
+        try:
+            repo = git.Repo()
+            ver = repo.heads[0].commit.hexsha
 
-        diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
-        upd = '⚠️ Update required </b><code>.update</code><b>' if diff else '✅ Up-to-date'
+            diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
+            upd = '⚠️ Update required </b><code>.update</code><b>' if diff else '✅ Up-to-date'
+        except Exception:
+            ver = "move_on_from_heroku"
+            upd = ""
 
         termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
         heroku = os.environ.get("DYNO", False)

@@ -171,6 +171,13 @@ class InlineManager:
             pass
 
     def _check_inline_security(self, func, user):
+        # Find Loader instance to access security layers
+        if not hasattr(self, '_loader'):
+            for mod in self._allmodules.modules:
+                if mod.__class__.__name__ == "LoaderMod":
+                    self._loader = mod
+                    break
+
         allow = user in [self._me] + \
                     self._loader.dispatcher.security._owner
 
@@ -648,6 +655,13 @@ class InlineManager:
         if reply_markup is None:
             reply_markup = []
 
+        # Find Loader instance to access security layers
+        if not hasattr(self, '_loader'):
+            for mod in self._allmodules.modules:
+                if mod.__class__.__name__ == "LoaderMod":
+                    self._loader = mod
+                    break
+
         # First, dispatch all registered callback handlers
         for mod in self._allmodules.modules:
             if not hasattr(mod, 'callback_handlers') or \
@@ -688,6 +702,13 @@ class InlineManager:
 
     async def _chosen_inline_handler(self, chosen_inline_query: aiogram.types.ChosenInlineResult) -> None:
         query = chosen_inline_query.query
+
+        # Find Loader instance to access security layers
+        if not hasattr(self, '_loader'):
+            for mod in self._allmodules.modules:
+                if mod.__class__.__name__ == "LoaderMod":
+                    self._loader = mod
+                    break
 
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):

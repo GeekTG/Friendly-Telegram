@@ -8,7 +8,7 @@
 
 from typing import Union, Any, List
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, executor
 import aiogram
 
 import re
@@ -228,12 +228,6 @@ class InlineManager:
         # We create new bot
         logger.info('User don\'t have bot, attemping creating new one')
         async with self._client.conversation('@BotFather', exclusive=False) as conv:
-            m = await conv.send_message('/cancel')
-            r = await conv.get_response()
-
-            await m.delete()
-            await r.delete()
-
             m = await conv.send_message('/newbot')
             r = await conv.get_response()
 
@@ -286,7 +280,7 @@ class InlineManager:
         return await self._assert_token(False)
 
 
-    async def _assert_token(self, create_new_if_needed=True) -> None:
+    async def _assert_token(self, create_new_if_needed=True, revoke_token=False) -> None:
         # If the token is set in db
         if self._token:
             # Just return `True`
@@ -294,25 +288,19 @@ class InlineManager:
 
         logger.info('Bot token not found in db, attempting search in BotFather')
         # Start conversation with BotFather to attemp search
-        async with self._client.conversation('@BotFather') as conv:
+        async with self._client.conversation('@BotFather', exclusive=False) as conv:
             # Wrap it in try-except in case user banned BotFather
             try:
                 # Try sending command
-                m = await conv.send_message('/cancel')
+                m = await conv.send_message('/token')
             except telethon.errors.rpcerrorlist.YouBlockedUserError:
                 # If user banned BotFather, unban him
                 await self._client(telethon.tl.functions.contacts.UnblockRequest(
                     id='@BotFather'
                 ))
                 # And resend message
-                m = await conv.send_message('/cancel')
+                m = await conv.send_message('/token')
 
-            r = await conv.get_response()
-
-            await m.delete()
-            await r.delete()
-
-            m = await conv.send_message('/token')
             r = await conv.get_response()
 
             await m.delete()
@@ -323,7 +311,11 @@ class InlineManager:
                 # Cancel current conversation (search)
                 # bc we don't need it anymore
                 await conv.cancel_all()
-                return await self._create_bot()
+                if create_new_if_needed:
+                    return await self._create_bot()
+                else:
+                    # We got into the loop
+                    return False
 
             for row in r.reply_markup.rows:
                 for button in row.buttons:
@@ -331,7 +323,24 @@ class InlineManager:
                         m = await conv.send_message(button.text)
                         r = await conv.get_response()
 
+                        if revoke_token:
+                            await m.delete()
+                            await r.delete()
+
+                            m = await conv.send_message('/revoke')
+                            r = await conv.get_response()
+
+                            await m.delete()
+                            await r.delete()
+
+                            m = await conv.send_message(button.text)
+                            r = await conv.get_response()
+
                         token = r.raw_text.splitlines()[1]
+
+                        # Save token to database, now this bot is ready-to-use
+                        self._db.set('geektg.inline', 'bot_token', token)
+                        self._token = token
 
                         await m.delete()
                         await r.delete()
@@ -392,10 +401,6 @@ class InlineManager:
                         await m.delete()
                         await r.delete()
 
-                        # Save token to database, now this bot is ready-to-use
-                        self._db.set('geektg.inline', 'bot_token', token)
-                        self._token = token
-
                         # Return `True` to say, that everything is okay
                         return True
 
@@ -420,18 +425,33 @@ class InlineManager:
 
             await asyncio.sleep(10)
 
-    async def _register_manager(self, after_break=False) -> None:
+    async def _reassert_token(self) -> None:
+        is_token_asserted = await self._assert_token(revoke_token=True)
+        if not is_token_asserted:
+            self.init_complete = False
+        else:
+            await self._register_manager(ignore_token_checks=True)
+
+    async def _dp_revoke_token(self) -> None:
+        await self.stop()
+        logger.error('Got polling conflict. Attempting token revokation...')
+        self._db.set('geektg.inline', 'bot_token', None)
+        self._token = None
+        asyncio.ensure_future(self._reassert_token())
+
+    async def _register_manager(self, after_break=False, ignore_token_checks=False) -> None:
         # Get info about user to use it in this class
         me = await self._client.get_me()
         self._me = me.id
         self._name = telethon.utils.get_display_name(me)
 
-        # Assert that token is set to valid, and if not, 
-        # set `init_complete` to `False` and return
-        is_token_asserted = await self._assert_token()
-        if not is_token_asserted:
-            self.init_complete = False
-            return
+        if not ignore_token_checks:
+            # Assert that token is set to valid, and if not, 
+            # set `init_complete` to `False` and return
+            is_token_asserted = await self._assert_token()
+            if not is_token_asserted:
+                self.init_complete = False
+                return
         
         # We successfully asserted token, so set `init_complete` to `True`
         self.init_complete = True
@@ -468,6 +488,18 @@ class InlineManager:
         self._dp.register_callback_query_handler(self._callback_query_handler, lambda query: True)
         self._dp.register_chosen_inline_handler(self._chosen_inline_handler, lambda chosen_inline_query: True)
 
+        old = self._bot.get_updates
+        revoke = self._dp_revoke_token
+
+        async def new(*args, **kwargs):
+            nonlocal revoke, old
+            try:
+                return await old(*args, **kwargs)
+            except aiogram.utils.exceptions.TerminatedByOtherGetUpdates:
+                await revoke()
+
+        self._bot.get_updates = new
+
         # Start polling as the separate task, just in case we will need
         # to force stop this coro. It should be cancelled only by `stop`
         # because it stops the bot from getting updates
@@ -475,8 +507,9 @@ class InlineManager:
         self._cleaner_task = asyncio.ensure_future(self._cleaner())
 
     async def stop(self) -> None:
-        await self._bot.close()
         self._task.cancel()
+        self._dp.stop_polling()
+        self._cleaner_task.cancel()
 
     def _generate_markup(self, form_uid: Union[str, list]) -> "aiogram.types.inline_keyboard.InlineKeyboardMarkup":
         """Generate markup for form"""

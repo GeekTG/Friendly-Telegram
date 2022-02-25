@@ -497,23 +497,33 @@ class InlineManager:
 
 
         for row in (self._forms[form_uid]['buttons'] if isinstance(form_uid, str) else form_uid):
-            markup.row(*[
-                aiogram.types.inline_keyboard.InlineKeyboardButton(
-                    button['text'],
-                    url=button.get('url', None)
-                ) if 'url' in button else \
-                (
-                    aiogram.types.inline_keyboard.InlineKeyboardButton(
-                        button['text'],
-                        callback_data=button['_callback_data']
-                    ) if 'callback' in button else \
-                    aiogram.types.inline_keyboard.InlineKeyboardButton(
-                        button['text'],
-                        switch_inline_query_current_chat=button['_switch_query'] + ' '
-                    )
-                ) for button in row
-            ]
-            )
+            line = []
+            for button in row:
+                try:
+                    if 'url' in button:
+                        line += [aiogram.types.inline_keyboard.InlineKeyboardButton(
+                            button['text'],
+                            url=button.get('url', None)
+                        )]
+                    elif 'callback' in button:
+                        line += [aiogram.types.inline_keyboard.InlineKeyboardButton(
+                            button['text'],
+                            callback_data=button['_callback_data']
+                        )]
+                    elif 'input' in button:
+                        line += [aiogram.types.inline_keyboard.InlineKeyboardButton(
+                            button['text'],
+                            switch_inline_query_current_chat=button['_switch_query'] + ' '
+                        )]
+                    elif 'data' in button:
+                        line += [aiogram.types.inline_keyboard.InlineKeyboardButton(
+                            button['text'],
+                            callback_data=button['data']
+                        )]
+                except KeyError:
+                    raise InlineError('Invalid arguments combination for buttons')
+
+            markup.row(*line)
 
         return markup
 

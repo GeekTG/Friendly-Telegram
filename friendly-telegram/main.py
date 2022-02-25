@@ -49,7 +49,7 @@ from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 1, 6)
+__version__ = (3, 1, 7)
 try:
     from .web import core
 except ImportError:

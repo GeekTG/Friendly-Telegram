@@ -146,7 +146,6 @@ class SecurityManager:
         self._owner = db.get(__name__, "owner", []).copy()
         self._sudo = db.get(__name__, "sudo", []).copy()
         self._support = db.get(__name__, "support", []).copy()
-        self._bounding_mask = db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
         self._db = db
 
     async def update_owners(self):
@@ -177,7 +176,7 @@ class SecurityManager:
             logger.error("Security config contains unknown bits")
             return False
 
-        return config & self._bounding_mask
+        return config & self._db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
 
     async def _check(self, message, func):
         config = self.get_flags(func)

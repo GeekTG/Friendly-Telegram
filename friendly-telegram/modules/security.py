@@ -145,7 +145,7 @@ class GeekSecurityMod(loader.Module):
                 'text': ('🚫' if not level else '✅') + ' ' +
                 self.strings[group],
                 'callback': self.inline__switch_perm,
-                'args': (command.__name__[:3], group, not level)
+                'args': (command.__name__[:-3], group, not level)
             }
             for group, level in perms.items()
         ]
@@ -193,7 +193,21 @@ class GeekSecurityMod(loader.Module):
         }
 
     def _get_current_perms(self, command: FunctionType) -> dict:
-        config = loader.dispatcher.security.get_flags(command)
+        config = self.db.get(
+            security.__name__,
+            "masks",
+            {}
+        ) \
+        .get(
+            command.__module__ + \
+            "." + \
+            command.__name__,
+            getattr(
+                command,
+                "security",
+                loader.dispatcher.security._default
+            )
+        )
 
         return self._perms_map(config)
 

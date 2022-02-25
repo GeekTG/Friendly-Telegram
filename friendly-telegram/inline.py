@@ -713,7 +713,7 @@ class InlineManager:
                                         (call, query, *button.get('args', []), **button.get('kwargs', {}))
 
 
-    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = None, force_me: bool = True, always_allow: List[int] = None, ttl: Union[int, bool] = False) -> str:
+    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = None, force_me: bool = True, always_allow: List[int] = None, ttl: Union[int, bool] = False, reply_to: Union[None, Message, int] = None) -> str:
         """Creates inline form with callback
 
                 Args:
@@ -784,7 +784,7 @@ class InlineManager:
         }
 
         q = await self._client.inline_query(self._bot_username, form_uid)
-        m = await q[0].click(utils.get_chat_id(message) if isinstance(message, Message) else message)
+        m = await q[0].click(utils.get_chat_id(message) if isinstance(message, Message) else message, reply_to=reply_to)
         self._forms[form_uid]['chat'] = utils.get_chat_id(m)
         self._forms[form_uid]['message_id'] = m.id
         if isinstance(message, Message):

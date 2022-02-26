@@ -25,6 +25,7 @@ import subprocess
 import sys
 import uuid
 import json
+import telethon
 
 import git
 from git import Repo, GitCommandError
@@ -148,9 +149,18 @@ class UpdaterMod(loader.Module):
             os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")
 
         try:
-            msgs = await utils.answer(message, self.strings("downloading", message))
+            try:
+                msgs = await utils.answer(message, self.strings("downloading", message))
+            except telethon.errors.rpcerrorlist.MessageNotModifiedError:
+                pass
+
             req_update = await self.download_common()
-            message = (await utils.answer(msgs, self.strings("installing", message)))[0]
+
+            try:
+                message = (await utils.answer(msgs, self.strings("installing", message)))[0]
+            except telethon.errors.rpcerrorlist.MessageNotModifiedError:
+                pass
+
             if heroku_key := os.environ.get("heroku_api_token"):
                 from .. import heroku
                 await self.prerestart_common(message)

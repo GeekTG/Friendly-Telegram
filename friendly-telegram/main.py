@@ -527,10 +527,10 @@ def main():  # noqa: C901
             clients.append(client)
         except sqlite3.OperationalError as ex:
             print(
-                f"Error initialising phone {(phone or "unknown")} {",".join(ex.args)}\n"  # noqa
+                f"Error initialising phone {(phone or 'unknown')} {','.join(ex.args)}\n"  # noqa
                 ": this is probably your fault. Try checking that this is the only instance running and"
                 "that the session is not copied. If that doesn't help, delete the file named"
-                f"'friendly-telegram-{phone if phone else ""}.session'"
+                f"'friendly-telegram-{phone if phone else ''}.session'"
             )
             continue
         except TypeError:

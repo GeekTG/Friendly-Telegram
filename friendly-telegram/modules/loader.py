@@ -98,7 +98,6 @@ def get_git_api(url):
     if m is None:
         return None
 
-    repo = m.group(1)  # TODO: remove unused repo
     branch = m.group(2)
     path_ = m.group(3)
     api_url = "https://api.github.com/repos{}/contents".format(m.group(1))
@@ -167,7 +166,7 @@ class LoaderMod(loader.Module):
                                           lambda m: self.strings("repo_config_doc", m))
 
     @loader.owner
-    async def dlmodcmd(self, message):
+    async def dlmodcmd(self, message: Message) -> None:
         """Downloads and installs a module from the official module repo"""
         if args := utils.get_args(message):
             args = args[0] if urllib.parse.urlparse(args[0]).netloc else args[0].lower()
@@ -190,7 +189,7 @@ class LoaderMod(loader.Module):
             )
 
     @loader.owner
-    async def dlpresetcmd(self, message):
+    async def dlpresetcmd(self, message: Message) -> None:
         """Set preset. Defaults to full"""
         args = utils.get_args(message)
 
@@ -249,7 +248,7 @@ class LoaderMod(loader.Module):
             logger.exception(f"Failed to load {module_name}")
 
     @loader.owner
-    async def loadmodcmd(self, message):
+    async def loadmodcmd(self, message: Message) -> None:
         """Loads the module file"""
         msg = message if message.file else (await message.get_reply_message())
 
@@ -303,12 +302,12 @@ class LoaderMod(loader.Module):
                 # Let's try to reinstall dependencies
                 requirements = list(
                     filter(
-                        lambda x: x and \
-                        x[0] not in ("-", "_", "."),
+                        lambda x: x
+                        and x[0] not in ("-", "_", "."),
                         map(
                             str.strip,
-                            VALID_PIP_PACKAGES\
-                            .search(doc)[1]\
+                            VALID_PIP_PACKAGES
+                            .search(doc)[1]
                             .split(" ")
                         )
                     )
@@ -383,7 +382,7 @@ class LoaderMod(loader.Module):
             prefix = utils.escape_html((self._db.get(main.__name__, "command_prefix", False) or ".")[0])
 
             if instance.__doc__:
-                modhelp += "<i>\nℹ️ " +  utils.escape_html(inspect.getdoc(instance)) + "</i>\n"
+                modhelp += f"<i>\nℹ️ {utils.escape_html(inspect.getdoc(instance))}</i>\n"
 
             if re.search(r'#[ ]?scope:[ ]?disable_onload_docs', doc):
                 return await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
@@ -426,7 +425,7 @@ class LoaderMod(loader.Module):
         return True
 
     @loader.owner
-    async def dlrepocmd(self, message):
+    async def dlrepocmd(self, message: Message) -> None:
         """Downloads and installs all modules from repo"""
         args = utils.get_args(message)
 
@@ -446,9 +445,10 @@ class LoaderMod(loader.Module):
                     list(
                         set(
                             self._db.get(__name__, "loaded_repositories", [])
-                        )\
-                        .union([repo_url]))
+                        )
+                        .union([repo_url])
                     )
+                )
 
                 await utils.answer(message, self.strings("repo_loaded", message))
             else:
@@ -457,7 +457,7 @@ class LoaderMod(loader.Module):
             await utils.answer(message, self.strings("args_incorrect", message))
 
     @loader.owner
-    async def unloadrepocmd(self, message):
+    async def unloadrepocmd(self, message: Message) -> None:
         """Removes loaded repository"""
         args = utils.get_args(message)
 
@@ -487,12 +487,23 @@ class LoaderMod(loader.Module):
         if not isinstance(files, list):
             return False
 
-        await asyncio.gather(*[self.download_and_install(f["download_url"]) for f in
-                               filter(lambda f: f["name"].endswith(".py") and f["type"] == "file", files)])
+        await asyncio.gather(
+            *[
+                self.download_and_install(
+                    f["download_url"]
+                )
+                for f in filter(
+                    lambda f:
+                    f["name"].endswith(".py")
+                    and f["type"] == "file",
+                    files
+                )
+            ]
+        )
         return True
 
     @loader.owner
-    async def unloadmodcmd(self, message):
+    async def unloadmodcmd(self, message: Message) -> None:
         """Unload module by class name"""
         args = utils.get_args_raw(message)
 
@@ -515,15 +526,15 @@ class LoaderMod(loader.Module):
         await utils.answer(
             message,
             self.strings(
-                "unloaded" \
-                if worked \
+                "unloaded"
+                if worked
                 else "not_unloaded",
                 message
             )
         )
 
     @loader.owner
-    async def clearmodulescmd(self, message):
+    async def clearmodulescmd(self, message: Message) -> None:
         """Delete all installed modules"""
         self._db.set("friendly-telegram.modules.loader", "loaded_modules", [])
         self._db.set("friendly-telegram.modules.loader", "unloaded_modules", [])

@@ -8,6 +8,7 @@
 
 import aiohttp_jinja2
 
+
 class Web:
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

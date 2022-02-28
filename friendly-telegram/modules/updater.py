@@ -24,7 +24,6 @@ import os
 import subprocess
 import sys
 import uuid
-import json
 import telethon
 
 import git
@@ -63,9 +62,7 @@ class UpdaterMod(loader.Module):
         await self.restart_common(msg)
 
     async def prerestart_common(self, message):
-        logger.debug(
-            (f'Self-update. {sys.executable}' + " -m ") + utils.get_base_dir()
-        )
+        logger.debug(f'Self-update. {sys.executable} -m {utils.get_base_dir()}')
 
         check = str(uuid.uuid4())
         await self._db.set(__name__, "selfupdatecheck", check)
@@ -208,9 +205,11 @@ class UpdaterMod(loader.Module):
             logger.debug("Self update successful! Edit message")
             msg = self.strings("success")
 
-        await client.edit_message(self._db.get(__name__, "selfupdatechat"),
-                                  self._db.get(__name__, "selfupdatemsg"),
-                                  msg)
+        await client.edit_message(
+            self._db.get(__name__, "selfupdatechat"),
+            self._db.get(__name__, "selfupdatemsg"),
+            msg
+        )
 
 
 def restart(*argv):

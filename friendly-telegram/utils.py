@@ -28,7 +28,12 @@ import shlex
 import telethon
 from telethon.extensions import html
 from telethon.tl.custom.message import Message
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel, MessageEntityMentionName, User, MessageMediaWebPage
+from telethon.tl.types import PeerUser, \
+    PeerChat, \
+    PeerChannel, \
+    MessageEntityMentionName, \
+    User, \
+    MessageMediaWebPage
 
 from . import __main__
 
@@ -243,13 +248,28 @@ async def answer(message, response, **kwargs):
             message.text = html.unparse(message.message, message.entities)
             txt = txt[4096:]
             _fix_entities(ent, cont_msg)
-            ret.append(await (message.reply if edit else message.respond)(message,
-                                                                          parse_mode=lambda t: (t, ent), **kwargs))
+            ret.append(
+                await (
+                    message.reply if edit
+                    else message.respond
+                )(
+                    message,
+                    parse_mode=lambda t: (t, ent), **kwargs
+                )
+            )
     elif isinstance(response, Message):
-        if message.media is None and (response.media is None or isinstance(response.media, MessageMediaWebPage)):
-            ret = (await message.edit(response.message,
-                                      parse_mode=lambda t: (t, response.entities or []),
-                                      link_preview=isinstance(response.media, MessageMediaWebPage)),)
+        if message.media is None \
+                and (
+                    response.media is None
+                    or isinstance(response.media, MessageMediaWebPage)
+                ):
+            ret = (
+                await message.edit(
+                    response.message,
+                    parse_mode=lambda t: (t, response.entities or []),
+                    link_preview=isinstance(response.media, MessageMediaWebPage)
+                ),
+            )
         else:
             txt = "<b>Loading message...</b>"
             new = await (message.edit if edit else message.reply)(txt)
@@ -271,8 +291,13 @@ async def answer(message, response, **kwargs):
             txt = "<b>Loading media...</b>"  # TODO translations
             new = await (message.edit if edit else message.reply)(txt)
             kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
-            ret = (await message.client.send_file(message.chat_id, response,
-                                                  **kwargs),)
+            ret = (
+                await message.client.send_file(
+                    message.chat_id,
+                    response,
+                    **kwargs
+                ),
+            )
             await new.delete()
 
     if delete_job:
@@ -282,9 +307,17 @@ async def answer(message, response, **kwargs):
 
 
 async def get_target(message, arg_no=0):
-    if any(isinstance(ent, MessageEntityMentionName) for ent in (message.entities or [])):
-        e = sorted(filter(lambda x: isinstance(x, MessageEntityMentionName),
-                          message.entities), key=lambda x: x.offset)[0]
+    if any(
+        isinstance(ent, MessageEntityMentionName)
+        for ent in (message.entities or [])
+    ):
+        e = sorted(
+            filter(
+                lambda x: isinstance(x, MessageEntityMentionName),
+                message.entities
+            ),
+            key=lambda x: x.offset
+        )[0]
         return e.user_id
     elif len(get_args(message)) > arg_no:
         user = get_args(message)[arg_no]

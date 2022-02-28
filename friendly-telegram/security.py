@@ -20,6 +20,7 @@ import logging
 
 import telethon
 from telethon.tl.functions.channels import GetParticipantRequest
+from telethon.tl.functions.messages import GetFullChatRequest
 
 from . import main
 
@@ -56,22 +57,22 @@ BITMAP = {
 }
 
 GROUP_ADMIN_ANY = (
-    GROUP_ADMIN_ADD_ADMINS |
-    GROUP_ADMIN_CHANGE_INFO |
-    GROUP_ADMIN_BAN_USERS |
-    GROUP_ADMIN_DELETE_MESSAGES |
-    GROUP_ADMIN_PIN_MESSAGES |
-    GROUP_ADMIN_INVITE_USERS |
-    GROUP_ADMIN
+    GROUP_ADMIN_ADD_ADMINS
+    | GROUP_ADMIN_CHANGE_INFO
+    | GROUP_ADMIN_BAN_USERS
+    | GROUP_ADMIN_DELETE_MESSAGES
+    | GROUP_ADMIN_PIN_MESSAGES
+    | GROUP_ADMIN_INVITE_USERS
+    | GROUP_ADMIN
 )
 
 DEFAULT_PERMISSIONS = (OWNER | SUDO)
 
 PUBLIC_PERMISSIONS = (
-    GROUP_OWNER |
-    GROUP_ADMIN_ANY |
-    GROUP_MEMBER |
-    PM
+    GROUP_OWNER
+    | GROUP_ADMIN_ANY
+    | GROUP_MEMBER
+    | PM
 )
 
 ALL = (1 << 13) - 1
@@ -170,7 +171,14 @@ class SecurityManager:
             # every time he changes permissions. It doesn't
             # decrease security at all, bc user anyway can
             # access this attribute
-            config = self._db.get(__name__, "masks", {}).get(func.__module__ + "." + func.__name__, getattr(func, "security", self._default))
+            config = self._db.get(
+                __name__,
+                "masks",
+                {}
+            ).get(
+                f"{func.__module__}.{func.__name__}",
+                getattr(func, "security", self._default)
+            )
 
         if config & ~ALL:
             logger.error("Security config contains unknown bits")
@@ -201,13 +209,13 @@ class SecurityManager:
         f_pm = config & PM
 
         f_group_admin_any = (
-            f_group_admin_add_admins or
-            f_group_admin_change_info or
-            f_group_admin_ban_users or
-            f_group_admin_delete_messages or
-            f_group_admin_pin_messages or
-            f_group_admin_invite_users or
-            f_group_admin
+            f_group_admin_add_admins
+            or f_group_admin_change_info
+            or f_group_admin_ban_users
+            or f_group_admin_delete_messages
+            or f_group_admin_pin_messages
+            or f_group_admin_invite_users
+            or f_group_admin
         )
 
         if f_owner and message.sender_id in self._owner:
@@ -284,7 +292,7 @@ class SecurityManager:
 
         elif message.is_group:
             if f_group_admin_any or f_group_owner:
-                full_chat = await message.client(telethon.functions.messages.GetFullChatRequest(message.chat_id))
+                full_chat = await message.client(GetFullChatRequest(message.chat_id))
                 participants = full_chat.full_chat.participants.participants
                 participant = next(
                     (
@@ -305,5 +313,5 @@ class SecurityManager:
                 return True
 
         return False
-    
+
     check = _check

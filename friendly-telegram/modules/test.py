@@ -47,8 +47,8 @@ class TestMod(loader.Module):
         if not message.is_reply:
             return
 
-        await utils.answer(message, "<code>" +
-                           utils.escape_html(
+        await utils.answer(message, "<code>"
+                           + utils.escape_html(
                                (await message.get_reply_message()).stringify())
                            + "</code>")
 
@@ -131,7 +131,7 @@ class TestMod(loader.Module):
             if self.inline.init_complete:
                 try:
                     cfg = {
-                        'text': self.strings('confidential').format(named_lvl), 
+                        'text': self.strings('confidential').format(named_lvl),
                         'reply_markup': [[
                             {
                                 'text': '📤 Send anyway',
@@ -142,7 +142,7 @@ class TestMod(loader.Module):
                                 'text': '🚫 Cancel',
                                 'callback': self.cancel
                             }
-                            ]]
+                        ]]
                     }
                     if isinstance(message, Message):
                         await self.inline.form(**cfg, message=message)

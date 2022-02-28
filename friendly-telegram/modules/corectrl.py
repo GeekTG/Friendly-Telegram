@@ -49,12 +49,12 @@ class CoreMod(loader.Module):
         "packs_cleared": "<b>✅ Translations cleared</b>",
         "lang_set": "<b>✅ Language changed</b>",
         "db_cleared": "<b>✅ Database cleared</b>",
-        
+
         "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
         "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
         "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
         "nn_args": "🚫<b> Usage: .nonick [on/off]</b>",
-        
+
         "grep_on": "<b>👍 Now <u>grep</u> is working</b>",
         "grep_off": "<b>👍 Now <u>grep</u> is not working</b>",
         "grep_status": "<b>🎬 Right now you <u>can{}</u> use </b><code>| grep</code>",
@@ -173,14 +173,14 @@ class CoreMod(loader.Module):
         if not args:
             await utils.answer(
                 message,
-                self.strings("no_nickname_status", message)\
+                self.strings("no_nickname_status", message)
                 .format(
-                    "'t" \
+                    "'t"
                     if not self._db.get(
                         main.__name__,
                         "no_nickname",
                         False
-                    ) \
+                    )
                     else ""
                 )
             )
@@ -213,7 +213,6 @@ class CoreMod(loader.Module):
         self._db.set(main.__name__, "grep", args)
         await utils.answer(message, self.strings("grep_on" if args else "grep_off", message))
 
-
     @loader.owner
     async def ilogscmd(self, message: Message) -> None:
         """<on|off> - Toggle 'inlinelogs' usage"""
@@ -222,14 +221,14 @@ class CoreMod(loader.Module):
         if not args:
             await utils.answer(
                 message,
-                self.strings("inlinelogs_status", message)\
+                self.strings("inlinelogs_status", message)
                 .format(
-                    "'t" \
+                    "'t"
                     if not self._db.get(
                         main.__name__,
                         "inlinelogs",
                         False
-                    ) \
+                    )
                     else ""
                 )
             )
@@ -243,7 +242,6 @@ class CoreMod(loader.Module):
 
         self._db.set(main.__name__, "inlinelogs", args)
         await utils.answer(message, self.strings("inlinelogs_on" if args else "inlinelogs_off", message))
-
 
     @loader.owner
     async def setprefixcmd(self, message: Message) -> None:
@@ -261,7 +259,7 @@ class CoreMod(loader.Module):
             self.strings(
                 "prefix_set",
                 message
-            ) \
+            )
             .format(
                 newprefix=utils.escape_html(args[0]),
                 oldprefix=utils.escape_html(oldprefix)

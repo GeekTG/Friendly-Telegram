@@ -13,7 +13,7 @@
 # scope: inline_content
 
 from types import FunctionType
-from typing import Union, List
+from typing import List
 from telethon.tl.types import Message
 
 from .. import loader, utils, main, security
@@ -142,8 +142,7 @@ class GeekSecurityMod(loader.Module):
         perms = self._get_current_perms(command)
         buttons = [
             {
-                'text': ('🚫' if not level else '✅') + ' ' +
-                self.strings[group],
+                'text': f"{('🚫' if not level else '✅')} {self.strings[group]}",
                 'callback': self.inline__switch_perm,
                 'args': (command.__name__[:-3], group, not level)
             }
@@ -159,8 +158,7 @@ class GeekSecurityMod(loader.Module):
         perms = self._get_current_bm()
         buttons = [
             {
-                'text': ('🚫' if not level else '✅') + ' ' +
-                self.strings[group],
+                'text': f"{('🚫' if not level else '✅')} {self.strings[group]}",
                 'callback': self.inline__switch_perm_bm,
                 'args': (group, not level)
             }
@@ -197,11 +195,8 @@ class GeekSecurityMod(loader.Module):
             security.__name__,
             "masks",
             {}
-        ) \
-        .get(
-            command.__module__ + \
-            "." + \
-            command.__name__,
+        ).get(
+            f"{command.__module__}.{command.__name__}",
             getattr(
                 command,
                 "security",

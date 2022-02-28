@@ -17,6 +17,7 @@ from telethon.tl.types import Message
 
 logger = logging.getLogger(__name__)
 
+
 @loader.tds
 class PythonMod(loader.Module):
     """Evaluates python code"""
@@ -95,21 +96,21 @@ class PythonMod(loader.Module):
         return {
             **dict(
                 filter(
-                    lambda x: x[0][0] != "_" and \
-                        x[0][0].upper() == x[0][0] and \
-                        callable(x[1]),
+                    lambda x: x[0][0] != "_"
+                    and x[0][0].upper() == x[0][0]
+                    and callable(x[1]),
                     it.__dict__.items()
                 )
             ),
             **dict(
                 itertools.chain.from_iterable(
                     [
-                        self.get_sub(y[1], _depth + 1).items() \
+                        self.get_sub(y[1], _depth + 1).items()
                         for y in filter(
                             lambda x: x[0][0] != "_"
-                                and isinstance(x[1], ModuleType)
-                                and x[1] != it
-                                and x[1].__package__.rsplit(".", _depth)[0] == "telethon.tl",
+                            and isinstance(x[1], ModuleType)
+                            and x[1] != it
+                            and x[1].__package__.rsplit(".", _depth)[0] == "telethon.tl",
                             it.__dict__.items()
                         )
                     ]

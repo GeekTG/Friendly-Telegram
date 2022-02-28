@@ -55,10 +55,10 @@ class GeekConfigMod(loader.Module):
         self._bot_id = (await self.inline._bot.get_me()).id
         self._forms = {}
 
-    async def inline__close(self, call: "aiogram.types.CallbackQuery") -> None:
+    async def inline__close(self, call: "aiogram.types.CallbackQuery") -> None:  # noqa
         await call.delete()
 
-    async def inline__set_config(self, call: "aiogram.types.CallbackQuery", query: str, mod: str, option: str, inline_message_id: str) -> None:
+    async def inline__set_config(self, call: "aiogram.types.CallbackQuery", query: str, mod: str, option: str, inline_message_id: str) -> None:  # noqa
         for module in self.allmodules.modules:
             if module.strings('name') == mod:
                 module.config[option] = query
@@ -84,7 +84,7 @@ class GeekConfigMod(loader.Module):
             inline_message_id=inline_message_id
         )
 
-    async def inline__configure_option(self, call: "aiogram.types.CallbackQuery", mod: str, config_opt: str) -> None:
+    async def inline__configure_option(self, call: "aiogram.types.CallbackQuery", mod: str, config_opt: str) -> None:  # noqa
         for module in self.allmodules.modules:
             if module.strings('name') == mod:
                 await call.edit(
@@ -115,7 +115,7 @@ class GeekConfigMod(loader.Module):
                     ]]
                 )
 
-    async def inline__configure(self, call: "aiogram.types.CallbackQuery", mod: str) -> None:
+    async def inline__configure(self, call: "aiogram.types.CallbackQuery", mod: str) -> None:  # noqa
         btns = []
         for module in self.allmodules.modules:
             if module.strings('name') == mod:
@@ -143,16 +143,18 @@ class GeekConfigMod(loader.Module):
             ]]
         )
 
-    async def inline__global_config(self, call: Union[Message, "aiogram.types.CallbackQuery"]) -> None:
+    async def inline__global_config(self, call: Union[Message, "aiogram.types.CallbackQuery"]) -> None:  # noqa
         to_config = [mod.strings('name') for mod in self.allmodules.modules if hasattr(
             mod, 'config') and mod.strings('name') not in blacklist]
         kb = []
         for mod_row in chunks(to_config, 3):
-            row = [{
+            row = [
+                {
                     'text': btn,
                     'callback': self.inline__configure,
                     'args': (btn,)
-                } for btn in mod_row]
+                } for btn in mod_row
+            ]
             kb += [row]
 
         kb += [[{

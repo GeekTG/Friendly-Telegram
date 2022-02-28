@@ -8,7 +8,7 @@
 
 from typing import Union, Any, List
 
-from aiogram import Bot, Dispatcher, executor
+from aiogram import Bot, Dispatcher
 import aiogram
 
 import re
@@ -34,9 +34,11 @@ logger = logging.getLogger(__name__)
 photo = io.BytesIO(requests.get('https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png').content)
 photo.name = "avatar.png"
 
+
 class InlineError(Exception):
     """Exception raised when implemented error is occured in InlineManager"""
     pass
+
 
 class InlineCall:
     def __init__(self):
@@ -53,17 +55,19 @@ class GeekInlineQuery:
         # easy access
         for attr in dir(inline_query):
             if attr.startswith('__') and attr.endswith('__'):
-                continue # Ignore magic attrs
+                continue  # Ignore magic attrs
 
             try:
                 setattr(self, attr, getattr(inline_query, attr, None))
             except AttributeError:
-                pass # There are some non-writable native attrs
+                pass  # There are some non-writable native attrs
                 # So just ignore them
 
-        self.args = self.inline_query.query.split(maxsplit=1)[1] \
-                    if len(self.inline_query.query.split()) > 1 \
-                    else ''
+        self.args = (
+            self.inline_query.query.split(maxsplit=1)[1]
+            if len(self.inline_query.query.split()) > 1
+            else ''
+        )
 
 
 def rand(size: int) -> str:
@@ -95,16 +99,18 @@ async def edit(text: str, reply_markup: List[List[dict]] = None, force_me: Union
     if isinstance(always_allow, list):
         form['always_allow'] = always_allow
     try:
-        await self._bot.edit_message_text(text,
-                            inline_message_id=inline_message_id or query.inline_message_id,
-                            parse_mode="HTML",
-                            disable_web_page_preview=disable_web_page_preview,
-                            reply_markup=self._generate_markup(form_uid))
+        await self._bot.edit_message_text(
+            text,
+            inline_message_id=inline_message_id or query.inline_message_id,
+            parse_mode="HTML",
+            disable_web_page_preview=disable_web_page_preview,
+            reply_markup=self._generate_markup(form_uid)
+        )
     except aiogram.utils.exceptions.MessageNotModified:
         try:
             await query.answer()
         except aiogram.utils.exceptions.InvalidQueryID:
-            pass # Just ignore that error, bc we need to just
+            pass  # Just ignore that error, bc we need to just
             # remove preloader from user's button, if message
             # was deleted
 
@@ -116,7 +122,7 @@ async def edit(text: str, reply_markup: List[List[dict]] = None, force_me: Union
         try:
             await query.answer('I should have edited some message, but it is deleted :(')
         except aiogram.utils.exceptions.InvalidQueryID:
-            pass # Just ignore that error, bc we need to just
+            pass  # Just ignore that error, bc we need to just
             # remove preloader from user's button, if message
             # was deleted
 
@@ -131,6 +137,7 @@ async def delete(self: Any = None, form: Any = None, form_uid: Any = None) -> bo
 
     return True
 
+
 async def unload(self: Any = None, form_uid: Any = None) -> bool:
     """Params `self`, `form_uid` are for internal use only, do not try to pass them"""
     try:
@@ -139,6 +146,7 @@ async def unload(self: Any = None, form_uid: Any = None) -> bool:
         return False
 
     return True
+
 
 class InlineManager:
     def __init__(self, client, db, allmodules) -> None:
@@ -178,8 +186,8 @@ class InlineManager:
                     self._loader = mod
                     break
 
-        allow = user in [self._me] + \
-                    self._loader.dispatcher.security._owner
+        allow = user in \
+            [self._me] + self._loader.dispatcher.security._owner
 
         if not hasattr(func, '__doc__') or \
                 not func.__doc__ or \
@@ -198,14 +206,14 @@ class InlineManager:
                 # for the occurence of user in overall string
                 # This allows dev to use any delimiter he wants
                 if 'all' in allow_line or \
-                    'sudo' in allow_line and \
-                    user in self._loader.dispatcher.security._sudo or \
-                    'support' in allow_line and \
-                    user in self._loader.dispatcher.security._support or \
-                    str(user) in allow_line:
+                        'sudo' in allow_line and \
+                        user in self._loader.dispatcher.security._sudo or \
+                        'support' in allow_line and \
+                        user in self._loader.dispatcher.security._support or \
+                        str(user) in allow_line:
                     allow = True
 
-        # But don't hurry to return value, we need to check, 
+        # But don't hurry to return value, we need to check,
         # if there are any limits
         for line in doc.splitlines():
             line = line.strip()
@@ -213,15 +221,14 @@ class InlineManager:
                 restrict = line.split(':')[1].strip()
 
                 if 'all' in restrict or \
-                    'sudo' in restrict and \
-                    user in self._loader.dispatcher.security._sudo or \
-                    'support' in restrict and \
-                    user in self._loader.dispatcher.security._support or \
-                    str(user) in restrict:
+                        'sudo' in restrict and \
+                        user in self._loader.dispatcher.security._sudo or \
+                        'support' in restrict and \
+                        user in self._loader.dispatcher.security._support or \
+                        str(user) in restrict:
                     allow = True
 
         return allow
-
 
     async def _create_bot(self) -> None:
         # This is called outside of conversation, so we can start the new one
@@ -280,12 +287,9 @@ class InlineManager:
             await m.delete()
             await r.delete()
 
-
-
         # Re-attempt search. If it won't find newly created (or not created?) bot
         # it will return `False`, that's why `init_complete` will be `False`
         return await self._assert_token(False)
-
 
     async def _assert_token(self, create_new_if_needed=True, revoke_token=False) -> None:
         # If the token is set in db
@@ -318,11 +322,8 @@ class InlineManager:
                 # Cancel current conversation (search)
                 # bc we don't need it anymore
                 await conv.cancel_all()
-                if create_new_if_needed:
-                    return await self._create_bot()
-                else:
-                    # We got into the loop
-                    return False
+
+                return await self._create_bot() if create_new_if_needed else False
 
             for row in r.reply_markup.rows:
                 for button in row.buttons:
@@ -453,13 +454,13 @@ class InlineManager:
         self._name = telethon.utils.get_display_name(me)
 
         if not ignore_token_checks:
-            # Assert that token is set to valid, and if not, 
+            # Assert that token is set to valid, and if not,
             # set `init_complete` to `False` and return
             is_token_asserted = await self._assert_token()
             if not is_token_asserted:
                 self.init_complete = False
                 return
-        
+
         # We successfully asserted token, so set `init_complete` to `True`
         self.init_complete = True
 
@@ -542,8 +543,11 @@ class InlineManager:
                         '_switch_query' not in button:
                     button['_switch_query'] = rand(10)
 
-
-        for row in (self._forms[form_uid]['buttons'] if isinstance(form_uid, str) else form_uid):
+        for row in (
+            self._forms[form_uid]['buttons']
+            if isinstance(form_uid, str)
+            else form_uid
+        ):
             line = []
             for button in row:
                 try:
@@ -567,8 +571,8 @@ class InlineManager:
                             button['text'],
                             callback_data=button['data']
                         )]
-                except KeyError:
-                    raise InlineError('Invalid arguments combination for buttons')
+                except KeyError as e:
+                    raise InlineError('Invalid arguments combination for buttons') from e
 
             markup.row(*line)
 
@@ -608,11 +612,9 @@ class InlineManager:
                     doc = utils.escape_html(
                         '\n'.join(
                             [
-                                line.strip() \
-                                for line in inspect.getdoc(fun)\
-                                            .splitlines() \
-                                if not line.strip()\
-                                        .startswith('@')
+                                line.strip()
+                                for line in inspect.getdoc(fun).splitlines()
+                                if not line.strip().startswith('@')
                             ]
                         )
                     )
@@ -635,8 +637,6 @@ class InlineManager:
 
             return
 
-
-
         # First, dispatch all registered inline handlers
         for mod in self._allmodules.modules:
             if not hasattr(mod, 'inline_handlers') or \
@@ -657,11 +657,11 @@ class InlineManager:
         for form in self._forms.copy().values():
             for button in array_sum(form.get('buttons', [])):
                 if '_switch_query' in button and \
-                    'input' in button and \
-                    button['_switch_query'] == query.split()[0] and \
-                    inline_query.from_user.id in [self._me] + \
-                    self._loader.dispatcher.security._owner + \
-                    form['always_allow']:
+                        'input' in button and \
+                        button['_switch_query'] == query.split()[0] and \
+                        inline_query.from_user.id in [self._me] + \
+                        self._loader.dispatcher.security._owner + \
+                        form['always_allow']:
                     await inline_query.answer([aiogram.types.inline_query_result.InlineQueryResultArticle(
                         id=rand(20),
                         title=button['input'],
@@ -720,9 +720,9 @@ class InlineManager:
             for button in array_sum(form.get('buttons', [])):
                 if button.get('_callback_data', None) == query.data:
                     if form['force_me'] and \
-                        query.from_user.id != self._me and \
-                        query.from_user.id not in self._loader.dispatcher.security._owner and \
-                        query.from_user.id not in form['always_allow']:
+                            query.from_user.id != self._me and \
+                            query.from_user.id not in self._loader.dispatcher.security._owner and \
+                            query.from_user.id not in form['always_allow']:
                         await query.answer('You are not allowed to press this button!')
                         return
 
@@ -734,9 +734,15 @@ class InlineManager:
 
                     for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
-                            hasattr(module, button['callback'].split('.')[1]):
-                            return await getattr(module, button['callback'].split('.')[1])\
-                                        (query, *button.get('args', []), **button.get('kwargs', {}))
+                                hasattr(module, button['callback'].split('.')[1]):
+                            return await getattr(
+                                module,
+                                button['callback'].split('.')[1]
+                            )(
+                                query,
+                                *button.get('args', []),
+                                **button.get('kwargs', {})
+                            )
 
                     del self._forms[form_uid]
 
@@ -769,10 +775,16 @@ class InlineManager:
 
                     for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['handler'].split('.')[0] and \
-                            hasattr(module, button['handler'].split('.')[1]):
-                            return await getattr(module, button['handler'].split('.')[1])\
-                                        (call, query, *button.get('args', []), **button.get('kwargs', {}))
-
+                                hasattr(module, button['handler'].split('.')[1]):
+                            return await getattr(
+                                module,
+                                button['handler'].split('.')[1]
+                            )(
+                                call,
+                                query,
+                                *button.get('args', []),
+                                **button.get('kwargs', {})
+                            )
 
     async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = None, force_me: bool = True, always_allow: List[int] = None, ttl: Union[int, bool] = False, reply_to: Union[None, Message, int] = None) -> str:
         """Creates inline form with callback
@@ -799,13 +811,11 @@ class InlineManager:
                                 buttons with inline queries and callback queries will become unusable, but
                                 buttons with type url will still work as usual. Pay attention, that ttl can't
                                 be bigger, than default one (1 day) and must be either `int` or `False`
-                        
-
         """
 
         if reply_markup is None:
             reply_markup = []
-        
+
         if always_allow is None:
             always_allow = []
 

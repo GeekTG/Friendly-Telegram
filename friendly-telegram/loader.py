@@ -30,8 +30,10 @@ import sys
 from . import utils, security, inline
 from .translations.dynamic import Strings
 
+
 def test(*args, **kwargs):
     return lambda func: func
+
 
 owner = security.owner
 sudo = security.sudo
@@ -156,32 +158,33 @@ def get_commands(mod):
     """Introspect the module to get its commands"""
     # https://stackoverflow.com/a/34452/5509575
     return {
-        method_name[:-3]: getattr(mod, method_name) \
+        method_name[:-3]: getattr(mod, method_name)
         for method_name in dir(mod)
-            if callable(getattr(mod, method_name)) and \
-            len(method_name) > 3 and \
-            method_name[-3:] == "cmd"
+        if callable(getattr(mod, method_name))
+        and len(method_name) > 3
+        and method_name[-3:] == "cmd"
     }
 
 
 def get_inline_handlers(mod):
     """Introspect the module to get its inline handlers"""
     return {
-        method_name[:-15]: getattr(mod, method_name) \
+        method_name[:-15]: getattr(mod, method_name)
         for method_name in dir(mod)
-            if callable(getattr(mod, method_name)) and \
-            len(method_name) > 15 and \
-            method_name[-15:] == "_inline_handler"
+        if callable(getattr(mod, method_name))
+        and len(method_name) > 15
+        and method_name[-15:] == "_inline_handler"
     }
+
 
 def get_callback_handlers(mod):
     """Introspect the module to get its callback handlers"""
     return {
-        method_name[:-17]: getattr(mod, method_name) \
+        method_name[:-17]: getattr(mod, method_name)
         for method_name in dir(mod)
-            if callable(getattr(mod, method_name)) and \
-            len(method_name) > 17 and \
-            method_name[-17:] == "_callback_handler"
+        if callable(getattr(mod, method_name))
+        and len(method_name) > 17
+        and method_name[-17:] == "_callback_handler"
     }
 
 
@@ -214,13 +217,13 @@ class Modules:
                     utils.get_base_dir(),
                     MODULES_NAME,
                     mod
-                ) \
+                )
                 for mod in
                 filter(
                     lambda x: (
-                        len(x) > 3 and \
-                        x[-3:] == ".py" and \
-                        x[0] != "_"
+                        len(x) > 3
+                        and x[-3:] == ".py"
+                        and x[0] != "_"
                     ),
                     os.listdir(
                         os.path.join(
@@ -236,13 +239,13 @@ class Modules:
                     os.path.join(
                         LOADED_MODULES_DIR,
                         mod
-                    ) \
+                    )
                     for mod in
                     filter(
                         lambda x: (
-                            len(x) > 3 and \
-                            x[-3:] == ".py" and \
-                            x[0] != "_"
+                            len(x) > 3
+                            and x[-3:] == ".py"
+                            and x[0] != "_"
                         ),
                         os.listdir(LOADED_MODULES_DIR)
                     )
@@ -282,12 +285,12 @@ class Modules:
         ret.__origin__ = origin
 
         cls_name = ret.__class__.__name__
-        
+
         if self._fs:
             path = os.path.join(
-                        LOADED_MODULES_DIR,
-                        f"{cls_name}.py"
-                    )
+                LOADED_MODULES_DIR,
+                f"{cls_name}.py"
+            )
 
             if not os.path.isfile(path) and origin == "<string>":
                 with open(path, 'w') as f:
@@ -337,7 +340,14 @@ class Modules:
             if module.__class__.__name__ == instance.__class__.__name__:
                 logging.debug("Removing module for update %r", module)
                 self.modules.remove(module)
-                asyncio.ensure_future(asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5))
+                asyncio.ensure_future(
+                    asyncio.wait_for(
+                        asyncio.gather(
+                            module.on_unload()
+                        ),
+                        timeout=5
+                    )
+                )
 
         self.modules += [instance]
 
@@ -396,7 +406,6 @@ class Modules:
         except Exception as e:
             logging.exception(f"Failed to send mod config complete signal due to {e}")
             raise
-
 
     async def send_ready(self, client, db, allclients):
         """Send all data to all modules"""

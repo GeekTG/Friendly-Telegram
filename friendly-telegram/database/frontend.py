@@ -58,14 +58,17 @@ class Database(dict):
             self._loading = False
             self._waiter.set()
             return
+
         await self._backend.init(self.reload)
         db = await self._backend.do_download()
+
         if db is not None:
             try:
                 self.update(**json.loads(db))
             except Exception:
                 # Don't worry if its corrupted. Just set it to {} and let it be fixed on next upload
                 pass
+
         self._loading = False
         self._waiter.set()
 
@@ -74,14 +77,17 @@ class Database(dict):
             await self.save()
         except Exception:
             logging.info("Database close failed", exc_info=True)
+
         if self._backend is not None:
             self._backend.close()
 
     def save(self):
         if self._pending is not None and not self._pending.cancelled():
             self._pending.cancel()
+
         if self._sync_future is None or self._sync_future.done():
             self._sync_future = NotifyingFuture(on_await=self._cancel_then_set)
+
         self._pending = asyncio.ensure_future(_wait_then_do(10, self._set))  # Delay database ops by 10s
         return self._sync_future
 
@@ -98,6 +104,7 @@ class Database(dict):
     def _cancel_then_set(self):
         if self._pending is not None and not self._pending.cancelled():
             self._pending.cancel()
+
         self._pending = asyncio.ensure_future(self._set())
         # Restart the task, but without the delay, because someone is waiting for us
 
@@ -105,22 +112,28 @@ class Database(dict):
         if self._noop:
             self._sync_future.set_result(True)
             return
+
         if self._loading:
             await self._waiter.wait()
+
         try:
             await self._backend.do_upload(json.dumps(self))
         except Exception as e:
             self._sync_future.set_exception(e)
+
         self._sync_future.set_result(True)
 
     async def reload(self, event):
         if self._noop:
             return
+
         try:
             self._waiter.clear()
             self._loading = True
+
             if self._pending is not None:
                 self._pending.cancel()
+
             db = await self._backend.do_download()
             self.clear()
             self.update(**json.loads(db))

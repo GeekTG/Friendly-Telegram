@@ -76,7 +76,7 @@ class HelpMod(loader.Module):
                 logger.warning("Module %s is missing docstring!", module)
 
             commands = {
-                name: func \
+                name: func
                 for name, func in module.commands.items()
                 if await self.allmodules.check_security(message, func)
             }
@@ -85,20 +85,28 @@ class HelpMod(loader.Module):
                 reply += self.strings("single_cmd", message).format(name)
 
                 if fun.__doc__:
-                    reply += utils.escape_html("\n".join(f'  {t}' for t in inspect.getdoc(fun) \
-                                                            .split("\n")))
+                    reply += utils.escape_html(
+                        "\n".join(
+                            f'  {t}'
+                            for t in inspect.getdoc(fun)
+                                            .split("\n")
+                        )
+                    )
                 else:
                     reply += self.strings("undoc_cmd", message)
         else:
             reply = self.strings("all_header", message) \
-                    .format(
-                        utils.escape_html(
-                            (
-                                self.db.get(main.__name__, "command_prefix", False) or \
-                                "."
-                            )[0]
-                        )
-                    )
+                        .format(
+                            utils.escape_html(
+                                (
+                                    self.db.get(
+                                        main.__name__,
+                                        "command_prefix",
+                                        False)
+                                    or "."
+                                )[0]
+                            )
+                        )  # noqa
 
             for mod in self.allmodules.modules:
                 try:
@@ -125,7 +133,7 @@ class HelpMod(loader.Module):
                                 reply += self.strings("cmd_tmpl",
                                                       message).format(cmd)
                         reply += "</code>"
-                    except:
+                    except Exception:
                         # TODO: FIX THAT SHIT
                         pass
 

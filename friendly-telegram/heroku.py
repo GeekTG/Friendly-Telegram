@@ -44,9 +44,13 @@ def publish(clients, key, api_token=None, create_new=True, full_match=False):
         config["api_id"] = api_token.ID
         config["api_hash"] = api_token.HASH
 
-    app.update_buildpacks(["https://github.com/heroku/heroku-buildpack-python",
-                           "https://github.com/GeekTG/Heroku-BuildPack",
-                           "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"])
+    app.update_buildpacks(
+        [
+            "https://github.com/heroku/heroku-buildpack-python",
+            "https://github.com/GeekTG/Heroku-BuildPack",
+            "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+        ]
+    )
 
     repo = get_repo()
     url = app.git_url.replace("https://", f'https://api:{key}@')

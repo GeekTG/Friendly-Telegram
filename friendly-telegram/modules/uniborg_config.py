@@ -35,8 +35,8 @@ class UniborgConfigMod(loader.Module):
 
     def __init__(self):
         self.config = filter(
-            lambda x: len(x) and \
-            x.upper() == x,
+            lambda x: len(x)
+            and x.upper() == x,
             uniborg.UniborgConfig.__all__
         )
 

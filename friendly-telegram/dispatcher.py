@@ -63,7 +63,7 @@ class CommandDispatcher:
         try:
             with open(self.stats_file, 'r') as f:
                 self.stats = json.loads(f.read())
-        except:
+        except Exception:
             # Don't worry if we couldn't load stats, just create
             # new
             self.stats = {}
@@ -83,15 +83,28 @@ class CommandDispatcher:
                 ret = False
             else:
                 self._ratelimit_storage_chat[message.chat_id] = chat
-            _decrement_ratelimit(self._ratelimit_max_user * severity, self._ratelimit_storage_user,
-                         message.sender_id, severity)
+
+            _decrement_ratelimit(
+                self._ratelimit_max_user * severity,
+                self._ratelimit_storage_user,
+                message.sender_id,
+                severity
+            )
         else:
             severity = (5 if getattr(func, "ratelimit", False) else 2) * (chat // 15 + 1)
+
         chat += severity
+
         if chat > self._ratelimit_max_chat:
             ret = False
-        _decrement_ratelimit(self._ratelimit_max_chat * severity, self._ratelimit_storage_chat,
-                     message.chat_id, severity)
+
+        _decrement_ratelimit(
+            self._ratelimit_max_chat * severity,
+            self._ratelimit_storage_chat,
+            message.chat_id,
+            severity
+        )
+
         return ret
 
     async def handle_command(self, event):
@@ -137,12 +150,11 @@ class CommandDispatcher:
         whitelist_chats = self._db.get(main.__name__, "whitelist_chats", [])
         whitelist_modules = self._db.get(main.__name__, "whitelist_modules", [])
 
-        if utils.get_chat_id(message) in blacklist_chats or \
-                (
-                    whitelist_chats and
-                    utils.get_chat_id(message) \
-                    not in whitelist_chats
-                ):
+        if utils.get_chat_id(message) in blacklist_chats or (
+            whitelist_chats
+            and utils.get_chat_id(message)
+            not in whitelist_chats
+        ):
             logging.debug("Message is blacklisted")
             return
 
@@ -170,7 +182,6 @@ class CommandDispatcher:
             return  # Message is just the prefix
         utils.relocate_entities(message.entities, -len(prefix))
 
-
         try:
             initiator = event.from_id.user_id
         except Exception:
@@ -189,16 +200,16 @@ class CommandDispatcher:
             elif tag[1].lower() != self._cached_username:
                 return
         elif event.mentioned and \
-             event.message is not None and \
-             event.message.message is not None and \
-             '@' + self._cached_username not in event.message.message:
+                event.message is not None and \
+                event.message.message is not None and \
+                '@' + self._cached_username not in event.message.message:
             pass
         elif not event.is_private and \
-             not self.no_nickname and \
-             not event.out and \
-             not self._db.get(main.__name__, 'no_nickname', False) and \
-             command not in self._db.get(main.__name__, 'nonickcmds', []) and \
-             initiator not in self._db.get(main.__name__, 'nonickusers', []):
+                not self.no_nickname and \
+                not event.out and \
+                not self._db.get(main.__name__, 'no_nickname', False) and \
+                command not in self._db.get(main.__name__, 'nonickcmds', []) and \
+                initiator not in self._db.get(main.__name__, 'nonickusers', []):
             return
 
         txt, func = self._modules.dispatch(tag[0])
@@ -221,8 +232,7 @@ class CommandDispatcher:
                 logging.debug("Command is blacklisted in chat")
                 return
 
-            if (whitelist_modules and str(utils.get_chat_id(message)) + "." +
-                    func.__self__.__module__ not in whitelist_modules):
+            if (whitelist_modules and f"{utils.get_chat_id(message)}.{func.__self__.__module__}" not in whitelist_modules):  # noqa
                 logging.debug("Command is not whitelisted in chat")
                 return
 
@@ -235,8 +245,7 @@ class CommandDispatcher:
                     grep = False
                     if '| grep' in message.text or '|grep' in message.text:
                         grep = message.text[message.text.find('grep ') + 5:]
-                        message.text = message.text[:(message.text.find(' | grep') if message.text.find(' | grep') > 0 else message.text.find('|grep'))]
-
+                        message.text = message.text[:(message.text.find(' | grep') if message.text.find(' | grep') > 0 else message.text.find('|grep'))]  # noqa
 
                     if grep:
                         ungrep = False
@@ -251,7 +260,6 @@ class CommandDispatcher:
                         old_edit = message.edit
                         old_reply = message.reply
                         old_respond = message.respond
-
 
                         def process_text(text):
                             nonlocal grep, ungrep
@@ -270,7 +278,6 @@ class CommandDispatcher:
                                 + ((" do not contain <b>" + ungrep + "</b>") if ungrep else "")
                             )
 
-
                             if res:
                                 text = f'<i>💬 Lines that {cont}:</i>\n' + ('\n'.join(res))
                             else:
@@ -278,24 +285,20 @@ class CommandDispatcher:
 
                             return text
 
-
                         async def my_edit(text, *args, **kwargs):
                             text = process_text(text)
                             kwargs['parse_mode'] = "HTML"
                             return await old_edit(text, *args, **kwargs)
-
 
                         async def my_reply(text, *args, **kwargs):
                             text = process_text(text)
                             kwargs['parse_mode'] = "HTML"
                             return await old_reply(text, *args, **kwargs)
 
-
                         async def my_respond(text, *args, **kwargs):
                             text = process_text(text)
                             kwargs['parse_mode'] = "HTML"
                             return await old_respond(text, *args, **kwargs)
-
 
                         message.edit = my_edit
                         message.reply = my_reply
@@ -342,7 +345,7 @@ class CommandDispatcher:
                 else:
                     try:
                         exc = traceback.format_exc()
-                        exc = '\n'.join(exc.split('\n')[1:]) # Remove `Traceback (most recent call last):`
+                        exc = '\n'.join(exc.split('\n')[1:])  # Remove `Traceback (most recent call last):`
                         txt = f"<b>🚫 Command</b> <code>{prefix}{utils.escape_html(message.message)}</code><b> failed!</b>\n\n<b>⛑ Traceback:</b>\n<code>{exc}</code>"
                         await (message.edit if message.out else message.reply)(txt)
                     except Exception:
@@ -358,9 +361,9 @@ class CommandDispatcher:
 
         if utils.get_chat_id(message) in blacklist_chats or \
             (
-                whitelist_chats and \
-                utils.get_chat_id(message) not in whitelist_chats
-            ):
+                whitelist_chats
+                and utils.get_chat_id(message) not in whitelist_chats
+        ):
             logging.debug("Message is blacklisted")
             return
 
@@ -368,15 +371,15 @@ class CommandDispatcher:
             bl = self._db.get(main.__name__, "disabled_watchers", {})
             modname = str(func.__self__.__class__.strings['name'])
             if modname in bl and \
-                isinstance(message, types.Message) and \
-                (
-                    '*' in bl[modname] or \
-                    utils.get_chat_id(message) in bl[modname] or \
-                    'only_chats' in bl[modname] and message.is_private or \
-                    'only_pm' in bl[modname] and not message.is_private or \
-                    'out' in bl[modname] and not message.out or \
-                    'in' in bl[modname] and message.out
-                ):
+                isinstance(message, types.Message) \
+                and (
+                    '*' in bl[modname]
+                    or utils.get_chat_id(message) in bl[modname]
+                    or 'only_chats' in bl[modname] and message.is_private
+                    or 'only_pm' in bl[modname] and not message.is_private
+                    or 'out' in bl[modname] and not message.out
+                    or 'in' in bl[modname] and message.out
+            ):  # noqa
                 logging.debug(f'Ignored watcher of module {modname}')
                 continue
 

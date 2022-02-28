@@ -153,7 +153,7 @@ def gen_port():
 
     # Then ensure it's free
     while socket.socket(socket.AF_INET, socket.SOCK_STREAM) \
-          .connect_ex(('localhost', port)) == 0:
+                .connect_ex(('localhost', port)) == 0:
         # Until we find the free port, generate new one
         port = random.randint(1024, 65536)
 
@@ -207,11 +207,31 @@ def parse_arguments():
 
 def get_phones(arguments):
     """Get phones from the --token, --phone, and environment"""
-    phones = {phone.split(":", maxsplit=1)[0]: phone for phone in
-              map(lambda f: f[18:-8],
-                  filter(lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
-                         os.listdir(arguments.data_root or os.path.dirname(utils.get_base_dir()))))}
-    phones.update(**({phone.split(":", maxsplit=1)[0]: phone for phone in arguments.phone} if arguments.phone else {}))
+    phones = {
+        phone.split(":", maxsplit=1)[0]: phone
+        for phone in map(
+            lambda f: f[18:-8],
+            filter(
+                lambda f: f.startswith("friendly-telegram-")
+                and f.endswith(".session"),
+                os.listdir(
+                    arguments.data_root
+                    or os.path.dirname(
+                        utils.get_base_dir()
+                    )
+                )
+            )
+        )
+    }
+
+    phones.update(**(
+        {
+            phone.split(":", maxsplit=1)[0]: phone
+            for phone in arguments.phone
+        }
+        if arguments.phone
+        else {}
+    ))
 
     authtoken = os.environ.get("authorization_strings", False)  # for heroku
     if authtoken and not arguments.setup:
@@ -225,9 +245,16 @@ def get_phones(arguments):
         authtoken = {}
     if arguments.tokens:
         for token in arguments.tokens:
-            phone = sorted(filter(lambda phone: ":" not in phone, phones.values()))[0]
+            phone = sorted(
+                filter(
+                    lambda phone:
+                    ":" not in phone,
+                    phones.values()
+                )
+            )[0]
             del phones[phone]
             authtoken[phone] = token
+
     return phones, authtoken
 
 
@@ -244,8 +271,8 @@ def get_api_token(arguments, use_default_app=False):
     try:
         with open(
             os.path.join(
-                arguments.data_root or
-                os.path.dirname(
+                arguments.data_root
+                or os.path.dirname(
                     utils.get_base_dir()
                 ),
                 "api_token.txt"
@@ -260,16 +287,20 @@ def get_api_token(arguments, use_default_app=False):
                 api_token = api_token_type(os.environ["api_id"], os.environ["api_hash"])
             except KeyError:
                 api_token = None
+
     return api_token
 
 
 def get_proxy(arguments):
     """Get proxy tuple from --proxy-host, --proxy-port and --proxy-secret
     and connection to use (depends on proxy - provided or not)"""
-    if arguments.proxy_host is not None and arguments.proxy_port is not None and arguments.proxy_secret is not None:
+    if arguments.proxy_host is not None \
+            and arguments.proxy_port is not None \
+            and arguments.proxy_secret is not None:
         logging.debug("Using proxy: %s:%s", arguments.proxy_host, arguments.proxy_port)
         return ((arguments.proxy_host, arguments.proxy_port, arguments.proxy_secret),
                 ConnectionTcpMTProxyRandomizedIntermediate)
+
     return None, ConnectionTcpFull
 
 
@@ -283,21 +314,13 @@ def sigterm(app, signum, handler):  # TODO: delete unused signum, handler
         elif dyno.startswith("restarter"):
             if app.process_formation()["restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK"].quantity:
                 # If this dyno is restarting, it means we should start the web dyno
-                app.batch_scale_formation_processes({"web": 1, "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
-                                                     "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0})
+                app.batch_scale_formation_processes({
+                    "web": 1,
+                    "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
+                    "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0
+                })
     # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
-
-
-async def set_commands(sec, modules):
-    commands = [BotCommand(name, ("/help " + getattr(getattr(func, "__self__", None), "name", "")))
-                for name, func in modules.commands.items()
-                if sec.get_flags(func) & security.PUBLIC_PERMISSIONS]
-    await modules.client(SetBotCommandsRequest(
-        BotCommandScopeDefault(),
-        'en',
-        commands
-    ))
 
 
 class SuperList(list):
@@ -334,13 +357,13 @@ def main():  # noqa: C901
 
     if web_available:
         web = core.Web(
-                data_root=arguments.data_root,
-                api_token=api_token,
-                proxy=proxy,
-                connection=conn,
-                hosting=arguments.hosting,
-                default_app=arguments.default_app
-            ) if arguments.web else None
+            data_root=arguments.data_root,
+            api_token=api_token,
+            proxy=proxy,
+            connection=conn,
+            hosting=arguments.hosting,
+            default_app=arguments.default_app
+        ) if arguments.web else None
     elif arguments.heroku_web_internal:
         raise RuntimeError("Web required but unavailable")
     else:
@@ -434,9 +457,16 @@ def main():  # noqa: C901
                 if arguments.heroku:
                     session = StringSession()
                 else:
-                    session = SQLiteSession(os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()),
-                                                         "friendly-telegram-" + "+" + "X" * (
-                                                                 len(client.phone) - 5) + client.phone[-4:]))
+                    session = SQLiteSession(
+                        os.path.join(
+                            arguments.data_root
+                            or os.path.dirname(
+                                utils.get_base_dir()
+                            ),
+                            f"friendly-telegram-+{'X' * (len(client.phone) - 5)}{client.phone[-4:]}"
+                        )
+                    )
+
                 session.set_dc(client.session.dc_id, client.session.server_address, client.session.port)
                 session.auth_key = client.session.auth_key
                 if not arguments.heroku:
@@ -444,50 +474,64 @@ def main():  # noqa: C901
                 client.session = session
         else:
             try:
-                phone = input("Please enter your phone or bot token: ")
+                phone = input("Please enter your phone: ")
                 phones = {phone.split(":", maxsplit=1)[0]: phone}
             except EOFError:
                 print("=" * 30)
-                print("""Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!
-It is likely that you tried to deploy to heroku -
-you cannot do this via the web interface.
+                print(
+                    "Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!\n"
+                    "It is likely that you tried to deploy to heroku -\n"
+                    "you cannot do this via the web interface.\n"
+                    "\n"
+                    "To deploy to heroku, go to\n"
+                    "https://friendly-telegram.gitlab.io/heroku to learn more\n"
+                    "\n"
+                    "In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!\n"
+                    "You should remove the forked repo, and read https://friendly-telegram.gitlab.io\n"
+                    "\n"
+                    "If you're not using Heroku, then you are using a non-interactive prompt but\n"
+                    "you have not got a session configured, meaning authentication to Telegram is\n"
+                    "impossible.\n"
+                    "\n"
+                    "THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!\n"
+                    "Goodbye.\n"
+                )
 
-To deploy to heroku, go to
-https://friendly-telegram.gitlab.io/heroku to learn more
-
-In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!
-You should remove the forked repo, and read https://friendly-telegram.gitlab.io
-
-If you're not using Heroku, then you are using a non-interactive prompt but
-you have not got a session configured, meaning authentication to Telegram is
-impossible.
-
-THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!
-Goodbye.""")
                 sys.exit(1)
 
     for phone_id, phone in phones.items():
         if arguments.heroku:
             session = StringSession()
         else:
-            session = os.path.join(arguments.data_root or os.path.dirname(utils.get_base_dir()), "friendly-telegram"
-                                   + (("-" + phone_id) if phone_id else ""))
+            session = os.path.join(
+                arguments.data_root
+                or os.path.dirname(
+                    utils.get_base_dir()
+                ),
+                f"friendly-telegram{(('-' + phone_id) if phone_id else '')}"
+            )
+
         try:
-            client = TelegramClient(session, api_token.ID, api_token.HASH,
-                                    connection=conn, proxy=proxy, connection_retries=None)
-            if ":" in phone:
-                client.start(bot_token=phone)
-                client.phone = None
-                del phone
-            else:
-                client.start(phone)
-                client.phone = phone
+            client = TelegramClient(
+                session,
+                api_token.ID,
+                api_token.HASH,
+                connection=conn,
+                proxy=proxy,
+                connection_retries=None
+            )
+
+            client.start(phone)
+            client.phone = phone
+
             clients.append(client)
         except sqlite3.OperationalError as ex:
-            print(f"""Error initialising phone {(phone or "unknown")} {",".join(ex.args)}
-: this is probably your fault. Try checking that this is the only instance running and
-that the session is not copied. If that doesn't help, delete the file named
-'friendly-telegram-{phone if phone else ""}.session'""")
+            print(
+                f"Error initialising phone {(phone or "unknown")} {",".join(ex.args)}\n"  # noqa
+                ": this is probably your fault. Try checking that this is the only instance running and"
+                "that the session is not copied. If that doesn't help, delete the file named"
+                f"'friendly-telegram-{phone if phone else ""}.session'"
+            )
             continue
         except TypeError:
             os.remove(f'{session}.session')
@@ -507,6 +551,7 @@ that the session is not copied. If that doesn't help, delete the file named
             key = arguments.heroku
         else:
             key = input("Please enter your Heroku API key (from https://dashboard.heroku.com/account): ").strip()
+
         app = heroku.publish(clients, key, api_token)
         print("Installed to heroku successfully! Type .help in Telegram for help.")  # noqa: T001
         if web:
@@ -515,11 +560,24 @@ that the session is not copied. If that doesn't help, delete the file named
             loop.run_until_complete(web.root_redirected.wait())
         return
 
-    loop.set_exception_handler(lambda _, x:
-                               logging.error("Exception on event loop! %s", x["message"],
-                                             exc_info=x.get("exception", None)))
+    loop.set_exception_handler(
+        lambda _, x:
+        logging.error(
+            "Exception on event loop! %s",
+            x["message"],
+            exc_info=x.get("exception", None)
+        )
+    )
 
-    loops = [amain_wrapper(client, clients, web, arguments) for client in clients]
+    loops = [
+        amain_wrapper(
+            client,
+            clients,
+            web,
+            arguments
+        )
+        for client in clients
+    ]
     loop.run_until_complete(asyncio.gather(*loops))
 
 
@@ -537,15 +595,19 @@ async def amain(first, client, allclients, web, arguments):
     web_only = arguments.web_only
     client.parse_mode = "HTML"
     await client.start()
+
     handlers = logging.getLogger().handlers
     db = backend.CloudBackend(client)
+
     if setup:
         await db.init(lambda e: None)
         jdb = await db.do_download()
+
         try:
             pdb = json.loads(jdb)
         except (json.decoder.JSONDecodeError, TypeError):
             pdb = {}
+
         modules = loader.Modules(arguments.use_inline)
         babelfish = Translator([], [], arguments.data_root)
         await babelfish.init(client)
@@ -556,13 +618,16 @@ async def amain(first, client, allclients, web, arguments):
         await modules.send_ready(client, fdb, allclients)  # Allow normal init even in setup
         [handler.setLevel(50) for handler in handlers]
         pdb = run_config(pdb, arguments.data_root, getattr(client, "phone", "Unknown Number"), modules)
+
         if pdb is None:
             await client(DeleteChannelRequest(db.db))
             return
+
         try:
             await db.do_upload(json.dumps(pdb))
         except MessageNotModifiedError:
             pass
+
         return False
 
     db = frontend.Database(db, arguments.heroku_deps_internal or arguments.docker_deps_internal)
@@ -577,10 +642,10 @@ async def amain(first, client, allclients, web, arguments):
         to_load = ["loader.py"]
 
     babelfish = Translator(
-                    db.get(__name__, "langpacks", []),
-                    db.get(__name__, "language", ["en"]),
-                    arguments.data_root
-                )
+        db.get(__name__, "langpacks", []),
+        db.get(__name__, "language", ["en"]),
+        arguments.data_root
+    )
 
     await babelfish.init(client)
 
@@ -601,14 +666,26 @@ async def amain(first, client, allclients, web, arguments):
     if not web_only:
         await dispatcher.init(client)
         modules.check_security = dispatcher.check_security
-        client.add_event_handler(dispatcher.handle_incoming,
-                                 events.NewMessage)
-        client.add_event_handler(dispatcher.handle_incoming,
-                                 events.ChatAction)
-        client.add_event_handler(dispatcher.handle_command,
-                                 events.NewMessage(forwards=False))
-        client.add_event_handler(dispatcher.handle_command,
-                                 events.MessageEdited())
+
+        client.add_event_handler(
+            dispatcher.handle_incoming,
+            events.NewMessage
+        )
+
+        client.add_event_handler(
+            dispatcher.handle_incoming,
+            events.ChatAction
+        )
+
+        client.add_event_handler(
+            dispatcher.handle_command,
+            events.NewMessage(forwards=False)
+        )
+
+        client.add_event_handler(
+            dispatcher.handle_command,
+            events.MessageEdited()
+        )
 
     modules.register_all(babelfish, to_load)
 
@@ -652,7 +729,7 @@ async def amain(first, client, allclients, web, arguments):
             logging.info(f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ===")
             logging.info(f"=== PLATFORM: {'Termux' if termux else ('Heroku' if heroku else 'VDS')} ===")
         except Exception:
-            pass # This part is not so necessary, so if error occures, ignore it
+            pass  # This part is not so necessary, so if error occures, ignore it
 
     await client.run_until_disconnected()
 

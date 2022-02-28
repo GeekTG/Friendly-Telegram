@@ -18,8 +18,7 @@
 
 # scope: inline_content
 
-from .. import loader, utils, main
-from telethon.tl.types import *
+from .. import loader, main
 import logging
 import aiogram
 import os
@@ -76,16 +75,15 @@ class GeekInfoMod(loader.Module):
         heroku = os.environ.get("DYNO", False)
 
         platform = "🕶 Termux" \
-                    if termux else \
-                    (
-                        "⛎ Heroku" \
-                        if heroku else \
-                        (
-                            f"✌️ lavHost {os.environ['LAVHOST']}" \
-                            if 'LAVHOST' in os.environ else \
-                            "📻 VDS"
-                        )
-                    )
+            if termux else (
+                "⛎ Heroku"
+                if heroku else
+                (
+                    f"✌️ lavHost {os.environ['LAVHOST']}"
+                    if 'LAVHOST' in os.environ else
+                    "📻 VDS"
+                )
+            )
 
         await query.answer([aiogram.types.inline_query_result.InlineQueryResultArticle(
             id=rand(20),

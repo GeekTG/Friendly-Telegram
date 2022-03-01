@@ -26,9 +26,20 @@ import inspect
 import logging
 import os
 import sys
+import json
 
 from . import utils, security, inline
 from .translations.dynamic import Strings
+
+
+def use_fs_for_modules():
+    try:
+        with open('config.json', 'r') as f:
+            config = json.loads(f.read())
+    except Exception:
+        return False
+
+    return config.get('use_fs_for_modules', False)
 
 
 def test(*args, **kwargs):
@@ -234,7 +245,7 @@ class Modules:
                 )
             ]
 
-            if self._fs:
+            if self._fs and use_fs_for_modules():
                 mods += [
                     os.path.join(
                         LOADED_MODULES_DIR,
@@ -286,7 +297,7 @@ class Modules:
 
         cls_name = ret.__class__.__name__
 
-        if self._fs:
+        if self._fs and use_fs_for_modules():
             path = os.path.join(
                 LOADED_MODULES_DIR,
                 f"{cls_name}.py"
@@ -480,7 +491,7 @@ class Modules:
                 worked += [module.__module__]
 
                 name = module.__class__.__name__
-                if self._fs:
+                if self._fs and use_fs_for_modules():
                     path = os.path.join(
                         LOADED_MODULES_DIR,
                         f"{name}.py"

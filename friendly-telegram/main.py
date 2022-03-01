@@ -40,16 +40,14 @@ from telethon.errors.rpcerrorlist import PhoneNumberInvalidError, MessageNotModi
 from telethon.network.connection import ConnectionTcpFull
 from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
 from telethon.sessions import StringSession, SQLiteSession
-from telethon.tl.functions.bots import SetBotCommandsRequest
 from telethon.tl.functions.channels import DeleteChannelRequest
-from telethon.tl.types import BotCommand, BotCommandScopeDefault
 
-from . import utils, loader, heroku, security
+from . import utils, loader, heroku
 from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 1, 8)
+__version__ = (3, 1, 9)
 try:
     from .web import core
 except ImportError:
@@ -134,6 +132,9 @@ def save_config_key(key, value):
         )
 
     return True
+
+
+save_config_key('use_fs_for_modules', get_config_key('use_fs_for_modules'))
 
 
 def gen_port():
@@ -700,27 +701,27 @@ async def amain(first, client, allclients, web, arguments):
 
             build = repo.heads[0].commit.hexsha
             diff = repo.git.log(['HEAD..origin/alpha', '--oneline'])
-            upd = r'\33[31mUpdate required' if diff else r'\33[92mUp-to-date'
+            upd = r'\33[31mUpdate required' if diff else r'Up-to-date'
 
             termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
             heroku = os.environ.get("DYNO", False)
 
-            platform = r"\x1b[0;30;47mTermux\x1b[0m" if termux else (r"\x1b[0;30;45mHeroku\x1b[0m" if heroku else "VDS")
+            platform = r"Termux" if termux else (r"Heroku" if heroku else "VDS")
 
-            logo1 = fr"""
-                  \x1b[7;30;41m                    )  \x1b[0m
-                  \x1b[7;30;41m (               ( /(  \x1b[0m
-                  \x1b[7;30;41m )\ )   (   (    )\()) \x1b[0m
-                  \x1b[7;30;41m(()/(   )\  )\ |((_)\  \x1b[0m
-                  \x1b[7;30;41m /((\x1b[7;30;42m_\x1b[7;30;41m)\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m)((\x1b[7;30;42m_\x1b[7;30;41m)|\x1b[7;30;42m_\x1b[7;30;41m((\x1b[7;30;42m_\x1b[7;30;41m) \x1b[0m
-                  \x1b[7;30;41m(_)\x1b[0m\x1b[7;30;42m/ __| __| __| |/ /  \x1b[0m
-                  \x1b[7;30;42m  | (_ | _|| _|  ' <   \x1b[0m
-                  \x1b[7;30;42m   \___|___|___|_|\_\ \x1b[0m
+            logo1 = f"""
+                                      )
+                   (               ( /(
+                   ) )   (   (    )())
+                  (()/(   )  ) |((_)
+                   /((_)_((_)((_)|_((_)
+                  (_)/ __| __| __| |/ /
+                    | (_ | _|| _|  ' <
+                     ___|___|___|_|_\\
 
-                     • \33[95mBuild: \33[97m{build[:7]}\x1b[0m
-                     • \33[95mVersion: \33[97m{'.'.join(list(map(str, list(__version__))))}\x1b[0m
-                     • {upd}\x1b[0m
-                     • \33[95mPlatform: \33[97m{platform}\x1b[0m
+                     • Build: {build[:7]}
+                     • Version: {'.'.join(list(map(str, list(__version__))))}
+                     • {upd}
+                     • Platform: {platform}
                      - Started for {(await client.get_me(True)).user_id} -"""
 
             print(logo1)
@@ -729,7 +730,7 @@ async def amain(first, client, allclients, web, arguments):
             logging.info(f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ===")
             logging.info(f"=== PLATFORM: {'Termux' if termux else ('Heroku' if heroku else 'VDS')} ===")
         except Exception:
-            pass  # This part is not so necessary, so if error occures, ignore it
+            logging.exception('Badge error')  # This part is not so necessary, so if error occures, ignore it
 
     await client.run_until_disconnected()
 

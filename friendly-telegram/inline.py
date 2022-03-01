@@ -35,11 +35,6 @@ photo = io.BytesIO(requests.get('https://github.com/GeekTG/Friendly-Telegram/raw
 photo.name = "avatar.png"
 
 
-class InlineError(Exception):
-    """Exception raised when implemented error is occured in InlineManager"""
-    pass
-
-
 class InlineCall:
     def __init__(self):
         self.delete = None
@@ -58,7 +53,7 @@ class GeekInlineQuery:
                 continue  # Ignore magic attrs
 
             try:
-                setattr(self, attr, getattr(inline_query, attr, None))
+                setattr(self, attr, getattr(inline_query, attr))
             except AttributeError:
                 pass  # There are some non-writable native attrs
                 # So just ignore them
@@ -90,7 +85,8 @@ async def edit(text: str, reply_markup: List[List[dict]] = None, force_me: Union
         reply_markup = []
 
     if not isinstance(text, str):
-        raise InlineError("Invalid type for `text`")
+        logger.error("Invalid type for `text`")
+        return False
 
     if isinstance(reply_markup, list):
         form['buttons'] = reply_markup
@@ -528,7 +524,11 @@ class InlineManager:
                 if 'callback' in button and \
                         not isinstance(button['callback'], str):
                     func = button['callback']
-                    button['callback'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
+                    try:
+                        button['callback'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
+                    except Exception:
+                        logger.exception('Error while forming markup! Probably, you passed wrong type to `callback` field, contact developer of module.')
+                        return None
 
                 if 'callback' in button and \
                         '_callback_data' not in button:
@@ -537,7 +537,11 @@ class InlineManager:
                 if 'handler' in button and \
                         not isinstance(button['handler'], str):
                     func = button['handler']
-                    button['handler'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
+                    try:
+                        button['handler'] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
+                    except Exception:
+                        logger.exception('Error while forming markup! Probably, you passed wrong type to `handler` field, contact developer of module.')
+                        return None
 
                 if 'input' in button and \
                         '_switch_query' not in button:
@@ -571,8 +575,9 @@ class InlineManager:
                             button['text'],
                             callback_data=button['data']
                         )]
-                except KeyError as e:
-                    raise InlineError('Invalid arguments combination for buttons') from e
+                except KeyError:
+                    logger.exception('Error while forming markup! Probably, you passed wrong type combination for button. Contact developer of module.')
+                    return
 
             markup.row(*line)
 
@@ -713,8 +718,10 @@ class InlineManager:
                 if self._check_inline_security(query_func, query.from_user.id):
                     try:
                         await query_func(query)
-                    except BaseException:
+                    except Exception:
                         logger.exception('Error on running callback watcher!')
+                        await query.answer('Error occured while processing request. More info in logs', show_alert=True)
+                        return
 
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get('buttons', [])):
@@ -735,14 +742,19 @@ class InlineManager:
                     for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['callback'].split('.')[0] and \
                                 hasattr(module, button['callback'].split('.')[1]):
-                            return await getattr(
-                                module,
-                                button['callback'].split('.')[1]
-                            )(
-                                query,
-                                *button.get('args', []),
-                                **button.get('kwargs', {})
-                            )
+                            try:
+                                return await getattr(
+                                    module,
+                                    button['callback'].split('.')[1]
+                                )(
+                                    query,
+                                    *button.get('args', []),
+                                    **button.get('kwargs', {})
+                                )
+                            except Exception:
+                                logger.exception('Error on running callback watcher!')
+                                await query.answer('Error occured while processing request. More info in logs', show_alert=True)
+                                return
 
                     del self._forms[form_uid]
 
@@ -776,17 +788,21 @@ class InlineManager:
                     for module in self._allmodules.modules:
                         if module.__class__.__name__ == button['handler'].split('.')[0] and \
                                 hasattr(module, button['handler'].split('.')[1]):
-                            return await getattr(
-                                module,
-                                button['handler'].split('.')[1]
-                            )(
-                                call,
-                                query,
-                                *button.get('args', []),
-                                **button.get('kwargs', {})
-                            )
+                            try:
+                                return await getattr(
+                                    module,
+                                    button['handler'].split('.')[1]
+                                )(
+                                    call,
+                                    query,
+                                    *button.get('args', []),
+                                    **button.get('kwargs', {})
+                                )
+                            except Exception:
+                                logger.exception('Exception while running chosen query watcher!')
+                                return
 
-    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = None, force_me: bool = True, always_allow: List[int] = None, ttl: Union[int, bool] = False, reply_to: Union[None, Message, int] = None) -> str:
+    async def form(self, text: str, message: Union[Message, int], reply_markup: List[List[dict]] = None, force_me: bool = True, always_allow: List[int] = None, ttl: Union[int, bool] = False, reply_to: Union[None, Message, int] = None) -> Union[str, bool]:
         """Creates inline form with callback
 
                 Args:
@@ -820,22 +836,28 @@ class InlineManager:
             always_allow = []
 
         if not isinstance(text, str):
-            raise InlineError('Invalid type for `text`')
+            logger.error('Invalid type for `text`')
+            return False
 
         if not isinstance(message, (Message, int)):
-            raise InlineError('Invalid type for `message`')
+            logger.error('Invalid type for `message`')
+            return False
 
         if not isinstance(reply_markup, list):
-            raise InlineError('Invalid type for `reply_markup`')
+            logger.error('Invalid type for `reply_markup`')
+            return False
 
         if not isinstance(force_me, bool):
-            raise InlineError('Invalid type for `force_me`')
+            logger.error('Invalid type for `force_me`')
+            return False
 
         if not isinstance(always_allow, list):
-            raise InlineError('Invalid type for `always_allow`')
+            logger.error('Invalid type for `always_allow`')
+            return False
 
         if not isinstance(ttl, int) and ttl:
-            raise InlineError('Invalid type for `ttl`')
+            logger.error('Invalid type for `ttl`')
+            return False
 
         if isinstance(ttl, int) and (ttl > self._markup_ttl or ttl < 10):
             ttl = self._markup_ttl
@@ -854,8 +876,19 @@ class InlineManager:
             'uid': form_uid
         }
 
-        q = await self._client.inline_query(self._bot_username, form_uid)
-        m = await q[0].click(utils.get_chat_id(message) if isinstance(message, Message) else message, reply_to=reply_to)
+        try:
+            q = await self._client.inline_query(self._bot_username, form_uid)
+            m = await q[0].click(utils.get_chat_id(message) if isinstance(message, Message) else message, reply_to=reply_to)
+        except Exception:
+            msg = '🚫 <b>There tends to be a problem with inline bot while processing query. Check logs for futher info.</b>'
+            del self._forms[form_uid]
+            if isinstance(message, Message):
+                await (message.edit if message.out else message.respond)(msg)
+            else:
+                await self._client.send_message(message, msg)
+
+            return False
+
         self._forms[form_uid]['chat'] = utils.get_chat_id(m)
         self._forms[form_uid]['message_id'] = m.id
         if isinstance(message, Message):
@@ -865,4 +898,4 @@ class InlineManager:
 
 
 if __name__ == "__main__":
-    raise InlineError('This file must be called as a module')
+    raise Exception('This file must be called as a module')

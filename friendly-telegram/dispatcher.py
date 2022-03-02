@@ -59,14 +59,6 @@ class CommandDispatcher:
         me = await client.get_me()
         self._me = me.id
         self._cached_username = me.username.lower() if me.username else str(me.id)
-        self.stats_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), f'../stats-{me.id}.json')
-        try:
-            with open(self.stats_file, 'r') as f:
-                self.stats = json.loads(f.read())
-        except Exception:
-            # Don't worry if we couldn't load stats, just create
-            # new
-            self.stats = {}
 
     async def _handle_ratelimit(self, message, func):
         if await self.security.check(message, security.OWNER | security.SUDO | security.SUPPORT):
@@ -303,25 +295,6 @@ class CommandDispatcher:
                         message.edit = my_edit
                         message.reply = my_reply
                         message.respond = my_respond
-
-            try:
-                # Note, that on Heroku or on read-only
-                # Termux, this will fail to save, so
-                # just ignore it
-
-                if self._me == message.from_id:
-                    module_name = func.__self__.__class__.strings['name']
-                    if module_name not in self.stats:
-                        self.stats[module_name] = []
-                    self.stats[module_name].append(round(time.time()))
-                    with open(self.stats_file, 'w') as f:
-                        f.write(
-                            json.dumps(
-                                self.stats
-                            )
-                        )
-            except Exception:
-                pass
 
             # Feature for CommandsLogger module
             try:

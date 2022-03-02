@@ -47,7 +47,8 @@ class UpdaterMod(loader.Module):
         "installing": "🔁 <b>Installing updates...</b>",
         "success": "✅ <b>Restart successful!</b>",
         "heroku_warning": "⚠️ <b>Heroku API key has not been set. </b>Update was successful but updates will reset every time the bot restarts.",
-        "origin_cfg_doc": "Git origin URL, for where to update from"
+        "origin_cfg_doc": "Git origin URL, for where to update from",
+        "lavhost": "🔄 <b>Restart initiated, and will be complete in 3-5 seconds.</b>\n<i>This message <b>will not</b> be edited after restart is complete!</i>"
     }
 
     def __init__(self):
@@ -58,6 +59,11 @@ class UpdaterMod(loader.Module):
     @loader.owner
     async def restartcmd(self, message):
         """Restarts the userbot"""
+        if os.environ.get('LAVHOST'):
+            await utils.answer(message, self.strings('lavhost'))
+            await self._client.send_message('@lavhostbot', '/restart')
+            return
+
         msg = (await utils.answer(message, self.strings("restarting_caption", message)))[0]
         await self.restart_common(msg)
 
@@ -141,6 +147,11 @@ class UpdaterMod(loader.Module):
     @loader.owner
     async def updatecmd(self, message, hard=False):
         """Downloads userbot updates"""
+        if os.environ.get('LAVHOST'):
+            await utils.answer(message, self.strings('lavhost'))
+            await self._client.send_message('@lavhostbot', '/update')
+            return
+
         # We don't really care about asyncio at this point, as we are shutting down
         if hard:
             os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")
@@ -183,6 +194,7 @@ class UpdaterMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._me = await client.get_me()
+        self._client = client
 
         if db.get(__name__, "selfupdatechat") is not None and db.get(__name__, "selfupdatemsg") is not None:
             try:

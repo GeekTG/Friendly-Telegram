@@ -220,7 +220,7 @@ class GeekSecurityMod(loader.Module):
                 message=message,
                 ttl=5 * 60
             )
-            return  # TODO: Global permissions
+            return
 
         cmd = self.allmodules.commands[args]
 

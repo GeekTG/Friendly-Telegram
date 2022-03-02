@@ -3,13 +3,7 @@
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
     Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
-
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    Licensed under the GNU GPLv3
 """
 
 # <3 title: Backuper
@@ -30,13 +24,13 @@ class BackuperMod(loader.Module):
     """Backup everything and anything"""
     strings = {
         "name": "Backuper",
-        'backup_caption': '☝️ <b>Это - бекап базы данных. Никому его не передавай</b>',
-        'reply_to_file': '<b>Reply to .{} file</b>',
-        'db_restored': '<b>База данных обновлена. Перезапускаю юзербот...</b>',
-        'modules_backup': '🦊 <b>Резервная копия модулей ({})</b>',
-        'notes_backup': '🦊 <b>Резервная копия заметок ({})</b>',
-        'mods_restored': '🦊 <b>Моды восстановлены, перезагружаюсь</b>',
-        'notes_restored': '🦊 <b>Заметки восстановлены</b>'
+        'backup_caption': '☝️ <b>This is your database backup. Do not give it to anyone, it contains personal info.</b>',
+        'reply_to_file': '🚫 <b>Reply to .{} file</b>',
+        'db_restored': '🔄 <b>Database updated, restarting...</b>',
+        'modules_backup': '🗃 <b>Backup mods ({})</b>',
+        'notes_backup': '🗃 <b>Backup notes ({})</b>',
+        'mods_restored': '✅ <b>Modes restored, restarting</b>',
+        'notes_restored': '✅ <b>Notes restored</b>'
     }
 
     async def client_ready(self, client, db):
@@ -46,7 +40,7 @@ class BackuperMod(loader.Module):
     async def backupdbcmd(self, message: Message) -> None:
         """Create database backup [will be sent in pm]"""
         txt = io.BytesIO(json.dumps(self.db).encode('utf-8'))
-        txt.name = f"ftg-db-backup-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.db"
+        txt.name = f"ftg-db-backup-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.db"
         await self.client.send_file('me', txt, caption=self.strings('backup_caption'))
         await message.delete()
 
@@ -73,7 +67,7 @@ class BackuperMod(loader.Module):
         data = json.dumps({'loaded': self.db.get("friendly-telegram.modules.loader", "loaded_modules", []),
                            'unloaded': []})
         txt = io.BytesIO(data.encode('utf-8'))
-        txt.name = f"ftg-mods-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.mods"
+        txt.name = f"ftg-mods-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.mods"
         await self.client.send_file(utils.get_chat_id(message), txt, caption=self.strings('modules_backup', message).format(len(self.db.get("friendly-telegram.modules.loader", "loaded_modules", []))))
         await message.delete()
 
@@ -101,7 +95,7 @@ class BackuperMod(loader.Module):
         data = json.dumps(self.db.get(
             "friendly-telegram.modules.notes", "notes", []))
         txt = io.BytesIO(data.encode('utf-8'))
-        txt.name = f"ftg-notes-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.notes"
+        txt.name = f"ftg-notes-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.notes"
         await self.client.send_file(utils.get_chat_id(message), txt, caption=self.strings('notes_backup', message).format(len(self.db.get("friendly-telegram.modules.notes", "notes", []))))
         await message.delete()
 

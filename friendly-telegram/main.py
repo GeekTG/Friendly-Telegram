@@ -47,7 +47,7 @@ from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 1, 10)
+__version__ = (3, 1, 11)
 try:
     from .web import core
 except ImportError:
@@ -197,6 +197,7 @@ def parse_arguments():
                         help="This is for internal use only. If you use it, things will go wrong.")
     parser.add_argument("--heroku-restart-internal", dest="heroku_restart_internal", action="store_true",
                         help="This is for internal use only. If you use it, things will go wrong.")
+    parser.add_argument('--root', dest="disable_root_check", action='store_true', help="Disable `force_insecure` warning")
     arguments = parser.parse_args()
     logging.debug(arguments)
     if sys.platform == "win32":

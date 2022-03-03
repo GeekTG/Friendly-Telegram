@@ -521,41 +521,65 @@
               Swal.showValidationMessage('Internal server error');
             }
           } else {
-            Swal.fire({
-              title: 'Enter Heroku token',
-              text: 'Leave empty to NOT install to Heroku',
-              input: 'text',
-              inputAttributes: {
-                autocapitalize: 'off'
-              },
-              showCancelButton: false,
-              confirmButtonText: 'Confirm',
-              showLoaderOnConfirm: true,
-              preConfirm: (heroku_token) => {
-                return fetch("/finishLogin", {method: "POST", body: heroku_token, credentials: "include"})
-                      .then(function (response) {
-                        if (!response.ok) {
+            {% if hosting %}
+              fetch("/finishLogin", {method: "POST", body: '', credentials: "include"})
+              .then(function (response) {
+                if (!response.ok) {
+                  Swal.fire({
+                    'icon': 'error',
+                    'text': 'Login confirmation error'
+                  })
+                } else {
+                  Swal.fire({
+                    'icon': 'success',
+                    'text': 'Auth successful!',
+                    'timer': 1000
+                  })
+                }
+              })
+              .catch(function (response) {
+                Swal.fire({
+                  'icon': 'error',
+                  'text': 'Login confirmation error'
+                })
+              });
+            {% else %}
+              Swal.fire({
+                title: 'Enter Heroku token',
+                text: 'Leave empty to NOT install to Heroku',
+                input: 'text',
+                inputAttributes: {
+                  autocapitalize: 'off'
+                },
+                showCancelButton: false,
+                confirmButtonText: 'Confirm',
+                showLoaderOnConfirm: true,
+                preConfirm: (heroku_token) => {
+                  return fetch("/finishLogin", {method: "POST", body: heroku_token, credentials: "include"})
+                        .then(function (response) {
+                          if (!response.ok) {
+                            Swal.fire({
+                              'icon': 'error',
+                              'text': 'Login confirmation error'
+                            })
+                          } else {
+                            Swal.fire({
+                              'icon': 'success',
+                              'text': 'Auth successful!',
+                              'timer': 1000
+                            })
+                          }
+                        })
+                        .catch(function (response) {
                           Swal.fire({
                             'icon': 'error',
                             'text': 'Login confirmation error'
                           })
-                        } else {
-                          Swal.fire({
-                            'icon': 'success',
-                            'text': 'Auth successful!',
-                            'timer': 1000
-                          })
-                        }
-                      })
-                      .catch(function (response) {
-                        Swal.fire({
-                          'icon': 'error',
-                          'text': 'Login confirmation error'
-                        })
-                      });
-              },
-              allowOutsideClick: () => !Swal.isLoading()
-            })
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+              })
+            {% endif %}
           }
         })
         .catch(error => {

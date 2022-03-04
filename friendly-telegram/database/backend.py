@@ -231,7 +231,7 @@ class CloudBackend:
         if not self._assets:
             return None
 
-        ret = (await self._client.get_messages(self._assets, message_ids=[id_]))
+        ret = (await self._client.get_messages(self._assets, ids=[id_]))
 
         if not ret:
             return None

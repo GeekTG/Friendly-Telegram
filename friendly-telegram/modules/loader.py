@@ -282,7 +282,7 @@ class LoaderMod(loader.Module):
             await self.load_module(doc, message)
 
     async def load_module(self, doc, message, name=None, origin="<string>", did_requirements=False):
-        if re.search(r'#[ ]?scope:[ ]?inline_control', doc) and not self.inline.init_complete:
+        if re.search(r'#[ ]?scope:[ ]?inline', doc) and not self.inline.init_complete:
             await utils.answer(message, self.strings('inline_init_failed'))
             return
 

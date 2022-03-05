@@ -46,9 +46,14 @@ class Translator:
                     logger.warning("Pack path invalid")
                     continue
                 try:
-                    file = open(os.path.join(self._data_root
-                                             or os.path.dirname(utils.get_base_dir()),
-                                             "translations", pack + ".json"), "r")
+                    file = open(
+                        os.path.join(
+                            self._data_root or os.path.dirname(utils.get_base_dir()),
+                            "translations",
+                            pack + ".json",
+                        ),
+                        "r",
+                    )
                 except FileNotFoundError:
                     logger.exception("Pack not found")
                     continue
@@ -68,14 +73,24 @@ class Translator:
                     [message] = await client.get_messages(pack, 1)
                 except (ValueError, telethon.errors.rpcerrorlist.ChannelPrivateError):
                     # We can't access the channel
-                    logger.warning("No translation pack found for %r", pack, exc_info=True)
+                    logger.warning(
+                        "No translation pack found for %r", pack, exc_info=True
+                    )
                     continue
                 if not message.document or not message.entities:
-                    logger.info("Last message in translation pack %r has no document/entities", pack)
+                    logger.info(
+                        "Last message in translation pack %r has no document/entities",
+                        pack,
+                    )
                     continue
                 found = False
-                for ent in filter(lambda x: isinstance(x, MessageEntityHashtag), message.entities):
-                    if message.message[ent.offset:ent.offset + ent.length] == MAGIC and message.file:
+                for ent in filter(
+                    lambda x: isinstance(x, MessageEntityHashtag), message.entities
+                ):
+                    if (
+                        message.message[ent.offset : ent.offset + ent.length] == MAGIC
+                        and message.file
+                    ):
                         logger.debug("Got translation message")
                         found = True
                         break
@@ -83,7 +98,9 @@ class Translator:
                     logger.info("Didn't find translation hashtags")
                     continue
                 try:
-                    ndata = json.loads((await message.download_media(bytes)).decode("utf-8"))
+                    ndata = json.loads(
+                        (await message.download_media(bytes)).decode("utf-8")
+                    )
                 except (json.decoder.JSONDecodeError, UnicodeDecodeError):
                     logger.exception("Unable to decode %s", pack)
                     continue

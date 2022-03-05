@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @loader.tds
 class PythonMod(loader.Module):
     """Evaluates python code"""
+
     strings = {
         "name": "Python",
         "eval": "<b>🎬 Code:</b>\n<code>{}</code>\n<b>🪄 Result:</b>\n<code>{}</code>",
@@ -49,26 +50,23 @@ class PythonMod(loader.Module):
         ret = self.strings("eval", message)
         try:
             it = await meval(
-                utils.get_args_raw(message),
-                globals(),
-                **await self.getattrs(message)
+                utils.get_args_raw(message), globals(), **await self.getattrs(message)
             )
         except Exception:
-            exc = format_exc().replace(phone, '📵')
-            await utils.answer(message,
-                               self.strings("err", message)
-                               .format(
-                                   utils.escape_html(
-                                       utils.get_args_raw(message)
-                                   ),
-                                   utils.escape_html(exc)
-                               )
-                               )
+            exc = format_exc().replace(phone, "📵")
+            await utils.answer(
+                message,
+                self.strings("err", message).format(
+                    utils.escape_html(utils.get_args_raw(message)),
+                    utils.escape_html(exc),
+                ),
+            )
 
             return
-        ret = ret.format(utils.escape_html(
-            utils.get_args_raw(message)), utils.escape_html(it))
-        ret = ret.replace(str(phone), '📵')
+        ret = ret.format(
+            utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it)
+        )
+        ret = ret.replace(str(phone), "📵")
         await utils.answer(message, ret)
 
     async def getattrs(self, message):
@@ -88,7 +86,7 @@ class PythonMod(loader.Module):
             "c": self.client,
             "m": message,
             "loader": loader,
-            "lookup": self.lookup
+            "lookup": self.lookup,
         }
 
     def get_sub(self, it, _depth: int = 1) -> dict:
@@ -99,7 +97,7 @@ class PythonMod(loader.Module):
                     lambda x: x[0][0] != "_"
                     and x[0][0].upper() == x[0][0]
                     and callable(x[1]),
-                    it.__dict__.items()
+                    it.__dict__.items(),
                 )
             ),
             **dict(
@@ -110,10 +108,11 @@ class PythonMod(loader.Module):
                             lambda x: x[0][0] != "_"
                             and isinstance(x[1], ModuleType)
                             and x[1] != it
-                            and x[1].__package__.rsplit(".", _depth)[0] == "telethon.tl",
-                            it.__dict__.items()
+                            and x[1].__package__.rsplit(".", _depth)[0]
+                            == "telethon.tl",
+                            it.__dict__.items(),
                         )
                     ]
                 )
-            )
+            ),
         }

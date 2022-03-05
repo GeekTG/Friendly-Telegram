@@ -88,7 +88,9 @@ class Database(dict):
         if self._sync_future is None or self._sync_future.done():
             self._sync_future = NotifyingFuture(on_await=self._cancel_then_set)
 
-        self._pending = asyncio.ensure_future(_wait_then_do(10, self._set))  # Delay database ops by 10s
+        self._pending = asyncio.ensure_future(
+            _wait_then_do(10, self._set)
+        )  # Delay database ops by 10s
         return self._sync_future
 
     def get(self, owner, key, default=None):

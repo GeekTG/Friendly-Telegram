@@ -43,7 +43,10 @@ def get_cmd_name(pattern):
         # That seems to be the normal command prefix
         pattern = pattern[2:]
     else:
-        logger.info("Unable to register for non-command-based outgoing messages, pattern=%s", pattern)
+        logger.info(
+            "Unable to register for non-command-based outgoing messages, pattern=%s",
+            pattern,
+        )
         return False
 
     # Find first non-alpha character and get all chars before it
@@ -54,7 +57,9 @@ def get_cmd_name(pattern):
         cmd = pattern[:i]
 
     if not cmd:
-        logger.info("Unable to identify command correctly, i=%d, pattern=%s", i, pattern)
+        logger.info(
+            "Unable to identify command correctly, i=%d, pattern=%s", i, pattern
+        )
         return False
 
     return cmd
@@ -86,6 +91,7 @@ class MarkdownBotPassthrough:
             ret = func(*args, **kwargs)
         else:
             if inspect.iscoroutine(ret):
+
                 async def wrapper():
                     try:
                         ret2 = await ret
@@ -100,6 +106,7 @@ class MarkdownBotPassthrough:
 
     def __convert(self, ret):
         if inspect.iscoroutine(ret):
+
             async def wrapper():
                 return self.__convert(await ret)
 
@@ -108,12 +115,21 @@ class MarkdownBotPassthrough:
         if isinstance(ret, list):
             for i, thing in enumerate(ret):
                 ret[i] = self.__convert(thing)
-        elif getattr(getattr(getattr(ret, "__self__", ret),
-                             "__class__", None), "__module__", "").startswith("telethon"):
+        elif getattr(
+            getattr(getattr(ret, "__self__", ret), "__class__", None), "__module__", ""
+        ).startswith("telethon"):
             ret = MarkdownBotPassthrough(ret)
             if hasattr(ret, "text"):
-                logger.debug("%r(%s) %r(%s)", ret.entities, type(ret.entities), ret.message, type(ret.message))
-                ret.text = markdown.unparse(ret.message, [x.__under for x in ret.entities or []])
+                logger.debug(
+                    "%r(%s) %r(%s)",
+                    ret.entities,
+                    type(ret.entities),
+                    ret.message,
+                    type(ret.message),
+                )
+                ret.text = markdown.unparse(
+                    ret.message, [x.__under for x in ret.entities or []]
+                )
 
         return ret
 

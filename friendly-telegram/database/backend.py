@@ -1,9 +1,11 @@
-
 import asyncio
 import logging
 
 import telethon
-from telethon.errors.rpcerrorlist import MessageEditTimeExpiredError, MessageNotModifiedError
+from telethon.errors.rpcerrorlist import (
+    MessageEditTimeExpiredError,
+    MessageNotModifiedError,
+)
 from telethon.tl.custom import Message as CustomMessage
 from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
 from telethon.tl.types import Message
@@ -12,7 +14,7 @@ import os
 
 from .. import main, utils
 
-ORIGIN = '/'.join(main.__file__.split('/')[:-2])
+ORIGIN = "/".join(main.__file__.split("/")[:-2])
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ class CloudBackend:
 
     async def init(self, trigger_refresh):
         self._me = await self._client.get_me(True)
-        self._db_path = os.path.join(ORIGIN, f'config-{self._me.user_id}.json')
+        self._db_path = os.path.join(ORIGIN, f"config-{self._me.user_id}.json")
         self._callback = trigger_refresh
 
     def close(self):
@@ -55,14 +57,17 @@ class CloudBackend:
                     CreateChannelRequest(
                         f"friendly-{self._me.user_id}-data",
                         "// Don't touch",
-                        megagroup=True
+                        megagroup=True,
                     )
                 )
             ).chats[0]
 
     async def _find_asset_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
-            if dialog.name == f"friendly-{self._me.user_id}-assets" and dialog.is_channel:
+            if (
+                dialog.name == f"friendly-{self._me.user_id}-assets"
+                and dialog.is_channel
+            ):
                 members = await self._client.get_participants(dialog, limit=2)
                 if len(members) != 1:
                     continue
@@ -79,7 +84,7 @@ class CloudBackend:
                     CreateChannelRequest(
                         f"friendly-{self._me.user_id}-assets",
                         "// Don't touch",
-                        megagroup=True
+                        megagroup=True,
                     )
                 )
             ).chats[0]
@@ -87,9 +92,9 @@ class CloudBackend:
     async def do_download(self, force_from_data_channel=False):
         """Attempt to download the database.
         Return the database (as unparsed JSON) or None"""
-        if main.get_config_key('use_file_db') and not force_from_data_channel:
+        if main.get_config_key("use_file_db") and not force_from_data_channel:
             try:
-                with open(self._db_path, 'r', encoding="utf-8") as f:
+                with open(self._db_path, "r", encoding="utf-8") as f:
                     data = json.dumps(json.loads(f.read()))
             except Exception:
                 data = await self.do_download(force_from_data_channel=True)
@@ -106,13 +111,10 @@ class CloudBackend:
 
             self._client.add_event_handler(
                 self._callback,
-                telethon.events.messageedited.MessageEdited(chats=[self.db])
+                telethon.events.messageedited.MessageEdited(chats=[self.db]),
             )
 
-        msgs = self._client.iter_messages(
-            entity=self.db,
-            reverse=True
-        )
+        msgs = self._client.iter_messages(entity=self.db, reverse=True)
 
         data = ""
         lastdata = ""
@@ -130,9 +132,9 @@ class CloudBackend:
         """Attempt to upload the database.
         Return True or throw"""
 
-        if main.get_config_key('use_file_db'):
+        if main.get_config_key("use_file_db"):
             try:
-                with open(self._db_path, 'w', encoding='utf-8') as f:
+                with open(self._db_path, "w", encoding="utf-8") as f:
                     f.write(data or "{}")
             except Exception:
                 logger.exception("Database save failed!")
@@ -147,13 +149,10 @@ class CloudBackend:
 
             self._client.add_event_handler(
                 self._callback,
-                telethon.events.messageedited.MessageEdited(chats=[self.db])
+                telethon.events.messageedited.MessageEdited(chats=[self.db]),
             )
 
-        msgs = await self._client.get_messages(
-            entity=self.db,
-            reverse=True
-        )
+        msgs = await self._client.get_messages(entity=self.db, reverse=True)
 
         ops = []
         sdata = data
@@ -164,7 +163,11 @@ class CloudBackend:
                     if msg.id == msgs[-1].id:
                         newmsg = True
                     if sdata[:4096] != msg.message:
-                        ops += [msg.edit("<code>" + utils.escape_html(sdata[:4096]) + "</code>")]
+                        ops += [
+                            msg.edit(
+                                "<code>" + utils.escape_html(sdata[:4096]) + "</code>"
+                            )
+                        ]
                     sdata = sdata[4096:]
                 elif msg.id != msgs[-1].id:
                     ops += [msg.delete()]
@@ -172,7 +175,9 @@ class CloudBackend:
         if await self._do_ops(ops):
             return await self.do_upload(data)
 
-        while len(sdata):  # Only happens if newmsg is True or there was no message before
+        while len(
+            sdata
+        ):  # Only happens if newmsg is True or there was no message before
             newmsg = True
             await self._client.send_message(self.db, utils.escape_html(sdata[:4096]))
             sdata = sdata[4096:]
@@ -208,18 +213,11 @@ class CloudBackend:
             self._assets = await self._make_asset_channel()
 
         return (
-            (
-                await self._client.send_message(
-                    self._assets,
-                    message
-                )
-            ).id
+            (await self._client.send_message(self._assets, message)).id
             if isinstance(message, (Message, CustomMessage))
             else (
                 await self._client.send_message(
-                    self._assets,
-                    file=message,
-                    force_document=True
+                    self._assets, file=message, force_document=True
                 )
             ).id
         )
@@ -231,7 +229,7 @@ class CloudBackend:
         if not self._assets:
             return None
 
-        ret = (await self._client.get_messages(self._assets, ids=[id_]))
+        ret = await self._client.get_messages(self._assets, ids=[id_])
 
         if not ret:
             return None

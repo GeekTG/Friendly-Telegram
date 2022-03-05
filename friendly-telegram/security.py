@@ -53,7 +53,7 @@ BITMAP = {
     "GROUP_ADMIN_INVITE_USERS": GROUP_ADMIN_INVITE_USERS,
     "GROUP_ADMIN": GROUP_ADMIN,
     "GROUP_MEMBER": GROUP_MEMBER,
-    "PM": PM
+    "PM": PM,
 }
 
 GROUP_ADMIN_ANY = (
@@ -66,14 +66,9 @@ GROUP_ADMIN_ANY = (
     | GROUP_ADMIN
 )
 
-DEFAULT_PERMISSIONS = (OWNER | SUDO)
+DEFAULT_PERMISSIONS = OWNER | SUDO
 
-PUBLIC_PERMISSIONS = (
-    GROUP_OWNER
-    | GROUP_ADMIN_ANY
-    | GROUP_MEMBER
-    | PM
-)
+PUBLIC_PERMISSIONS = GROUP_OWNER | GROUP_ADMIN_ANY | GROUP_MEMBER | PM
 
 ALL = (1 << 13) - 1
 
@@ -171,13 +166,9 @@ class SecurityManager:
             # every time he changes permissions. It doesn't
             # decrease security at all, bc user anyway can
             # access this attribute
-            config = self._db.get(
-                __name__,
-                "masks",
-                {}
-            ).get(
+            config = self._db.get(__name__, "masks", {}).get(
                 f"{func.__module__}.{func.__name__}",
-                getattr(func, "security", self._default)
+                getattr(func, "security", self._default),
             )
 
         if config & ~ALL:
@@ -243,7 +234,9 @@ class SecurityManager:
 
                 chat = await message.get_chat()
 
-                if not chat.creator and not (chat.admin_rights and chat.admin_rights.post_messages):
+                if not chat.creator and not (
+                    chat.admin_rights and chat.admin_rights.post_messages
+                ):
                     return False
 
                 if self._any_admin and f_group_admin_any:
@@ -256,12 +249,14 @@ class SecurityManager:
                     participant = await message.client(
                         GetParticipantRequest(
                             await message.get_input_chat(),
-                            await message.get_input_sender()
+                            await message.get_input_sender(),
                         )
                     )
                     participant = participant.participant
 
-                    if isinstance(participant, telethon.types.ChannelParticipantCreator):
+                    if isinstance(
+                        participant, telethon.types.ChannelParticipantCreator
+                    ):
                         return True
 
                     if isinstance(participant, telethon.types.ChannelParticipantAdmin):
@@ -269,13 +264,21 @@ class SecurityManager:
                             return True
                         rights = participant.admin_rights
 
-                        if f_group_admin or \
-                                f_group_admin_add_admins and rights.add_admins or \
-                                f_group_admin_change_info and rights.change_info or \
-                                f_group_admin_ban_users and rights.ban_users or \
-                                f_group_admin_delete_messages and rights.delete_messages or \
-                                f_group_admin_pin_messages and rights.pin_messages or \
-                                f_group_admin_invite_users and rights.invite_users:
+                        if (
+                            f_group_admin
+                            or f_group_admin_add_admins
+                            and rights.add_admins
+                            or f_group_admin_change_info
+                            and rights.change_info
+                            or f_group_admin_ban_users
+                            and rights.ban_users
+                            or f_group_admin_delete_messages
+                            and rights.delete_messages
+                            or f_group_admin_pin_messages
+                            and rights.pin_messages
+                            or f_group_admin_invite_users
+                            and rights.invite_users
+                        ):
                             return True
 
                 chat = await message.get_chat()
@@ -285,9 +288,14 @@ class SecurityManager:
                     return True
                 me_id = (await message.client.get_me(True)).user_id
 
-                if f_owner and me_id in self._owner or \
-                        f_sudo and me_id in self._sudo or \
-                        f_support and me_id in self._support:
+                if (
+                    f_owner
+                    and me_id in self._owner
+                    or f_sudo
+                    and me_id in self._sudo
+                    or f_support
+                    and me_id in self._support
+                ):
                     return True
 
         elif message.is_group:
@@ -309,7 +317,10 @@ class SecurityManager:
                 if isinstance(participant, telethon.types.ChatParticipantCreator):
                     return True
 
-            if isinstance(participant, telethon.types.ChatParticipantAdmin) and f_group_admin_any:
+            if (
+                isinstance(participant, telethon.types.ChatParticipantAdmin)
+                and f_group_admin_any
+            ):
                 return True
 
         return False

@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 @loader.tds
 class HelpMod(loader.Module):
     """Provides this help message"""
+
     strings = {
         "name": "Help",
         "bad_module": "🚫 <b>Invalid module name specified</b>",
@@ -40,7 +41,7 @@ class HelpMod(loader.Module):
         "first_cmd_tmpl": ": <code>{}",
         "cmd_tmpl": ", {}",
         "joined": "👩‍💼 <b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
-        "join": "👩‍💼 <b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>"
+        "join": "👩‍💼 <b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>",
     }
 
     @loader.unrestricted
@@ -64,11 +65,12 @@ class HelpMod(loader.Module):
             except KeyError:
                 name = "Unspecified Name"
             reply = self.strings("single_mod_header", message).format(
-                utils.escape_html(name))
+                utils.escape_html(name)
+            )
 
             if module.__doc__:
                 reply += "\n" + "\n".join(
-                    f'  {t}'
+                    f"  {t}"
                     for t in utils.escape_html(inspect.getdoc(module)).split("\n")
                 )
 
@@ -86,27 +88,16 @@ class HelpMod(loader.Module):
 
                 if fun.__doc__:
                     reply += utils.escape_html(
-                        "\n".join(
-                            f'  {t}'
-                            for t in inspect.getdoc(fun)
-                                            .split("\n")
-                        )
+                        "\n".join(f"  {t}" for t in inspect.getdoc(fun).split("\n"))
                     )
                 else:
                     reply += self.strings("undoc_cmd", message)
         else:
-            reply = self.strings("all_header", message) \
-                        .format(
-                            utils.escape_html(
-                                (
-                                    self.db.get(
-                                        main.__name__,
-                                        "command_prefix",
-                                        False)
-                                    or "."
-                                )[0]
-                            )
-                        )  # noqa
+            reply = self.strings("all_header", message).format(
+                utils.escape_html(
+                    (self.db.get(main.__name__, "command_prefix", False) or ".")[0]
+                )
+            )  # noqa
 
             for mod in self.allmodules.modules:
                 try:
@@ -122,16 +113,19 @@ class HelpMod(loader.Module):
                     reply += self.strings("mod_tmpl", message).format(name)
                     first = True
                     try:
-                        commands = [name for name, func in mod.commands.items()
-                                    if await self.allmodules.check_security(message, func)]
+                        commands = [
+                            name
+                            for name, func in mod.commands.items()
+                            if await self.allmodules.check_security(message, func)
+                        ]
                         for cmd in commands:
                             if first:
-                                reply += self.strings("first_cmd_tmpl",
-                                                      message).format(cmd)
+                                reply += self.strings("first_cmd_tmpl", message).format(
+                                    cmd
+                                )
                                 first = False
                             else:
-                                reply += self.strings("cmd_tmpl",
-                                                      message).format(cmd)
+                                reply += self.strings("cmd_tmpl", message).format(cmd)
                         reply += "</code>"
                     except Exception:
                         # TODO: FIX THAT SHIT
@@ -142,16 +136,32 @@ class HelpMod(loader.Module):
     @loader.unrestricted
     async def supportcmd(self, message):
         """Joins the support GeekTG chat"""
-        if await self.allmodules.check_security(message, security.OWNER | security.SUDO):
+        if await self.allmodules.check_security(
+            message, security.OWNER | security.SUDO
+        ):
             await self.client(JoinChannelRequest("https://t.me/chat_ftg"))
 
             try:
-                await self.inline.form(self.strings('joined', message), reply_markup=[[{'text': '👩‍💼 Chat', 'url': 'https://t.me/chat_ftg'}]], ttl=10, message=message)
+                await self.inline.form(
+                    self.strings("joined", message),
+                    reply_markup=[
+                        [{"text": "👩‍💼 Chat", "url": "https://t.me/chat_ftg"}]
+                    ],
+                    ttl=10,
+                    message=message,
+                )
             except Exception:
                 await utils.answer(message, self.strings("joined", message))
         else:
             try:
-                await self.inline.form(self.strings('join', message), reply_markup=[[{'text': '👩‍💼 Chat', 'url': 'https://t.me/chat_ftg'}]], ttl=10, message=message)
+                await self.inline.form(
+                    self.strings("join", message),
+                    reply_markup=[
+                        [{"text": "👩‍💼 Chat", "url": "https://t.me/chat_ftg"}]
+                    ],
+                    ttl=10,
+                    message=message,
+                )
             except Exception:
                 await utils.answer(message, self.strings("join", message))
 

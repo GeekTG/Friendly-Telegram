@@ -37,18 +37,62 @@ from .util import get_cmd_name, MarkdownBotPassthrough
 logger = logging.getLogger(__name__)
 
 
-class RaphielgangConfig():
+class RaphielgangConfig:
     def __init__(self, clients):
-        self.__all__ = ["bots", "API_KEY", "API_HASH", "CONSOLE_LOGGER_VERBOSE", "LOGS", "BOTLOG_CHATID",
-                        "BOTLOG", "PM_AUTO_BAN", "DB_URI", "OCR_SPACE_API_KEY", "REM_BG_API_KEY", "CHROME_DRIVER",
-                        "GOOGLE_CHROME_BIN", "OPEN_WEATHER_MAP_APPID", "WELCOME_MUTE", "ANTI_SPAMBOT",
-                        "ANTI_SPAMBOT_SHOUT", "YOUTUBE_API_KEY", "CLEAN_WELCOME", "BIO_PREFIX", "DEFAULT_BIO",
-                        "LASTFM_API", "LASTFM_SECRET", "LASTFM_USERNAME", "LASTFM_PASSWORD_PLAIN", "LASTFM_PASS",
-                        "lastfm", "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
-                        "GDRIVE_FOLDER_ID", "TEMP_DOWNLOAD_DIRECTORY", "COUNT_MSG", "USERS", "COUNT_PM", "LASTMSG",
-                        "ENABLE_KILLME", "CMD_HELP", "AFKREASON", "ZALG_LIST", "BRAIN_CHECKER", "CURRENCY_API",
-                        "SPOTIFY_USERNAME", "SPOTIFY_PASS", "ISAFK", "ALIVE_NAME", "LOGGER_GROUP", "HELPER",
-                        "MONGO_URI", "GENIUS_API_TOKEN", "FORCE_REDIS_AVAIL", "FORCE_MONGO_AVAIL"]
+        self.__all__ = [
+            "bots",
+            "API_KEY",
+            "API_HASH",
+            "CONSOLE_LOGGER_VERBOSE",
+            "LOGS",
+            "BOTLOG_CHATID",
+            "BOTLOG",
+            "PM_AUTO_BAN",
+            "DB_URI",
+            "OCR_SPACE_API_KEY",
+            "REM_BG_API_KEY",
+            "CHROME_DRIVER",
+            "GOOGLE_CHROME_BIN",
+            "OPEN_WEATHER_MAP_APPID",
+            "WELCOME_MUTE",
+            "ANTI_SPAMBOT",
+            "ANTI_SPAMBOT_SHOUT",
+            "YOUTUBE_API_KEY",
+            "CLEAN_WELCOME",
+            "BIO_PREFIX",
+            "DEFAULT_BIO",
+            "LASTFM_API",
+            "LASTFM_SECRET",
+            "LASTFM_USERNAME",
+            "LASTFM_PASSWORD_PLAIN",
+            "LASTFM_PASS",
+            "lastfm",
+            "G_DRIVE_CLIENT_ID",
+            "G_DRIVE_CLIENT_SECRET",
+            "G_DRIVE_AUTH_TOKEN_DATA",
+            "GDRIVE_FOLDER_ID",
+            "TEMP_DOWNLOAD_DIRECTORY",
+            "COUNT_MSG",
+            "USERS",
+            "COUNT_PM",
+            "LASTMSG",
+            "ENABLE_KILLME",
+            "CMD_HELP",
+            "AFKREASON",
+            "ZALG_LIST",
+            "BRAIN_CHECKER",
+            "CURRENCY_API",
+            "SPOTIFY_USERNAME",
+            "SPOTIFY_PASS",
+            "ISAFK",
+            "ALIVE_NAME",
+            "LOGGER_GROUP",
+            "HELPER",
+            "MONGO_URI",
+            "GENIUS_API_TOKEN",
+            "FORCE_REDIS_AVAIL",
+            "FORCE_MONGO_AVAIL",
+        ]
 
         self.bots = clients
 
@@ -92,117 +136,121 @@ class RaphielgangConfig():
         self.ENABLE_KILLME = False
         self.CMD_HELP = {}
         self.AFKREASON = "no reason"
-        self.ZALG_LIST = [[
-            "̖",
-            " ̗",
-            " ̘",
-            " ̙",
-            " ̜",
-            " ̝",
-            " ̞",
-            " ̟",
-            " ̠",
-            " ̤",
-            " ̥",
-            " ̦",
-            " ̩",
-            " ̪",
-            " ̫",
-            " ̬",
-            " ̭",
-            " ̮",
-            " ̯",
-            " ̰",
-            " ̱",
-            " ̲",
-            " ̳",
-            " ̹",
-            " ̺",
-            " ̻",
-            " ̼",
-            " ͅ",
-            " ͇",
-            " ͈",
-            " ͉",
-            " ͍",
-            " ͎",
-            " ͓",
-            " ͔",
-            " ͕",
-            " ͖",
-            " ͙",
-            " ͚",
-            " ",
-        ], [
-            " ̍",
-            " ̎",
-            " ̄",
-            " ̅",
-            " ̿",
-            " ̑",
-            " ̆",
-            " ̐",
-            " ͒",
-            " ͗",
-            " ͑",
-            " ̇",
-            " ̈",
-            " ̊",
-            " ͂",
-            " ̓",
-            " ̈́",
-            " ͊",
-            " ͋",
-            " ͌",
-            " ̃",
-            " ̂",
-            " ̌",
-            " ͐",
-            " ́",
-            " ̋",
-            " ̏",
-            " ̽",
-            " ̉",
-            " ͣ",
-            " ͤ",
-            " ͥ",
-            " ͦ",
-            " ͧ",
-            " ͨ",
-            " ͩ",
-            " ͪ",
-            " ͫ",
-            " ͬ",
-            " ͭ",
-            " ͮ",
-            " ͯ",
-            " ̾",
-            " ͛",
-            " ͆",
-            " ̚",
-        ], [
-            " ̕",
-            " ̛",
-            " ̀",
-            " ́",
-            " ͘",
-            " ̡",
-            " ̢",
-            " ̧",
-            " ̨",
-            " ̴",
-            " ̵",
-            " ̶",
-            " ͜",
-            " ͝",
-            " ͞",
-            " ͟",
-            " ͠",
-            " ͢",
-            " ̸",
-            " ̷",
-            " ͡",
-        ]]
+        self.ZALG_LIST = [
+            [
+                "̖",
+                " ̗",
+                " ̘",
+                " ̙",
+                " ̜",
+                " ̝",
+                " ̞",
+                " ̟",
+                " ̠",
+                " ̤",
+                " ̥",
+                " ̦",
+                " ̩",
+                " ̪",
+                " ̫",
+                " ̬",
+                " ̭",
+                " ̮",
+                " ̯",
+                " ̰",
+                " ̱",
+                " ̲",
+                " ̳",
+                " ̹",
+                " ̺",
+                " ̻",
+                " ̼",
+                " ͅ",
+                " ͇",
+                " ͈",
+                " ͉",
+                " ͍",
+                " ͎",
+                " ͓",
+                " ͔",
+                " ͕",
+                " ͖",
+                " ͙",
+                " ͚",
+                " ",
+            ],
+            [
+                " ̍",
+                " ̎",
+                " ̄",
+                " ̅",
+                " ̿",
+                " ̑",
+                " ̆",
+                " ̐",
+                " ͒",
+                " ͗",
+                " ͑",
+                " ̇",
+                " ̈",
+                " ̊",
+                " ͂",
+                " ̓",
+                " ̈́",
+                " ͊",
+                " ͋",
+                " ͌",
+                " ̃",
+                " ̂",
+                " ̌",
+                " ͐",
+                " ́",
+                " ̋",
+                " ̏",
+                " ̽",
+                " ̉",
+                " ͣ",
+                " ͤ",
+                " ͥ",
+                " ͦ",
+                " ͧ",
+                " ͨ",
+                " ͩ",
+                " ͪ",
+                " ͫ",
+                " ͬ",
+                " ͭ",
+                " ͮ",
+                " ͯ",
+                " ̾",
+                " ͛",
+                " ͆",
+                " ̚",
+            ],
+            [
+                " ̕",
+                " ̛",
+                " ̀",
+                " ́",
+                " ͘",
+                " ̡",
+                " ̢",
+                " ̧",
+                " ̨",
+                " ̴",
+                " ̵",
+                " ̶",
+                " ͜",
+                " ͝",
+                " ͞",
+                " ͟",
+                " ͠",
+                " ͢",
+                " ̸",
+                " ̷",
+                " ͡",
+            ],
+        ]
         self.BRAIN_CHECKER = []
         self.is_mongo_alive = lambda: self.MONGO_URI is not None
         self.is_redis_alive = lambda: self.REDIS.ping()
@@ -210,7 +258,9 @@ class RaphielgangConfig():
         self.SPOTIFY_USERNAME = None
         self.SPOTIFY_PASS = None
         self.ISAFK = False
-        self.ALIVE_NAME = "`**PPE bad! Use **[friendly-telegram](https://t.me/friendlytgbot)`."
+        self.ALIVE_NAME = (
+            "`**PPE bad! Use **[friendly-telegram](https://t.me/friendlytgbot)`."
+        )
 
         self.GDRIVE_FOLDER = self.GDRIVE_FOLDER_ID
         self.GENIUS_API_TOKEN = ""
@@ -254,13 +304,17 @@ class RaphielgangConfig():
     @property
     def bot(self):
         if not len(self.__passthrus):
-            self.__passthrus += [MarkdownBotPassthrough(self.bots[0] if len(self.bots) else None)]
+            self.__passthrus += [
+                MarkdownBotPassthrough(self.bots[0] if len(self.bots) else None)
+            ]
         return self.__passthrus[0]
 
     @property
     def MONGOCLIENT(self):
         if self.MONGO_URI is not None and self.mongoclient is None:
-            self.mongoclient = pymongo.MongoClient(self.MONGO_URI, 27017, serverSelectionTimeoutMS=1)
+            self.mongoclient = pymongo.MongoClient(
+                self.MONGO_URI, 27017, serverSelectionTimeoutMS=1
+            )
         return self.mongoclient
 
     @property
@@ -277,7 +331,9 @@ class RaphielgangConfig():
         logging.debug(len(self.__passthrus))
         logging.debug(len(self.bots))
         try:
-            self.__passthrus[len(self.bots) - 1].__under = client  # pylint:disable=W0212 # Ewwww, but needed
+            self.__passthrus[
+                len(self.bots) - 1
+            ].__under = client  # pylint:disable=W0212 # Ewwww, but needed
         except IndexError:
             pass
 
@@ -292,11 +348,11 @@ __hours_wasted_here = 6
 
 
 # // don't touch
-class RaphielgangEvents():
+class RaphielgangEvents:
     def __init__(self, clients):
         self.instances = {}
 
-    class RaphielgangEventsSub():
+    class RaphielgangEventsSub:
         class __RaphielgangShimMod__Base(loader.Module):
             instance_count = 0
 
@@ -307,8 +363,12 @@ class RaphielgangEvents():
 
             def __init__(self, events_instance):
                 super().__init__()
-                inspect.getmro(type(self))[1].instance_count += 1  # pylint: disable=E1101 # See above
-                self.instance_id = inspect.getmro(type(self))[1].instance_count  # pylint: disable=E1101 # See above
+                inspect.getmro(type(self))[
+                    1
+                ].instance_count += 1  # pylint: disable=E1101 # See above
+                self.instance_id = inspect.getmro(type(self))[
+                    1
+                ].instance_count  # pylint: disable=E1101 # See above
                 self._events = events_instance
                 self.commands = events_instance.commands
                 for func in self.commands.values():
@@ -337,14 +397,20 @@ class RaphielgangEvents():
 
         def _unknown_command(self, message):
             """A command that could not be understood by the compat system, you must put the raw command after."""
-            message.message = message.message[len("raphcmd" + str(self.instance_id)) + 1:]
+            message.message = message.message[
+                len("raphcmd" + str(self.instance_id)) + 1 :
+            ]
             return asyncio.gather(*[uk(message, "") for uk in self.unknowns])
 
         def register(self, *args, **kwargs):  # noqa: C901 # legacy code that works fine
             if len(args) == 1 and args[0] is True:
                 # This is the register() function in normal ftg modules
                 # Create a fake type, instantiate it with our own self
-                return type("RaphielgangShim__" + self.module, (self.__RaphielgangShimMod__Base,), dict())(self)
+                return type(
+                    "RaphielgangShim__" + self.module,
+                    (self.__RaphielgangShimMod__Base,),
+                    dict(),
+                )(self)
 
             def subreg(func):  # ALWAYS return func.
                 logger.debug(kwargs)
@@ -370,7 +436,9 @@ class RaphielgangEvents():
                         logger.debug("Command triggered")
                         # Framework strips prefix, give them a generic one
                         message.message = pre + message.message
-                        match = re.match(kwargs.get("pattern", r"^\b$"), message.message, re.I)
+                        match = re.match(
+                            kwargs.get("pattern", r"^\b$"), message.message, re.I
+                        )
                         if "pattern" not in kwargs or match:
                             logger.debug("and matched")
                             event = MarkdownBotPassthrough(message)
@@ -379,7 +447,12 @@ class RaphielgangEvents():
                             event.message = message
                             return func(event)  # Return a coroutine
                         else:
-                            logger.debug("but not matched " + message.message + " / " + kwargs.get("pattern", "None"))
+                            logger.debug(
+                                "but not matched "
+                                + message.message
+                                + " / "
+                                + kwargs.get("pattern", "None")
+                            )
                             return asyncio.gather()  # passthru coro
 
                     if use_unknown:
@@ -387,14 +460,18 @@ class RaphielgangEvents():
                     else:
                         if commandhandler.__doc__ is None:
                             commandhandler.__doc__ = "Undocumented external command"
-                        self.commands[cmd] = commandhandler  # Add to list of commands so we can call later
+                        self.commands[
+                            cmd
+                        ] = commandhandler  # Add to list of commands so we can call later
                 elif kwargs.get("incoming", False):
                     # Watcher-based thing
 
                     @wraps(func)
                     def subwatcher(message):
                         """Closure to execute watcher when handler activated and regex matched"""
-                        match = re.match(message.message, kwargs.get("pattern", r"^\b$"), re.I)
+                        match = re.match(
+                            message.message, kwargs.get("pattern", r"^\b$"), re.I
+                        )
                         if "pattern" not in kwargs or match:
                             event = message
                             # Try to emulate the expected format for an event
@@ -405,7 +482,9 @@ class RaphielgangEvents():
                             return func(event)  # Return a coroutine
                         return asyncio.gather()
 
-                    self.watchers += [subwatcher]  # Add to list of watchers so we can call later.
+                    self.watchers += [
+                        subwatcher
+                    ]  # Add to list of watchers so we can call later.
                 else:
                     logger.error("event not incoming or outgoing or neither or both")
                     return func
@@ -417,7 +496,9 @@ class RaphielgangEvents():
     def register(self, *args, **kwargs):
         if len(args) == 1:
             logger.debug("Register for %s", args[0])
-            return self.instances[args[0]].register(True)  # Passthrough if we have enough info
+            return self.instances[args[0]].register(
+                True
+            )  # Passthrough if we have enough info
         elif len(args) != 0:
             logger.error(args)
             raise TypeError("Takes at most one parameter")
@@ -425,7 +506,9 @@ class RaphielgangEvents():
         def subreg(func):
             if func.__module__ not in self.instances:
                 self.instances[func.__module__] = self.RaphielgangEventsSub()
-            kwargs["__instance_number"] = list(self.instances.keys()).index(func.__module__)
+            kwargs["__instance_number"] = list(self.instances.keys()).index(
+                func.__module__
+            )
             return self.instances[func.__module__].register(**kwargs)(func)
 
         return subreg

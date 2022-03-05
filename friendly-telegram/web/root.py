@@ -22,7 +22,7 @@ class Web:
 
     async def restart(self, request):
         cl = self.client_data[list(self.client_data.keys())[0]]
-        m = await cl[1].send_message('me', '<b>Restarting...</b>')
+        m = await cl[1].send_message("me", "<b>Restarting...</b>")
         for mod in cl[0].modules:
             if mod.__class__.__name__ == "UpdaterMod":
                 await mod.restart_common(m)

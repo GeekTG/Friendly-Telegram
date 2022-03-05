@@ -29,10 +29,11 @@ logger = logging.getLogger(__name__)
 @loader.tds
 class NoCollisionsMod(loader.Module):
     """Makes sure only 1 userbot is running at a time"""
+
     strings = {
         "name": "Anti-collisions",
         "killed": "<b>All userbots killed</b>",
-        "deadbeff": "<code>DEADBEEF</code>"
+        "deadbeff": "<code>DEADBEEF</code>",
     }
 
     @loader.owner

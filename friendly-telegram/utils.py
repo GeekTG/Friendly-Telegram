@@ -28,12 +28,14 @@ import shlex
 import telethon
 from telethon.extensions import html
 from telethon.tl.custom.message import Message
-from telethon.tl.types import PeerUser, \
-    PeerChat, \
-    PeerChannel, \
-    MessageEntityMentionName, \
-    User, \
-    MessageMediaWebPage
+from telethon.tl.types import (
+    PeerUser,
+    PeerChat,
+    PeerChannel,
+    MessageEntityMentionName,
+    User,
+    MessageMediaWebPage,
+)
 
 from . import __main__
 
@@ -134,7 +136,9 @@ async def get_user(message):
         return await message.client.get_entity(message.sender_id)
 
     if isinstance(message.to_id, (PeerChannel, PeerChat)):
-        async for user in message.client.iter_participants(message.to_id, aggressive=True):
+        async for user in message.client.iter_participants(
+            message.to_id, aggressive=True
+        ):
             if user.id == message.sender_id:
                 return user
 
@@ -148,7 +152,9 @@ async def get_user(message):
 def run_sync(func, *args, **kwargs):
     """Run a non-async function in a new thread and return an awaitable"""
     # Returning a coro
-    return asyncio.get_event_loop().run_in_executor(None, functools.partial(func, *args, **kwargs))
+    return asyncio.get_event_loop().run_in_executor(
+        None, functools.partial(func, *args, **kwargs)
+    )
 
 
 def run_async(loop, coro):
@@ -157,7 +163,9 @@ def run_async(loop, coro):
     return asyncio.run_coroutine_threadsafe(coro, loop).result()
 
 
-def censor(obj, to_censor=None, replace_with="redacted_{count}_chars"):  # pylint: disable=W0102
+def censor(
+    obj, to_censor=None, replace_with="redacted_{count}_chars"
+):  # pylint: disable=W0102
     # Safe to disable W0102 because we don't touch to_censor, mutably or immutably.
     """May modify the original object, but don't rely on it"""
     if to_censor is None:
@@ -209,12 +217,18 @@ def _fix_entities(ent, cont_msg, initial=False):
 async def answer(message, response, **kwargs):
     """Use this to give the response to a command"""
     if isinstance(message, list):
-        delete_job = asyncio.ensure_future(message[0].client.delete_messages(message[0].input_chat, message[1:]))
+        delete_job = asyncio.ensure_future(
+            message[0].client.delete_messages(message[0].input_chat, message[1:])
+        )
         message = message[0]
     else:
         delete_job = None
 
-    if await message.client.is_bot() and isinstance(response, str) and len(response) > 4096:
+    if (
+        await message.client.is_bot()
+        and isinstance(response, str)
+        and len(response) > 4096
+    ):
         kwargs.setdefault("asfile", True)
 
     kwargs.setdefault("link_preview", False)
@@ -222,22 +236,37 @@ async def answer(message, response, **kwargs):
     edit = message.out
 
     if not edit:
-        kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
+        kwargs.setdefault(
+            "reply_to",
+            message.reply_to_msg_id
+            if await message.get_reply_message()
+            else message.id,
+        )
 
-    parse_mode = telethon.utils.sanitize_parse_mode(kwargs.pop("parse_mode", message.client.parse_mode))
+    parse_mode = telethon.utils.sanitize_parse_mode(
+        kwargs.pop("parse_mode", message.client.parse_mode)
+    )
 
     if isinstance(response, str) and not kwargs.pop("asfile", False):
         txt, ent = parse_mode.parse(response)
 
         if len(txt) >= 8192:
-            file = io.BytesIO(txt.encode('utf-8'))
+            file = io.BytesIO(txt.encode("utf-8"))
             file.name = "command_result.txt"
-            await message.client.send_file(message.to_id, file, caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>")
+            await message.client.send_file(
+                message.to_id,
+                file,
+                caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>",
+            )
             if message.out:
                 await message.delete()
             return
 
-        ret = [await (message.edit if edit else message.respond)(txt[:4096], parse_mode=lambda t: (t, ent), **kwargs)]
+        ret = [
+            await (message.edit if edit else message.respond)(
+                txt[:4096], parse_mode=lambda t: (t, ent), **kwargs
+            )
+        ]
         txt = txt[4096:]
         cont_msg = "[continued]\n"
         _fix_entities(ent, cont_msg, True)
@@ -249,25 +278,19 @@ async def answer(message, response, **kwargs):
             txt = txt[4096:]
             _fix_entities(ent, cont_msg)
             ret.append(
-                await (
-                    message.reply if edit
-                    else message.respond
-                )(
-                    message,
-                    parse_mode=lambda t: (t, ent), **kwargs
+                await (message.reply if edit else message.respond)(
+                    message, parse_mode=lambda t: (t, ent), **kwargs
                 )
             )
     elif isinstance(response, Message):
-        if message.media is None \
-                and (
-                    response.media is None
-                    or isinstance(response.media, MessageMediaWebPage)
-                ):
+        if message.media is None and (
+            response.media is None or isinstance(response.media, MessageMediaWebPage)
+        ):
             ret = (
                 await message.edit(
                     response.message,
                     parse_mode=lambda t: (t, response.entities or []),
-                    link_preview=isinstance(response.media, MessageMediaWebPage)
+                    link_preview=isinstance(response.media, MessageMediaWebPage),
                 ),
             )
         else:
@@ -290,14 +313,13 @@ async def answer(message, response, **kwargs):
         else:
             txt = "<b>Loading media...</b>"  # TODO translations
             new = await (message.edit if edit else message.reply)(txt)
-            kwargs.setdefault("reply_to", message.reply_to_msg_id if await message.get_reply_message() else message.id)
-            ret = (
-                await message.client.send_file(
-                    message.chat_id,
-                    response,
-                    **kwargs
-                ),
+            kwargs.setdefault(
+                "reply_to",
+                message.reply_to_msg_id
+                if await message.get_reply_message()
+                else message.id,
             )
+            ret = (await message.client.send_file(message.chat_id, response, **kwargs),)
             await new.delete()
 
     if delete_job:
@@ -308,15 +330,11 @@ async def answer(message, response, **kwargs):
 
 async def get_target(message, arg_no=0):
     if any(
-        isinstance(ent, MessageEntityMentionName)
-        for ent in (message.entities or [])
+        isinstance(ent, MessageEntityMentionName) for ent in (message.entities or [])
     ):
         e = sorted(
-            filter(
-                lambda x: isinstance(x, MessageEntityMentionName),
-                message.entities
-            ),
-            key=lambda x: x.offset
+            filter(lambda x: isinstance(x, MessageEntityMentionName), message.entities),
+            key=lambda x: x.offset,
         )[0]
         return e.user_id
     elif len(get_args(message)) > arg_no:

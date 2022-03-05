@@ -34,7 +34,12 @@ def publish(clients, key, api_token=None, create_new=True, full_match=False):
     """Push to heroku"""
     logging.debug("Configuring heroku...")
 
-    data = json.dumps({getattr(client, "phone", ""): StringSession.save(client.session) for client in clients})
+    data = json.dumps(
+        {
+            getattr(client, "phone", ""): StringSession.save(client.session)
+            for client in clients
+        }
+    )
     app, config = get_app(data, key, api_token, create_new, full_match)
 
     config["authorization_strings"] = data
@@ -48,12 +53,12 @@ def publish(clients, key, api_token=None, create_new=True, full_match=False):
         [
             "https://github.com/heroku/heroku-buildpack-python",
             "https://github.com/GeekTG/Heroku-BuildPack",
-            "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+            "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest",
         ]
     )
 
     repo = get_repo()
-    url = app.git_url.replace("https://", f'https://api:{key}@')
+    url = app.git_url.replace("https://", f"https://api:{key}@")
 
     if "heroku" in repo.remotes:
         remote = repo.remote("heroku")
@@ -66,7 +71,9 @@ def publish(clients, key, api_token=None, create_new=True, full_match=False):
     return app
 
 
-def get_app(authorization_strings, key, api_token=None, create_new=True, full_match=False):
+def get_app(
+    authorization_strings, key, api_token=None, create_new=True, full_match=False
+):
     heroku = heroku3.from_key(key)
     app = None
 
@@ -76,7 +83,9 @@ def get_app(authorization_strings, key, api_token=None, create_new=True, full_ma
         if "authorization_strings" not in config:
             continue
 
-        if api_token is None or (config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH):
+        if api_token is None or (
+            config["api_id"] == api_token.ID and config["api_hash"] == api_token.HASH
+        ):
             if full_match and config["authorization_strings"] != authorization_strings:
                 continue
 
@@ -100,7 +109,9 @@ def get_repo():
         repo = Repo(os.path.dirname(utils.get_base_dir()))
     except InvalidGitRepositoryError:
         repo = Repo.init(os.path.dirname(utils.get_base_dir()))
-        origin = repo.create_remote("origin", "https://github.com/GeekTG/Friendly-Telegram")
+        origin = repo.create_remote(
+            "origin", "https://github.com/GeekTG/Friendly-Telegram"
+        )
         origin.fetch()
         repo.create_head("master", origin.refs.master)
         repo.heads.master.set_tracking_branch(origin.refs.master)

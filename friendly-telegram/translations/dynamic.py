@@ -17,6 +17,7 @@
 #    Friendly Telegram Userbot
 #    by GeekTG Team
 
+
 class Strings:
     def __init__(self, prefix, strings, babel):
         self._prefix = prefix
@@ -33,7 +34,10 @@ class Strings:
             lang_code = None
         else:
             lang_code = getattr(getattr(message, "sender", None), "lang_code", None)
-        return self._babel.getkey(self._prefix + "." + key, lang_code) or self._strings[key]
+        return (
+            self._babel.getkey(f'{self._prefix}.{key}', lang_code)
+            or self._strings[key]
+        )
 
     def __iter__(self):
         return self._strings.__iter__()

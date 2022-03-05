@@ -44,7 +44,7 @@ class UniborgClient(MarkdownBotPassthrough):
             self.commands = borg._commands
             for func in self.commands.values():
                 func.__self__ = self
-            self.strings = {"name": f'UniBorg{str(self._borg.instance_id)}'}
+            self.strings = {"name": f"UniBorg{str(self._borg.instance_id)}"}
             self.__module__ = borg._module
             self._client = None
 
@@ -58,7 +58,7 @@ class UniborgClient(MarkdownBotPassthrough):
 
     def registerfunc(self, _):
         self._wrapper = type(
-            f'UniborgShim__{self._module}', (self.__UniborgShimMod__Base,), dict()
+            f"UniborgShim__{self._module}", (self.__UniborgShimMod__Base,), dict()
         )(self)
 
         return self._wrapper
@@ -77,12 +77,14 @@ class UniborgClient(MarkdownBotPassthrough):
         sys.modules[self._module].__dict__["Config"] = self._config
 
     def _ensure_unknowns(self):
-        self._commands[f'borgcmd{str(self.instance_id)}'] = self._unknown_command()
+        self._commands[f"borgcmd{str(self.instance_id)}"] = self._unknown_command()
 
     def _unknown_command(self):
         # this way, the `self` is wrapped as a nonlocal, so __self__ can be modified
         def _unknown_command_inner(message):
-            message.message = "." + message.message[len("borgcmd" + str(self.instance_id)) + 1:]
+            message.message = (
+                "." + message.message[len("borgcmd" + str(self.instance_id)) + 1 :]
+            )
             return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
         return _unknown_command_inner
@@ -119,19 +121,23 @@ class UniborgClient(MarkdownBotPassthrough):
                         event.pattern.__self__.pattern, pre + message.message, re.I
                     ):
                         logger.debug("and matched")
-                        message.message = pre + message.message  # Framework strips prefix, give them a generic one
+                        message.message = (
+                            pre + message.message
+                        )  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
                         # Try to emulate the expected format for an event
                         event2.pattern_match = match
                         event2.message = MarkdownBotPassthrough(message)
                         # Put it off as long as possible so event handlers register
-                        sys.modules[self._module].__dict__["borg"] = MarkdownBotPassthrough(self._wrapper._client)
+                        sys.modules[self._module].__dict__[
+                            "borg"
+                        ] = MarkdownBotPassthrough(self._wrapper._client)
 
                         return func(event2)
                     else:
                         logger.debug(
                             (
-                                (f'but not matched cmd {message.message}' + " regex ")
+                                (f"but not matched cmd {message.message}" + " regex ")
                                 + event.pattern.__self__.pattern
                             )
                         )
@@ -144,6 +150,7 @@ class UniborgClient(MarkdownBotPassthrough):
 
                     self._commands[cmd] = commandhandler
             elif event.incoming:
+
                 @wraps(func)
                 def watcherhandler(message):
                     """Closure to execute watcher when handler activated and regex matched"""
@@ -151,7 +158,9 @@ class UniborgClient(MarkdownBotPassthrough):
                         event.pattern.__self__.pattern, message.message, re.I
                     ):
                         logger.debug("and matched")
-                        message.message = message.message  # Framework strips prefix, give them a generic one
+                        message.message = (
+                            message.message
+                        )  # Framework strips prefix, give them a generic one
                         event2 = MarkdownBotPassthrough(message)
                         # Try to emulate the expected format for an event
                         event2.pattern_match = match
@@ -162,7 +171,9 @@ class UniborgClient(MarkdownBotPassthrough):
                     return asyncio.gather()
 
                 # Return a coroutine
-                self._watchers += [watcherhandler]  # Add to list of watchers so we can call later.
+                self._watchers += [
+                    watcherhandler
+                ]  # Add to list of watchers so we can call later.
             else:
                 logger.error("event not incoming or outgoing")
                 return func
@@ -191,7 +202,9 @@ class UniborgUtil:
         else:
             kwargs.setdefault("pattern", ".*")
 
-        if not (kwargs["pattern"].startswith(".") or kwargs["pattern"].startswith(r"\.")):
+        if not (
+            kwargs["pattern"].startswith(".") or kwargs["pattern"].startswith(r"\.")
+        ):
             kwargs["pattern"] = r"\." + kwargs["pattern"]
 
         if "incoming" not in kwargs.keys() and "outgoing" not in kwargs.keys():
@@ -209,23 +222,48 @@ class UniborgUtil:
         return False  # Meh.
 
     def humanbytes(self, size):
-        return f'{str(size)} bytes'
+        return f"{str(size)} bytes"
 
     def time_formatter(self, ms):
         return str(datetime.timedelta(milliseconds=ms))
 
 
 class UniborgConfig:
-    __all__ = ["GOOGLE_CHROME_BIN", "SCREEN_SHOT_LAYER_ACCESS_KEY", "PRIVATE_GROUP_BOT_API_ID",
-               "IBM_WATSON_CRED_URL", "IBM_WATSON_CRED_PASSWORD",
-               "TELEGRAPH_SHORT_NAME", "OCR_SPACE_API_KEY", "G_BAN_LOGGER_GROUP", "TG_GLOBAL_ALBUM_LIMIT",
-               "TG_BOT_TOKEN_BF_HER", "TG_BOT_USER_NAME_BF_HER", "ANTI_FLOOD_WARN_MODE", "GIT_REPO_NAME",
-               "MAX_ANTI_FLOOD_MESSAGES", "CHATS_TO_MONITOR_FOR_ANTI_FLOOD", "REM_BG_API_KEY",
-               "NO_P_M_SPAM", "MAX_FLOOD_IN_P_M_s", "NC_LOG_P_M_S", "PM_LOGGR_BOT_API_ID", "DB_URI",
-               "NO_OF_BUTTONS_DISPLAYED_IN_H_ME_CMD", "COMMAND_HAND_LER", "SUDO_USERS",
-               "G_DRIVE_CLIENT_ID", "G_DRIVE_CLIENT_SECRET", "G_DRIVE_AUTH_TOKEN_DATA",
-               "TELE_GRAM_2FA_CODE", "GROUP_REG_SED_EX_BOT_S", "GOOGLE_CHROME_DRIVER",
-               "OPEN_WEATHER_MAP_APPID", "GITHUB_ACCESS_TOKEN", "GIT_USER_NAME"]
+    __all__ = [
+        "GOOGLE_CHROME_BIN",
+        "SCREEN_SHOT_LAYER_ACCESS_KEY",
+        "PRIVATE_GROUP_BOT_API_ID",
+        "IBM_WATSON_CRED_URL",
+        "IBM_WATSON_CRED_PASSWORD",
+        "TELEGRAPH_SHORT_NAME",
+        "OCR_SPACE_API_KEY",
+        "G_BAN_LOGGER_GROUP",
+        "TG_GLOBAL_ALBUM_LIMIT",
+        "TG_BOT_TOKEN_BF_HER",
+        "TG_BOT_USER_NAME_BF_HER",
+        "ANTI_FLOOD_WARN_MODE",
+        "GIT_REPO_NAME",
+        "MAX_ANTI_FLOOD_MESSAGES",
+        "CHATS_TO_MONITOR_FOR_ANTI_FLOOD",
+        "REM_BG_API_KEY",
+        "NO_P_M_SPAM",
+        "MAX_FLOOD_IN_P_M_s",
+        "NC_LOG_P_M_S",
+        "PM_LOGGR_BOT_API_ID",
+        "DB_URI",
+        "NO_OF_BUTTONS_DISPLAYED_IN_H_ME_CMD",
+        "COMMAND_HAND_LER",
+        "SUDO_USERS",
+        "G_DRIVE_CLIENT_ID",
+        "G_DRIVE_CLIENT_SECRET",
+        "G_DRIVE_AUTH_TOKEN_DATA",
+        "TELE_GRAM_2FA_CODE",
+        "GROUP_REG_SED_EX_BOT_S",
+        "GOOGLE_CHROME_DRIVER",
+        "OPEN_WEATHER_MAP_APPID",
+        "GITHUB_ACCESS_TOKEN",
+        "GIT_USER_NAME",
+    ]
 
     GOOGLE_CHROME_BIN = None
     SCREEN_SHOT_LAYER_ACCESS_KEY = None

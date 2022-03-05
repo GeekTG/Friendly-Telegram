@@ -63,9 +63,13 @@ class Web:
 
     @aiohttp_jinja2.template("initial_root.jinja2")
     async def initial_setup(self, request):
-        return {"api_done": self.api_token is not None, "tg_done": bool(self.client_data),
-                "heroku_token": self.heroku_api_token, 'hosting': self.hosting,
-                'default_app': self.default_app}
+        return {
+            "api_done": self.api_token is not None,
+            "tg_done": bool(self.client_data),
+            "heroku_token": self.heroku_api_token,
+            "hosting": self.hosting,
+            "default_app": self.default_app,
+        }
 
     def wait_for_api_token_setup(self):
         return self.api_set.wait()
@@ -79,11 +83,20 @@ class Web:
             return web.Response(status=400)
         api_id = text[32:]
         api_hash = text[:32]
-        if any(c not in string.hexdigits for c in api_hash) or any(c not in string.digits for c in api_id):
+        if any(c not in string.hexdigits for c in api_hash) or any(
+            c not in string.digits for c in api_id
+        ):
             return web.Response(status=400)
-        with open(os.path.join(self.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt"), "w") as f:
+        with open(
+            os.path.join(
+                self.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt"
+            ),
+            "w",
+        ) as f:
             f.write(api_id + "\n" + api_hash)
-        self.api_token = collections.namedtuple("api_token", ("ID", "HASH"))(api_id, api_hash)
+        self.api_token = collections.namedtuple("api_token", ("ID", "HASH"))(
+            api_id, api_hash
+        )
         self.api_set.set()
         return web.Response()
 
@@ -92,9 +105,14 @@ class Web:
         phone = telethon.utils.parse_phone(text)
         if not phone:
             return web.Response(status=400)
-        client = telethon.TelegramClient(telethon.sessions.MemorySession(), self.api_token.ID,
-                                         self.api_token.HASH, connection=self.connection,
-                                         proxy=self.proxy, connection_retries=None)
+        client = telethon.TelegramClient(
+            telethon.sessions.MemorySession(),
+            self.api_token.ID,
+            self.api_token.HASH,
+            connection=self.connection,
+            proxy=self.proxy,
+            connection_retries=None,
+        )
         await client.connect()
         await client.send_code_request(phone)
         self.sign_in_clients[phone] = client
@@ -110,7 +128,11 @@ class Web:
         code = split[0]
         phone = telethon.utils.parse_phone(split[1])
         password = split[2]
-        if (len(code) != 5 and not password) or any(c not in string.digits for c in code) or not phone:
+        if (
+            (len(code) != 5 and not password)
+            or any(c not in string.digits for c in code)
+            or not phone
+        ):
             return web.Response(status=400)
         client = self.sign_in_clients[phone]
         if not password:
@@ -132,7 +154,7 @@ class Web:
             except telethon.errors.FloodWaitError:
                 return web.Response(status=421)
         del self.sign_in_clients[phone]
-        client.phone = f'+{user.phone}'
+        client.phone = f"+{user.phone}"
         self.clients.append(client)
         return web.Response()
 

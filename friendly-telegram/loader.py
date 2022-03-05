@@ -34,12 +34,12 @@ from .translations.dynamic import Strings
 
 def use_fs_for_modules():
     try:
-        with open('config.json', 'r') as f:
+        with open("config.json", "r") as f:
             config = json.loads(f.read())
     except Exception:
         return False
 
-    return config.get('use_fs_for_modules', False)
+    return config.get("use_fs_for_modules", False)
 
 
 def test(*args, **kwargs):
@@ -68,22 +68,22 @@ en_keys = """`qwertyuiop[]asdfghjkl;'zxcvbnm,./~@#$%^&QWERTYUIOP{
         }ASDFGHJKL:"|ZXCVBNM<>? """
 
 
-LOADED_MODULES_DIR = os.path.join(utils.get_base_dir(), 'loaded_modules')
+LOADED_MODULES_DIR = os.path.join(utils.get_base_dir(), "loaded_modules")
 
 if not os.path.isdir(LOADED_MODULES_DIR):
     os.mkdir(LOADED_MODULES_DIR, mode=0o755)
 
 
 def translatable_docstring(cls):
-    """ Decorator that makes triple-quote docstrings translatable """
+    """Decorator that makes triple-quote docstrings translatable"""
 
     @functools.wraps(cls.config_complete)
     def config_complete(self, *args, **kwargs):
         for command_, func_ in get_commands(cls).items():
             try:
-                func_.__doc__ = self.strings[f'_cmd_doc_{command_}']
+                func_.__doc__ = self.strings[f"_cmd_doc_{command_}"]
             except AttributeError:
-                func_.__func__.__doc__ = self.strings[f'_cmd_doc_{command_}']
+                func_.__func__.__doc__ = self.strings[f"_cmd_doc_{command_}"]
         self.__doc__ = self.strings["_cls_doc"]
         return self.config_complete._old_(self, *args, **kwargs)
 
@@ -213,52 +213,31 @@ class Modules:
         self._initial_registration = True
         self.added_modules = None
         self.use_inline = use_inline
-        self._fs = 'DYNO' not in os.environ
+        self._fs = "DYNO" not in os.environ
 
     def register_all(self, babelfish, mods=None):
         # TODO: remove babelfish
         """Load all modules in the module directory"""
         if self._compat_layer is None:
             from . import compat  # Avoid circular import
+
             self._compat_layer = compat.activate([])
 
         if not mods:
             mods = [
-                os.path.join(
-                    utils.get_base_dir(),
-                    MODULES_NAME,
-                    mod
-                )
-                for mod in
-                filter(
-                    lambda x: (
-                        len(x) > 3
-                        and x[-3:] == ".py"
-                        and x[0] != "_"
-                    ),
-                    os.listdir(
-                        os.path.join(
-                            utils.get_base_dir(),
-                            MODULES_NAME
-                        )
-                    )
+                os.path.join(utils.get_base_dir(), MODULES_NAME, mod)
+                for mod in filter(
+                    lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
+                    os.listdir(os.path.join(utils.get_base_dir(), MODULES_NAME)),
                 )
             ]
 
             if self._fs and use_fs_for_modules():
                 mods += [
-                    os.path.join(
-                        LOADED_MODULES_DIR,
-                        mod
-                    )
-                    for mod in
-                    filter(
-                        lambda x: (
-                            len(x) > 3
-                            and x[-3:] == ".py"
-                            and x[0] != "_"
-                        ),
-                        os.listdir(LOADED_MODULES_DIR)
+                    os.path.join(LOADED_MODULES_DIR, mod)
+                    for mod in filter(
+                        lambda x: (len(x) > 3 and x[-3:] == ".py" and x[0] != "_"),
+                        os.listdir(LOADED_MODULES_DIR),
                     )
                 ]
 
@@ -266,7 +245,9 @@ class Modules:
 
         for mod in mods:
             try:
-                module_name = f'{__package__}.{MODULES_NAME}.{os.path.basename(mod)[:-3]}'
+                module_name = (
+                    f"{__package__}.{MODULES_NAME}.{os.path.basename(mod)[:-3]}"
+                )
                 logging.debug(module_name)
                 spec = importlib.util.spec_from_file_location(module_name, mod)
                 self.register_module(spec, module_name)
@@ -278,7 +259,9 @@ class Modules:
         from .compat import uniborg
 
         module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module  # Do this early for the benefit of RaphielGang compat layer
+        sys.modules[
+            module_name
+        ] = module  # Do this early for the benefit of RaphielGang compat layer
         module.borg = uniborg.UniborgClient(module_name)
         spec.loader.exec_module(module)
         ret = None
@@ -298,16 +281,13 @@ class Modules:
         cls_name = ret.__class__.__name__
 
         if self._fs and use_fs_for_modules():
-            path = os.path.join(
-                LOADED_MODULES_DIR,
-                f"{cls_name}.py"
-            )
+            path = os.path.join(LOADED_MODULES_DIR, f"{cls_name}.py")
 
             if not os.path.isfile(path) and origin == "<string>":
-                with open(path, 'w') as f:
-                    f.write(spec.loader.data.decode('utf-8'))
+                with open(path, "w") as f:
+                    f.write(spec.loader.data.decode("utf-8"))
 
-                logging.debug(f'Saved {cls_name} to file')
+                logging.debug(f"Saved {cls_name} to file")
 
         return ret
 
@@ -317,10 +297,12 @@ class Modules:
             # Verify that command does not already exist, or,
             # if it does, the command must be from the same class name
             if command.lower() in self.commands.keys():
-                if hasattr(instance.commands[command], "__self__") and \
-                        hasattr(self.commands[command], "__self__") and \
-                        instance.commands[command].__self__.__class__.__name__ \
-                        != self.commands[command].__self__.__class__.__name__:
+                if (
+                    hasattr(instance.commands[command], "__self__")
+                    and hasattr(self.commands[command], "__self__")
+                    and instance.commands[command].__self__.__class__.__name__
+                    != self.commands[command].__self__.__class__.__name__
+                ):
                     logging.debug("Duplicate command %s", command)
 
                 logging.debug("Replacing command for %r", self.commands[command])
@@ -335,8 +317,11 @@ class Modules:
         try:
             if instance.watcher:
                 for watcher in self.watchers:
-                    if hasattr(watcher, "__self__") and watcher.__self__.__class__.__name__ \
-                            == instance.watcher.__self__.__class__.__name__:
+                    if (
+                        hasattr(watcher, "__self__")
+                        and watcher.__self__.__class__.__name__
+                        == instance.watcher.__self__.__class__.__name__
+                    ):
                         logging.debug("Removing watcher for update %r", watcher)
                         self.watchers.remove(watcher)
                 self.watchers += [instance.watcher]
@@ -352,12 +337,7 @@ class Modules:
                 logging.debug("Removing module for update %r", module)
                 self.modules.remove(module)
                 asyncio.ensure_future(
-                    asyncio.wait_for(
-                        asyncio.gather(
-                            module.on_unload()
-                        ),
-                        timeout=5
-                    )
+                    asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5)
                 )
 
         self.modules += [instance]
@@ -397,7 +377,7 @@ class Modules:
                     mod.config[conf] = modcfg[conf]
                 else:
                     try:
-                        mod.config[conf] = os.environ[f'{mod.__module__}.{conf}']
+                        mod.config[conf] = os.environ[f"{mod.__module__}.{conf}"]
                     except KeyError:
                         mod.config[conf] = mod.config.getdef(conf)
 
@@ -438,8 +418,15 @@ class Modules:
         await self._compat_layer.client_ready(client)
 
         try:
-            await asyncio.gather(*[self.send_ready_one(mod, client, db, allclients) for mod in self.modules])
-            await asyncio.gather(*[mod._client_ready2(client, db) for mod in self.modules])  # pylint: disable=W0212
+            await asyncio.gather(
+                *[
+                    self.send_ready_one(mod, client, db, allclients)
+                    for mod in self.modules
+                ]
+            )
+            await asyncio.gather(
+                *[mod._client_ready2(client, db) for mod in self.modules]
+            )  # pylint: disable=W0212
         except Exception as e:
             logging.exception(f"Failed to send mod init complete signal due to {e}")
 
@@ -453,7 +440,10 @@ class Modules:
         try:
             await mod.client_ready(client, db)
         except Exception as e:
-            logging.exception(f"Failed to send mod init complete signal for %r due to {e}, attempting unload", mod)
+            logging.exception(
+                f"Failed to send mod init complete signal for %r due to {e}, attempting unload",
+                mod,
+            )
             self.modules.remove(mod)
             raise
 
@@ -492,25 +482,17 @@ class Modules:
 
                 name = module.__class__.__name__
                 if self._fs and use_fs_for_modules():
-                    path = os.path.join(
-                        LOADED_MODULES_DIR,
-                        f"{name}.py"
-                    )
+                    path = os.path.join(LOADED_MODULES_DIR, f"{name}.py")
 
                     if os.path.isfile(path):
                         os.remove(path)
-                        logging.debug(f'Removed {name} file')
+                        logging.debug(f"Removed {name} file")
 
                 logging.debug("Removing module for unload %r", module)
                 self.modules.remove(module)
 
                 asyncio.ensure_future(
-                    asyncio.wait_for(
-                        asyncio.gather(
-                            module.on_unload()
-                        ),
-                        timeout=5
-                    )
+                    asyncio.wait_for(asyncio.gather(module.on_unload()), timeout=5)
                 )
 
                 to_remove += module.commands.values()
@@ -555,7 +537,9 @@ class Modules:
         return True
 
     async def log(self, type_, *, group=None, affected_uids=None, data=None):
-        return await asyncio.gather(*[fun(type_, group, affected_uids, data) for fun in self._log_handlers])
+        return await asyncio.gather(
+            *[fun(type_, group, affected_uids, data) for fun in self._log_handlers]
+        )
 
     def register_logger(self, logger):
         self._log_handlers.append(logger)

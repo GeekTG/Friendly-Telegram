@@ -35,8 +35,11 @@ class Web(initial_setup.Web, root.Web):
         self.ready = asyncio.Event()
         self.client_data = {}
         self.app = web.Application()
-        aiohttp_jinja2.setup(self.app, filters={"getdoc": inspect.getdoc, "ascii": ascii},
-                             loader=jinja2.FileSystemLoader("web-resources"))
+        aiohttp_jinja2.setup(
+            self.app,
+            filters={"getdoc": inspect.getdoc, "ascii": ascii},
+            loader=jinja2.FileSystemLoader("web-resources"),
+        )
         self.app["static_root_url"] = "/static"
         super().__init__(**kwargs)
         self.app.router.add_static("/static/", "web-resources/static")
@@ -66,4 +69,6 @@ class Web(initial_setup.Web, root.Web):
         self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
 
     async def favicon(self, request):
-        return web.Response(status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"})
+        return web.Response(
+            status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"}
+        )

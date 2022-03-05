@@ -37,13 +37,20 @@ from .. import loader, utils, main
 logger = logging.getLogger(__name__)
 
 VALID_URL = r"[-[\]_.~:/?#@!$&'()*+,;%<=>a-zA-Z0-9]+"
-VALID_PIP_PACKAGES = re.compile(r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*$".format(url=VALID_URL), re.MULTILINE)
+VALID_PIP_PACKAGES = re.compile(
+    r"^\s*# requires:(?: ?)((?:{url} )*(?:{url}))\s*$".format(url=VALID_URL),
+    re.MULTILINE,
+)
 USER_INSTALL = "PIP_TARGET" not in os.environ and "VIRTUAL_ENV" not in os.environ
-GIT_REGEX = re.compile(r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$",
-                       flags=re.IGNORECASE)
+GIT_REGEX = re.compile(
+    r"^https?://github\.com((?:/[a-z0-9-]+){2})(?:/tree/([a-z0-9-]+)((?:/[a-z0-9-]+)*))?/?$",
+    flags=re.IGNORECASE,
+)
 
 
-class StringLoader(SourceLoader):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
+class StringLoader(
+    SourceLoader
+):  # pylint: disable=W0223 # False positive, implemented in SourceLoader
     """Load a python module/file from a string"""
 
     def __init__(self, data, origin):
@@ -106,7 +113,7 @@ def get_git_api(url):
         api_url += path_
 
     if branch:
-        api_url += f'?ref={branch}'
+        api_url += f"?ref={branch}"
 
     return api_url
 
@@ -114,6 +121,7 @@ def get_git_api(url):
 @loader.tds
 class LoaderMod(loader.Module):
     """Loads modules"""
+
     strings = {
         "name": "Loader",
         "repo_config_doc": "Fully qualified URL to a module repo",
@@ -137,7 +145,7 @@ class LoaderMod(loader.Module):
         "no_modules": "<b>⚠️ You have no custom modules!</b>",
         "searching": "<b>🔍 Searching...</b>",
         "file": "<b>📥 File of module {}:<b>",
-        "module_link": "📥 <a href=\"{}\">Link</a> for module {}: \n<code>{}</code>",
+        "module_link": '📥 <a href="{}">Link</a> for module {}: \n<code>{}</code>',
         "not_found_info": "🚫 Request to find module with name {} failed due to:",
         "not_found_c_info": "🚫 Request to find module with command {} failed due to:",
         "not_found": "<b>🚫 Module was not found</b>",
@@ -156,14 +164,16 @@ class LoaderMod(loader.Module):
         "chandler": "\n🖱 <i>Callback</i>: <code>{}</code> 👉🏻 ",
         "undoc_chandler": "👁‍🗨 No docs",
         "inline_init_failed": """🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>
-<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>"""
+<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>""",
     }
 
     def __init__(self):
         super().__init__()
-        self.config = loader.ModuleConfig("MODULES_REPO",
-                                          "https://raw.githubusercontent.com/GeekTG/FTG-Modules/main/",
-                                          lambda m: self.strings("repo_config_doc", m))
+        self.config = loader.ModuleConfig(
+            "MODULES_REPO",
+            "https://raw.githubusercontent.com/GeekTG/FTG-Modules/main/",
+            lambda m: self.strings("repo_config_doc", m),
+        )
 
     @loader.owner
     async def dlmodcmd(self, message: Message) -> None:
@@ -172,8 +182,13 @@ class LoaderMod(loader.Module):
             args = args[0] if urllib.parse.urlparse(args[0]).netloc else args[0].lower()
 
             if await self.download_and_install(args, message):
-                self._db.set(__name__, "loaded_modules",
-                             list(set(self._db.get(__name__, "loaded_modules", [])).union([args])))
+                self._db.set(
+                    __name__,
+                    "loaded_modules",
+                    list(
+                        set(self._db.get(__name__, "loaded_modules", [])).union([args])
+                    ),
+                )
         else:
             text = utils.escape_html("\n".join(await self.get_repo_list("full")))
             await utils.answer(
@@ -182,9 +197,7 @@ class LoaderMod(loader.Module):
                     "<b>"
                     + self.strings("avail_header", message)
                     + "</b>\n"
-                    + '\n'.join(
-                        f'<code>{i}</code>' for i in sorted(text.split('\n'))
-                    )
+                    + "\n".join(f"<code>{i}</code>" for i in sorted(text.split("\n")))
                 ),
             )
 
@@ -223,7 +236,9 @@ class LoaderMod(loader.Module):
         if preset is None or preset == "none":
             preset = "minimal"
 
-        r = await utils.run_sync(requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt")
+        r = await utils.run_sync(
+            requests.get, self.config["MODULES_REPO"] + "/" + preset + ".txt"
+        )
         r.raise_for_status()
         return set(filter(lambda x: x, r.text.split("\n")))
 
@@ -243,7 +258,9 @@ class LoaderMod(loader.Module):
                 return False
 
             r.raise_for_status()
-            return await self.load_module(r.content.decode("utf-8"), message, module_name, url)
+            return await self.load_module(
+                r.content.decode("utf-8"), message, module_name, url
+            )
         except Exception:
             logger.exception(f"Failed to load {module_name}")
 
@@ -281,9 +298,11 @@ class LoaderMod(loader.Module):
         else:
             await self.load_module(doc, message)
 
-    async def load_module(self, doc, message, name=None, origin="<string>", did_requirements=False):
-        if re.search(r'#[ ]?scope:[ ]?inline', doc) and not self.inline.init_complete:
-            await utils.answer(message, self.strings('inline_init_failed'))
+    async def load_module(
+        self, doc, message, name=None, origin="<string>", did_requirements=False
+    ):
+        if re.search(r"#[ ]?scope:[ ]?inline", doc) and not self.inline.init_complete:
+            await utils.answer(message, self.strings("inline_init_failed"))
             return
 
         if name is None:
@@ -298,18 +317,15 @@ class LoaderMod(loader.Module):
                 spec = ModuleSpec(module_name, StringLoader(doc, origin), origin=origin)
                 instance = self.allmodules.register_module(spec, module_name, origin)
             except ImportError:
-                logger.info("Module loading failed, attemping dependency installation", exc_info=True)
+                logger.info(
+                    "Module loading failed, attemping dependency installation",
+                    exc_info=True,
+                )
                 # Let's try to reinstall dependencies
                 requirements = list(
                     filter(
-                        lambda x: x
-                        and x[0] not in ("-", "_", "."),
-                        map(
-                            str.strip,
-                            VALID_PIP_PACKAGES
-                            .search(doc)[1]
-                            .split(" ")
-                        )
+                        lambda x: x and x[0] not in ("-", "_", "."),
+                        map(str.strip, VALID_PIP_PACKAGES.search(doc)[1].split(" ")),
                     )
                 )
 
@@ -320,12 +336,16 @@ class LoaderMod(loader.Module):
 
                 if did_requirements:
                     if message is not None:
-                        await utils.answer(message, self.strings("requirements_restart", message))
+                        await utils.answer(
+                            message, self.strings("requirements_restart", message)
+                        )
 
                     return True  # save to database despite failure, so it will work after restart
 
                 if message is not None:
-                    await utils.answer(message, self.strings("requirements_installing", message))
+                    await utils.answer(
+                        message, self.strings("requirements_installing", message)
+                    )
 
                 pip = await asyncio.create_subprocess_exec(
                     sys.executable,
@@ -337,20 +357,24 @@ class LoaderMod(loader.Module):
                     "--disable-pip-version-check",
                     "--no-warn-script-location",
                     *["--user"] if USER_INSTALL else [],
-                    *requirements
+                    *requirements,
                 )
 
                 rc = await pip.wait()
 
                 if rc != 0:
                     if message is not None:
-                        await utils.answer(message, self.strings("requirements_failed", message))
+                        await utils.answer(
+                            message, self.strings("requirements_failed", message)
+                        )
 
                     return False
 
                 importlib.invalidate_caches()
 
-                return await self.load_module(doc, message, name, origin, True)  # Try again
+                return await self.load_module(
+                    doc, message, name, origin, True
+                )  # Try again
         except BaseException as e:  # That's okay because it might try to exit or something, who knows.
             logger.exception(f"Loading external module failed due to {e}")
 
@@ -363,7 +387,9 @@ class LoaderMod(loader.Module):
 
         try:
             self.allmodules.send_config_one(instance, self._db, self.babel)
-            await self.allmodules.send_ready_one(instance, self._client, self._db, self.allclients)
+            await self.allmodules.send_ready_one(
+                instance, self._client, self._db, self.allclients
+            )
         except Exception as e:
             logger.exception(f"Module threw because {e}")
 
@@ -379,13 +405,20 @@ class LoaderMod(loader.Module):
                 modname = getattr(instance, "name", "ERROR")
 
             modhelp = ""
-            prefix = utils.escape_html((self._db.get(main.__name__, "command_prefix", False) or ".")[0])
+            prefix = utils.escape_html(
+                (self._db.get(main.__name__, "command_prefix", False) or ".")[0]
+            )
 
             if instance.__doc__:
-                modhelp += f"<i>\nℹ️ {utils.escape_html(inspect.getdoc(instance))}</i>\n"
+                modhelp += (
+                    f"<i>\nℹ️ {utils.escape_html(inspect.getdoc(instance))}</i>\n"
+                )
 
-            if re.search(r'#[ ]?scope:[ ]?disable_onload_docs', doc):
-                return await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
+            if re.search(r"#[ ]?scope:[ ]?disable_onload_docs", doc):
+                return await utils.answer(
+                    message,
+                    self.strings("loaded", message).format(modname.strip(), modhelp),
+                )
 
             commands = {name: func for name, func in instance.commands.items()}
             for name, fun in commands.items():
@@ -397,30 +430,57 @@ class LoaderMod(loader.Module):
                     modhelp += self.strings("undoc_cmd", message)
 
             if self.inline.init_complete:
-                if hasattr(instance, 'inline_handlers'):
-                    inline_handlers = {name: func for name, func in instance.inline_handlers.items()}
+                if hasattr(instance, "inline_handlers"):
+                    inline_handlers = {
+                        name: func for name, func in instance.inline_handlers.items()
+                    }
                     for name, fun in inline_handlers.items():
-                        modhelp += self.strings("ihandler", message).format(f"@{self.inline._bot_username} {name}")
+                        modhelp += self.strings("ihandler", message).format(
+                            f"@{self.inline._bot_username} {name}"
+                        )
 
                         if fun.__doc__:
-                            modhelp += utils.escape_html('\n'.join([line.strip() for line in inspect.getdoc(fun).splitlines() if not line.strip().startswith('@')]))
+                            modhelp += utils.escape_html(
+                                "\n".join(
+                                    [
+                                        line.strip()
+                                        for line in inspect.getdoc(fun).splitlines()
+                                        if not line.strip().startswith("@")
+                                    ]
+                                )
+                            )
                         else:
                             modhelp += self.strings("undoc_ihandler", message)
 
-                if hasattr(instance, 'callback_handlers'):
-                    callback_handlers = {name: func for name, func in instance.callback_handlers.items()}
+                if hasattr(instance, "callback_handlers"):
+                    callback_handlers = {
+                        name: func for name, func in instance.callback_handlers.items()
+                    }
                     for name, fun in callback_handlers.items():
                         modhelp += self.strings("chandler", message).format(name)
 
                         if fun.__doc__:
-                            modhelp += utils.escape_html('\n'.join([line.strip() for line in inspect.getdoc(fun).splitlines() if not line.strip().startswith('@')]))
+                            modhelp += utils.escape_html(
+                                "\n".join(
+                                    [
+                                        line.strip()
+                                        for line in inspect.getdoc(fun).splitlines()
+                                        if not line.strip().startswith("@")
+                                    ]
+                                )
+                            )
                         else:
                             modhelp += self.strings("undoc_chandler", message)
 
             try:
-                await utils.answer(message, self.strings("loaded", message).format(modname.strip(), modhelp))
+                await utils.answer(
+                    message,
+                    self.strings("loaded", message).format(modname.strip(), modhelp),
+                )
             except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:
-                await message.reply(self.strings("loaded", message).format(modname.strip(), modhelp))
+                await message.reply(
+                    self.strings("loaded", message).format(modname.strip(), modhelp)
+                )
 
         return True
 
@@ -443,11 +503,10 @@ class LoaderMod(loader.Module):
                     __name__,
                     "loaded_repositories",
                     list(
-                        set(
-                            self._db.get(__name__, "loaded_repositories", [])
+                        set(self._db.get(__name__, "loaded_repositories", [])).union(
+                            [repo_url]
                         )
-                        .union([repo_url])
-                    )
+                    ),
                 )
 
                 await utils.answer(message, self.strings("repo_loaded", message))
@@ -468,7 +527,9 @@ class LoaderMod(loader.Module):
             try:
                 repos.remove(repoUrl)
             except KeyError:
-                return await utils.answer(message, self.strings("repo_not_unloaded", message))
+                return await utils.answer(
+                    message, self.strings("repo_not_unloaded", message)
+                )
 
             self._db.set(__name__, "loaded_repositories", list(repos))
 
@@ -489,14 +550,9 @@ class LoaderMod(loader.Module):
 
         await asyncio.gather(
             *[
-                self.download_and_install(
-                    f["download_url"]
-                )
+                self.download_and_install(f["download_url"])
                 for f in filter(
-                    lambda f:
-                    f["name"].endswith(".py")
-                    and f["type"] == "file",
-                    files
+                    lambda f: f["name"].endswith(".py") and f["type"] == "file", files
                 )
             ]
         )
@@ -511,26 +567,26 @@ class LoaderMod(loader.Module):
             await utils.answer(message, self.strings("no_class", message))
             return
 
-        worked = self.allmodules.unload_module(args.capitalize()) + self.allmodules.unload_module(args)
+        worked = self.allmodules.unload_module(
+            args.capitalize()
+        ) + self.allmodules.unload_module(args)
         without_prefix = []
 
         for mod in worked:
             assert mod.startswith("friendly-telegram.modules."), mod
-            without_prefix += [unescape_percent(mod[len("friendly-telegram.modules."):])]
+            without_prefix += [
+                unescape_percent(mod[len("friendly-telegram.modules.") :])
+            ]
 
-        it = set(self._db.get(__name__, "loaded_modules", [])).difference(without_prefix)
+        it = set(self._db.get(__name__, "loaded_modules", [])).difference(
+            without_prefix
+        )
         self._db.set(__name__, "loaded_modules", list(it))
         it = set(self._db.get(__name__, "unloaded_modules", [])).union(without_prefix)
         self._db.set(__name__, "unloaded_modules", list(it))
 
         await utils.answer(
-            message,
-            self.strings(
-                "unloaded"
-                if worked
-                else "not_unloaded",
-                message
-            )
+            message, self.strings("unloaded" if worked else "not_unloaded", message)
         )
 
     @loader.owner

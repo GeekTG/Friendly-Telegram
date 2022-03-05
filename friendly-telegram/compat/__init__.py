@@ -25,12 +25,19 @@ from .raphielgang import RaphielgangConfig, RaphielgangEvents, RaphielgangDataba
 from .uniborg import UniborgUtil, Uniborg
 
 # When a name is matched, the import is overriden, and our custom object is returned
-MODULES = {"userbot": RaphielgangConfig, "userbot.events": RaphielgangEvents,
-           "userbot.modules": RaphielgangConfig, "userbot.modules.dbhelper": RaphielgangDatabase, "uniborg": Uniborg,
-           "uniborg.util": UniborgUtil}
+MODULES = {
+    "userbot": RaphielgangConfig,
+    "userbot.events": RaphielgangEvents,
+    "userbot.modules": RaphielgangConfig,
+    "userbot.modules.dbhelper": RaphielgangDatabase,
+    "uniborg": Uniborg,
+    "uniborg.util": UniborgUtil,
+}
 
 
-class BotCompat(MetaPathFinder, Loader):  # pylint: disable=W0223 # It's wrong - https://kutt.it/hkjRb9
+class BotCompat(
+    MetaPathFinder, Loader
+):  # pylint: disable=W0223 # It's wrong - https://kutt.it/hkjRb9
     """importlib Loader that loads the classes in MODULES under their pseudonyms"""
 
     def __init__(self, clients):
@@ -59,7 +66,11 @@ class BotCompat(MetaPathFinder, Loader):  # pylint: disable=W0223 # It's wrong -
             try:
                 await mod.client_ready(client)
             except BaseException as e:
-                logging.exception("Failed to send client_ready to compat layer " + repr(mod) + f"due to {e}")
+                logging.exception(
+                    "Failed to send client_ready to compat layer "
+                    + repr(mod)
+                    + f"due to {e}"
+                )
 
 
 def activate(clients):

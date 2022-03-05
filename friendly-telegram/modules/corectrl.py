@@ -27,6 +27,7 @@ from .. import loader, main, utils
 @loader.tds
 class CoreMod(loader.Module):
     """Control core userbot settings"""
+
     strings = {
         "name": "Settings",
         "too_many_args": "🚫 <b>Too many args</b>",
@@ -49,22 +50,18 @@ class CoreMod(loader.Module):
         "packs_cleared": "<b>✅ Translations cleared</b>",
         "lang_set": "<b>✅ Language changed</b>",
         "db_cleared": "<b>✅ Database cleared</b>",
-
         "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
         "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
         "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
         "nn_args": "🚫<b> Usage: .nonick [on/off]</b>",
-
         "grep_on": "<b>👍 Now <u>grep</u> is working</b>",
         "grep_off": "<b>👍 Now <u>grep</u> is not working</b>",
         "grep_status": "<b>🎬 Right now you <u>can{}</u> use </b><code>| grep</code>",
         "grep_args": "🚫<b> Usage: .grep [on/off]</b>",
-
         "inlinelogs_on": "<b>🧙‍♂️ Now <u>InlineLogs</u> are working</b>",
         "inlinelogs_off": "<b>🧙‍♂️ Now <u>InlineLogs</u> are not working</b>",
         "inlinelogs_status": "<b>🧙‍♂️ Right now you <u>can{}</u> view logs right after command execution</b>",
         "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>",
-
         "geek": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}</b>\n<b>Branch: master</b>",
         "geek_beta": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}beta</b>\n<b>Branch: beta</b>\n\n<i>🔮 You're using the unstable branch (<b>beta</b>). You receive fresh but untested updates. Report any bugs to @chat_ftg or @hikari_chat</i>",
         "geek_alpha": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}alpha</b>\n<b>Branch: alpha</b>\n\n<i>🔮 You're using <b><u>very</u></b> unstable branch (<b>alpha</b>). You receive fresh but untested updates. You <b><u>can't ask for help, only report bugs</u></b></i>",
@@ -97,27 +94,31 @@ class CoreMod(loader.Module):
             chatid = utils.get_chat_id(message)
 
         module = self.allmodules.get_classname(module)
-        return f'{str(chatid)}.{module}' if module else chatid
+        return f"{str(chatid)}.{module}" if module else chatid
 
     async def ftgvercmd(self, message: Message) -> None:
         """Get GeekTG version"""
-        ver = getattr(main, '__version__', False)
+        ver = getattr(main, "__version__", False)
 
-        branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+        branch = os.popen("git rev-parse --abbrev-ref HEAD").read()
 
-        if 'beta' in branch:
-            await utils.answer(message, self.strings('geek_beta').format(*ver))
-        elif 'alpha' in branch:
-            await utils.answer(message, self.strings('geek_alpha').format(*ver))
+        if "beta" in branch:
+            await utils.answer(message, self.strings("geek_beta").format(*ver))
+        elif "alpha" in branch:
+            await utils.answer(message, self.strings("geek_alpha").format(*ver))
         else:
-            await utils.answer(message, self.strings('geek').format(*ver))
+            await utils.answer(message, self.strings("geek").format(*ver))
 
     async def blacklistcmd(self, message: Message) -> None:
         """.blacklist [id]
         Blacklist the bot from operating somewhere"""
         chatid = await self.blacklistcommon(message)
 
-        self._db.set(main.__name__, "blacklist_chats", self._db.get(main.__name__, "blacklist_chats", []) + [chatid])
+        self._db.set(
+            main.__name__,
+            "blacklist_chats",
+            self._db.get(main.__name__, "blacklist_chats", []) + [chatid],
+        )
 
         await utils.answer(message, self.strings("blacklisted", message).format(chatid))
 
@@ -126,10 +127,17 @@ class CoreMod(loader.Module):
         Unblacklist the bot from operating somewhere"""
         chatid = await self.blacklistcommon(message)
 
-        self._db.set(main.__name__, "blacklist_chats",
-                     list(set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])))
+        self._db.set(
+            main.__name__,
+            "blacklist_chats",
+            list(
+                set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])
+            ),
+        )
 
-        await utils.answer(message, self.strings("unblacklisted", message).format(chatid))
+        await utils.answer(
+            message, self.strings("unblacklisted", message).format(chatid)
+        )
 
     async def getuser(self, message: Message) -> None:
         try:
@@ -151,19 +159,30 @@ class CoreMod(loader.Module):
         Prevent this user from running any commands"""
         user = await self.getuser(message)
 
-        self._db.set(main.__name__, "blacklist_users", self._db.get(main.__name__, "blacklist_users", []) + [user])
+        self._db.set(
+            main.__name__,
+            "blacklist_users",
+            self._db.get(main.__name__, "blacklist_users", []) + [user],
+        )
 
-        await utils.answer(message, self.strings("user_blacklisted", message).format(user))
+        await utils.answer(
+            message, self.strings("user_blacklisted", message).format(user)
+        )
 
     async def unblacklistusercmd(self, message: Message) -> None:
         """.unblacklistuser [id]
         Allow this user to run permitted commands"""
         user = await self.getuser(message)
 
-        self._db.set(main.__name__, "blacklist_users",
-                     list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])))
+        self._db.set(
+            main.__name__,
+            "blacklist_users",
+            list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])),
+        )
 
-        await utils.answer(message, self.strings("user_unblacklisted", message).format(user))
+        await utils.answer(
+            message, self.strings("user_unblacklisted", message).format(user)
+        )
 
     @loader.owner
     async def nonickcmd(self, message: Message) -> None:
@@ -173,16 +192,11 @@ class CoreMod(loader.Module):
         if not args:
             await utils.answer(
                 message,
-                self.strings("no_nickname_status", message)
-                .format(
+                self.strings("no_nickname_status", message).format(
                     "'t"
-                    if not self._db.get(
-                        main.__name__,
-                        "no_nickname",
-                        False
-                    )
+                    if not self._db.get(main.__name__, "no_nickname", False)
                     else ""
-                )
+                ),
             )
             return
 
@@ -193,7 +207,10 @@ class CoreMod(loader.Module):
         args = args == "on"
 
         self._db.set(main.__name__, "no_nickname", args)
-        await utils.answer(message, self.strings("no_nickname_on" if args else "no_nickname_off", message))
+        await utils.answer(
+            message,
+            self.strings("no_nickname_on" if args else "no_nickname_off", message),
+        )
 
     @loader.owner
     async def grepcmd(self, message: Message) -> None:
@@ -201,7 +218,12 @@ class CoreMod(loader.Module):
         args = utils.get_args_raw(message)
 
         if not args:
-            await utils.answer(message, self.strings("grep_status", message).format("'t" if not self._db.get(main.__name__, "grep", False) else ""))
+            await utils.answer(
+                message,
+                self.strings("grep_status", message).format(
+                    "'t" if not self._db.get(main.__name__, "grep", False) else ""
+                ),
+            )
             return
 
         if args not in ["on", "off"]:
@@ -211,7 +233,9 @@ class CoreMod(loader.Module):
         args = args == "on"
 
         self._db.set(main.__name__, "grep", args)
-        await utils.answer(message, self.strings("grep_on" if args else "grep_off", message))
+        await utils.answer(
+            message, self.strings("grep_on" if args else "grep_off", message)
+        )
 
     @loader.owner
     async def ilogscmd(self, message: Message) -> None:
@@ -221,16 +245,9 @@ class CoreMod(loader.Module):
         if not args:
             await utils.answer(
                 message,
-                self.strings("inlinelogs_status", message)
-                .format(
-                    "'t"
-                    if not self._db.get(
-                        main.__name__,
-                        "inlinelogs",
-                        False
-                    )
-                    else ""
-                )
+                self.strings("inlinelogs_status", message).format(
+                    "'t" if not self._db.get(main.__name__, "inlinelogs", False) else ""
+                ),
             )
             return
 
@@ -241,7 +258,10 @@ class CoreMod(loader.Module):
         args = args == "on"
 
         self._db.set(main.__name__, "inlinelogs", args)
-        await utils.answer(message, self.strings("inlinelogs_on" if args else "inlinelogs_off", message))
+        await utils.answer(
+            message,
+            self.strings("inlinelogs_on" if args else "inlinelogs_off", message),
+        )
 
     @loader.owner
     async def setprefixcmd(self, message: Message) -> None:
@@ -256,14 +276,10 @@ class CoreMod(loader.Module):
         self._db.set(main.__name__, "command_prefix", args)
         await utils.answer(
             message,
-            self.strings(
-                "prefix_set",
-                message
-            )
-            .format(
+            self.strings("prefix_set", message).format(
                 newprefix=utils.escape_html(args[0]),
-                oldprefix=utils.escape_html(oldprefix)
-            )
+                oldprefix=utils.escape_html(oldprefix),
+            ),
         )
 
     @loader.owner
@@ -289,10 +305,18 @@ class CoreMod(loader.Module):
         ret = self.allmodules.add_alias(alias, cmd)
 
         if ret:
-            self._db.set(__name__, "aliases", {**self._db.get(__name__, "aliases"), alias: cmd})
-            await utils.answer(message, self.strings("alias_created", message).format(utils.escape_html(alias)))
+            self._db.set(
+                __name__, "aliases", {**self._db.get(__name__, "aliases"), alias: cmd}
+            )
+            await utils.answer(
+                message,
+                self.strings("alias_created", message).format(utils.escape_html(alias)),
+            )
         else:
-            await utils.answer(message, self.strings("no_command", message).format(utils.escape_html(cmd)))
+            await utils.answer(
+                message,
+                self.strings("no_command", message).format(utils.escape_html(cmd)),
+            )
 
     @loader.owner
     async def delaliascmd(self, message: Message) -> None:
@@ -310,9 +334,15 @@ class CoreMod(loader.Module):
             current = self._db.get(__name__, "aliases")
             del current[alias]
             self._db.set(__name__, "aliases", current)
-            await utils.answer(message, self.strings("alias_removed", message).format(utils.escape_html(alias)))
+            await utils.answer(
+                message,
+                self.strings("alias_removed", message).format(utils.escape_html(alias)),
+            )
         else:
-            await utils.answer(message, self.strings("no_alias", message).format(utils.escape_html(alias)))
+            await utils.answer(
+                message,
+                self.strings("no_alias", message).format(utils.escape_html(alias)),
+            )
 
     async def addtrnslcmd(self, message: Message) -> None:
         """Add a translation pack
@@ -335,7 +365,9 @@ class CoreMod(loader.Module):
             return
 
         if isinstance(pack, telethon.tl.types.Channel) and not pack.megagroup:
-            self._db.setdefault(main.__name__, {}).setdefault("langpacks", []).append(pack.id)
+            self._db.setdefault(main.__name__, {}).setdefault("langpacks", []).append(
+                pack.id
+            )
             self._db.save()
             await utils.answer(message, self.strings("trnsl_saved", message))
         else:

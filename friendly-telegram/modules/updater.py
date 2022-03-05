@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 @loader.tds
 class UpdaterMod(loader.Module):
     """Updates itself"""
+
     strings = {
         "name": "Updater",
         "source": "ℹ️ <b>Read the source code from</b> <a href='{}'>here</a>",
@@ -48,27 +49,31 @@ class UpdaterMod(loader.Module):
         "success": "✅ <b>Restart successful!</b>",
         "heroku_warning": "⚠️ <b>Heroku API key has not been set. </b>Update was successful but updates will reset every time the bot restarts.",
         "origin_cfg_doc": "Git origin URL, for where to update from",
-        "lavhost": "🔄 <b>Restart initiated, and will be complete in 3-5 seconds.</b>\n<i>This message <b>will not</b> be edited after restart is complete!</i>"
+        "lavhost": "🔄 <b>Restart initiated, and will be complete in 3-5 seconds.</b>\n<i>This message <b>will not</b> be edited after restart is complete!</i>",
     }
 
     def __init__(self):
-        self.config = loader.ModuleConfig("GIT_ORIGIN_URL",
-                                          "https://github.com/GeekTG/Friendly-Telegram",
-                                          lambda m: self.strings("origin_cfg_doc", m))
+        self.config = loader.ModuleConfig(
+            "GIT_ORIGIN_URL",
+            "https://github.com/GeekTG/Friendly-Telegram",
+            lambda m: self.strings("origin_cfg_doc", m),
+        )
 
     @loader.owner
     async def restartcmd(self, message):
         """Restarts the userbot"""
-        if os.environ.get('LAVHOST'):
-            await utils.answer(message, self.strings('lavhost'))
-            await self._client.send_message('@lavhostbot', '/restart')
+        if os.environ.get("LAVHOST"):
+            await utils.answer(message, self.strings("lavhost"))
+            await self._client.send_message("@lavhostbot", "/restart")
             return
 
-        msg = (await utils.answer(message, self.strings("restarting_caption", message)))[0]
+        msg = (
+            await utils.answer(message, self.strings("restarting_caption", message))
+        )[0]
         await self.restart_common(msg)
 
     async def prerestart_common(self, message):
-        logger.debug(f'Self-update. {sys.executable} -m {utils.get_base_dir()}')
+        logger.debug(f"Self-update. {sys.executable} -m {utils.get_base_dir()}")
 
         check = str(uuid.uuid4())
         await self._db.set(__name__, "selfupdatecheck", check)
@@ -111,13 +116,14 @@ class UpdaterMod(loader.Module):
             return False
         except git.exc.InvalidGitRepositoryError:
             repo = Repo.init(os.path.dirname(utils.get_base_dir()))
-            origin = repo.create_remote(
-                "origin", self.config["GIT_ORIGIN_URL"])
+            origin = repo.create_remote("origin", self.config["GIT_ORIGIN_URL"])
             origin.fetch()
             repo.create_head("master", origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
             repo.heads.master.checkout(True)
-            return False  # Heroku never needs to install dependencies because we redeploy
+            return (
+                False  # Heroku never needs to install dependencies because we redeploy
+            )
 
     def req_common(self):
         # TODO: make static
@@ -132,12 +138,9 @@ class UpdaterMod(loader.Module):
                     "install",
                     "-r",
                     os.path.join(
-                        os.path.dirname(
-                            utils.get_base_dir()
-                        ),
-                        "requirements.txt"
+                        os.path.dirname(utils.get_base_dir()), "requirements.txt"
                     ),
-                    "--user"
+                    "--user",
                 ]
             )
 
@@ -147,9 +150,9 @@ class UpdaterMod(loader.Module):
     @loader.owner
     async def updatecmd(self, message, hard=False):
         """Downloads userbot updates"""
-        if os.environ.get('LAVHOST'):
-            await utils.answer(message, self.strings('lavhost'))
-            await self._client.send_message('@lavhostbot', '/update')
+        if os.environ.get("LAVHOST"):
+            await utils.answer(message, self.strings("lavhost"))
+            await self._client.send_message("@lavhostbot", "/update")
             return
 
         # We don't really care about asyncio at this point, as we are shutting down
@@ -165,12 +168,15 @@ class UpdaterMod(loader.Module):
             req_update = await self.download_common()
 
             try:
-                message = (await utils.answer(msgs, self.strings("installing", message)))[0]
+                message = (
+                    await utils.answer(msgs, self.strings("installing", message))
+                )[0]
             except telethon.errors.rpcerrorlist.MessageNotModifiedError:
                 pass
 
             if heroku_key := os.environ.get("heroku_api_token"):
                 from .. import heroku
+
                 await self.prerestart_common(message)
                 heroku.publish(self.allclients, heroku_key)
                 # If we pushed, this won't return. If the push failed, we will get thrown at.
@@ -189,18 +195,24 @@ class UpdaterMod(loader.Module):
     @loader.unrestricted
     async def sourcecmd(self, message):
         """Links the source code of this project"""
-        await utils.answer(message, self.strings("source", message).format(self.config["GIT_ORIGIN_URL"]))
+        await utils.answer(
+            message,
+            self.strings("source", message).format(self.config["GIT_ORIGIN_URL"]),
+        )
 
     async def client_ready(self, client, db):
         self._db = db
         self._me = await client.get_me()
         self._client = client
 
-        if db.get(__name__, "selfupdatechat") is not None and db.get(__name__, "selfupdatemsg") is not None:
+        if (
+            db.get(__name__, "selfupdatechat") is not None
+            and db.get(__name__, "selfupdatemsg") is not None
+        ):
             try:
                 await self.update_complete(client)
             except Exception:
-                logger.exception('Failed to complete update!')
+                logger.exception("Failed to complete update!")
 
         self._db.set(__name__, "selfupdatechat", None)
         self._db.set(__name__, "selfupdatemsg", None)
@@ -220,7 +232,7 @@ class UpdaterMod(loader.Module):
         await client.edit_message(
             self._db.get(__name__, "selfupdatechat"),
             self._db.get(__name__, "selfupdatemsg"),
-            msg
+            msg,
         )
 
 
@@ -229,8 +241,6 @@ def restart(*argv):
         sys.executable,
         sys.executable,
         "-m",
-        os.path.relpath(
-            utils.get_base_dir()
-        ),
-        *argv
+        os.path.relpath(utils.get_base_dir()),
+        *argv,
     )

@@ -591,7 +591,7 @@ def main():  # noqa: C901
                 connection_retries=None,
             )
 
-            client.start(phone)
+            client.start()
             client.phone = phone
 
             clients.append(client)
@@ -785,7 +785,7 @@ async def amain(first, client, allclients, web, arguments):
                    /((_)_((_)((_)|_((_)
                   (_)/ __| __| __| |/ /
                     | (_ | _|| _|  ' <
-                     ___|___|___|_|_\\
+                      ___|___|___|_|_\\
 
                      • Build: {build[:7]}
                      • Version: {'.'.join(list(map(str, list(__version__))))}

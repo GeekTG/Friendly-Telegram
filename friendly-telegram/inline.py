@@ -220,14 +220,7 @@ class InlineManager:
             pass
 
     def _check_inline_security(self, func, user):
-        # Find Loader instance to access security layers
-        if not hasattr(self, "_loader"):
-            for mod in self._allmodules.modules:
-                if mod.__class__.__name__ == "LoaderMod":
-                    self._loader = mod
-                    break
-
-        allow = user in [self._me] + self._loader.dispatcher.security._owner
+        allow = user in [self._me] + self._client.dispatcher.security._owner
 
         if not hasattr(func, "__doc__") or not func.__doc__ or allow:
             return allow
@@ -246,9 +239,9 @@ class InlineManager:
                 if (
                     "all" in allow_line
                     or "sudo" in allow_line
-                    and user in self._loader.dispatcher.security._sudo
+                    and user in self._client.dispatcher.security._sudo
                     or "support" in allow_line
-                    and user in self._loader.dispatcher.security._support
+                    and user in self._client.dispatcher.security._support
                     or str(user) in allow_line
                 ):
                     allow = True
@@ -263,9 +256,9 @@ class InlineManager:
                 if (
                     "all" in restrict
                     or "sudo" in restrict
-                    and user in self._loader.dispatcher.security._sudo
+                    and user in self._client.dispatcher.security._sudo
                     or "support" in restrict
-                    and user in self._loader.dispatcher.security._support
+                    and user in self._client.dispatcher.security._support
                     or str(user) in restrict
                 ):
                     allow = True
@@ -675,14 +668,6 @@ class InlineManager:
 
     async def _inline_handler(self, inline_query: InlineQuery) -> None:
         """Inline query handler (forms' calls)"""
-
-        # Find Loader instance to access security layers
-        if not hasattr(self, "_loader"):
-            for mod in self._allmodules.modules:
-                if mod.__class__.__name__ == "LoaderMod":
-                    self._loader = mod
-                    break
-
         # Retrieve query from passed object
         query = inline_query.query
 
@@ -769,7 +754,7 @@ class InlineManager:
                     and button["_switch_query"] == query.split()[0]
                     and inline_query.from_user.id
                     in [self._me]
-                    + self._loader.dispatcher.security._owner
+                    + self._client.dispatcher.security._owner
                     + form["always_allow"]
                 ):
                     await inline_query.answer(
@@ -818,13 +803,6 @@ class InlineManager:
         if reply_markup is None:
             reply_markup = []
 
-        # Find Loader instance to access security layers
-        if not hasattr(self, "_loader"):
-            for mod in self._allmodules.modules:
-                if mod.__class__.__name__ == "LoaderMod":
-                    self._loader = mod
-                    break
-
         # First, dispatch all registered callback handlers
         for mod in self._allmodules.modules:
             if (
@@ -853,7 +831,7 @@ class InlineManager:
                         form["force_me"]
                         and query.from_user.id != self._me
                         and query.from_user.id
-                        not in self._loader.dispatcher.security._owner
+                        not in self._client.dispatcher.security._owner
                         and query.from_user.id not in form["always_allow"]
                     ):
                         await query.answer("You are not allowed to press this button!")
@@ -900,13 +878,6 @@ class InlineManager:
     ) -> None:
         query = chosen_inline_query.query
 
-        # Find Loader instance to access security layers
-        if not hasattr(self, "_loader"):
-            for mod in self._allmodules.modules:
-                if mod.__class__.__name__ == "LoaderMod":
-                    self._loader = mod
-                    break
-
         for form_uid, form in self._forms.copy().items():
             for button in array_sum(form.get("buttons", [])):
                 if (
@@ -915,7 +886,7 @@ class InlineManager:
                     and button["_switch_query"] == query.split()[0]
                     and chosen_inline_query.from_user.id
                     in [self._me]
-                    + self._loader.dispatcher.security._owner
+                    + self._client.dispatcher.security._owner
                     + form["always_allow"]
                 ):
 

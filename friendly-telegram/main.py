@@ -51,7 +51,7 @@ from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 1, 13)
+__version__ = (3, 1, 14)
 try:
     from .web import core
 except ImportError:
@@ -737,7 +737,7 @@ async def amain(first, client, allclients, web, arguments):
             await web.start_if_ready(len(allclients), arguments.port)
         if not web_only:
             dispatcher = CommandDispatcher(modules, db, no_nickname)
-            loader.dispatcher = dispatcher
+            client.dispatcher = dispatcher
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
         # Loader has installed all dependencies
         return  # We are done

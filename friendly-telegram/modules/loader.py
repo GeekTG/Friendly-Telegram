@@ -613,7 +613,6 @@ class LoaderMod(loader.Module):
     async def client_ready(self, client, db):
         self._db = db
         self._client = client
-        self.dispatcher = loader.dispatcher
         await self._update_modules()
 
 

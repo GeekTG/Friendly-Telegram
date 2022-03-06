@@ -21,9 +21,6 @@ import collections
 import logging
 import re
 from telethon import types
-import os
-import json
-import time
 import traceback
 
 from . import utils, main, security, loader

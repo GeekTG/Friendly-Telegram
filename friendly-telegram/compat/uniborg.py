@@ -83,8 +83,9 @@ class UniborgClient(MarkdownBotPassthrough):
         # this way, the `self` is wrapped as a nonlocal, so __self__ can be modified
         def _unknown_command_inner(message):
             message.message = (
-                "." + message.message[len("borgcmd" + str(self.instance_id)) + 1 :]
+                "." + message.message[len(f"borgcmd{str(self.instance_id)}") + 1 :]
             )
+
             return asyncio.gather(*[uk(message, "") for uk in self._unknowns])
 
         return _unknown_command_inner
@@ -137,7 +138,7 @@ class UniborgClient(MarkdownBotPassthrough):
                     else:
                         logger.debug(
                             (
-                                (f"but not matched cmd {message.message}" + " regex ")
+                                f"but not matched cmd {message.message} regex "
                                 + event.pattern.__self__.pattern
                             )
                         )

@@ -16,7 +16,6 @@
 
 #    Modded by GeekTG Team
 
-# flake8: noqa: T001
 """Initial entrypoint"""
 
 import sys
@@ -30,13 +29,13 @@ if getpass.getuser() == "root" and "--root" not in " ".join(sys.argv):
     print("BUT ALSO FOR YOUR DEVICE ITSELF!")
     print("!" * 30)
     print()
-    print("TYPE force_insecure TO DISABLE THIS WARNING")
+    print("TYPE force_insecure TO IGNORE THIS WARNING")
     print("TYPE ANYTHING ELSE TO EXIT:")
     if input("> ").lower() != "force_insecure":
         sys.exit(1)
 
-if sys.version_info < (3, 6, 0):
-    print("Error: you must use at least Python version 3.6.0")  # pragma: no cover
+if sys.version_info < (3, 8, 0):
+    print("Error: you must use at least Python version 3.8.0")  # pragma: no cover
 elif __package__ != "friendly-telegram":  # In case they did python __main__.py
     print(
         "Error: you cannot run this as a script; you must execute as a package"
@@ -48,13 +47,21 @@ else:
     try:
         from . import main
     except ModuleNotFoundError:  # pragma: no cover
-        print("Error: you have not installed all dependencies correctly.")
-        print("Attempting dependencies installation...")
+        print(
+            "Error: you have not installed all dependencies correctly.\n"
+            "Attempting dependencies installation... Just wait."
+        )
+
         os.popen("pip3 install -r requirements.txt").read()
+
         try:
             from . import main
         except ModuleNotFoundError:
-            print("Error while installing dependencies. Please, do this manually!")
+            print(
+                "Error while installing dependencies. Please, do this manually!\n"
+                "pip3 install -r requirements.txt"
+            )
+
             sys.exit(1)
 
     if __name__ == "__main__":

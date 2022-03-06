@@ -164,9 +164,7 @@ class CloudBackend:
                         newmsg = True
                     if sdata[:4096] != msg.message:
                         ops += [
-                            msg.edit(
-                                "<code>" + utils.escape_html(sdata[:4096]) + "</code>"
-                            )
+                            msg.edit(f"<code>{utils.escape_html(sdata[:4096])}</code>")
                         ]
                     sdata = sdata[4096:]
                 elif msg.id != msgs[-1].id:

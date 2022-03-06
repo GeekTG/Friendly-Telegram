@@ -26,7 +26,6 @@ import os
 import shlex
 
 import telethon
-from telethon.extensions import html
 from telethon.tl.custom.message import Message
 from telethon.tl.types import (
     PeerUser,
@@ -127,7 +126,7 @@ async def get_user(message):
     except ValueError:  # Not in database. Lets go looking for them.
         logging.debug("user not in session cache. searching...")
 
-    if isinstance(message.to_id, PeerUser):
+    if isinstance(message.peer_id, PeerUser):
         try:
             await message.client.get_dialogs()
         except telethon.rpcerrorlist.BotMethodInvalid:
@@ -135,9 +134,9 @@ async def get_user(message):
 
         return await message.client.get_entity(message.sender_id)
 
-    if isinstance(message.to_id, (PeerChannel, PeerChat)):
+    if isinstance(message.peer_id, (PeerChannel, PeerChat)):
         async for user in message.client.iter_participants(
-            message.to_id, aggressive=True
+            message.peer_id, aggressive=True
         ):
             if user.id == message.sender_id:
                 return user
@@ -145,7 +144,7 @@ async def get_user(message):
         logging.critical("WTF! user isn't in the group where they sent the message")
         return None
 
-    logging.critical("WTF! to_id is not a user, chat or channel")
+    logging.critical("WTF! `peer_id` is not a user, chat or channel")
     return None
 
 
@@ -197,23 +196,6 @@ def relocate_entities(entities, offset, text=None):
     return entities
 
 
-def _fix_entities(ent, cont_msg, initial=False):
-    for entity in ent:
-        if not initial:
-            entity.offset -= len(cont_msg)
-            entity.length += len(cont_msg)
-
-        if entity.offset + entity.length < 4096:
-            entity.offset = 0
-            entity.length = 0  # It's useless
-            continue
-
-        already_done = max(4096 - entity.offset, 0)
-        entity.offset = max(entity.offset - 4096, 0)
-        entity.length -= already_done
-        entity.offset += len(cont_msg)
-
-
 async def answer(message, response, **kwargs):
     """Use this to give the response to a command"""
     if isinstance(message, list):
@@ -238,9 +220,7 @@ async def answer(message, response, **kwargs):
     if not edit:
         kwargs.setdefault(
             "reply_to",
-            message.reply_to_msg_id
-            if await message.get_reply_message()
-            else message.id,
+            getattr(message, 'reply_to_msg_id', None),
         )
 
     parse_mode = telethon.utils.sanitize_parse_mode(
@@ -250,38 +230,28 @@ async def answer(message, response, **kwargs):
     if isinstance(response, str) and not kwargs.pop("asfile", False):
         txt, ent = parse_mode.parse(response)
 
-        if len(txt) >= 8192:
+        if len(txt) >= 4096:
             file = io.BytesIO(txt.encode("utf-8"))
             file.name = "command_result.txt"
-            await message.client.send_file(
-                message.to_id,
-                file,
-                caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>",
-            )
+
+            ret = [
+                await message.client.send_file(
+                    message.peer_id,
+                    file,
+                    caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>",
+                ),
+            ]
+
             if message.out:
                 await message.delete()
-            return
+
+            return ret
 
         ret = [
             await (message.edit if edit else message.respond)(
-                txt[:4096], parse_mode=lambda t: (t, ent), **kwargs
+                txt, parse_mode=lambda t: (t, ent), **kwargs
             )
         ]
-        txt = txt[4096:]
-        cont_msg = "[continued]\n"
-        _fix_entities(ent, cont_msg, True)
-        while len(txt) > 0:
-            txt = cont_msg + txt
-            message.message = txt[:4096]
-            message.entities = ent
-            message.text = html.unparse(message.message, message.entities)
-            txt = txt[4096:]
-            _fix_entities(ent, cont_msg)
-            ret.append(
-                await (message.reply if edit else message.respond)(
-                    message, parse_mode=lambda t: (t, ent), **kwargs
-                )
-            )
     elif isinstance(response, Message):
         if message.media is None and (
             response.media is None or isinstance(response.media, MessageMediaWebPage)
@@ -294,10 +264,7 @@ async def answer(message, response, **kwargs):
                 ),
             )
         else:
-            txt = "<b>Loading message...</b>"
-            new = await (message.edit if edit else message.reply)(txt)
             ret = (await message.respond(response, **kwargs),)
-            await new.delete()
     else:
         if isinstance(response, bytes):
             response = io.BytesIO(response)
@@ -311,16 +278,11 @@ async def answer(message, response, **kwargs):
         if message.media is not None and edit:
             await message.edit(file=response, **kwargs)
         else:
-            txt = "<b>Loading media...</b>"  # TODO translations
-            new = await (message.edit if edit else message.reply)(txt)
             kwargs.setdefault(
                 "reply_to",
-                message.reply_to_msg_id
-                if await message.get_reply_message()
-                else message.id,
+                getattr(message, 'reply_to_msg_id', None),
             )
             ret = (await message.client.send_file(message.chat_id, response, **kwargs),)
-            await new.delete()
 
     if delete_job:
         await delete_job
@@ -341,8 +303,8 @@ async def get_target(message, arg_no=0):
         user = get_args(message)[arg_no]
     elif message.is_reply:
         return (await message.get_reply_message()).sender_id
-    elif hasattr(message.to_id, "user_id"):
-        user = message.to_id.user_id
+    elif hasattr(message.peer_id, "user_id"):
+        user = message.peer_id.user_id
     else:
         return None
 

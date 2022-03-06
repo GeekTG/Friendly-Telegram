@@ -33,6 +33,8 @@ from aiogram.types import (
     ChosenInlineResult,
 )
 
+from aiogram.utils.exceptions import Unauthorized
+
 from . import utils
 import logging
 import requests
@@ -481,14 +483,17 @@ class InlineManager:
         else:
             await self._register_manager(ignore_token_checks=True)
 
-    async def _dp_revoke_token(self) -> None:
-        await self.stop()
-
-        logger.error("Got polling conflict. Attempting token revocation...")
+    async def _dp_revoke_token(self, inited=True) -> None:
+        if inited:
+            await self.stop()
+            logger.error("Got polling conflict. Attempting token revocation...")
 
         self._db.set("geektg.inline", "bot_token", None)
         self._token = None
-        asyncio.ensure_future(self._reassert_token())
+        if inited:
+            asyncio.ensure_future(self._reassert_token())
+        else:
+            return await self._reassert_token()
 
     async def _register_manager(
         self, after_break=False, ignore_token_checks=False
@@ -514,7 +519,11 @@ class InlineManager:
         self._dp = Dispatcher(self._bot)
 
         # Get bot username to call inline queries
-        self._bot_username = (await self._bot.get_me()).username
+        try:
+            self._bot_username = (await self._bot.get_me()).username
+        except Unauthorized:
+            logger.critical("Token expired, revoking...")
+            return await self._dp_revoke_token(False)
 
         # Start the bot in case it can send you messages
         try:

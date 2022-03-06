@@ -376,7 +376,7 @@ class RaphielgangEvents:
                         func.__self__.__module__ = events_instance.module
                     else:
                         func.__self__ = self
-                self.strings = {"name": "RaphielGang" + str(self.instance_id)}
+                self.strings = {"name": f"RaphielGang{str(self.instance_id)}"}
                 self.unknowns = events_instance.unknowns
                 self.__module__ = events_instance.module
 
@@ -393,12 +393,12 @@ class RaphielgangEvents:
             self.instance_id = -1
 
         def _ensure_unknowns(self):
-            self.commands["raphcmd" + str(self.instance_id)] = self._unknown_command
+            self.commands[f"raphcmd{str(self.instance_id)}"] = self._unknown_command
 
         def _unknown_command(self, message):
             """A command that could not be understood by the compat system, you must put the raw command after."""
             message.message = message.message[
-                len("raphcmd" + str(self.instance_id)) + 1 :
+                len(f"raphcmd{str(self.instance_id)}") + 1 :
             ]
             return asyncio.gather(*[uk(message, "") for uk in self.unknowns])
 

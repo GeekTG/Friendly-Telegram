@@ -90,7 +90,7 @@ def rand(size: int) -> str:
     return "".join(
         [
             random.choice(
-                "abcdefghijklmnopqrstuvwzyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                "abcdefghijklmnopqrstuvwxyz1234567890"
             )
             for _ in range(size)
         ]

@@ -16,6 +16,7 @@ from .. import loader, utils
 from telethon.tl.types import Message
 import logging
 from typing import Union, List
+from aiogram.types import CallbackQuery
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +57,12 @@ class GeekConfigMod(loader.Module):
         self._bot_id = (await self.inline._bot.get_me()).id
         self._forms = {}
 
-    async def inline__close(self, call: "aiogram.types.CallbackQuery") -> None:  # noqa
+    async def inline__close(self, call: CallbackQuery) -> None:  # noqa
         await call.delete()
 
     async def inline__set_config(
         self,
-        call: "aiogram.types.CallbackQuery",
+        call: CallbackQuery,
         query: str,
         mod: str,
         option: str,
@@ -87,7 +88,7 @@ class GeekConfigMod(loader.Module):
         )
 
     async def inline__configure_option(
-        self, call: "aiogram.types.CallbackQuery", mod: str, config_opt: str
+        self, call: CallbackQuery, mod: str, config_opt: str
     ) -> None:  # noqa
         for module in self.allmodules.modules:
             if module.strings("name") == mod:
@@ -120,7 +121,7 @@ class GeekConfigMod(loader.Module):
                 )
 
     async def inline__configure(
-        self, call: "aiogram.types.CallbackQuery", mod: str
+        self, call: CallbackQuery, mod: str
     ) -> None:  # noqa
         btns = []
         for module in self.allmodules.modules:
@@ -146,7 +147,7 @@ class GeekConfigMod(loader.Module):
         )
 
     async def inline__global_config(
-        self, call: Union[Message, "aiogram.types.CallbackQuery"]
+        self, call: Union[Message, CallbackQuery]
     ) -> None:  # noqa
         to_config = [
             mod.strings("name")

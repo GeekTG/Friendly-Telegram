@@ -769,7 +769,7 @@ async def amain(first, client, allclients, web, arguments):
             repo = git.Repo()
 
             build = repo.heads[0].commit.hexsha
-            diff = repo.git.log(["HEAD..origin/alpha", "--oneline"])
+            diff = repo.git.log(["HEAD..origin/master", "--oneline"])
             upd = r"\33[31mUpdate required" if diff else r"Up-to-date"
 
             termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())

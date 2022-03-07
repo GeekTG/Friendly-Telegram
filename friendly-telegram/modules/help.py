@@ -40,8 +40,8 @@ class HelpMod(loader.Module):
         "mod_tmpl": "\n• <b>{}</b>",
         "first_cmd_tmpl": ": <code>{}",
         "cmd_tmpl": ", {}",
-        "joined": "👩‍💼 <b>Joined to</b> <a href='https://t.me/chat_ftg'>support chat</a>",
-        "join": "👩‍💼 <b>Join the</b> <a href='https://t.me/chat_ftg'>support chat</a>",
+        "joined": "👩‍💼 <b>Joined to</b> <a href='https://t.me/GeekTGChat'>support chat</a>",
+        "join": "👩‍💼 <b>Join the</b> <a href='https://t.me/GeekTGChat'>support chat</a>",
     }
 
     @loader.unrestricted
@@ -139,13 +139,13 @@ class HelpMod(loader.Module):
         if await self.allmodules.check_security(
             message, security.OWNER | security.SUDO
         ):
-            await self.client(JoinChannelRequest("https://t.me/chat_ftg"))
+            await self.client(JoinChannelRequest("https://t.me/GeekTGChat"))
 
             try:
                 await self.inline.form(
                     self.strings("joined", message),
                     reply_markup=[
-                        [{"text": "👩‍💼 Chat", "url": "https://t.me/chat_ftg"}]
+                        [{"text": "👩‍💼 Chat", "url": "https://t.me/GeekTGChat"}]
                     ],
                     ttl=10,
                     message=message,
@@ -157,7 +157,7 @@ class HelpMod(loader.Module):
                 await self.inline.form(
                     self.strings("join", message),
                     reply_markup=[
-                        [{"text": "👩‍💼 Chat", "url": "https://t.me/chat_ftg"}]
+                        [{"text": "👩‍💼 Chat", "url": "https://t.me/GeekTGChat"}]
                     ],
                     ttl=10,
                     message=message,

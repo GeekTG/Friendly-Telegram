@@ -33,6 +33,8 @@ from aiogram.types import (
     ChosenInlineResult,
 )
 
+from aiogram.types import Message as AiogramMessage
+
 from aiogram.utils.exceptions import Unauthorized
 
 from . import utils
@@ -62,6 +64,11 @@ class InlineCall:
         self.edit = None
 
 
+class BotMessage(AiogramMessage):
+    def _(self):
+        pass
+
+
 class GeekInlineQuery:
     def __init__(self, inline_query: InlineQuery) -> None:
         self.inline_query = inline_query
@@ -88,12 +95,7 @@ class GeekInlineQuery:
 def rand(size: int) -> str:
     """Return random string of len `size`"""
     return "".join(
-        [
-            random.choice(
-                "abcdefghijklmnopqrstuvwxyz1234567890"
-            )
-            for _ in range(size)
-        ]
+        [random.choice("abcdefghijklmnopqrstuvwxyz1234567890") for _ in range(size)]
     )
 
 
@@ -194,6 +196,28 @@ async def unload(self: Any = None, form_uid: Any = None) -> bool:
     return True
 
 
+async def answer(
+    text: str = None,
+    mod: Any = None,
+    message: AiogramMessage = None,
+    parse_mode: str = "HTML",
+    disable_web_page_preview: bool = True,
+    **kwargs,
+) -> bool:
+    try:
+        await mod._bot.send_message(
+            message.chat.id,
+            text,
+            parse_mode=parse_mode,
+            disable_web_page_preview=disable_web_page_preview,
+            **kwargs,
+        )
+    except Exception:
+        return False
+
+    return True
+
+
 class InlineManager:
     def __init__(self, client, db, allmodules) -> None:
         """Initialize InlineManager to create forms"""
@@ -204,6 +228,8 @@ class InlineManager:
         self._token = db.get("geektg.inline", "bot_token", False)
 
         self._forms = {}
+
+        self.fsm = {}
 
         self._forms_db_path = os.path.join(
             utils.get_base_dir(), "../inline-forms-db.json"
@@ -218,6 +244,29 @@ class InlineManager:
                 self._forms = json.loads(f.read())
         except Exception:
             pass
+
+    def ss(self, user: Union[str, int], state: Union[str, bool]) -> bool:
+        if not isinstance(user, (str, int)):
+            logger.error(f'Invalid type for `user` in `ss` (expected `str or int` got `{type(user)}`)')
+            return False
+
+        if not isinstance(state, (str, bool)):
+            logger.error(f'Invalid type for `state` in `ss` (expected `str or bool` got `{type(state)}`)')
+            return False
+
+        if state:
+            self.fsm[str(user)] = state
+        elif str(user) in self.fsm:
+            del self.fsm[str(user)]
+
+        return True
+
+    def gs(self, user: Union[str, int]) -> Union[bool, str]:
+        if not isinstance(user, (str, int)):
+            logger.error(f'Invalid type for `user` in `gs` (expected `str or int` got `{type(user)}`)')
+            return False
+
+        return self.fsm.get(str(user), False)
 
     def _check_inline_security(self, func, user):
         allow = user in [self._me] + self._client.dispatcher.security._owner
@@ -478,7 +527,7 @@ class InlineManager:
 
     async def _dp_revoke_token(self, inited=True) -> None:
         if inited:
-            await self.stop()
+            await self._stop()
             logger.error("Got polling conflict. Attempting token revocation...")
 
         self._db.set("geektg.inline", "bot_token", None)
@@ -548,6 +597,7 @@ class InlineManager:
         self._dp.register_chosen_inline_handler(
             self._chosen_inline_handler, lambda chosen_inline_query: True
         )
+        self._dp.register_message_handler(self._message_handler, lambda *args: True, content_types=['any'])
 
         old = self._bot.get_updates
         revoke = self._dp_revoke_token
@@ -567,7 +617,25 @@ class InlineManager:
         self._task = asyncio.ensure_future(self._dp.start_polling())
         self._cleaner_task = asyncio.ensure_future(self._cleaner())
 
-    async def stop(self) -> None:
+    async def _message_handler(self, message: AiogramMessage) -> None:
+        """Processes incoming messages"""
+        if message.chat.type != "private":
+            return
+
+        for mod in self._allmodules.modules:
+            if not hasattr(mod, "aiogram_watcher"):
+                continue
+
+            setattr(
+                message, "answer", functools.partial(answer, mod=self, message=message)
+            )
+
+            try:
+                await mod.aiogram_watcher(message)
+            except BaseException:
+                logger.exception("Error on running aiogram watcher!")
+
+    async def _stop(self) -> None:
         self._task.cancel()
         self._dp.stop_polling()
         self._cleaner_task.cancel()

@@ -134,7 +134,7 @@ class LoaderMod(loader.Module):
         "provide_module": "<b>⚠️ Provide a module to load</b>",
         "bad_unicode": "<b>🚫 Invalid Unicode formatting in module</b>",
         "load_failed": "<b>🚫 Loading failed. See logs for details</b>",
-        "loaded": "<b>📥 Module </b><code>{}</code><b> loaded.</b>{}",
+        "loaded": "<b>📥 Module </b><code>{}</code>{}<b> loaded.</b>{}",
         "no_class": "<b>What class needs to be unloaded?</b>",
         "unloaded": "<b>📤 Module unloaded.</b>",
         "not_unloaded": "<b>🚫 Module not unloaded.</b>",
@@ -302,7 +302,8 @@ class LoaderMod(loader.Module):
         self, doc, message, name=None, origin="<string>", did_requirements=False
     ):
         if re.search(r"#[ ]?scope:[ ]?inline", doc) and not self.inline.init_complete:
-            await utils.answer(message, self.strings("inline_init_failed"))
+            if isinstance(message, Message):
+                await utils.answer(message, self.strings("inline_init_failed"))
             return
 
         if name is None:
@@ -384,6 +385,10 @@ class LoaderMod(loader.Module):
             return False
 
         instance.inline = self.inline
+        if hasattr(instance, '__version__') and isinstance(instance.__version__, tuple):
+            version = "<b><i> (v" + ".".join(list(map(str, list(instance.__version__)))) + ")</i></b>"
+        else:
+            version = ""
 
         try:
             self.allmodules.send_config_one(instance, self._db, self.babel)
@@ -417,7 +422,7 @@ class LoaderMod(loader.Module):
             if re.search(r"#[ ]?scope:[ ]?disable_onload_docs", doc):
                 return await utils.answer(
                     message,
-                    self.strings("loaded", message).format(modname.strip(), modhelp),
+                    self.strings("loaded", message).format(modname.strip(), version, modhelp),
                 )
 
             commands = {name: func for name, func in instance.commands.items()}
@@ -475,11 +480,11 @@ class LoaderMod(loader.Module):
             try:
                 await utils.answer(
                     message,
-                    self.strings("loaded", message).format(modname.strip(), modhelp),
+                    self.strings("loaded", message).format(modname.strip(), version, modhelp),
                 )
             except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:
                 await message.reply(
-                    self.strings("loaded", message).format(modname.strip(), modhelp)
+                    self.strings("loaded", message).format(modname.strip(), version, modhelp)
                 )
 
         return True

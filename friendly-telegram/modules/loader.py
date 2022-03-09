@@ -165,6 +165,7 @@ class LoaderMod(loader.Module):
         "undoc_chandler": "👁‍🗨 No docs",
         "inline_init_failed": """🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>
 <i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>""",
+        "version_incompatible": "🚫 <b>This module requires GeekTG {}+\nPlease, update with </b><code>.update</code>"
     }
 
     def __init__(self):
@@ -305,6 +306,13 @@ class LoaderMod(loader.Module):
             if isinstance(message, Message):
                 await utils.answer(message, self.strings("inline_init_failed"))
             return
+
+        if re.search(r"#[ ]?scope:[ ]?geektg_min", doc):
+            ver = re.search(r"#[ ]?scope:[ ]?geektg_min ([0-9]+\.[0-9]+\.[0-9]+)", doc).group(1)
+            ver_ = tuple(map(int, ver.split('.')))
+            if main.__version__ < ver_:
+                await utils.answer(message, self.strings('version_incompatible').format(ver))
+                return
 
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())

@@ -139,17 +139,22 @@ class SecurityManager:
     def __init__(self, db):
         self._any_admin = db.get(__name__, "any_admin", False)
         self._default = db.get(__name__, "default", DEFAULT_PERMISSIONS)
-        self._owner = db.get(__name__, "owner", []).copy()
-        self._sudo = db.get(__name__, "sudo", []).copy()
-        self._support = db.get(__name__, "support", []).copy()
         self._db = db
+        self._reload_rights()
+
+    def _reload_rights(self) -> None:
+        self._owner = self._db.get(__name__, "owner", []).copy()
+        self._sudo = list(
+            set(
+                self._db.get(__name__, "sudo", []).copy()
+                + ([self._me] if hasattr(self, "_me") else [])
+            )
+        )
+        self._support = self._db.get(__name__, "support", []).copy()
 
     async def init(self, client):
-        u = (await client.get_me(True)).user_id
-        if not self._owner or u not in self._owner:
-            self._owner.append(u)
-
         self._client = client
+        self._me = (await client.get_me()).id
 
     def get_flags(self, func):
         if isinstance(func, int):
@@ -171,10 +176,7 @@ class SecurityManager:
         return config & self._db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
 
     async def _check(self, message, func):
-        self._owner = self._db.get(__name__, "owner", []).copy()
-        self._sudo = self._db.get(__name__, "sudo", []).copy()
-        self._support = self._db.get(__name__, "support", []).copy()
-
+        self._reload_rights()
         config = self.get_flags(func)
 
         if not config:  # Either False or 0, either way we can failfast
@@ -206,7 +208,7 @@ class SecurityManager:
             or f_group_admin
         )
 
-        if f_owner and message.sender_id in self._owner:
+        if f_owner and message.sender_id in self._owner + [self._me]:
             return True
 
         if f_sudo and message.sender_id in self._sudo:

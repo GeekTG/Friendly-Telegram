@@ -144,13 +144,6 @@ class SecurityManager:
         self._support = db.get(__name__, "support", []).copy()
         self._db = db
 
-    async def update_owners(self):
-        self._owner = self._db.get(__name__, "owner", []).copy()
-        if self._client:
-            u = (await self._client.get_me(True)).user_id
-            if not self._owner or u not in self._owner:
-                self._owner += [u]
-
     async def init(self, client):
         u = (await client.get_me(True)).user_id
         if not self._owner or u not in self._owner:
@@ -178,6 +171,10 @@ class SecurityManager:
         return config & self._db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
 
     async def _check(self, message, func):
+        self._owner = self._db.get(__name__, "owner", []).copy()
+        self._sudo = self._db.get(__name__, "sudo", []).copy()
+        self._support = self._db.get(__name__, "support", []).copy()
+
         config = self.get_flags(func)
 
         if not config:  # Either False or 0, either way we can failfast

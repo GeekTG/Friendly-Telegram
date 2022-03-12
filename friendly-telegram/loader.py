@@ -342,6 +342,7 @@ class Modules:
     def complete_registration(self, instance):
         """Complete registration of instance"""
         instance.allmodules = self
+        instance.geektg = True
         instance.log = self.log  # Like botlog from PP
         for module in self.modules:
             if module.__class__.__name__ == instance.__class__.__name__:

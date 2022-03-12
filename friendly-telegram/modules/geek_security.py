@@ -10,9 +10,9 @@
 
 from types import FunctionType
 from typing import List, Union
-from telethon._tl import Message, User, PeerUser
+from telethon.tl.types import Message, User, PeerUser
 from .. import loader, utils, main, security
-from telethon._misc.utils import get_display_name
+from telethon.utils import get_display_name
 
 import logging
 import aiogram

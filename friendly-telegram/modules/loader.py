@@ -165,7 +165,9 @@ class LoaderMod(loader.Module):
         "undoc_chandler": "👁‍🗨 No docs",
         "inline_init_failed": """🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>
 <i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>""",
-        "version_incompatible": "🚫 <b>This module requires GeekTG {}+\nPlease, update with </b><code>.update</code>"
+        "version_incompatible": "🚫 <b>This module requires GeekTG {}+\nPlease, update with </b><code>.update</code>",
+        "non_heroku": "♓️ <b>This module is not supported on Heroku</b>",
+        "ffmpeg_required": "🚫 <b>This module requires FFMPEG, which is not installed</b>"
     }
 
     def __init__(self):
@@ -302,6 +304,16 @@ class LoaderMod(loader.Module):
     async def load_module(
         self, doc, message, name=None, origin="<string>", did_requirements=False
     ):
+        if re.search(r"#[ ]?scope:[ ]?non_heroku", doc) and 'DYNO' in os.environ:
+            if isinstance(message, Message):
+                await utils.answer(message, self.strings("non_heroku"))
+            return
+
+        if re.search(r"#[ ]?scope:[ ]?ffmpeg", doc) and os.system('ffmpeg -version'):
+            if isinstance(message, Message):
+                await utils.answer(message, self.strings("ffmpeg_required"))
+            return
+
         if re.search(r"#[ ]?scope:[ ]?inline", doc) and not self.inline.init_complete:
             if isinstance(message, Message):
                 await utils.answer(message, self.strings("inline_init_failed"))

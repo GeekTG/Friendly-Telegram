@@ -44,7 +44,7 @@ class NoCollisionsMod(loader.Module):
             await asyncio.sleep(5)
             await utils.answer(message, self.strings("killed", message))
         except telethon.errors.rpcerrorlist.MessageNotModifiedError:
-            [handler] = logging.getLogger().handlers
+            handler = logging.getLogger().handlers[0]
             handler.setLevel(logging.CRITICAL)
 
             for client in self.allclients:

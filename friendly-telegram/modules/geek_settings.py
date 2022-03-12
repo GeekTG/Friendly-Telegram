@@ -1,10 +1,18 @@
 """
     █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
-
     Copyright 2022 t.me/hikariatama
-    Licensed under the GNU GPLv3
+    Licensed under the Creative Commons CC BY-NC-ND 4.0
+
+    Full license text can be found at:
+    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
+
+    Human-friendly one:
+    https://creativecommons.org/licenses/by-nc-nd/4.0
 """
+
+# meta pic: https://img.icons8.com/fluency/48/000000/settings.png
+# scope: geektg_only
 
 from .. import loader, utils, main
 import logging
@@ -25,16 +33,20 @@ class AdvancedSettingsMod(loader.Module):
         "disabled": "👾 <b>Watcher {} is now disabled</b>",
         "enabled": "👾 <b>Watcher {} is now enabled</b>",
         "args": "👾 <b>You need to specify watcher name</b>",
+        "user_nn": "🔰 <b>NoNick for this user is now {}</b>",
+        "no_cmd": "🔰 <b>Please, specify command to toggle NoNick for</b>",
+        "cmd_nn": "🔰 <b>NoNick for </b><code>{}</code><b> is now {}</b>",
+        "cmd404": "🔰 <b>Command not found</b>",
     }
 
-    def get_watchers(self):
+    def get_watchers(self) -> tuple:
         return [
             str(_.__self__.__class__.strings["name"])
             for _ in self.allmodules.watchers
             if _.__self__.__class__.strings is not None
         ], self.db.get(main.__name__, "disabled_watchers", {})
 
-    async def client_ready(self, client, db):
+    async def client_ready(self, client, db) -> None:
         self.db = db
 
     async def watcherscmd(self, message: Message) -> None:
@@ -160,3 +172,50 @@ class AdvancedSettingsMod(loader.Module):
             disabled_watchers[args] = ["*"]
         self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
         await utils.answer(message, self.strings("disabled").format(args))
+
+    async def nonickusercmd(self, message: Message) -> None:
+        """Allow certain command to be executed without nickname"""
+        reply = await message.get_reply_message()
+        u = reply.from_id
+        if not isinstance(u, int):
+            u = u.user_id
+
+        nn = self.db.get(main.__name__, "nonickusers", [])
+        if u not in nn:
+            nn += [u]
+            nn = list(set(nn))
+            await utils.answer(message, self.strings("user_nn").format("on"))
+        else:
+            nn = list(set(nn) - set([u]))
+            await utils.answer(message, self.strings("user_nn").format("off"))
+
+        self.db.set(main.__name__, "nonickusers", nn)
+
+    async def nonickcmdcmd(self, message: Message) -> None:
+        args = utils.get_args_raw(message)
+        if not args:
+            return await utils.answer(message, self.strings("no_cmd"))
+
+        if args not in self.allmodules.commands:
+            return await utils.answer(message, self.strings("cmd404"))
+
+        nn = self.db.get(main.__name__, "nonickcmds", [])
+        if args not in nn:
+            nn += [args]
+            nn = list(set(nn))
+            await utils.answer(
+                message,
+                self.strings("cmd_nn").format(
+                    self.db.get(main.__name__, "command_prefix", ["."])[0] + args, "on"
+                ),
+            )
+        else:
+            nn = list(set(nn) - set([args]))
+            await utils.answer(
+                message,
+                self.strings("cmd_nn").format(
+                    self.db.get(main.__name__, "command_prefix", ["."])[0] + args, "off"
+                ),
+            )
+
+        self.db.set(main.__name__, "nonickcmds", nn)

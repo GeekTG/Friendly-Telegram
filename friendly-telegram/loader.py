@@ -32,6 +32,14 @@ from . import utils, security, inline
 from .translations.dynamic import Strings
 
 
+class LoadError(Exception):
+    def __init__(self, error_message):
+        self._error = error_message
+
+    def __str__(self) -> str:
+        return self._error
+
+
 def use_fs_for_modules():
     try:
         with open("config.json", "r") as f:

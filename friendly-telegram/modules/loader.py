@@ -384,6 +384,10 @@ class LoaderMod(loader.Module):
                 return await self.load_module(
                     doc, message, name, origin, True
                 )  # Try again
+            except loader.LoadError as e:
+                if message:
+                    await utils.answer(message, f"🚫 <b>{utils.escape_html(str(e))}</b>")
+                return
         except BaseException as e:  # That's okay because it might try to exit or something, who knows.
             logger.exception(f"Loading external module failed due to {e}")
 
@@ -399,10 +403,15 @@ class LoaderMod(loader.Module):
             version = ""
 
         try:
-            self.allmodules.send_config_one(instance, self._db, self.babel)
-            await self.allmodules.send_ready_one(
-                instance, self._client, self._db, self.allclients
-            )
+            try:
+                self.allmodules.send_config_one(instance, self._db, self.babel)
+                await self.allmodules.send_ready_one(
+                    instance, self._client, self._db, self.allclients
+                )
+            except loader.LoadError as e:
+                if message:
+                    await utils.answer(message, f"🚫 <b>{utils.escape_html(str(e))}</b>")
+                return
         except Exception as e:
             logger.exception(f"Module threw because {e}")
 

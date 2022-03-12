@@ -19,7 +19,7 @@
 import asyncio
 import logging
 
-import telethon
+from telethon.errors import MessageNotModifiedError
 
 from .. import loader, utils
 
@@ -43,8 +43,8 @@ class NoCollisionsMod(loader.Module):
             await utils.answer(message, self.strings("deadbeff", message))
             await asyncio.sleep(5)
             await utils.answer(message, self.strings("killed", message))
-        except telethon.errors.rpcerrorlist.MessageNotModifiedError:
-            [handler] = logging.getLogger().handlers
+        except MessageNotModifiedError:
+            handler = logging.getLogger().handlers[0]
             handler.setLevel(logging.CRITICAL)
 
             for client in self.allclients:

@@ -19,7 +19,7 @@
 import os
 
 import telethon
-from telethon.tl.types import Message
+from telethon._tl import Message
 
 from .. import loader, main, utils
 

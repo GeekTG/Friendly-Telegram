@@ -44,25 +44,26 @@ else:
     from . import log
 
     log.init()
-    try:
-        from . import main
-    except ModuleNotFoundError:  # pragma: no cover
-        print(
-            "Error: you have not installed all dependencies correctly.\n"
-            "Attempting dependencies installation... Just wait."
-        )
+    from . import main
+    # try:
+    #     from . import main
+    # except ModuleNotFoundError:  # pragma: no cover
+    #     print(
+    #         "Error: you have not installed all dependencies correctly.\n"
+    #         "Attempting dependencies installation... Just wait."
+    #     )
 
-        os.popen("pip3 install -r requirements.txt").read()
+    #     os.popen("pip3 install -r requirements.txt").read()
 
-        try:
-            from . import main
-        except ModuleNotFoundError:
-            print(
-                "Error while installing dependencies. Please, do this manually!\n"
-                "pip3 install -r requirements.txt"
-            )
+    #     try:
+    #         from . import main
+    #     except ModuleNotFoundError:
+    #         print(
+    #             "Error while installing dependencies. Please, do this manually!\n"
+    #             "pip3 install -r requirements.txt"
+    #         )
 
-            sys.exit(1)
+    #         sys.exit(1)
 
     if __name__ == "__main__":
         main.main()  # Execute main function

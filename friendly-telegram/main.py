@@ -36,15 +36,13 @@ import time
 import requests
 from requests import get
 from telethon import TelegramClient, events
-from telethon.errors.rpcerrorlist import (
+from telethon.errors import (
     PhoneNumberInvalidError,
     MessageNotModifiedError,
     ApiIdInvalidError,
 )
-from telethon.network.connection import ConnectionTcpFull
-from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
 from telethon.sessions import StringSession, SQLiteSession
-from telethon.tl.functions.channels import DeleteChannelRequest
+from telethon._tl.fn.channels import DeleteChannel
 
 from . import utils, loader, heroku
 from .database import backend, frontend
@@ -330,12 +328,7 @@ def get_proxy(arguments):
         and arguments.proxy_secret is not None
     ):
         logging.debug("Using proxy: %s:%s", arguments.proxy_host, arguments.proxy_port)
-        return (
-            (arguments.proxy_host, arguments.proxy_port, arguments.proxy_secret),
-            ConnectionTcpMTProxyRandomizedIntermediate,
-        )
-
-    return None, ConnectionTcpFull
+        return (arguments.proxy_host, arguments.proxy_port, arguments.proxy_secret)
 
 
 def sigterm(app, signum, handler):  # TODO: delete unused signum, handler
@@ -396,7 +389,7 @@ def main():  # noqa: C901
     clients = SuperList()
     phones, authtoken = get_phones(arguments)
     api_token = get_api_token(arguments, arguments.default_app)
-    proxy, conn = get_proxy(arguments)
+    proxy = get_proxy(arguments)
 
     if web_available:
         web = (
@@ -404,7 +397,6 @@ def main():  # noqa: C901
                 data_root=arguments.data_root,
                 api_token=api_token,
                 proxy=proxy,
-                connection=conn,
                 hosting=arguments.hosting,
                 default_app=arguments.default_app,
             )
@@ -491,9 +483,7 @@ def main():  # noqa: C901
                         StringSession(token),
                         api_token.ID,
                         api_token.HASH,
-                        connection=conn,
                         proxy=proxy,
-                        connection_retries=None,
                     ).start()
                 ]
             except ValueError:
@@ -536,15 +526,10 @@ def main():  # noqa: C901
                         )
                     )
 
-                session.set_dc(
-                    client.session.dc_id,
-                    client.session.server_address,
-                    client.session.port,
-                )
-                session.auth_key = client.session.auth_key
+                session.auth_key = client._session.auth_key
                 if not arguments.heroku:
                     session.save()
-                client.session = session
+                client._session = session
         else:
             try:
                 phone = input("Please enter your phone: ")
@@ -586,9 +571,7 @@ def main():  # noqa: C901
                 session,
                 api_token.ID,
                 api_token.HASH,
-                connection=conn,
                 proxy=proxy,
-                connection_retries=None,
             )
 
             client.start()
@@ -694,7 +677,7 @@ async def amain(first, client, allclients, web, arguments):
         )
 
         if pdb is None:
-            await client(DeleteChannelRequest(db.db))
+            await client(DeleteChannel(db.db))
             return
 
         try:
@@ -751,10 +734,10 @@ async def amain(first, client, allclients, web, arguments):
         client.add_event_handler(dispatcher.handle_incoming, events.ChatAction)
 
         client.add_event_handler(
-            dispatcher.handle_command, events.NewMessage(forwards=False)
+            dispatcher.handle_command, events.NewMessage
         )
 
-        client.add_event_handler(dispatcher.handle_command, events.MessageEdited())
+        client.add_event_handler(dispatcher.handle_command, events.MessageEdited)
 
     modules.register_all(babelfish, to_load)
 
@@ -791,7 +774,7 @@ async def amain(first, client, allclients, web, arguments):
                      • Version: {'.'.join(list(map(str, list(__version__))))}
                      • {upd}
                      • Platform: {platform}
-                     - Started for {(await client.get_me(True)).user_id} -"""
+                     - Started for {(await client.get_me()).id} -"""
 
             print(logo1)
 

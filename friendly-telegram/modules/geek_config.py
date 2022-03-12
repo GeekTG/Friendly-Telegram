@@ -13,7 +13,7 @@
 # scope: inline_content
 
 from .. import loader, utils
-from telethon.tl.types import Message
+from telethon._tl import Message
 import logging
 from typing import Union, List
 from aiogram.types import CallbackQuery

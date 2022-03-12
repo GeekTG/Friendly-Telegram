@@ -27,12 +27,12 @@ import urllib
 import uuid
 from importlib.abc import SourceLoader
 from importlib.machinery import ModuleSpec
-import telethon
-from telethon.tl.types import Message
+from telethon.errors import MediaCaptionTooLongError
+from telethon._tl import Message
 
 import requests
 
-from .. import loader, utils, main
+from .. import loader, utils, main, compat
 
 logger = logging.getLogger(__name__)
 
@@ -314,6 +314,8 @@ class LoaderMod(loader.Module):
                 await utils.answer(message, self.strings('version_incompatible').format(ver))
                 return
 
+        doc = compat.process(doc)
+
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
         else:
@@ -490,7 +492,7 @@ class LoaderMod(loader.Module):
                     message,
                     self.strings("loaded", message).format(modname.strip(), version, modhelp),
                 )
-            except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:
+            except MediaCaptionTooLongError:
                 await message.reply(
                     self.strings("loaded", message).format(modname.strip(), version, modhelp)
                 )

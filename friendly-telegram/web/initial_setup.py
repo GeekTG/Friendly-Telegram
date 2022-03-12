@@ -34,7 +34,6 @@ class Web:
         self.heroku_api_token = os.environ.get("heroku_api_token")
         self.api_token = kwargs.pop("api_token")
         self.data_root = kwargs.pop("data_root")
-        self.connection = kwargs.pop("connection")
         self.hosting = kwargs.pop("hosting")
         self.default_app = kwargs.pop("default_app")
         self.proxy = kwargs.pop("proxy")
@@ -102,16 +101,14 @@ class Web:
 
     async def send_tg_code(self, request):
         text = await request.text()
-        phone = telethon.utils.parse_phone(text)
+        phone = telethon._misc.utils.parse_phone(text)
         if not phone:
             return web.Response(status=400)
         client = telethon.TelegramClient(
             telethon.sessions.MemorySession(),
             self.api_token.ID,
             self.api_token.HASH,
-            connection=self.connection,
             proxy=self.proxy,
-            connection_retries=None,
         )
         await client.connect()
         await client.send_code_request(phone)
@@ -126,7 +123,7 @@ class Web:
         if len(split) not in (2, 3):
             return web.Response(status=400)
         code = split[0]
-        phone = telethon.utils.parse_phone(split[1])
+        phone = telethon._misc.utils.parse_phone(split[1])
         password = split[2]
         if (
             (len(code) != 5 and not password)
@@ -137,7 +134,7 @@ class Web:
         client = self.sign_in_clients[phone]
         if not password:
             try:
-                user = await client.sign_in(phone, code=code)
+                user = await client.sign_in(code=code)
             except telethon.errors.SessionPasswordNeededError:
                 return web.Response(status=401)  # Requires 2FA login
             except telethon.errors.PhoneCodeExpiredError:
@@ -148,7 +145,7 @@ class Web:
                 return web.Response(status=421)
         else:
             try:
-                user = await client.sign_in(phone, password=password)
+                user = await client.sign_in(password=password)
             except telethon.errors.PasswordHashInvalidError:
                 return web.Response(status=403)  # Invalid 2FA password
             except telethon.errors.FloodWaitError:

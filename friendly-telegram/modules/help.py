@@ -19,7 +19,7 @@
 import inspect
 import logging
 
-from telethon.tl.functions.channels import JoinChannelRequest
+from telethon._tl.fn.channels import JoinChannel
 
 from .. import loader, utils, main, security
 
@@ -139,7 +139,7 @@ class HelpMod(loader.Module):
         if await self.allmodules.check_security(
             message, security.OWNER | security.SUDO
         ):
-            await self.client(JoinChannelRequest("https://t.me/GeekTGChat"))
+            await self.client(JoinChannel("https://t.me/GeekTGChat"))
 
             try:
                 await self.inline.form(

@@ -24,7 +24,7 @@ import os
 import subprocess
 import sys
 import uuid
-import telethon
+from telethon.errors import MessageNotModifiedError
 
 import git
 from git import Repo, GitCommandError
@@ -162,7 +162,7 @@ class UpdaterMod(loader.Module):
         try:
             try:
                 msgs = await utils.answer(message, self.strings("downloading", message))
-            except telethon.errors.rpcerrorlist.MessageNotModifiedError:
+            except MessageNotModifiedError:
                 pass
 
             req_update = await self.download_common()
@@ -171,7 +171,7 @@ class UpdaterMod(loader.Module):
                 message = (
                     await utils.answer(msgs, self.strings("installing", message))
                 )[0]
-            except telethon.errors.rpcerrorlist.MessageNotModifiedError:
+            except MessageNotModifiedError:
                 pass
 
             if heroku_key := os.environ.get("heroku_api_token"):

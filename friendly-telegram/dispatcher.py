@@ -20,7 +20,7 @@ import asyncio
 import collections
 import logging
 import re
-from telethon import types
+from telethon._tl import Message
 import traceback
 
 from . import utils, main, security, loader
@@ -393,7 +393,7 @@ class CommandDispatcher:
             modname = str(func.__self__.__class__.strings["name"])
             if (
                 modname in bl
-                and isinstance(message, types.Message)
+                and isinstance(message, Message)
                 and (
                     "*" in bl[modname]
                     or utils.get_chat_id(message) in bl[modname]

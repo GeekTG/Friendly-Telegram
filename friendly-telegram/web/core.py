@@ -66,7 +66,7 @@ class Web(initial_setup.Web, root.Web):
         self.ready.clear()
 
     async def add_loader(self, client, loader, db):
-        self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
+        self.client_data[(await client.get_me()).id] = (loader, client, db)
 
     async def favicon(self, request):
         return web.Response(

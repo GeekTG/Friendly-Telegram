@@ -16,12 +16,12 @@ import time
 import random
 import asyncio
 
-from telethon.tl.types import Message
+from telethon._tl import Message
 
-from telethon.errors.rpcerrorlist import YouBlockedUserError, InputUserDeactivatedError
+from telethon.errors import YouBlockedUserError, InputUserDeactivatedError
 
-from telethon.tl.functions.contacts import UnblockRequest
-from telethon.utils import get_display_name
+from telethon._tl.fn.contacts import Unblock
+from telethon._misc.utils import get_display_name
 
 from aiogram.types import (
     InputTextMessageContent,
@@ -392,7 +392,7 @@ class InlineManager:
                 m = await conv.send_message("/token")
             except YouBlockedUserError:
                 # If user banned BotFather, unban him
-                await self._client(UnblockRequest(id="@BotFather"))
+                await self._client(Unblock(id="@BotFather"))
                 # And resend message
                 m = await conv.send_message("/token")
 

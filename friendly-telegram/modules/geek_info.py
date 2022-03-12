@@ -24,7 +24,7 @@ import aiogram
 import os
 import git
 
-from telethon.utils import get_display_name
+from telethon._misc.utils import get_display_name
 from ..inline import GeekInlineQuery, rand
 
 logger = logging.getLogger(__name__)

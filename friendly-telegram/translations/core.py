@@ -21,9 +21,9 @@ import json
 import logging
 import os
 
-import telethon
+from telethon.errors import ChannelPrivateError
 from babel import negotiate_locale
-from telethon.tl.types import MessageEntityHashtag
+from telethon._tl import MessageEntityHashtag
 
 from .. import utils
 
@@ -71,7 +71,7 @@ class Translator:
             for pack in self._packs:
                 try:
                     [message] = await client.get_messages(pack, 1)
-                except (ValueError, telethon.errors.rpcerrorlist.ChannelPrivateError):
+                except (ValueError, ChannelPrivateError):
                     # We can't access the channel
                     logger.warning(
                         "No translation pack found for %r", pack, exc_info=True

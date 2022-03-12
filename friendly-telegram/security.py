@@ -19,8 +19,8 @@
 import logging
 
 import telethon
-from telethon.tl.functions.channels import GetParticipantRequest
-from telethon.tl.functions.messages import GetFullChatRequest
+from telethon._tl.fn.channels import GetParticipant
+from telethon._tl.fn.messages import GetFullChat
 
 from . import main
 
@@ -246,7 +246,7 @@ class SecurityManager:
             else:
                 if f_group_admin_any or f_group_owner:
                     participant = await message.client(
-                        GetParticipantRequest(
+                        GetParticipant(
                             await message.get_input_chat(),
                             await message.get_input_sender(),
                         )
@@ -299,7 +299,7 @@ class SecurityManager:
 
         elif message.is_group:
             if f_group_admin_any or f_group_owner:
-                full_chat = await message.client(GetFullChatRequest(message.chat_id))
+                full_chat = await message.client(GetFullChat(message.chat_id))
                 participants = full_chat.full_chat.participants.participants
                 participant = next(
                     (

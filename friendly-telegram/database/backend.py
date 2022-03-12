@@ -2,13 +2,13 @@ import asyncio
 import logging
 
 import telethon
-from telethon.errors.rpcerrorlist import (
+from telethon.errors import (
     MessageEditTimeExpiredError,
     MessageNotModifiedError,
 )
-from telethon.tl.custom import Message as CustomMessage
-from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
-from telethon.tl.types import Message
+
+from telethon._tl.fn.channels import CreateChannel, DeleteChannel
+from telethon._tl import Message
 import json
 import os
 
@@ -31,8 +31,8 @@ class CloudBackend:
         self._assets_already_exists = False
 
     async def init(self, trigger_refresh):
-        self._me = await self._client.get_me(True)
-        self._db_path = os.path.join(ORIGIN, f"config-{self._me.user_id}.json")
+        self._me = await self._client.get_me()
+        self._db_path = os.path.join(ORIGIN, f"config-{self._me.id}.json")
         self._callback = trigger_refresh
 
     def close(self):
@@ -40,7 +40,7 @@ class CloudBackend:
 
     async def _find_data_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
-            if dialog.name == f"friendly-{self._me.user_id}-data" and dialog.is_channel:
+            if dialog.name == f"friendly-{self._me.id}-data" and dialog.is_channel:
                 members = await self._client.get_participants(dialog, limit=2)
                 if len(members) != 1:
                     continue
@@ -54,8 +54,8 @@ class CloudBackend:
             self._data_already_exists = True
             return (
                 await self._client(
-                    CreateChannelRequest(
-                        f"friendly-{self._me.user_id}-data",
+                    CreateChannel(
+                        f"friendly-{self._me.id}-data",
                         "// Don't touch",
                         megagroup=True,
                     )
@@ -65,7 +65,7 @@ class CloudBackend:
     async def _find_asset_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
             if (
-                dialog.name == f"friendly-{self._me.user_id}-assets"
+                dialog.name == f"friendly-{self._me.id}-assets"
                 and dialog.is_channel
             ):
                 members = await self._client.get_participants(dialog, limit=2)
@@ -81,8 +81,8 @@ class CloudBackend:
             self._assets_already_exists = True
             return (
                 await self._client(
-                    CreateChannelRequest(
-                        f"friendly-{self._me.user_id}-assets",
+                    CreateChannel(
+                        f"friendly-{self._me.id}-assets",
                         "// Don't touch",
                         megagroup=True,
                     )
@@ -111,7 +111,7 @@ class CloudBackend:
 
             self._client.add_event_handler(
                 self._callback,
-                telethon.events.messageedited.MessageEdited(chats=[self.db]),
+                telethon._events.messageedited.MessageEdited(chats=[self.db]),
             )
 
         msgs = self._client.iter_messages(entity=self.db, reverse=True)
@@ -149,7 +149,7 @@ class CloudBackend:
 
             self._client.add_event_handler(
                 self._callback,
-                telethon.events.messageedited.MessageEdited(chats=[self.db]),
+                telethon._events.messageedited.MessageEdited(chats=[self.db]),
             )
 
         msgs = await self._client.get_messages(entity=self.db, reverse=True)
@@ -198,7 +198,7 @@ class CloudBackend:
             logging.debug("Making new channel.")
             _db = self.db
             self.db = None
-            await self._client(DeleteChannelRequest(channel=_db))
+            await self._client(DeleteChannel(channel=_db))
             return True
 
         return False
@@ -212,7 +212,7 @@ class CloudBackend:
 
         return (
             (await self._client.send_message(self._assets, message)).id
-            if isinstance(message, (Message, CustomMessage))
+            if isinstance(message, Message)
             else (
                 await self._client.send_message(
                     self._assets, file=message, force_document=True

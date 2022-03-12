@@ -16,7 +16,7 @@ import datetime
 import io
 import json
 
-from telethon.tl.types import Message
+from telethon._tl import Message
 
 
 @loader.tds

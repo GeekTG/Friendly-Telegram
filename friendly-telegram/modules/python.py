@@ -13,7 +13,7 @@ from .. import loader, utils
 from traceback import format_exc
 import itertools
 from types import ModuleType
-from telethon.tl.types import Message
+from telethon._tl import Message
 
 logger = logging.getLogger(__name__)
 
@@ -76,13 +76,12 @@ class PythonMod(loader.Module):
             "self": self,
             "db": self.db,
             "reply": await message.get_reply_message(),
-            **self.get_sub(telethon.tl.types),
-            **self.get_sub(telethon.tl.functions),
+            **self.get_sub(telethon._tl),
             "event": message,
-            "chat": message.to_id,
+            "chat": utils.get_chat_id(message),
             "telethon": telethon,
             "utils": utils,
-            "f": telethon.tl.functions,
+            "f": telethon._tl.fn,
             "c": self.client,
             "m": message,
             "loader": loader,
@@ -109,7 +108,7 @@ class PythonMod(loader.Module):
                             and isinstance(x[1], ModuleType)
                             and x[1] != it
                             and x[1].__package__.rsplit(".", _depth)[0]
-                            == "telethon.tl",
+                            == "telethon._tl",
                             it.__dict__.items(),
                         )
                     ]

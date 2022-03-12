@@ -207,7 +207,6 @@ class Modules:
         self.aliases = {}
         self.modules = []
         self.watchers = []
-        self._compat_layer = None
         self._log_handlers = []
         self.client = None
         self._initial_registration = True
@@ -218,11 +217,6 @@ class Modules:
     def register_all(self, babelfish, mods=None):
         # TODO: remove babelfish
         """Load all modules in the module directory"""
-        if self._compat_layer is None:
-            from . import compat  # Avoid circular import
-
-            self._compat_layer = compat.activate([])
-
         if not mods:
             mods = [
                 os.path.join(utils.get_base_dir(), MODULES_NAME, mod)
@@ -256,13 +250,11 @@ class Modules:
 
     def register_module(self, spec, module_name, origin="<file>"):
         """Register single module from importlib spec"""
-        from .compat import uniborg
 
         module = importlib.util.module_from_spec(spec)
         sys.modules[
             module_name
-        ] = module  # Do this early for the benefit of RaphielGang compat layer
-        module.borg = uniborg.UniborgClient(module_name)
+        ] = module 
         spec.loader.exec_module(module)
         ret = None
 
@@ -417,8 +409,6 @@ class Modules:
         # it everytime module is loaded. Then we can just
         # re-assign it to all modules
         self.inline = inline_manager
-
-        await self._compat_layer.client_ready(client)
 
         try:
             await asyncio.gather(

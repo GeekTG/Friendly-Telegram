@@ -26,8 +26,8 @@ import os
 import shlex
 
 import telethon
-from telethon.tl.custom.message import Message
-from telethon.tl.types import (
+from telethon._tl import (
+    Message,
     PeerUser,
     PeerChat,
     PeerChannel,
@@ -92,11 +92,11 @@ def get_args_split_by(message, sep):
 
 def get_chat_id(message):
     """Get the chat ID, but without -100 if its a channel"""
-    return telethon.utils.resolve_id(message.chat_id)[0]
+    return telethon._misc.utils.resolve_id(message.chat_id)[0]
 
 
 def get_entity_id(entity):
-    return telethon.utils.get_peer_id(entity)
+    return telethon._misc.utils.get_peer_id(entity)
 
 
 def escape_html(text):
@@ -129,7 +129,7 @@ async def get_user(message):
     if isinstance(message.peer_id, PeerUser):
         try:
             await message.client.get_dialogs()
-        except telethon.rpcerrorlist.BotMethodInvalid:
+        except telethon.BotMethodInvalid:
             return None
 
         return await message.client.get_entity(message.sender_id)
@@ -223,7 +223,7 @@ async def answer(message, response, **kwargs):
             getattr(message, 'reply_to_msg_id', None),
         )
 
-    parse_mode = telethon.utils.sanitize_parse_mode(
+    parse_mode = telethon._misc.utils.sanitize_parse_mode(
         kwargs.pop("parse_mode", message.client.parse_mode)
     )
 

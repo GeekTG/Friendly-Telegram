@@ -603,7 +603,7 @@ def main():  # noqa: C901
                 f"'friendly-telegram-{phone if phone else ''}.session'"
             )
             continue
-        except TypeError or AuthKeyDuplicatedError:
+        except (TypeError, AuthKeyDuplicatedError):
             os.remove(f"{session}.session")
             main()
         except (ValueError, ApiIdInvalidError):

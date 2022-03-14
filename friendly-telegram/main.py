@@ -39,7 +39,7 @@ from telethon import TelegramClient, events
 from telethon.errors.rpcerrorlist import (
     PhoneNumberInvalidError,
     MessageNotModifiedError,
-    ApiIdInvalidError,
+    ApiIdInvalidError, AuthKeyDuplicatedError,
 )
 from telethon.network.connection import ConnectionTcpFull
 from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
@@ -603,7 +603,7 @@ def main():  # noqa: C901
                 f"'friendly-telegram-{phone if phone else ''}.session'"
             )
             continue
-        except TypeError:
+        except (TypeError, AuthKeyDuplicatedError):
             os.remove(f"{session}.session")
             main()
         except (ValueError, ApiIdInvalidError):

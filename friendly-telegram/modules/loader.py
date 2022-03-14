@@ -167,7 +167,8 @@ class LoaderMod(loader.Module):
 <i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>""",
         "version_incompatible": "🚫 <b>This module requires GeekTG {}+\nPlease, update with </b><code>.update</code>",
         "non_heroku": "♓️ <b>This module is not supported on Heroku</b>",
-        "ffmpeg_required": "🚫 <b>This module requires FFMPEG, which is not installed</b>"
+        "ffmpeg_required": "🚫 <b>This module requires FFMPEG, which is not installed</b>",
+        "developer": "\n🧑‍💻 <b>Developer: </b><code>{}</code>"
     }
 
     def __init__(self):
@@ -304,27 +305,31 @@ class LoaderMod(loader.Module):
     async def load_module(
         self, doc, message, name=None, origin="<string>", did_requirements=False
     ):
-        if re.search(r"#[ ]?scope:[ ]?non_heroku", doc) and 'DYNO' in os.environ:
+        if re.search(r"# ?scope: ?non_heroku", doc) and 'DYNO' in os.environ:
             if isinstance(message, Message):
                 await utils.answer(message, self.strings("non_heroku"))
             return
 
-        if re.search(r"#[ ]?scope:[ ]?ffmpeg", doc) and os.system('ffmpeg -version'):
+        if re.search(r"# ?scope: ?ffmpeg", doc) and os.system('ffmpeg -version'):
             if isinstance(message, Message):
                 await utils.answer(message, self.strings("ffmpeg_required"))
             return
 
-        if re.search(r"#[ ]?scope:[ ]?inline", doc) and not self.inline.init_complete:
+        if re.search(r"# ?scope: ?inline", doc) and not self.inline.init_complete:
             if isinstance(message, Message):
                 await utils.answer(message, self.strings("inline_init_failed"))
             return
 
-        if re.search(r"#[ ]?scope:[ ]?geektg_min", doc):
-            ver = re.search(r"#[ ]?scope:[ ]?geektg_min ([0-9]+\.[0-9]+\.[0-9]+)", doc).group(1)
+        if re.search(r"# ?scope: ?geektg_min", doc):
+            ver = re.search(r"# ?scope: ?geektg_min ([0-9]+\.[0-9]+\.[0-9]+)", doc).group(1)
             ver_ = tuple(map(int, ver.split('.')))
             if main.__version__ < ver_:
                 await utils.answer(message, self.strings('version_incompatible').format(ver))
                 return
+
+        developer = re.search(r"# ?meta developer: ?(.+)", doc)
+        developer = developer.group(1) if developer else False
+        developer = self.strings('developer').format(developer) if developer else ""
 
         if name is None:
             uid = "__extmod_" + str(uuid.uuid4())
@@ -448,10 +453,10 @@ class LoaderMod(loader.Module):
                     f"<i>\nℹ️ {utils.escape_html(inspect.getdoc(instance))}</i>\n"
                 )
 
-            if re.search(r"#[ ]?scope:[ ]?disable_onload_docs", doc):
+            if re.search(r"# ?scope: ?disable_onload_docs", doc):
                 return await utils.answer(
                     message,
-                    self.strings("loaded", message).format(modname.strip(), version, modhelp),
+                    self.strings("loaded", message).format(modname.strip(), version, modhelp) + developer,
                 )
 
             commands = {name: func for name, func in instance.commands.items()}
@@ -509,11 +514,11 @@ class LoaderMod(loader.Module):
             try:
                 await utils.answer(
                     message,
-                    self.strings("loaded", message).format(modname.strip(), version, modhelp),
+                    self.strings("loaded", message).format(modname.strip(), version, modhelp) + developer,
                 )
             except telethon.errors.rpcerrorlist.MediaCaptionTooLongError:
                 await message.reply(
-                    self.strings("loaded", message).format(modname.strip(), version, modhelp)
+                    self.strings("loaded", message).format(modname.strip(), version, modhelp) + developer
                 )
 
         return True

@@ -247,11 +247,15 @@ class InlineManager:
 
     def ss(self, user: Union[str, int], state: Union[str, bool]) -> bool:
         if not isinstance(user, (str, int)):
-            logger.error(f'Invalid type for `user` in `ss` (expected `str or int` got `{type(user)}`)')
+            logger.error(
+                f"Invalid type for `user` in `ss` (expected `str or int` got `{type(user)}`)"
+            )
             return False
 
         if not isinstance(state, (str, bool)):
-            logger.error(f'Invalid type for `state` in `ss` (expected `str or bool` got `{type(state)}`)')
+            logger.error(
+                f"Invalid type for `state` in `ss` (expected `str or bool` got `{type(state)}`)"
+            )
             return False
 
         if state:
@@ -263,7 +267,9 @@ class InlineManager:
 
     def gs(self, user: Union[str, int]) -> Union[bool, str]:
         if not isinstance(user, (str, int)):
-            logger.error(f'Invalid type for `user` in `gs` (expected `str or int` got `{type(user)}`)')
+            logger.error(
+                f"Invalid type for `user` in `gs` (expected `str or int` got `{type(user)}`)"
+            )
             return False
 
         return self.fsm.get(str(user), False)
@@ -597,7 +603,9 @@ class InlineManager:
         self._dp.register_chosen_inline_handler(
             self._chosen_inline_handler, lambda chosen_inline_query: True
         )
-        self._dp.register_message_handler(self._message_handler, lambda *args: True, content_types=['any'])
+        self._dp.register_message_handler(
+            self._message_handler, lambda *args: True, content_types=["any"]
+        )
 
         old = self._bot.get_updates
         revoke = self._dp_revoke_token
@@ -608,6 +616,9 @@ class InlineManager:
                 return await old(*args, **kwargs)
             except aiogram.utils.exceptions.TerminatedByOtherGetUpdates:
                 await revoke()
+            except aiogram.utils.exceptions.Unauthorized:
+                logger.critical("Got Unauthorized")
+                await self._stop()
 
         self._bot.get_updates = new
 

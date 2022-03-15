@@ -71,8 +71,9 @@
     }
 
     body {
-      background: linear-gradient(-45deg, #007700 0%, #004400 100%);
+      /*background: linear-gradient(-45deg, #007700 0%, #004400 100%);*/
       transition: all 2s ease;
+      background: #16181d;
     }
 
     #sky {
@@ -117,6 +118,8 @@
       width: 100%;
       z-index: 2;
       position: relative;
+      height: 50px;
+      line-height: 50px;
     }
 
     .description {
@@ -127,7 +130,7 @@
       z-index: 2;
       position: relative;
       padding-top: 20px;
-      line-height: 1.1;
+      line-height: 1.3;
       font-family: "Open Sans";
     }
 
@@ -155,7 +158,7 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-      background: rgba(0, 0, 0, .2);
+      background: rgba(0, 0, 0, .1);
       top: 0;
       bottom: 0;
       right: 0;
@@ -175,6 +178,47 @@
       z-index: 2;
       margin-top: 20px;
     }
+
+    .blur {
+      padding: 4rem 8rem;
+      border-radius: 0.375rem;
+      background-color: rgba(22, 24, 29, .5);
+      border: 1px solid rgba(42, 46, 55, 1);
+      backdrop-filter: blur(30px);
+      position: relative;
+      z-index: 99;
+    }
+
+    .bg {
+      background: url(https://github.com/hikariatama/assets/raw/master/bg.png);
+      background-repeat: no-repeat;
+      background-size: contain;
+      width: 80vw;
+      height: 60vh;
+      position: absolute;
+      z-index: 1;
+      background-position: center;
+      display: none;
+    }
+
+    @media screen and (max-width: 736px) {
+      .blur {
+        width: 100%;
+        height: 100%;
+        padding: 1.5rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .bg {
+        width: 100vh;
+        height: 100vw;
+        transform: rotate(90deg);
+      }
+    }
   </style>
 {% endblock %}
 
@@ -183,22 +227,28 @@
 
 {% block after %}
 <div class="wrapper">
-  <div class="title">GeekTG</div>
-  <div class="description">Ultimate userbot.<br>Best userbot ever.</div>
-  <div class="center">
-    <div class="button" id="restart">Restart</div>
+  <div class="bg">
+    
+  </div>
+  <div class="blur">
+    <div class="title">GeekTG</div>
+    <div class="description">Ultimate userbot.<br>Best <span style="color:#28a0dc">Telegram</span> userbot.<br><b>Ever</b>.</div>
+    <div class="center">
+      <div class="button" id="restart">Restart</div>
+    </div>
   </div>
   <div class="darken"></div>
   <div id="root">
 
+  
   </div>
 </div>
-<script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.1.0/anime.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script type="text/javascript">
+  $(document).ready(function() {
+      $('.bg').hide().delay(2000).fadeIn(500);
+  });
   $("#restart").click(() => {
     Swal.fire({
       title: 'Are you sure, you want to restart?',
@@ -208,10 +258,12 @@
       preConfirm: () => {
         return fetch("/restart", {method: "POST"})
           .then(function(response) {
-            $("body").css('background', '#007700');
-            $("body").css('background', 'rgb(3, 5, 19)');
             $("#restart").fadeOut(100);
             $(".description").html('Restarting...');
+            $(".bg").fadeOut(() => {
+              $(".bg").css({'background-image': 'url(https://github.com/hikariatama/assets/raw/master/moon.png)'});
+              $(".bg").delay(1000).fadeIn(500);
+            });
             setTimeout(() => {
               setInterval(() => {
                 fetch("/is_restart_complete", {method: "GET"})
@@ -228,151 +280,6 @@
       allowOutsideClick: () => !Swal.isLoading()
     })
   });
-
-
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-          value: value,
-          enumerable: true,
-          configurable: true,
-          writable: true
-        }
-      );
-    } else {
-      obj[key] = value;
-    }
-    return obj;
-  }
-
-  class StarrySky extends React.Component {
-    constructor(...args) {
-      super(...args);
-
-      _defineProperty(this, "state",
-        {
-          num: 60,
-          vw: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
-          vh: Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
-        }
-      );
-
-      _defineProperty(this, "starryNight",
-        () => {
-          anime(
-            {
-              targets: ["#sky .star"],
-              opacity: [
-              {
-                duration: 700,
-                value: "0" },
-
-              {
-                duration: 700,
-                value: "1" }],
-
-
-              easing: "linear",
-              loop: true,
-              delay: (el, i) => 50 * i
-            }
-          );
-        }
-      );
-      
-      _defineProperty(this, "shootingStars",
-        () => {
-          anime({
-            targets: ["#shootingstars .wish"],
-            easing: "linear",
-            loop: true,
-            delay: (el, i) => 1000 * i,
-            opacity: [
-              {
-                duration: 700,
-                value: "1"
-              }
-            ],
-            width: [
-              {value: "150px"},
-              {value: "0px"}
-            ],
-            translateX: 350
-          });
-
-        }
-      );
-
-      _defineProperty(this, "randomRadius",
-        () => {
-          return Math.random() * 0.7 + 0.6;
-        }
-      );
-
-      _defineProperty(this, "getRandomX",
-        () => {
-          return Math.floor(Math.random() * Math.floor(this.state.vw)).toString();
-        }
-      );
-
-      _defineProperty(this, "getRandomY",
-        () => {
-          return Math.floor(Math.random() * Math.floor(this.state.vh)).toString();
-        }
-      );
-    }
-
-    componentDidMount() {
-      this.starryNight();
-      this.shootingStars();
-    }
-
-    render() {
-      const { num } = this.state;
-      return (
-        React.createElement("div", {
-            id: "App"
-          },
-          React.createElement("svg", { id: "sky" },
-          [...Array(num)]
-            .map((x, y) =>
-              React.createElement("circle",
-                {
-                  cx: this.getRandomX(),
-                  cy: this.getRandomY(),
-                  r: this.randomRadius(),
-                  stroke: "none",
-                  strokeWidth: "0",
-                  fill: "white",
-                  key: y,
-                  className: "star"
-                }
-              )
-            )
-          ),
-          React.createElement("div", {
-              id: "shootingstars"
-            },
-            [...Array(60)]
-              .map((x, y) =>
-                React.createElement("div", {
-                    key: y,
-                    className: "wish",
-                    style: {
-                      left: `${this.getRandomY()}px`,
-                      top: `${this.getRandomX()}px`
-                    }
-                  }
-                )
-              )
-          )
-        )
-      );
-    }}
-
-
-  ReactDOM.render(React.createElement(StarrySky, null), document.getElementById("root"));
-
 </script>
 {% endblock %}
 

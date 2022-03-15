@@ -15,12 +15,12 @@
   <script src="{{ static('auth.js') }}"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Open+Sans:wght@300&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Hubballi&display=swap');
     .button {
       border-radius: 5px;
       padding: 10px 20px;
       border: none;
       color: #eee;
-      width: 100%;
       margin: 5px 0;
       background: transparent;
       border: 2px solid #aaa;
@@ -65,11 +65,16 @@
 
   <style type="text/css">
     body, html {
-      background: linear-gradient(-45deg, #007700 0%, #004400 100%);
       width: 100%;
       height: 100%;
       margin: 0;
       padding: 0;
+    }
+
+    body {
+      /*background: linear-gradient(-45deg, #007700 0%, #004400 100%);*/
+      transition: all 2s ease;
+      background: #16181d;
     }
 
     #sky {
@@ -108,12 +113,14 @@
 
     .title {
       font-size: 50px;
-      font-family: 'Josefin Sans';
+      font-family: Hubballi;
       text-align: center;
       color: #fff;
       width: 100%;
       z-index: 2;
       position: relative;
+      height: 50px;
+      line-height: 50px;
     }
 
     .description {
@@ -124,8 +131,8 @@
       z-index: 2;
       position: relative;
       padding-top: 20px;
-      line-height: 1.1;
-      font-family: "Open Sans";
+      line-height: 1.3;
+      font-family: Hubballi;
     }
 
     .wrapper {
@@ -152,7 +159,7 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-      background: rgba(0, 0, 0, .2);
+      background: rgba(0, 0, 0, .1);
       top: 0;
       bottom: 0;
       right: 0;
@@ -173,119 +180,117 @@
       margin-top: 20px;
     }
 
-    .border {
-      padding: 40px 60px 60px 50px;
+    .blur {
+      padding: 4rem 8rem;
+      border-radius: 0.375rem;
+      background-color: rgba(22, 24, 29, .5);
+      border: 1px solid rgba(42, 46, 55, 1);
+      backdrop-filter: blur(6px);
+      position: relative;
+      z-index: 99;
     }
 
-    .center::before {
-      background: radial-gradient(circle at 0% 0%, #263c5d, #31175b);
-      animation: anim 30s infinite linear;
-      /*background: transparent;*/
-      border-radius: 30% 70% 53% 47% / 26% 46% 54% 74%;
-      box-shadow: 0 -10px 20px #463f40 inset, 0 10px 20px #201535 inset,
-                  0 -20px 40px #130d38 inset;
-      content: "";
-      filter: drop-shadow(0 0 10px Thistle);
-      width: 100%;
-      height: 100%;
-      content: '';
-      z-index: -1;
+    .bg {
+      background: url(https://github.com/hikariatama/assets/raw/master/bg.png);
+      background-repeat: no-repeat;
+      background-size: contain;
+      width: 80vw;
+      height: 60vh;
       position: absolute;
+      z-index: 1;
+      background-position: center;
+      display: none;
+      filter: hue-rotate(155deg);
+      transition: .3s;
+      animation: floating 5s infinite ease-in-out;
     }
 
-    @keyframes anim {
-      0%,
-      100% {
-        border-radius: 30% 70% 70% 30% / 30% 52% 48% 40%;
-
-      }
-
-      10% {
-        border-radius: 50% 50% 20% 50% / 25% 80% 20% 45%;
-      }
-
-      20% {
-        border-radius: 67% 33% 47% 53% / 37% 20% 80% 63%;
-      }
-
-      30% {
-        border-radius: 39% 61% 47% 53% / 37% 40% 60% 63%;
-
-      }
-
-      40% {
-        border-radius: 39% 61% 82% 18% / 74% 40% 60% 26%;
+    @keyframes floating {
+      from {
+        transform: translateY(-10px);
       }
 
       50% {
-        border-radius: 100%;
-
+        transform: translateY(10px);
       }
 
-      60% {
-        border-radius: 50% 50% 53% 47% / 72% 69% 31% 28%;
-      }
-
-      70% {
-        border-radius: 50% 50% 53% 47% / 26% 22% 78% 74%;
-
-      }
-
-      80% {
-        border-radius: 50% 50% 53% 47% / 26% 69% 31% 74%;
-      }
-
-      90% {
-        border-radius: 20% 80% 20% 80% / 20% 80% 20% 80%;
+      to {
+        transform: translateY(-10px);
       }
     }
 
+    @media screen and (max-width: 736px) {
+      .blur {
+        width: 100%;
+        height: 100%;
+        padding: 1.5rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .bg {
+        width: 100vh;
+        height: 100vw;
+        transform: rotate(90deg);
+      }
+    }
 
     input {
-    	background: transparent;
-    	border: 1px solid #eee;
-    	outline: none;
-    	padding: 10px 15px;
-    	border-radius: 10px;
-    	color: #fff;
-    	text-align: center;
+      background: transparent;
+      border: 1px solid #eee;
+      outline: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      color: #fff;
+      text-align: center;
     }
     label {
-    	margin: 0 10px;
-    	color: #eee;
-    	user-select: none;
+      margin: 0 10px;
+      color: #eee;
+      user-select: none;
     }
 
     #continue_btn {
-    	padding: 10px 15px;
-    	background: #0d47a1;
-    	border-radius: 10px;
-    	user-select: none;
-    	color: #fff;
-    	cursor: pointer;
-    	text-align: center;
-    	border: 1px solid #1a237e;
-    	margin: 10px 0;
-    	transition: all .3s ease;
+      padding: 10px 15px;
+      background: #0d47a1;
+      border-radius: 10px;
+      user-select: none;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      border: 1px solid #1a237e;
+      margin: 10px 0;
+      transition: all .3s ease;
+      margin-left: 5px;
     }
 
     #continue_btn:hover {
-    	background-color: #1a237e;
+      background-color: #1a237e;
     }
 
     #continue_btn:active {
-    	background-color: #311b92;
+      background-color: #311b92;
     }
 
     #continue_btn.error {
-    	background-color: #c62828;
-    	transition: all .3s ease;
+      background-color: #c62828;
+      transition: all .3s ease;
     }
 
-    #block_api_hash, #block_phone, #block_2fa {
-    	display: none;
+    #continue_btn, #block_api_id, #block_api_hash, #block_phone, #block_2fa {
+      display: none;
     }
 
+    .red_state {
+      filter: hue-rotate(0deg);
+    }
+
+    .blue_state {
+      filter: hue-rotate(203deg);
+    }
   </style>
 {% endblock %}
 
@@ -294,17 +299,21 @@
 
 {% block after %}
 <div class="wrapper">
-  <div class="title">GeekTG</div>
-  <div class="description">Ultimate userbot.<br>Best userbot ever.</div>
-  <div class="center">
-  	<div class="border">
-  		<span id="block_api_id">
+  <div class="bg invert">
+    
+  </div>
+  <div class="blur">
+    <div class="title">GeekTG</div>
+    <div class="description">Ultimate userbot.<br>Best <span style="color:#28a0dc">Telegram</span> userbot.<br><b>Ever</b>.</div>
+    <div class="center">
+      <div class="button" id="get_started">Get started</div>
+      <span id="block_api_id">
         <label class="api_id" for="api_id">API ID: </label>
-    		<input class="api_id" id="api_id" placeholder="2020" style="width: 4em;">
+        <input class="api_id" id="api_id" placeholder="2020" style="width: 4em;">
       </span>
       <span id="block_api_hash">
-    		<label class="api_hash" for="api_hash">API HASH: </label>
-    		<input class="api_hash" id="api_hash" placeholder="w7i07l02i6hymgg03ncq6esmr3t4c9kl" style="width: 24em;">
+        <label class="api_hash" for="api_hash">API HASH: </label>
+        <input class="api_hash" id="api_hash" placeholder="w7i07l02i6hymgg03ncq6esmr3t4c9kl" style="width: 24em;">
       </span>
       <span id="block_phone">
         <label class="phone" for="phone">Phone: </label>
@@ -314,62 +323,70 @@
         <label class="_2fa" for="_2fa">2FA Password: </label>
         <input class="_2fa" id="_2fa" placeholder="passw0rd" style="width: 12em;" type="password">
       </span>
-  		<br>
-  		<div id="continue_btn" current-step="api_id">Continue</div>
-  	</div>
+      <div id="continue_btn">Continue</div>
+    </div>
   </div>
-  <div class="darken"></div>
   <div id="root">
 
+  
   </div>
 </div>
-<script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.1.0/anime.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script type="text/javascript">
-	function isInt(value) {
-		var x = parseFloat(value);
-		return !isNaN(value) && (x | 0) === x;
-	}
+  $(document).ready(function() {
+      $('.bg').hide().delay(2000).fadeIn(500);
+  });
+  $("#get_started").click(() => {
+    $("#get_started").fadeOut(500, () => {
+      cnt_btn.setAttribute('current-step', 'api_id');
+      $("#block_api_id").hide().fadeIn(500);
+      $("#continue_btn").hide().fadeIn(500);
+    });
+  });
+
+  function isInt(value) {
+    var x = parseFloat(value);
+    return !isNaN(value) && (x | 0) === x;
+  }
 
   function isValidPhone(p) {
-    var phoneRe = /^[+]\d{11,}$/;
+    var phoneRe = /^[+]?\d{11,13}$/;
     return phoneRe.test(p);
   }
 
-	var _api_id = "", _api_hash = "", _phone = "", _2fa_pass = "", _tg_pass = "";
+  var _api_id = "", _api_hash = "", _phone = "", _2fa_pass = "", _tg_pass = "";
 
-	const cnt_btn = document.querySelector('#continue_btn');
-	cnt_btn.onclick = (e) => {
-		if(cnt_btn.disabled) return;
+  const cnt_btn = document.querySelector('#continue_btn');
+  cnt_btn.onclick = (e) => {
+    if(cnt_btn.disabled) return;
 
-		let step = cnt_btn.getAttribute('current-step');
-		if(step == "api_id") {
-			let api_id = document.querySelector('#api_id').value;
-			if(api_id.length < 4 || !isInt(api_id)) {
-				cnt_btn.classList.add('error');
-				cnt_btn.disabled = true;
-				setTimeout(() => {
-					cnt_btn.disabled = false;
-					cnt_btn.classList.remove('error');
-				}, 1000);
-				return;
-			}
-
-			_api_id = parseInt(api_id);
-			cnt_btn.setAttribute('current-step', 'api_hash');
-			document.querySelector('#block_api_id').style.display = "none";
-			document.querySelector('#block_api_hash').style.display = "inline-block";
-		} else if (step == "api_hash") {
-      let api_hash = document.querySelector('#api_hash').value;
-      if(api_hash.length != 32) {
-        cnt_btn.classList.add('error');
+    let step = cnt_btn.getAttribute('current-step');
+    if(step == "api_id") {
+      let api_id = document.querySelector('#api_id').value;
+      if(api_id.length < 4 || !isInt(api_id)) {
+        $(".bg").addClass("red_state");
         cnt_btn.disabled = true;
         setTimeout(() => {
           cnt_btn.disabled = false;
-          cnt_btn.classList.remove('error');
+          $(".bg").removeClass("red_state");
+        }, 1000);
+        return;
+      }
+
+      _api_id = parseInt(api_id);
+      cnt_btn.setAttribute('current-step', 'api_hash');
+      $("#block_api_id").fadeOut(() => {
+        $("#block_api_hash").hide().fadeIn();
+      });
+    } else if (step == "api_hash") {
+      let api_hash = document.querySelector('#api_hash').value;
+      if(api_hash.length != 32) {
+        $(".bg").addClass("red_state");
+        cnt_btn.disabled = true;
+        setTimeout(() => {
+          cnt_btn.disabled = false;
+          $(".bg").removeClass("red_state");
         }, 1000);
         return;
       }
@@ -388,8 +405,9 @@
           });
         } else {
           cnt_btn.setAttribute('current-step', 'phone');
-          document.querySelector('#block_api_hash').style.display = "none";
-          document.querySelector('#block_phone').style.display = "inline-block";
+          $("#block_api_hash").fadeOut(() => {
+            $("#block_phone").hide().fadeIn();
+          });
         }
       })
       .catch(function (response) {
@@ -402,11 +420,11 @@
       if(step == "phone") {
         let phone = document.querySelector('#phone').value;
         if(!isValidPhone(phone)) {
-          cnt_btn.classList.add('error');
+          $(".bg").addClass("red_state");
           cnt_btn.disabled = true;
           setTimeout(() => {
             cnt_btn.disabled = false;
-            cnt_btn.classList.remove('error');
+            $(".bg").removeClass("red_state");
           }, 1000);
           return;
         }
@@ -439,8 +457,9 @@
                         Swal.showValidationMessage('Code is incorrect!');
                       } else if (response.status == 401) {
                         cnt_btn.setAttribute('current-step', '2fa');
-                        document.querySelector('#block_phone').style.display = "none";
-                        document.querySelector('#block_2fa').style.display = "inline-block";
+                        $("#block_phone").fadeOut(() => {
+                          $("#block_2fa").hide().fadeIn();
+                        });
                       } else if (response.status == 404) {
                         // Code expired, must re-send code request. Close dialog and wait for user action.
                         Swal.showValidationMessage('Code is expired!');
@@ -471,7 +490,10 @@
                                       'icon': 'success',
                                       'text': 'Auth successful!',
                                       'timer': 1000
-                                    })
+                                    });
+                                    setTimeout(() => {
+                                      window.location.reload();
+                                    }, 1500);
                                   }
                                 })
                                 .catch(function (response) {
@@ -512,8 +534,9 @@
               Swal.showValidationMessage('Code is incorrect!');
             } else if (response.status == 401) {
               cnt_btn.setAttribute('current-step', '2fa');
-              document.querySelector('#block_phone').style.display = "none";
-              document.querySelector('#block_2fa').style.display = "inline-block";
+              $("#block_phone").fadeOut(() => {
+                $("#block_2fa").hide().fadeIn();
+              });
             } else if (response.status == 404) {
               // Code expired, must re-send code request. Close dialog and wait for user action.
               Swal.showValidationMessage('Code is expired!');
@@ -534,7 +557,10 @@
                     'icon': 'success',
                     'text': 'Auth successful!',
                     'timer': 1000
-                  })
+                  });
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1500);
                 }
               })
               .catch(function (response) {
@@ -567,7 +593,10 @@
                               'icon': 'success',
                               'text': 'Auth successful!',
                               'timer': 1000
-                            })
+                            });
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 1500);
                           }
                         })
                         .catch(function (response) {
@@ -589,152 +618,7 @@
         })
       }
     }
-	}
-</script>
-<script type="text/javascript">
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-          value: value,
-          enumerable: true,
-          configurable: true,
-          writable: true
-        }
-      );
-    } else {
-      obj[key] = value;
-    }
-    return obj;
   }
-
-  class StarrySky extends React.Component {
-    constructor(...args) {
-      super(...args);
-
-      _defineProperty(this, "state",
-        {
-          num: 60,
-          vw: Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
-          vh: Math.max(document.documentElement.clientHeight, window.innerHeight || 0)
-        }
-      );
-
-      _defineProperty(this, "starryNight",
-        () => {
-          anime(
-            {
-              targets: ["#sky .star"],
-              opacity: [
-              {
-                duration: 700,
-                value: "0" },
-
-              {
-                duration: 700,
-                value: "1" }],
-
-
-              easing: "linear",
-              loop: true,
-              delay: (el, i) => 50 * i
-            }
-          );
-        }
-      );
-      
-      _defineProperty(this, "shootingStars",
-        () => {
-          anime({
-            targets: ["#shootingstars .wish"],
-            easing: "linear",
-            loop: true,
-            delay: (el, i) => 1000 * i,
-            opacity: [
-              {
-                duration: 700,
-                value: "1"
-              }
-            ],
-            width: [
-              {value: "150px"},
-              {value: "0px"}
-            ],
-            translateX: 350
-          });
-
-        }
-      );
-
-      _defineProperty(this, "randomRadius",
-        () => {
-          return Math.random() * 0.7 + 0.6;
-        }
-      );
-
-      _defineProperty(this, "getRandomX",
-        () => {
-          return Math.floor(Math.random() * Math.floor(this.state.vw)).toString();
-        }
-      );
-
-      _defineProperty(this, "getRandomY",
-        () => {
-          return Math.floor(Math.random() * Math.floor(this.state.vh)).toString();
-        }
-      );
-    }
-
-    componentDidMount() {
-      this.starryNight();
-      this.shootingStars();
-    }
-
-    render() {
-      const { num } = this.state;
-      return (
-        React.createElement("div", {
-            id: "App"
-          },
-          React.createElement("svg", { id: "sky" },
-          [...Array(num)]
-            .map((x, y) =>
-              React.createElement("circle",
-                {
-                  cx: this.getRandomX(),
-                  cy: this.getRandomY(),
-                  r: this.randomRadius(),
-                  stroke: "none",
-                  strokeWidth: "0",
-                  fill: "white",
-                  key: y,
-                  className: "star"
-                }
-              )
-            )
-          ),
-          React.createElement("div", {
-              id: "shootingstars"
-            },
-            [...Array(60)]
-              .map((x, y) =>
-                React.createElement("div", {
-                    key: y,
-                    className: "wish",
-                    style: {
-                      left: `${this.getRandomY()}px`,
-                      top: `${this.getRandomX()}px`
-                    }
-                  }
-                )
-              )
-          )
-        )
-      );
-    }}
-
-
-  ReactDOM.render(React.createElement(StarrySky, null), document.getElementById("root"));
-
 </script>
 {% endblock %}
 

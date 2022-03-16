@@ -31,6 +31,8 @@ from aiogram.types import (
     InlineQueryResultArticle,
     CallbackQuery,
     ChosenInlineResult,
+    InlineQueryResultPhoto,
+    InputMediaPhoto,
 )
 
 from aiogram.types import Message as AiogramMessage
@@ -44,6 +46,7 @@ import io
 import json
 import functools
 import os
+from types import FunctionType
 
 import inspect
 
@@ -175,6 +178,42 @@ async def edit(
             # was deleted
 
 
+async def custom_next_handler(
+    call: CallbackQuery,
+    caption: str = None,
+    btn_call_data: str = None,
+    self=None,
+    func: FunctionType = None,
+) -> None:
+    try:
+        new_url = await func()
+        if not isinstance(new_url, (str, bool)):
+            raise Exception(
+                f"Invalid type returned by `next_handler`. Expected `str` or `False`, got `{type(new_url)}`"
+            )
+    except Exception:
+        logger.exception("Exception while trying to parse new photo")
+        await call.answer("Error occurred", show_alert=True)
+        return
+
+    if not new_url:
+        await call.answer("No photos left", show_alert=True)
+        return
+
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("Next ➡️", callback_data=btn_call_data))
+    try:
+        await self._bot.edit_message_media(
+            inline_message_id=call.inline_message_id,
+            media=InputMediaPhoto(media=new_url, caption=caption, parse_mode="HTML"),
+            reply_markup=markup,
+        )
+    except Exception:
+        logger.exception("Exception while trying to edit media")
+        await call.answer("Error occurred", show_alert=True)
+        return
+
+
 async def delete(self: Any = None, form: Any = None, form_uid: Any = None) -> bool:
     """Params `self`, `form`, `form_uid` are for internal use only, do not try to pass them"""
     try:
@@ -228,6 +267,8 @@ class InlineManager:
         self._token = db.get("geektg.inline", "bot_token", False)
 
         self._forms = {}
+        self._galleries = {}
+        self._custom_map = {}
 
         self.fsm = {}
 
@@ -825,6 +866,7 @@ class InlineManager:
                     except BaseException:
                         logger.exception("Error on running inline watcher!")
 
+        # Process forms
         for form in self._forms.copy().values():
             for button in array_sum(form.get("buttons", [])):
                 if (
@@ -853,6 +895,39 @@ class InlineManager:
                         cache_time=60,
                     )
                     return
+
+        # Process galleries
+        for gallery in self._galleries.copy().values():
+            if (
+                inline_query.from_user.id
+                in [self._me]
+                + self._client.dispatcher.security._owner
+                + gallery["always_allow"]
+                and query == gallery["uid"]
+            ):
+                markup = InlineKeyboardMarkup()
+                markup.add(
+                    InlineKeyboardButton(
+                        "Next ➡️", callback_data=gallery["btn_call_data"]
+                    )
+                )
+
+                await inline_query.answer(
+                    [
+                        InlineQueryResultPhoto(
+                            id=rand(20),
+                            title="Toss a coin",
+                            photo_url=gallery["photo_url"],
+                            thumb_url=gallery["photo_url"],
+                            caption=gallery["text"],
+                            description=gallery["text"],
+                            reply_markup=markup,
+                            parse_mode="HTML",
+                        )
+                    ],
+                    cache_time=0,
+                )
+                return
 
         # If we don't know, what this query is for, just ignore it
         if query not in self._forms:
@@ -952,6 +1027,52 @@ class InlineManager:
 
                     del self._forms[form_uid]
 
+        if query.data in self._custom_map:
+            if (
+                self._custom_map[query.data]["force_me"]
+                and query.from_user.id != self._me
+                and query.from_user.id not in self._client.dispatcher.security._owner
+                and query.from_user.id
+                not in self._custom_map[query.data]["always_allow"]
+            ):
+                await query.answer("You are not allowed to press this button!")
+                return
+
+            await self._custom_map[query.data]["handler"](query)
+            return
+
+        query.delete = functools.partial(
+            delete, self=self, form=form, form_uid=form_uid
+        )
+        query.unload = functools.partial(unload, self=self, form_uid=form_uid)
+        query.edit = functools.partial(
+            edit, self=self, query=query, form=form, form_uid=form_uid
+        )
+
+        query.form = {"id": form_uid, **form}
+
+        for module in self._allmodules.modules:
+            if module.__class__.__name__ == button["callback"].split(".")[
+                0
+            ] and hasattr(module, button["callback"].split(".")[1]):
+                try:
+                    return await getattr(module, button["callback"].split(".")[1])(
+                        query,
+                        *button.get("args", []),
+                        **button.get("kwargs", {}),
+                    )
+                except Exception:
+                    logger.exception("Error on running callback watcher!")
+                    await query.answer(
+                        "Error occurred while "
+                        "processing request. "
+                        "More info in logs",
+                        show_alert=True,
+                    )
+                    return
+
+        del self._forms[form_uid]
+
     async def _chosen_inline_handler(
         self, chosen_inline_query: ChosenInlineResult
     ) -> None:
@@ -1014,7 +1135,6 @@ class InlineManager:
         force_me: bool = True,
         always_allow: List[int] = None,
         ttl: Union[int, bool] = False,
-        reply_to: Union[None, Message, int] = None,
     ) -> Union[str, bool]:
         """Creates inline form with callback
 
@@ -1119,7 +1239,9 @@ class InlineManager:
             q = await self._client.inline_query(self._bot_username, form_uid)
             m = await q[0].click(
                 utils.get_chat_id(message) if isinstance(message, Message) else message,
-                reply_to=reply_to,
+                reply_to=message.reply_to_msg_id
+                if isinstance(message, Message)
+                else None,
             )
         except Exception:
             msg = (
@@ -1142,6 +1264,119 @@ class InlineManager:
             await message.delete()
 
         return form_uid
+
+    async def gallery(
+        self,
+        text: str,
+        message: Union[Message, int],
+        next_handler: FunctionType,
+        force_me: bool = False,
+        always_allow: bool = False,
+        ttl: int = False,
+    ) -> Union[bool, str]:
+        """
+        Processes inline gallery
+
+            text: Caption for photo
+            next_handler: Callback function, which must return url for next photo
+        """
+
+        if not isinstance(text, str):
+            logger.error("Invalid type for `text`")
+            return False
+
+        if not isinstance(message, (Message, int)):
+            logger.error("Invalid type for `message`")
+            return False
+
+        if not isinstance(force_me, bool):
+            logger.error("Invalid type for `force_me`")
+            return False
+
+        if always_allow and not isinstance(always_allow, list):
+            logger.error("Invalid type for `always_allow`")
+            return False
+
+        if not always_allow:
+            always_allow = []
+
+        if not isinstance(ttl, int) and ttl:
+            logger.error("Invalid type for `ttl`")
+            return False
+
+        if isinstance(ttl, int) and (ttl > self._markup_ttl or ttl < 10):
+            ttl = self._markup_ttl
+            logger.debug("Defaulted ttl, because it breaks out of limits")
+
+        gallery_uid = rand(30)
+        btn_call_data = rand(16)
+
+        try:
+            photo_url = await next_handler()
+            if not isinstance(photo_url, str):
+                raise Exception(
+                    f"Got invalid result from `next_handler`. Expected `str`, got `{type(photo_url)}`"
+                )
+        except Exception:
+            logger.exception("Error while parsing first photo in gallery")
+            return False
+
+        self._galleries[gallery_uid] = {
+            "text": text,
+            "ttl": round(time.time()) + ttl or self._markup_ttl,
+            "force_me": force_me,
+            "always_allow": always_allow,
+            "chat": None,
+            "message_id": None,
+            "uid": gallery_uid,
+            "photo_url": photo_url,
+            "next_handler": next_handler,
+            "btn_call_data": btn_call_data,
+        }
+
+        self._custom_map[btn_call_data] = {
+            "handler": asyncio.coroutine(
+                functools.partial(
+                    custom_next_handler,
+                    func=next_handler,
+                    self=self,
+                    btn_call_data=btn_call_data,
+                    caption=text,
+                )
+            ),
+            "always_allow": always_allow,
+            "force_me": force_me,
+        }
+
+        try:
+            q = await self._client.inline_query(self._bot_username, gallery_uid)
+            m = await q[0].click(
+                utils.get_chat_id(message) if isinstance(message, Message) else message,
+                reply_to=message.reply_to_msg_id
+                if isinstance(message, Message)
+                else None,
+            )
+        except Exception:
+            msg = (
+                "🚫 <b>A problem occurred with inline bot "
+                "while processing query. Check logs for "
+                "further info.</b>"
+            )
+
+            del self._galleries[gallery_uid]
+            if isinstance(message, Message):
+                await (message.edit if message.out else message.respond)(msg)
+            else:
+                await self._client.send_message(message, msg)
+
+            return False
+
+        self._galleries[gallery_uid]["chat"] = utils.get_chat_id(m)
+        self._galleries[gallery_uid]["message_id"] = m.id
+        if isinstance(message, Message):
+            await message.delete()
+
+        return gallery_uid
 
 
 if __name__ == "__main__":

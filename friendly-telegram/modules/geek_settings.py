@@ -176,7 +176,7 @@ class AdvancedSettingsMod(loader.Module):
     async def nonickusercmd(self, message: Message) -> None:
         """Allow certain command to be executed without nickname"""
         reply = await message.get_reply_message()
-        u = reply.from_id
+        u = reply.sender_id
         if not isinstance(u, int):
             u = u.user_id
 

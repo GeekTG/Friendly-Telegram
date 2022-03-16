@@ -26,7 +26,6 @@ async def form(
         force_me: bool = True,
         always_allow: List[int] = None,
         ttl: Union[int, bool] = False,
-        reply_to: Union[None, Message, int] = None,
     ) -> Union[str, bool]:
 ```
 ### Пример:
@@ -52,7 +51,6 @@ await self.inline.form(
     ],
     force_me=False,  # optional: Allow other users to access form (all)
     always_allow=[659800858],  # optional: Permit users with IDs
-    reply_to=reply,  # optional: Send form in reply to message
     ttl=30,  # optional: Time to live of form in seconds
 )
 ```

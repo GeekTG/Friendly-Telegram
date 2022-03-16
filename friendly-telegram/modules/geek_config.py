@@ -17,6 +17,7 @@ from telethon.tl.types import Message
 import logging
 from typing import Union, List
 from aiogram.types import CallbackQuery
+import ast
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,20 @@ class GeekConfigMod(loader.Module):
         for module in self.allmodules.modules:
             if module.strings("name") == mod:
                 module.config[option] = query
+                if query:
+                    try:
+                        query = ast.literal_eval(query)
+                    except (ValueError, SyntaxError):
+                        pass
+                    self.db.setdefault(module.__module__, {}).setdefault("__config__", {})[option] = query
+                else:
+                    try:
+                        del self.db.setdefault(module.__module__, {}).setdefault("__config__", {})[option]
+                    except KeyError:
+                        pass
+
+                self.allmodules.send_config_one(module, self.db, skip_hook=True)
+                self.db.save()
 
         await call.edit(
             self.strings("option_saved").format(mod, option, query),

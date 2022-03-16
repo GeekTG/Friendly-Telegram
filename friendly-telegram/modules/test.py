@@ -43,7 +43,8 @@ class TestMod(loader.Module):
         "choose_loglevel": "💁‍♂️ <b>Choose log level</b>",
     }
 
-    async def dumpcmd(self, message: Message) -> None:
+    @staticmethod
+    async def dumpcmd(message: Message) -> None:
         """Use in reply to get a dump of a message"""
         if not message.is_reply:
             return
@@ -55,7 +56,8 @@ class TestMod(loader.Module):
             + "</code>",
         )
 
-    async def cancel(self, call: aiogram.types.CallbackQuery) -> None:
+    @staticmethod
+    async def cancel(call: aiogram.types.CallbackQuery) -> None:
         await call.delete()
 
     async def logscmd(

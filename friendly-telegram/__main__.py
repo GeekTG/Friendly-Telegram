@@ -52,7 +52,7 @@ else:
             "Attempting dependencies installation... Just wait."
         )
 
-        os.popen("pip3 install -r requirements.txt").read()
+        os.popen("pip3 install -r requirements.txt").read()  # skipcq: BAN-B605, BAN-B607
 
         try:
             from . import main

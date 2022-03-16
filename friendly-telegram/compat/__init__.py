@@ -55,7 +55,8 @@ class BotCompat(
         self.created += [ret]
         return ret
 
-    def exec_module(self, module):
+    @staticmethod
+    def exec_module(module):
         """https://docs.python.org/3.7/library/importlib.html#importlib.abc.Loader.exec_module"""
         module.__path__ = []
 

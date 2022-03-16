@@ -137,10 +137,7 @@ class HelpMod(loader.Module):
             }
 
             if hasattr(module, "inline_handlers"):
-                inline_handlers = {
-                    name: func for name, func in module.inline_handlers.items()
-                }
-                for name, fun in inline_handlers.items():
+                for name, fun in module.inline_handlers.items():
                     reply += self.strings("ihandler", message).format(
                         f"@{self.inline._bot_username} {name}"
                     )

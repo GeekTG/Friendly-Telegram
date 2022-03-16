@@ -149,7 +149,8 @@ class GeekSecurityMod(loader.Module):
             self.strings("global"), reply_markup=self._build_markup_global()
         )
 
-    async def inline_close(self, call: aiogram.types.CallbackQuery) -> None:
+    @staticmethod
+    async def inline_close(call: aiogram.types.CallbackQuery) -> None:
         await call.delete()
 
     def _build_markup(self, command: FunctionType) -> List[List[dict]]:
@@ -187,7 +188,8 @@ class GeekSecurityMod(loader.Module):
             self._db.get(security.__name__, "bounding_mask", DEFAULT_PERMISSIONS)
         )
 
-    def _perms_map(self, perms: int) -> dict:
+    @staticmethod
+    def _perms_map(perms: int) -> dict:
         return {
             "owner": bool(perms & OWNER),
             "sudo": bool(perms & SUDO),
@@ -269,11 +271,6 @@ class GeekSecurityMod(loader.Module):
 
         return user
 
-    async def inline__close(
-        self, call: "aigoram.types.CallbackQuery"  # noqa: F821
-    ) -> None:
-        await call.delete()
-
     async def _add_to_group(
         self,
         message: Union[Message, "aigoram.types.CallbackQuery"],  # noqa: F821
@@ -300,7 +297,7 @@ class GeekSecurityMod(loader.Module):
                     [
                         {
                             "text": self.strings("cancel"),
-                            "callback": self.inline__close,
+                            "callback": self.inline_close,
                         },
                         {
                             "text": self.strings("confirm"),

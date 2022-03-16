@@ -28,6 +28,7 @@ import telethon
 
 import git
 from git import Repo, GitCommandError
+from telethon.tl.types import Message
 
 from .. import loader, utils
 
@@ -60,7 +61,7 @@ class UpdaterMod(loader.Module):
         )
 
     @loader.owner
-    async def restartcmd(self, message):
+    async def restartcmd(self, message: Message) -> None:
         """Restarts the userbot"""
         if os.environ.get("LAVHOST"):
             await utils.answer(message, self.strings("lavhost"))
@@ -72,7 +73,7 @@ class UpdaterMod(loader.Module):
         )[0]
         await self.restart_common(msg)
 
-    async def prerestart_common(self, message):
+    async def prerestart_common(self, message: Message) -> None:
         logger.debug(f"Self-update. {sys.executable} -m {utils.get_base_dir()}")
 
         check = str(uuid.uuid4())
@@ -83,7 +84,7 @@ class UpdaterMod(loader.Module):
         self._db.set(__name__, "selfupdatechat", utils.get_chat_id(message))
         await self._db.set(__name__, "selfupdatemsg", message.id)
 
-    async def restart_common(self, message):
+    async def restart_common(self, message: Message) -> None:
         await self.prerestart_common(message)
         atexit.register(functools.partial(restart, *sys.argv[1:]))
         [handler] = logging.getLogger().handlers
@@ -96,7 +97,7 @@ class UpdaterMod(loader.Module):
         await message.client.disconnect()
 
     @loader.owner
-    async def downloadcmd(self, message):
+    async def downloadcmd(self, message: Message) -> None:
         """Downloads userbot updates"""
         message = await utils.answer(message, self.strings("downloading", message))
         await self.download_common()
@@ -125,12 +126,12 @@ class UpdaterMod(loader.Module):
                 False  # Heroku never needs to install dependencies because we redeploy
             )
 
-    def req_common(self):
-        # TODO: make static
+    @staticmethod
+    def req_common() -> None:
         # Now we have downloaded new code, install requirements
         logger.debug("Installing new requirements...")
         try:
-            subprocess.run(
+            subprocess.run(  # skipcq: PYL-W1510
                 [
                     sys.executable,
                     "-m",
@@ -148,7 +149,7 @@ class UpdaterMod(loader.Module):
             logger.exception("Req install failed")
 
     @loader.owner
-    async def updatecmd(self, message, hard=False):
+    async def updatecmd(self, message: Message, hard: bool = False) -> None:
         """Downloads userbot updates"""
         if os.environ.get("LAVHOST"):
             await utils.answer(message, self.strings("lavhost"))
@@ -157,7 +158,7 @@ class UpdaterMod(loader.Module):
 
         # We don't really care about asyncio at this point, as we are shutting down
         if hard:
-            os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")
+            os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")  # skipcq: BAN-B605
 
         try:
             try:
@@ -193,7 +194,7 @@ class UpdaterMod(loader.Module):
             await self.updatecmd(message, True)
 
     @loader.unrestricted
-    async def sourcecmd(self, message):
+    async def sourcecmd(self, message: Message) -> None:
         """Links the source code of this project"""
         await utils.answer(
             message,
@@ -237,10 +238,10 @@ class UpdaterMod(loader.Module):
 
 
 def restart(*argv):
-    os.execl(
-        sys.executable,
-        sys.executable,
-        "-m",
-        os.path.relpath(utils.get_base_dir()),
-        *argv,
-    )
+    os.execl(  # skipcq: BAN-B606
+        sys.executable,  # skipcq: BAN-B606
+        sys.executable,  # skipcq: BAN-B606
+        "-m",  # skipcq: BAN-B606
+        os.path.relpath(utils.get_base_dir()),  # skipcq: BAN-B606
+        *argv,  # skipcq: BAN-B606
+    )  # skipcq: BAN-B606

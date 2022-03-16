@@ -165,7 +165,6 @@ def validate_value(value):
 
 def modules_config():
     """Show menu of all modules and allow user to enter one"""
-    global DB
     code, tag = DIALOG.menu(
         "Modules",
         choices=[
@@ -242,7 +241,6 @@ def api_config(data_root):
 
 def logging_config():
     """Ask the user to choose a loglevel and save it"""
-    global DB
     code, tag = DIALOG.menu(
         "Log Level",
         choices=[

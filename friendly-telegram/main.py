@@ -685,7 +685,10 @@ async def amain(first, client, allclients, web, arguments):
         await modules.send_ready(
             client, fdb, allclients
         )  # Allow normal init even in setup
-        [handler.setLevel(50) for handler in handlers]
+        
+        for handler in handlers:
+            handler.setLevel(50)
+        
         pdb = run_config(
             pdb,
             arguments.data_root,
@@ -711,10 +714,8 @@ async def amain(first, client, allclients, web, arguments):
 
     logging.debug("got db")
     logging.info("Loading logging config...")
-    [
+    for handler in handlers:
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
-        for handler in handlers
-    ]
 
     to_load = None
     if arguments.heroku_deps_internal or arguments.docker_deps_internal:
@@ -772,7 +773,7 @@ async def amain(first, client, allclients, web, arguments):
             diff = repo.git.log(["HEAD..origin/master", "--oneline"])
             upd = r"\33[31mUpdate required" if diff else r"Up-to-date"
 
-            termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
+            termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())  # skipcq: BAN-B605, BAN-B607
             heroku = os.environ.get("DYNO", False)
 
             platform = r"Termux" if termux else (r"Heroku" if heroku else "VDS")

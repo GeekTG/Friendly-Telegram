@@ -409,7 +409,7 @@ class RaphielgangEvents:
                 return type(
                     "RaphielgangShim__" + self.module,
                     (self.__RaphielgangShimMod__Base,),
-                    dict(),
+                    {},
                 )(self)
 
             def subreg(func):  # ALWAYS return func.

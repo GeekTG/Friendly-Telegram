@@ -275,19 +275,9 @@ class InlineManager:
 
         self.fsm = {}
 
-        self._forms_db_path = os.path.join(
-            utils.get_base_dir(), "../inline-forms-db.json"
-        )
-
         self._markup_ttl = 60 * 60 * 24
 
         self.init_complete = False
-
-        try:
-            with open(self._forms_db_path, "r") as f:
-                self._forms = json.loads(f.read())
-        except Exception:
-            pass
 
     def ss(self, user: Union[str, int], state: Union[str, bool]) -> bool:
         if not isinstance(user, (str, int)):
@@ -557,15 +547,6 @@ class InlineManager:
                 if form["ttl"] < time.time():
                     del self._forms[form_uid]
 
-            try:
-                with open(self._forms_db_path, "w") as f:
-                    f.write(json.dumps(self._forms, indent=4, ensure_ascii=False))
-            except Exception:
-                # If we are on Heroku, or Termux, we can't properly save forms,
-                # but it's not critical. Just ignore it.
-                # On these platforms forms will be reset after every restart
-                pass
-
             await asyncio.sleep(10)
 
     async def _reassert_token(self) -> None:
@@ -703,38 +684,8 @@ class InlineManager:
             self._forms[form_uid]["buttons"] if isinstance(form_uid, str) else form_uid
         ):
             for button in row:
-                if "callback" in button and not isinstance(button["callback"], str):
-                    func = button["callback"]
-                    try:
-                        button[
-                            "callback"
-                        ] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
-                    except Exception:
-                        logger.exception(
-                            "Error while forming markup! "
-                            "Probably, you passed wrong type "
-                            "to `callback` field, contact "
-                            "developer of module."
-                        )
-                        return None
-
                 if "callback" in button and "_callback_data" not in button:
                     button["_callback_data"] = rand(30)
-
-                if "handler" in button and not isinstance(button["handler"], str):
-                    func = button["handler"]
-                    try:
-                        button[
-                            "handler"
-                        ] = f"{func.__self__.__class__.__name__}.{func.__func__.__name__}"
-                    except Exception:
-                        logger.exception(
-                            "Error while forming markup! "
-                            "Probably, you passed wrong type "
-                            "to `handler` field, contact "
-                            "developer of module."
-                        )
-                        return None
 
                 if "input" in button and "_switch_query" not in button:
                     button["_switch_query"] = rand(10)
@@ -1009,27 +960,21 @@ class InlineManager:
 
                     query.form = {"id": form_uid, **form}
 
-                    for module in self._allmodules.modules:
-                        if module.__class__.__name__ == button["callback"].split(".")[
-                            0
-                        ] and hasattr(module, button["callback"].split(".")[1]):
-                            try:
-                                return await getattr(
-                                    module, button["callback"].split(".")[1]
-                                )(
-                                    query,
-                                    *button.get("args", []),
-                                    **button.get("kwargs", {}),
-                                )
-                            except Exception:
-                                logger.exception("Error on running callback watcher!")
-                                await query.answer(
-                                    "Error occurred while "
-                                    "processing request. "
-                                    "More info in logs",
-                                    show_alert=True,
-                                )
-                                return
+                    try:
+                        return await button["callback"](
+                            query,
+                            *button.get("args", []),
+                            **button.get("kwargs", {}),
+                        )
+                    except Exception:
+                        logger.exception("Error on running callback watcher!")
+                        await query.answer(
+                            "Error occurred while "
+                            "processing request. "
+                            "More info in logs",
+                            show_alert=True,
+                        )
+                        return
 
                     del self._forms[form_uid]
 
@@ -1082,24 +1027,18 @@ class InlineManager:
                         form_uid=form_uid,
                     )
 
-                    for module in self._allmodules.modules:
-                        if module.__class__.__name__ == button["handler"].split(".")[
-                            0
-                        ] and hasattr(module, button["handler"].split(".")[1]):
-                            try:
-                                return await getattr(
-                                    module, button["handler"].split(".")[1]
-                                )(
-                                    call,
-                                    query,
-                                    *button.get("args", []),
-                                    **button.get("kwargs", {}),
-                                )
-                            except Exception:
-                                logger.exception(
-                                    "Exception while running chosen query watcher!"
-                                )
-                                return
+                    try:
+                        return await button["handler"](
+                            call,
+                            query,
+                            *button.get("args", []),
+                            **button.get("kwargs", {}),
+                        )
+                    except Exception:
+                        logger.exception(
+                            "Exception while running chosen query watcher!"
+                        )
+                        return
 
     async def form(
         self,

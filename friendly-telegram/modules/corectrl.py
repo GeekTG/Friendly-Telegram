@@ -100,7 +100,7 @@ class CoreMod(loader.Module):
         """Get GeekTG version"""
         ver = getattr(main, "__version__", False)
 
-        branch = os.popen("git rev-parse --abbrev-ref HEAD").read()
+        branch = os.popen("git rev-parse --abbrev-ref HEAD").read()  # skipcq: BAN-B605, BAN-B607
 
         if "beta" in branch:
             await utils.answer(message, self.strings("geek_beta").format(*ver))

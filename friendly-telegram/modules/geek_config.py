@@ -58,7 +58,8 @@ class GeekConfigMod(loader.Module):
         self._bot_id = (await self.inline._bot.get_me()).id
         self._forms = {}
 
-    async def inline__close(self, call: CallbackQuery) -> None:  # noqa
+    @staticmethod
+    async def inline__close(call: CallbackQuery) -> None:  # noqa
         await call.delete()
 
     async def inline__set_config(

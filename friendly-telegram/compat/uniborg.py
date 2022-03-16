@@ -58,7 +58,7 @@ class UniborgClient(MarkdownBotPassthrough):
 
     def registerfunc(self, _):
         self._wrapper = type(
-            f"UniborgShim__{self._module}", (self.__UniborgShimMod__Base,), dict()
+            f"UniborgShim__{self._module}", (self.__UniborgShimMod__Base,), {}
         )(self)
 
         return self._wrapper

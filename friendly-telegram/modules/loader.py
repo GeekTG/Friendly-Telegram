@@ -310,7 +310,7 @@ class LoaderMod(loader.Module):
                 await utils.answer(message, self.strings("non_heroku"))
             return
 
-        if re.search(r"# ?scope: ?ffmpeg", doc) and os.system('ffmpeg -version'):
+        if re.search(r"# ?scope: ?ffmpeg", doc) and os.system('ffmpeg -version'):  # skipcq: BAN-B605, BAN-B607
             if isinstance(message, Message):
                 await utils.answer(message, self.strings("ffmpeg_required"))
             return
@@ -459,8 +459,7 @@ class LoaderMod(loader.Module):
                     self.strings("loaded", message).format(modname.strip(), version, modhelp) + developer,
                 )
 
-            commands = {name: func for name, func in instance.commands.items()}
-            for name, fun in commands.items():
+            for name, fun in instance.commands.items():
                 modhelp += self.strings("single_cmd", message).format(prefix, name)
 
                 if fun.__doc__:
@@ -470,10 +469,7 @@ class LoaderMod(loader.Module):
 
             if self.inline.init_complete:
                 if hasattr(instance, "inline_handlers"):
-                    inline_handlers = {
-                        name: func for name, func in instance.inline_handlers.items()
-                    }
-                    for name, fun in inline_handlers.items():
+                    for name, fun in instance.inline_handlers.items():
                         modhelp += self.strings("ihandler", message).format(
                             f"@{self.inline._bot_username} {name}"
                         )
@@ -492,10 +488,7 @@ class LoaderMod(loader.Module):
                             modhelp += self.strings("undoc_ihandler", message)
 
                 if hasattr(instance, "callback_handlers"):
-                    callback_handlers = {
-                        name: func for name, func in instance.callback_handlers.items()
-                    }
-                    for name, fun in callback_handlers.items():
+                    for name, fun in instance.callback_handlers.items():
                         modhelp += self.strings("chandler", message).format(name)
 
                         if fun.__doc__:
@@ -612,7 +605,9 @@ class LoaderMod(loader.Module):
         without_prefix = []
 
         for mod in worked:
-            assert mod.startswith("friendly-telegram.modules."), mod
+            if not mod.startswith("friendly-telegram.modules.") or not mod:
+                raise Exception("Assertion error")
+
             without_prefix += [
                 unescape_percent(mod[len("friendly-telegram.modules.") :])
             ]

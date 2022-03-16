@@ -40,9 +40,7 @@ class Web(initial_setup.Web, root.Web):
             filters={"getdoc": inspect.getdoc, "ascii": ascii},
             loader=jinja2.FileSystemLoader("web-resources"),
         )
-        self.app["static_root_url"] = "/static"
         super().__init__(**kwargs)
-        self.app.router.add_static("/static/", "web-resources/static")
         self.app.router.add_get("/favicon.ico", self.favicon)
 
     async def start_if_ready(self, total_count, port):
@@ -68,7 +66,8 @@ class Web(initial_setup.Web, root.Web):
     async def add_loader(self, client, loader, db):
         self.client_data[(await client.get_me(True)).user_id] = (loader, client, db)
 
-    async def favicon(self, request):
+    @staticmethod
+    async def favicon(request):
         return web.Response(
             status=301, headers={"Location": "https://i.imgur.com/xEOkgCj.jpeg"}
         )

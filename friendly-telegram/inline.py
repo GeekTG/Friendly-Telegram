@@ -202,10 +202,13 @@ async def custom_next_handler(
 
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Next ➡️", callback_data=btn_call_data))
+
+    _caption = caption if isinstance(caption, str) or not callable(caption) else caption()
+
     try:
         await self._bot.edit_message_media(
             inline_message_id=call.inline_message_id,
-            media=InputMediaPhoto(media=new_url, caption=caption, parse_mode="HTML"),
+            media=InputMediaPhoto(media=new_url, caption=_caption, parse_mode="HTML"),
             reply_markup=markup,
         )
     except Exception:
@@ -912,6 +915,9 @@ class InlineManager:
                     )
                 )
 
+                caption = gallery["caption"]
+                caption = caption() if callable(caption) else caption
+
                 await inline_query.answer(
                     [
                         InlineQueryResultPhoto(
@@ -919,8 +925,8 @@ class InlineManager:
                             title="Toss a coin",
                             photo_url=gallery["photo_url"],
                             thumb_url=gallery["photo_url"],
-                            caption=gallery["text"],
-                            description=gallery["text"],
+                            caption=caption,
+                            description=caption,
                             reply_markup=markup,
                             parse_mode="HTML",
                         )
@@ -1040,38 +1046,6 @@ class InlineManager:
 
             await self._custom_map[query.data]["handler"](query)
             return
-
-        query.delete = functools.partial(
-            delete, self=self, form=form, form_uid=form_uid
-        )
-        query.unload = functools.partial(unload, self=self, form_uid=form_uid)
-        query.edit = functools.partial(
-            edit, self=self, query=query, form=form, form_uid=form_uid
-        )
-
-        query.form = {"id": form_uid, **form}
-
-        for module in self._allmodules.modules:
-            if module.__class__.__name__ == button["callback"].split(".")[
-                0
-            ] and hasattr(module, button["callback"].split(".")[1]):
-                try:
-                    return await getattr(module, button["callback"].split(".")[1])(
-                        query,
-                        *button.get("args", []),
-                        **button.get("kwargs", {}),
-                    )
-                except Exception:
-                    logger.exception("Error on running callback watcher!")
-                    await query.answer(
-                        "Error occurred while "
-                        "processing request. "
-                        "More info in logs",
-                        show_alert=True,
-                    )
-                    return
-
-        del self._forms[form_uid]
 
     async def _chosen_inline_handler(
         self, chosen_inline_query: ChosenInlineResult
@@ -1267,7 +1241,7 @@ class InlineManager:
 
     async def gallery(
         self,
-        text: str,
+        caption: Union[str, FunctionType],
         message: Union[Message, int],
         next_handler: FunctionType,
         force_me: bool = False,
@@ -1277,12 +1251,12 @@ class InlineManager:
         """
         Processes inline gallery
 
-            text: Caption for photo
+            caption: Caption for photo
             next_handler: Callback function, which must return url for next photo
         """
 
-        if not isinstance(text, str):
-            logger.error("Invalid type for `text`")
+        if not isinstance(caption, str) and not callable(caption):
+            logger.error("Invalid type for `caption`")
             return False
 
         if not isinstance(message, (Message, int)):
@@ -1322,7 +1296,7 @@ class InlineManager:
             return False
 
         self._galleries[gallery_uid] = {
-            "text": text,
+            "caption": caption,
             "ttl": round(time.time()) + ttl or self._markup_ttl,
             "force_me": force_me,
             "always_allow": always_allow,
@@ -1341,7 +1315,7 @@ class InlineManager:
                     func=next_handler,
                     self=self,
                     btn_call_data=btn_call_data,
-                    caption=text,
+                    caption=caption,
                 )
             ),
             "always_allow": always_allow,

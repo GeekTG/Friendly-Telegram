@@ -98,6 +98,26 @@ await self.inline.form(
 
 > ⚠️ **При возникновении ошибки при создании формы, exception не поднимается!**
 
+## Галерея
+Начиная с обновления 3.1.22 в GeekTG доступны inline-галереи. Вызвать ее очень просто:
+
+```python
+def generate_caption() -> str:
+    return random.choice(["Да", "Нет"])
+
+async def photo() -> str:
+    return (await utils.run_sync(requests.get, "https://api.catboys.com/img")).json()["url"]
+
+await self.inline.gallery(
+    caption=generate_caption,
+    message=message,
+    next_handler=photo,
+)
+```
+Здесь `generate_caption` - функция, возвращающая описание фото
+`photo` - Асинхронная функция, возвращая следующую картинку (при нажатии на кнопку Next)
+> Вместо функции `generate_caption` можно передать обычную строку или лямбда-функцию
+
 ## Обработка нажатий (вариант 1)
 Есть несколько вариантов обработки нажатий. Если ты хочешь, чтобы кнопка жила **бесконечное** количество времени, ты можешь использовать опцию `data`.
 ```python

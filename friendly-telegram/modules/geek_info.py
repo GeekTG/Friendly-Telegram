@@ -37,14 +37,14 @@ class GeekInfoMod(loader.Module):
     strings = {"name": "GeekInfo"}
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
-        self.client = client
+        self._db = db
+        self._client = client
         self._me = await client.get_me()
         self.markup = aiogram.types.inline_keyboard.InlineKeyboardMarkup()
         self.markup.row(

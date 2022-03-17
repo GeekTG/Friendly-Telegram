@@ -339,7 +339,7 @@ def get_proxy(arguments):
     return None, ConnectionTcpFull
 
 
-def sigterm(app, signum, handler):
+def sigterm(app, signum, handler):  # skipcq: PYL-W0613
     if app is not None:
         dyno = os.environ["DYNO"]
         if dyno.startswith("web") and app.process_formation()["web"].quantity:
@@ -775,9 +775,9 @@ async def amain(first, client, allclients, web, arguments):
             termux = bool(
                 os.popen('echo $PREFIX | grep -o "com.termux"').read()
             )  # skipcq: BAN-B605, BAN-B607
-            heroku = os.environ.get("DYNO", False)
+            is_heroku = os.environ.get("DYNO", False)
 
-            platform = r"Termux" if termux else (r"Heroku" if heroku else "VDS")
+            platform = r"Termux" if termux else (r"Heroku" if is_heroku else "VDS")
 
             logo1 = f"""
                                       )

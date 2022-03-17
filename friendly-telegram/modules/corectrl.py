@@ -394,7 +394,7 @@ class CoreMod(loader.Module):
         self._db.save()
         await utils.answer(message, self.strings("db_cleared", message))
 
-    async def _client_ready2(self, client, db):
+    async def _client_ready2(self, client, db):  # skicpq: PYL-W0613
         ret = {
             alias: cmd
             for alias, cmd in db.get(__name__, "aliases", {}).items()

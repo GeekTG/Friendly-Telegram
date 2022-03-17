@@ -17,9 +17,7 @@ async def mute(chatid, userid):
 
 
 async def is_muted(chatid, userid):
-    is_muted = MONGO.mutes.find_one({"chat_id": chatid, "user_id": userid})
-
-    return bool(is_muted)
+    return bool(MONGO.mutes.find_one({"chat_id": chatid, "user_id": userid}))
 
 
 async def unmute(chatid, userid):
@@ -44,9 +42,7 @@ async def gmute(userid):
 
 
 async def is_gmuted(userid):
-    is_gmuted = MONGO.gmutes.find_one({"user_id": userid})
-
-    return bool(is_gmuted)
+    return bool(MONGO.gmutes.find_one({"user_id": userid}))
 
 
 async def ungmute(userid):
@@ -209,10 +205,10 @@ async def approval(userid):
         MONGO.pmpermit.insert_one({"user_id": userid, "approval": False})
 
         return False
-    
+
     if to_check["approval"] is False:
         return False
-    
+
     if to_check["approval"] is True:
         return True
 
@@ -241,10 +237,10 @@ async def notif_state():
     if not state:
         MONGO.notif.insert_one({"state": True})
         return True
-    
+
     if state["state"] is False:
         return False
-    
+
     if state["state"] is True:
         return True
 

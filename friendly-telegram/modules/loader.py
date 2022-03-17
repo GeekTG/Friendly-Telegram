@@ -459,8 +459,8 @@ class LoaderMod(loader.Module):
                     self.strings("loaded", message).format(modname.strip(), version, modhelp) + developer,
                 )
 
-            for name, fun in instance.commands.items():
-                modhelp += self.strings("single_cmd", message).format(prefix, name)
+            for _name, fun in instance.commands.items():
+                modhelp += self.strings("single_cmd", message).format(prefix, _name)
 
                 if fun.__doc__:
                     modhelp += utils.escape_html(inspect.getdoc(fun))
@@ -469,9 +469,9 @@ class LoaderMod(loader.Module):
 
             if self.inline.init_complete:
                 if hasattr(instance, "inline_handlers"):
-                    for name, fun in instance.inline_handlers.items():
+                    for _name, fun in instance.inline_handlers.items():
                         modhelp += self.strings("ihandler", message).format(
-                            f"@{self.inline._bot_username} {name}"
+                            f"@{self.inline._bot_username} {_name}"
                         )
 
                         if fun.__doc__:
@@ -488,8 +488,8 @@ class LoaderMod(loader.Module):
                             modhelp += self.strings("undoc_ihandler", message)
 
                 if hasattr(instance, "callback_handlers"):
-                    for name, fun in instance.callback_handlers.items():
-                        modhelp += self.strings("chandler", message).format(name)
+                    for _name, fun in instance.callback_handlers.items():
+                        modhelp += self.strings("chandler", message).format(_name)
 
                         if fun.__doc__:
                             modhelp += utils.escape_html(

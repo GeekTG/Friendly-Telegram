@@ -49,10 +49,10 @@ class HelpMod(loader.Module):
     }
 
     def get(self, *args) -> dict:
-        return self.db.get(self.strings["name"], *args)
+        return self._db.get(self.strings["name"], *args)
 
     def set(self, *args) -> None:
-        return self.db.set(self.strings["name"], *args)
+        return self._db.set(self.strings["name"], *args)
 
     async def helphidecmd(self, message: Message) -> None:
         """<module or modules> - Hide module(-s) from help
@@ -101,7 +101,7 @@ class HelpMod(loader.Module):
             force = True
 
         prefix = utils.escape_html(
-            (self.db.get(main.__name__, "command_prefix", False) or ".")[0]
+            (self._db.get(main.__name__, "command_prefix", False) or ".")[0]
         )
 
         if args:
@@ -186,7 +186,7 @@ class HelpMod(loader.Module):
         shown_warn = False
         cats = {}
 
-        for mod_name, cat in self.db.get("Help", "cats", {}).items():
+        for mod_name, cat in self._db.get("Help", "cats", {}).items():
             if cat not in cats:
                 cats[cat] = []
 
@@ -281,7 +281,7 @@ class HelpMod(loader.Module):
         if await self.allmodules.check_security(
             message, security.OWNER | security.SUDO
         ):
-            await self.client(JoinChannelRequest("https://t.me/GeekTGChat"))
+            await self._client(JoinChannelRequest("https://t.me/GeekTGChat"))
 
             try:
                 await self.inline.form(
@@ -308,6 +308,6 @@ class HelpMod(loader.Module):
                 await utils.answer(message, self.strings("join", message))
 
     async def client_ready(self, client, db) -> None:
-        self.client = client
+        self._client = client
         self.is_bot = await client.is_bot()
-        self.db = db
+        self._db = db

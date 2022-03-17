@@ -29,8 +29,8 @@ class PythonMod(loader.Module):
     }
 
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
 
     def lookup(self, modname: str):
         return next(
@@ -51,7 +51,7 @@ class PythonMod(loader.Module):
     @loader.owner
     async def ecmd(self, message: Message) -> None:
         """MEvaluates python code"""
-        phone = self.client.phone
+        phone = self._client.phone
         ret = self.strings("eval", message)
         try:
             it = await meval(
@@ -77,9 +77,9 @@ class PythonMod(loader.Module):
     async def getattrs(self, message):
         return {
             "message": message,
-            "client": self.client,
+            "client": self._client,
             "self": self,
-            "db": self.db,
+            "db": self._db,
             "reply": await message.get_reply_message(),
             **self.get_sub(telethon.tl.types),
             **self.get_sub(telethon.tl.functions),
@@ -88,7 +88,7 @@ class PythonMod(loader.Module):
             "telethon": telethon,
             "utils": utils,
             "f": telethon.tl.functions,
-            "c": self.client,
+            "c": self._client,
             "m": message,
             "loader": loader,
             "lookup": self.lookup,

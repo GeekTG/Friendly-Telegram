@@ -192,7 +192,7 @@ class TestMod(loader.Module):
             )
         else:
             await message.delete()
-            await self.client.send_file(
+            await self._client.send_file(
                 message.form["chat"],
                 logs,
                 caption=self.strings("logs_caption").format(named_lvl),
@@ -225,4 +225,4 @@ class TestMod(loader.Module):
         await utils.answer(message, self.strings("results_ping").format(round(ms, 3)))
 
     async def client_ready(self, client, db) -> None:
-        self.client = client
+        self._client = client

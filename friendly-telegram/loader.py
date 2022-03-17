@@ -223,7 +223,7 @@ class Modules:
         self.use_inline = use_inline
         self._fs = "DYNO" not in os.environ
 
-    def register_all(self, babelfish, mods=None):
+    def register_all(self, babelfish, mods=None):  # skipcq: PYL-W0613
         # TODO: remove babelfish
         """Load all modules in the module directory"""
         if self._compat_layer is None:

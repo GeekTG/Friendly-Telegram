@@ -44,10 +44,11 @@ class AdvancedSettingsMod(loader.Module):
             str(_.__self__.__class__.strings["name"])
             for _ in self.allmodules.watchers
             if _.__self__.__class__.strings is not None
-        ], self.db.get(main.__name__, "disabled_watchers", {})
+        ], self._db.get(main.__name__, "disabled_watchers", {})
 
     async def client_ready(self, client, db) -> None:
-        self.db = db
+        self._db = db
+        self._client = client
 
     async def watcherscmd(self, message: Message) -> None:
         """List current watchers"""
@@ -105,7 +106,7 @@ class AdvancedSettingsMod(loader.Module):
                 self.strings("enabled").format(args) + " <b>in current chat</b>",
             )
 
-        self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
+        self._db.set(main.__name__, "disabled_watchers", disabled_watchers)
 
     async def watchercmd(self, message: Message) -> None:
         """<module> - Toggle global watcher rules
@@ -155,7 +156,7 @@ class AdvancedSettingsMod(loader.Module):
                 *(["out"] if out else []),
                 *(["in"] if incoming else []),
             ]
-            self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
+            self._db.set(main.__name__, "disabled_watchers", disabled_watchers)
             await utils.answer(
                 message,
                 self.strings("enabled").format(args)
@@ -166,11 +167,11 @@ class AdvancedSettingsMod(loader.Module):
         if args in disabled_watchers and "*" in disabled_watchers[args]:
             await utils.answer(message, self.strings("enabled").format(args))
             del disabled_watchers[args]
-            self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
+            self._db.set(main.__name__, "disabled_watchers", disabled_watchers)
             return
 
         disabled_watchers[args] = ["*"]
-        self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
+        self._db.set(main.__name__, "disabled_watchers", disabled_watchers)
         await utils.answer(message, self.strings("disabled").format(args))
 
     async def nonickusercmd(self, message: Message) -> None:
@@ -180,7 +181,7 @@ class AdvancedSettingsMod(loader.Module):
         if not isinstance(u, int):
             u = u.user_id
 
-        nn = self.db.get(main.__name__, "nonickusers", [])
+        nn = self._db.get(main.__name__, "nonickusers", [])
         if u not in nn:
             nn += [u]
             nn = list(set(nn))  # skipcq: PTC-W0018
@@ -189,7 +190,7 @@ class AdvancedSettingsMod(loader.Module):
             nn = list(set(nn) - set([u]))  # skipcq: PTC-W0018
             await utils.answer(message, self.strings("user_nn").format("off"))
 
-        self.db.set(main.__name__, "nonickusers", nn)
+        self._db.set(main.__name__, "nonickusers", nn)
 
     async def nonickcmdcmd(self, message: Message) -> None:
         args = utils.get_args_raw(message)
@@ -199,14 +200,14 @@ class AdvancedSettingsMod(loader.Module):
         if args not in self.allmodules.commands:
             return await utils.answer(message, self.strings("cmd404"))
 
-        nn = self.db.get(main.__name__, "nonickcmds", [])
+        nn = self._db.get(main.__name__, "nonickcmds", [])
         if args not in nn:
             nn += [args]
             nn = list(set(nn))
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(
-                    self.db.get(main.__name__, "command_prefix", ["."])[0] + args, "on"
+                    self._db.get(main.__name__, "command_prefix", ["."])[0] + args, "on"
                 ),
             )
         else:
@@ -214,8 +215,8 @@ class AdvancedSettingsMod(loader.Module):
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(
-                    self.db.get(main.__name__, "command_prefix", ["."])[0] + args, "off"
+                    self._db.get(main.__name__, "command_prefix", ["."])[0] + args, "off"
                 ),
             )
 
-        self.db.set(main.__name__, "nonickcmds", nn)
+        self._db.set(main.__name__, "nonickcmds", nn)

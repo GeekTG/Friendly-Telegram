@@ -88,8 +88,10 @@ class CloudBackend:
             ).chats[0]
 
     async def do_download(self, force_from_data_channel=False):
-        """Attempt to download the database.
-        Return the database (as unparsed JSON) or None"""
+        """
+        Attempt to download the database.
+        Return the database (as unparsed JSON) or None
+        """
         if main.get_config_key("use_file_db") and not force_from_data_channel:
             try:
                 with open(self._db_path, "r", encoding="utf-8") as f:
@@ -127,8 +129,10 @@ class CloudBackend:
         return data
 
     async def do_upload(self, data):
-        """Attempt to upload the database.
-        Return True or throw"""
+        """
+        Attempt to upload the database.
+        Return True or throw
+        """
 
         if main.get_config_key("use_file_db"):
             try:

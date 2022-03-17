@@ -1054,24 +1054,18 @@ class InlineManager:
         ttl: Union[int, bool] = False,
     ) -> Union[str, bool]:
         """Creates inline form with callback
-
         Args:
                 text
                         Content of inline form. HTML markdown supported
-
                 message
                         Where to send inline. Can be either `Message` or `int`
-
                 reply_markup
                         List of buttons to insert in markup. List of dicts with
                         keys: text, callback
-
                 force_me
                         Either this form buttons must be pressed only by owner scope or no
-
                 always_allow
                         Users, that are allowed to press buttons in addition to previous rules
-
                 ttl
                         Time, when the form is going to be unloaded. Unload means, that the form
                         buttons with inline queries and callback queries will become unusable, but
@@ -1193,9 +1187,21 @@ class InlineManager:
     ) -> Union[bool, str]:
         """
         Processes inline gallery
-
-            caption: Caption for photo
-            next_handler: Callback function, which must return url for next photo
+            caption
+                    Caption for photo, or callable, returning caption
+            message
+                    Where to send inline. Can be either `Message` or `int`
+            next_handler
+                    Callback function, which must return url for next photo
+            force_me
+                    Either this form buttons must be pressed only by owner scope or no
+            always_allow
+                    Users, that are allowed to press buttons in addition to previous rules
+            ttl
+                    Time, when the form is going to be unloaded. Unload means, that the form
+                    buttons with inline queries and callback queries will become unusable, but
+                    buttons with type url will still work as usual. Pay attention, that ttl can't
+                    be bigger, than default one (1 day) and must be either `int` or `False`
         """
 
         if not isinstance(caption, str) and not callable(caption):

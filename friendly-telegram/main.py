@@ -777,7 +777,7 @@ async def amain(first, client, allclients, web, arguments):
             )  # skipcq: BAN-B605, BAN-B607
             is_heroku = os.environ.get("DYNO", False)
 
-            platform = r"Termux" if termux else (r"Heroku" if is_heroku else "VDS")
+            _platform = r"Termux" if termux else (r"Heroku" if is_heroku else "VDS")
 
             logo1 = f"""
                                       )
@@ -792,7 +792,7 @@ async def amain(first, client, allclients, web, arguments):
                      • Build: {build[:7]}
                      • Version: {'.'.join(list(map(str, list(__version__))))}
                      • {upd}
-                     • Platform: {platform}
+                     • Platform: {_platform}
                      - Started for {(await client.get_me(True)).user_id} -"""
 
             print(logo1)

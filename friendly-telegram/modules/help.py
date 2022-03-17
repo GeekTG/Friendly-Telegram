@@ -285,6 +285,10 @@ class HelpMod(loader.Module):
                 )
                 shown_warn = True
 
+        plain_.sort(key=lambda x: x.split()[1])
+        core_.sort(key=lambda x: x.split()[1])
+        inline_.sort(key=lambda x: x.split()[1])
+
         await utils.answer(message, f"{reply}\n{''.join(core_)}{''.join(plain_)}{''.join(inline_)}")
 
     async def supportcmd(self, message):

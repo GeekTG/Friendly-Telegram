@@ -71,9 +71,9 @@ class TestMod(loader.Module):
             args = utils.get_args_raw(message)
 
             try:
-                lvl = int(args)
+                lvl = int(args.split()[0])
             except ValueError:
-                lvl = getattr(logging, args.upper(), None)
+                lvl = getattr(logging, args.split()[0].upper(), None)
 
         if not isinstance(lvl, int):
             if self.inline.init_complete:

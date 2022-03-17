@@ -82,7 +82,7 @@ class AdvancedSettingsMod(loader.Module):
         chat = utils.get_chat_id(message)
         if chat not in current_bl:
             if args in disabled_watchers:
-                for k, v in disabled_watchers.items():
+                for k, _ in disabled_watchers.items():
                     if k.lower() == args.lower():
                         disabled_watchers[k].append(chat)
                         break

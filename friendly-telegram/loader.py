@@ -33,7 +33,7 @@ from .translations.dynamic import Strings
 
 
 class LoadError(Exception):
-    def __init__(self, error_message):
+    def __init__(self, error_message):  # skipcq: PYL-W0231
         self._error = error_message
 
     def __str__(self) -> str:
@@ -166,7 +166,6 @@ class Module:
 
     async def on_unload(self):
         """Will be called after unloading / reloading module"""
-        pass
 
     # Called after client_ready, for internal use only. Must not be used by non-core modules
     async def _client_ready2(self, client, db):

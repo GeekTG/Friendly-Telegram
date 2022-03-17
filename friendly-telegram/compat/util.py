@@ -142,7 +142,7 @@ class MarkdownBotPassthrough:
     def __bytes__(self):
         return bytes(self.__under)
 
-    def __format__(self):
+    def __format__(self, *args, **kwargs):
         return format(self.__under)
 
     def __hash__(self):

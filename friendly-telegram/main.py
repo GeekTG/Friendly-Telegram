@@ -802,7 +802,7 @@ async def amain(first, client, allclients, web, arguments):
                 f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ==="
             )
             logging.info(
-                f"=== PLATFORM: {'Termux' if termux else ('Heroku' if heroku else 'VDS')} ==="
+                f"=== PLATFORM: {'Termux' if termux else ('Heroku' if is_heroku else 'VDS')} ==="
             )
         except Exception:
             logging.exception(

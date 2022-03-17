@@ -185,22 +185,22 @@ fi
 
 ##############################################################################
 
-runout $PKGMGR "python$PYVER" git || {
+runout $PKGMGR "python$PYVER" git || {  # skipcq
 	errorout "Core install failed."
 	exit 2
 }
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
-	runout $PKGMGR "python$PYVER-dev"
-	runout $PKGMGR "python$PYVER-pip"
-	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2
+	runout $PKGMGR "python$PYVER-dev"  # skipcq
+	runout $PKGMGR "python$PYVER-pip"  # skipcq
+	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2  # skipcq
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-	runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
+	runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv  # skipcq
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-	runout $PKGMGR jpeg webp
+	runout $PKGMGR jpeg webp  # skipcq
 fi
 
-runout $PKGMGR neofetch dialog
+runout $PKGMGR neofetch dialog  # skipcq
 
 ##############################################################################
 

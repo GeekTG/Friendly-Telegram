@@ -18,3 +18,12 @@ api_token.txt
 .vscode/
 ftg-install.log
 config.ini
+.cache
+config-*.json
+config.json
+*cache*.json
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.webm

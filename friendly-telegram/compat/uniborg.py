@@ -63,7 +63,7 @@ class UniborgClient(MarkdownBotPassthrough):
 
         return self._wrapper
 
-    def __init__(self, module_name):
+    def __init__(self, module_name):  # skipcq: PYL-W0231
         self.instance_id = -1
         self._storage = None
         self._config = UniborgConfig()

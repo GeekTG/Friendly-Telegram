@@ -3,20 +3,11 @@
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
     Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
-
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    Licensed under the GNU GPLv3
 """
 
-# <3 title: GeekInfo
-# <3 pic: https://img.icons8.com/external-flatart-icons-flat-flatarticons/64/000000/external-info-hotel-services-flatart-icons-flat-flatarticons.png
-# <3 desc: Show userbot info (geek3.1.0alpha+)
-
-# scope: inline_content
+# meta pic: https://img.icons8.com/external-flatart-icons-flat-flatarticons/64/000000/external-info-hotel-services-flatart-icons-flat-flatarticons.png
+# scope: inline
 
 from .. import loader, main
 import logging

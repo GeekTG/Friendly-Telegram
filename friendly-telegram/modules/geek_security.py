@@ -6,7 +6,7 @@
 """
 
 # meta pic: https://img.icons8.com/stickers/100/000000/enter-pin.png
-# scope: inline_content
+# scope: inline
 
 from types import FunctionType
 from typing import List, Union

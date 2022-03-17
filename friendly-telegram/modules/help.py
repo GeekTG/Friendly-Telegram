@@ -3,13 +3,7 @@
     █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
     Copyright 2022 t.me/hikariatama
-    Licensed under the Creative Commons CC BY-NC-ND 4.0
-
-    Full license text can be found at:
-    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
-
-    Human-friendly one:
-    https://creativecommons.org/licenses/by-nc-nd/4.0
+    Licensed under the GNU GPLv3
 """
 
 # meta pic: https://img.icons8.com/fluency/48/000000/chatbot.png

@@ -6,9 +6,7 @@
     Licensed under the GNU GPLv3
 """
 
-# <3 title: Backuper
-# <3 pic: https://img.icons8.com/fluency/48/000000/sync-settings.png
-# <3 desc: Create the backup of all modules, notes, the whole database
+# meta pic: https://img.icons8.com/fluency/48/000000/sync-settings.png
 
 from .. import loader, utils
 import asyncio

@@ -39,7 +39,8 @@ from telethon import TelegramClient, events
 from telethon.errors.rpcerrorlist import (
     PhoneNumberInvalidError,
     MessageNotModifiedError,
-    ApiIdInvalidError, AuthKeyDuplicatedError,
+    ApiIdInvalidError,
+    AuthKeyDuplicatedError,
 )
 from telethon.network.connection import ConnectionTcpFull
 from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermediate
@@ -338,27 +339,26 @@ def get_proxy(arguments):
     return None, ConnectionTcpFull
 
 
-def sigterm(app, signum, handler):  # TODO: delete unused signum, handler
+def sigterm(app, signum, handler):
     if app is not None:
         dyno = os.environ["DYNO"]
-        if dyno.startswith("web"):
-            if app.process_formation()["web"].quantity:
-                # If we are just idling, start the worker, but otherwise shutdown gracefully
-                app.scale_formation_process(
-                    "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1
-                )
-        elif dyno.startswith("restarter"):
-            if app.process_formation()[
+        if dyno.startswith("web") and app.process_formation()["web"].quantity:
+            # If we are just idling, start the worker, but otherwise shutdown gracefully
+            app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1)
+        elif (
+            dyno.startswith("restarter")
+            and app.process_formation()[
                 "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK"
-            ].quantity:
-                # If this dyno is restarting, it means we should start the web dyno
-                app.batch_scale_formation_processes(
-                    {
-                        "web": 1,
-                        "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
-                        "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
-                    }
-                )
+            ].quantity
+        ):
+            # If this dyno is restarting, it means we should start the web dyno
+            app.batch_scale_formation_processes(
+                {
+                    "web": 1,
+                    "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
+                    "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
+                }
+            )
     # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
 
@@ -448,7 +448,7 @@ def main():  # noqa: C901
             or arguments.heroku_web_internal
             or arguments.heroku_deps_internal
         ):
-            app, config = heroku.get_app(
+            app, _ = heroku.get_app(
                 os.environ["authorization_strings"],
                 os.environ["heroku_api_token"],
                 api_token,
@@ -616,7 +616,6 @@ def main():  # noqa: C901
                 " and don't put spaces in it."
             )
             continue
-    del phones
 
     if arguments.heroku:
         if isinstance(arguments.heroku, str):
@@ -773,7 +772,9 @@ async def amain(first, client, allclients, web, arguments):
             diff = repo.git.log(["HEAD..origin/master", "--oneline"])
             upd = r"\33[31mUpdate required" if diff else r"Up-to-date"
 
-            termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())  # skipcq: BAN-B605, BAN-B607
+            termux = bool(
+                os.popen('echo $PREFIX | grep -o "com.termux"').read()
+            )  # skipcq: BAN-B605, BAN-B607
             heroku = os.environ.get("DYNO", False)
 
             platform = r"Termux" if termux else (r"Heroku" if heroku else "VDS")

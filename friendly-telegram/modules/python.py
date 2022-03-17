@@ -33,9 +33,14 @@ class PythonMod(loader.Module):
         self.db = db
 
     def lookup(self, modname: str):
-        for mod in self.allmodules.modules:
-            if mod.name.lower() == modname.lower():
-                return mod
+        return next(
+            (
+                mod
+                for mod in self.allmodules.modules
+                if mod.name.lower() == modname.lower()
+            ),
+            False,
+        )
 
     @loader.owner
     async def evalcmd(self, message: Message) -> None:

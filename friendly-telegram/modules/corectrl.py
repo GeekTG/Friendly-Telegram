@@ -131,7 +131,7 @@ class CoreMod(loader.Module):
             main.__name__,
             "blacklist_chats",
             list(
-                set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])
+                set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])  # skipcq: PTC-W0018
             ),
         )
 
@@ -177,7 +177,7 @@ class CoreMod(loader.Module):
         self._db.set(
             main.__name__,
             "blacklist_users",
-            list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])),
+            list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])),  # skipcq: PTC-W0018
         )
 
         await utils.answer(

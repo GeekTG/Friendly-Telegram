@@ -29,14 +29,12 @@ class CloudBackend:
         self._anti_double_asset_lock = asyncio.Lock()
         self._data_already_exists = False
         self._assets_already_exists = False
+        self.close = lambda: None
 
     async def init(self, trigger_refresh):
         self._me = await self._client.get_me(True)
         self._db_path = os.path.join(ORIGIN, f"config-{self._me.user_id}.json")
         self._callback = trigger_refresh
-
-    def close(self):
-        pass
 
     async def _find_data_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):

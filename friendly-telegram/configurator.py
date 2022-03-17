@@ -26,6 +26,7 @@ import locale
 import os
 import string
 import sys
+import time
 
 from dialog import Dialog, ExecutableNotFound
 
@@ -178,7 +179,7 @@ def modules_config():
             if mod.name == tag:
                 # Match
                 while not module_config(mod):
-                    pass
+                    time.sleep(.05)
         return modules_config()
     return None
 
@@ -212,7 +213,7 @@ def run(database, data_root, phone, init, mods):
     TITLE = TITLE.format(phone)
     DIALOG.set_background_title(TITLE)
     while main_config(init, data_root):
-        pass
+        time.sleep(.05)
     return DB
 
 

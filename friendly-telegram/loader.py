@@ -213,7 +213,7 @@ class Modules:
     def __init__(self, use_inline=True):
         self.commands = {}
         self.aliases = {}
-        self.modules = []
+        self.modules = []  # skipcq: PTC-W0052
         self.watchers = []
         self._compat_layer = None
         self._log_handlers = []
@@ -284,7 +284,7 @@ class Modules:
         if ret is None:
             ret = module.register(module_name)
             if not isinstance(ret, Module):
-                raise TypeError("Instance is not a Module, it is %r", ret)
+                raise TypeError(f"Instance is not a Module, it is {type(ret)}")
 
         self.complete_registration(ret)
         ret.__origin__ = origin

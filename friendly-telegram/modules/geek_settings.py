@@ -93,7 +93,7 @@ class AdvancedSettingsMod(loader.Module):
                 self.strings("disabled").format(args) + " <b>in current chat</b>",
             )
         else:
-            for k, v in disabled_watchers.items():
+            for k in disabled_watchers.copy():
                 if k.lower() == args.lower():
                     disabled_watchers[k].remove(chat)
                     if not disabled_watchers[k]:
@@ -168,7 +168,7 @@ class AdvancedSettingsMod(loader.Module):
             del disabled_watchers[args]
             self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
             return
-        
+
         disabled_watchers[args] = ["*"]
         self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
         await utils.answer(message, self.strings("disabled").format(args))
@@ -183,10 +183,10 @@ class AdvancedSettingsMod(loader.Module):
         nn = self.db.get(main.__name__, "nonickusers", [])
         if u not in nn:
             nn += [u]
-            nn = list(set(nn))
+            nn = list(set(nn))  # skipcq: PTC-W0018
             await utils.answer(message, self.strings("user_nn").format("on"))
         else:
-            nn = list(set(nn) - set([u]))
+            nn = list(set(nn) - set([u]))  # skipcq: PTC-W0018
             await utils.answer(message, self.strings("user_nn").format("off"))
 
         self.db.set(main.__name__, "nonickusers", nn)
@@ -210,7 +210,7 @@ class AdvancedSettingsMod(loader.Module):
                 ),
             )
         else:
-            nn = list(set(nn) - set([args]))
+            nn = list(set(nn) - set([args]))  # skipcq: PTC-W0018
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(

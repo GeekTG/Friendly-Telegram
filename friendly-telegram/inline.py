@@ -23,7 +23,7 @@ from telethon.errors.rpcerrorlist import YouBlockedUserError, InputUserDeactivat
 from telethon.tl.functions.contacts import UnblockRequest
 from telethon.utils import get_display_name
 
-from aiogram.types import (
+from aiogram.types import (  # skipcq: PYL-C0412
     InputTextMessageContent,
     InlineQuery,
     InlineKeyboardMarkup,
@@ -63,11 +63,12 @@ class InlineCall:
         self.delete = None
         self.unload = None
         self.edit = None
+        super().__init__()
 
 
 class BotMessage(AiogramMessage):
-    def _(self):
-        pass
+    def __init__(self):
+        super().__init__()
 
 
 class GeekInlineQuery:
@@ -307,6 +308,7 @@ class InlineManager:
         return self.fsm.get(str(user), False)
 
     def check_inline_security(self, func, user):
+        """Checks if user with id `user` is allowed to run function `func`"""
         allow = user in [self._me] + self._client.dispatcher.security._owner  # skipcq: PYL-W0212
 
         if not hasattr(func, "__doc__") or not func.__doc__ or allow:
@@ -736,7 +738,7 @@ class InlineManager:
                         "passed wrong type combination for button. "
                         "Contact developer of module."
                     )
-                    return
+                    return False
 
             markup.row(*line)
 

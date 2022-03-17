@@ -299,7 +299,7 @@ async def get_target(message, arg_no=0):
             key=lambda x: x.offset,
         )[0]
         return e.user_id
-    
+
     if len(get_args(message)) > arg_no:
         user = get_args(message)[arg_no]
     elif message.is_reply:

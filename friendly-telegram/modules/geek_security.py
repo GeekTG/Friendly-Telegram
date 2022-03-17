@@ -339,7 +339,7 @@ class GeekSecurityMod(loader.Module):
         self._db.set(
             security.__name__,
             group,
-            list(set(self._db.get(security.__name__, group, [])) - set([user.id])),
+            list(set(self._db.get(security.__name__, group, [])) - set([user.id])),  # skipcq: PTC-W0018
         )
 
         m = self.strings(f"{group}_removed").format(

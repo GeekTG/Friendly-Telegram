@@ -532,4 +532,4 @@ class RaphielgangDatabase:
             return dbhelper
 
     def __init__(self, clients):
-        pass
+        self._clients = clients

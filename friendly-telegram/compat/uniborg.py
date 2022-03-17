@@ -191,7 +191,7 @@ class Uniborg:
 
 class UniborgUtil:
     def __init__(self, clients):
-        pass
+        self._clients = clients
 
     def admin_cmd(self, *args, **kwargs):
         """Uniborg uses this for sudo users but we don't have that concept."""

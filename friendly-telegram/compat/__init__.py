@@ -46,8 +46,7 @@ class BotCompat(
 
     def find_spec(self, fullname, path, target=None):
         """https://docs.python.org/3.7/library/importlib.html#importlib.abc.MetaPathFinder.find_spec"""
-        if fullname in MODULES:
-            return ModuleSpec(fullname, self)
+        return ModuleSpec(fullname, self) if fullname in MODULES else None
 
     def create_module(self, spec):
         """https://docs.python.org/3.7/library/importlib.html#importlib.abc.Loader.create_module"""

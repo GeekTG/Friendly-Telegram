@@ -3,6 +3,8 @@
 A fast, easy to set up telegram userbot running Python 3 which runs on custom version
 the [Telethon](https://github.com/GeekTG/Telethon) Library.
 
+[![DeepSource](https://deepsource.io/gh/GeekTG/Friendly-Telegram.svg/?label=active+issues&show_trend=true&token=9Zxse6cjEZ0Hwh1PJJ3mMTWw)](https://deepsource.io/gh/GeekTG/Friendly-Telegram/?ref=repository-badge)
+
 ## Changes
 
 - Latest Telegram Layers with reactions, video stickers and other stuff

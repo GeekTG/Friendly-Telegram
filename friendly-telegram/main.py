@@ -685,10 +685,10 @@ async def amain(first, client, allclients, web, arguments):
         await modules.send_ready(
             client, fdb, allclients
         )  # Allow normal init even in setup
-        
+
         for handler in handlers:
             handler.setLevel(50)
-        
+
         pdb = run_config(
             pdb,
             arguments.data_root,

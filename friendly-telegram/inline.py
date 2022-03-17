@@ -43,9 +43,7 @@ from . import utils
 import logging
 import requests
 import io
-import json
 import functools
-import os
 from types import FunctionType
 
 import inspect
@@ -138,7 +136,7 @@ async def edit(
     if isinstance(always_allow, list):
         form["always_allow"] = always_allow
     try:
-        await self._bot.edit_message_text(
+        await self.bot.edit_message_text(
             text,
             inline_message_id=inline_message_id or query.inline_message_id,
             parse_mode="HTML",
@@ -206,7 +204,7 @@ async def custom_next_handler(
     _caption = caption if isinstance(caption, str) or not callable(caption) else caption()
 
     try:
-        await self._bot.edit_message_media(
+        await self.bot.edit_message_media(
             inline_message_id=call.inline_message_id,
             media=InputMediaPhoto(media=new_url, caption=_caption, parse_mode="HTML"),
             reply_markup=markup,
@@ -247,7 +245,7 @@ async def answer(
     **kwargs,
 ) -> bool:
     try:
-        await mod._bot.send_message(
+        await mod.bot.send_message(
             message.chat.id,
             text,
             parse_mode=parse_mode,
@@ -308,8 +306,8 @@ class InlineManager:
 
         return self.fsm.get(str(user), False)
 
-    def _check_inline_security(self, func, user):
-        allow = user in [self._me] + self._client.dispatcher.security._owner
+    def check_inline_security(self, func, user):
+        allow = user in [self._me] + self._client.dispatcher.security._owner  # skipcq: PYL-W0212
 
         if not hasattr(func, "__doc__") or not func.__doc__ or allow:
             return allow
@@ -588,19 +586,23 @@ class InlineManager:
         self.init_complete = True
 
         # Create bot instance and dispatcher
-        self._bot = Bot(token=self._token)
-        self._dp = Dispatcher(self._bot)
+        self.bot = Bot(token=self._token)
+        self._bot = self.bot  # This is a temporary alias so the
+        # developers can adapt their code
+        self._dp = Dispatcher(self.bot)
 
         # Get bot username to call inline queries
         try:
-            self._bot_username = (await self._bot.get_me()).username
+            self.bot_username = (await self.bot.get_me()).username
+            self._bot_username = self.bot_username  # This is a temporary alias so the
+            # developers can adapt their code
         except Unauthorized:
             logger.critical("Token expired, revoking...")
             return await self._dp_revoke_token(False)
 
         # Start the bot in case it can send you messages
         try:
-            m = await self._client.send_message(self._bot_username, "/start")
+            m = await self._client.send_message(self.bot_username, "/start")
         except (InputUserDeactivatedError, ValueError):
             self._db.set("geektg.inline", "bot_token", None)
             self._token = False
@@ -616,7 +618,7 @@ class InlineManager:
             logger.exception("due to")
             return False
 
-        await self._client.delete_messages(self._bot_username, m)
+        await self._client.delete_messages(self.bot_username, m)
 
         # Register required event handlers inside aiogram
         self._dp.register_inline_handler(
@@ -632,7 +634,7 @@ class InlineManager:
             self._message_handler, lambda *args: True, content_types=["any"]
         )
 
-        old = self._bot.get_updates
+        old = self.bot.get_updates
         revoke = self._dp_revoke_token
 
         async def new(*args, **kwargs):
@@ -645,7 +647,7 @@ class InlineManager:
                 logger.critical("Got Unauthorized")
                 await self._stop()
 
-        self._bot.get_updates = new
+        self.bot.get_updates = new
 
         # Start polling as the separate task, just in case we will need
         # to force stop this coro. It should be cancelled only by `stop`
@@ -761,7 +763,7 @@ class InlineManager:
                     # If user doesn't have enough permissions
                     # to run this inline command, do not show it
                     # in help
-                    if not self._check_inline_security(fun, inline_query.from_user.id):
+                    if not self.check_inline_security(fun, inline_query.from_user.id):
                         continue
 
                     # Retrieve docs from func
@@ -775,7 +777,7 @@ class InlineManager:
                         )
                     )
 
-                    _help += f"🎹 <code>@{self._bot_username} {name}</code> - {doc}\n"
+                    _help += f"🎹 <code>@{self.bot_username} {name}</code> - {doc}\n"
 
             await inline_query.answer(
                 [
@@ -812,7 +814,7 @@ class InlineManager:
             for query_text, query_func in mod.inline_handlers.items():
                 if inline_query.query.split()[
                     0
-                ].lower() == query_text.lower() and self._check_inline_security(
+                ].lower() == query_text.lower() and self.check_inline_security(
                     query_func, inline_query.from_user.id
                 ):
                     try:
@@ -829,7 +831,7 @@ class InlineManager:
                     and button["_switch_query"] == query.split()[0]
                     and inline_query.from_user.id
                     in [self._me]
-                    + self._client.dispatcher.security._owner
+                    + self._client.dispatcher.security._owner  # skipcq: PYL-W0212
                     + form["always_allow"]
                 ):
                     await inline_query.answer(
@@ -855,7 +857,7 @@ class InlineManager:
             if (
                 inline_query.from_user.id
                 in [self._me]
-                + self._client.dispatcher.security._owner
+                + self._client.dispatcher.security._owner  # skipcq: PYL-W0212
                 + gallery["always_allow"]
                 and query == gallery["uid"]
             ):
@@ -924,7 +926,7 @@ class InlineManager:
                 continue
 
             for query_func in mod.callback_handlers.values():
-                if self._check_inline_security(query_func, query.from_user.id):
+                if self.check_inline_security(query_func, query.from_user.id):
                     try:
                         await query_func(query)
                     except Exception:
@@ -942,7 +944,7 @@ class InlineManager:
                         form["force_me"]
                         and query.from_user.id != self._me
                         and query.from_user.id
-                        not in self._client.dispatcher.security._owner
+                        not in self._client.dispatcher.security._owner  # skipcq: PYL-W0212
                         and query.from_user.id not in form["always_allow"]
                     ):
                         await query.answer("You are not allowed to press this button!")
@@ -982,7 +984,7 @@ class InlineManager:
             if (
                 self._custom_map[query.data]["force_me"]
                 and query.from_user.id != self._me
-                and query.from_user.id not in self._client.dispatcher.security._owner
+                and query.from_user.id not in self._client.dispatcher.security._owner  # skipcq: PYL-W0212
                 and query.from_user.id
                 not in self._custom_map[query.data]["always_allow"]
             ):
@@ -1005,7 +1007,7 @@ class InlineManager:
                     and button["_switch_query"] == query.split()[0]
                     and chosen_inline_query.from_user.id
                     in [self._me]
-                    + self._client.dispatcher.security._owner
+                    + self._client.dispatcher.security._owner  # skipcq: PYL-W0212
                     + form["always_allow"]
                 ):
 
@@ -1149,7 +1151,7 @@ class InlineManager:
         }
 
         try:
-            q = await self._client.inline_query(self._bot_username, form_uid)
+            q = await self._client.inline_query(self.bot_username, form_uid)
             m = await q[0].click(
                 utils.get_chat_id(message) if isinstance(message, Message) else message,
                 reply_to=message.reply_to_msg_id
@@ -1262,7 +1264,7 @@ class InlineManager:
         }
 
         try:
-            q = await self._client.inline_query(self._bot_username, gallery_uid)
+            q = await self._client.inline_query(self.bot_username, gallery_uid)
             m = await q[0].click(
                 utils.get_chat_id(message) if isinstance(message, Message) else message,
                 reply_to=message.reply_to_msg_id

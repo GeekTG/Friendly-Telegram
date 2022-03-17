@@ -209,9 +209,11 @@ async def approval(userid):
         MONGO.pmpermit.insert_one({"user_id": userid, "approval": False})
 
         return False
-    elif to_check["approval"] is False:
+    
+    if to_check["approval"] is False:
         return False
-    elif to_check["approval"] is True:
+    
+    if to_check["approval"] is True:
         return True
 
 
@@ -239,9 +241,11 @@ async def notif_state():
     if not state:
         MONGO.notif.insert_one({"state": True})
         return True
-    elif state["state"] is False:
+    
+    if state["state"] is False:
         return False
-    elif state["state"] is True:
+    
+    if state["state"] is True:
         return True
 
 

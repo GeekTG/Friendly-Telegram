@@ -168,8 +168,8 @@ class AdvancedSettingsMod(loader.Module):
             del disabled_watchers[args]
             self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
             return
-        else:
-            disabled_watchers[args] = ["*"]
+        
+        disabled_watchers[args] = ["*"]
         self.db.set(main.__name__, "disabled_watchers", disabled_watchers)
         await utils.answer(message, self.strings("disabled").format(args))
 

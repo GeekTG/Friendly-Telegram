@@ -124,7 +124,8 @@ class CommandDispatcher:
             if event.message.message.startswith(possible_prefix):
                 prefix = possible_prefix
                 break
-            elif event.message.message.startswith(
+            
+            if event.message.message.startswith(
                 str.translate(possible_prefix, change)
             ):
                 prefix = str.translate(possible_prefix, change)

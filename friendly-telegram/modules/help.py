@@ -139,7 +139,7 @@ class HelpMod(loader.Module):
             if hasattr(module, "inline_handlers"):
                 for name, fun in module.inline_handlers.items():
                     reply += self.strings("ihandler", message).format(
-                        f"@{self.inline._bot_username} {name}"
+                        f"@{self.inline.bot_username} {name}"
                     )
 
                     if fun.__doc__:
@@ -191,8 +191,6 @@ class HelpMod(loader.Module):
                 cats[cat] = []
 
             cats[cat].append(mod_name)
-
-        # logger.info(cats)
 
         help_ = []
 
@@ -253,7 +251,7 @@ class HelpMod(loader.Module):
             icommands = [
                 name
                 for name, func in mod.inline_handlers.items()
-                if self.inline._check_inline_security(func, message.sender_id) or force
+                if self.inline.check_inline_security(func, message.sender_id) or force
             ]
 
             for cmd in icommands:

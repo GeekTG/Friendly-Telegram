@@ -55,7 +55,7 @@ class GeekConfigMod(loader.Module):
     async def client_ready(self, client, db) -> None:
         self.db = db
         self.client = client
-        self._bot_id = (await self.inline._bot.get_me()).id
+        self._bot_id = (await self.inline.bot.get_me()).id
         self._forms = {}
 
     @staticmethod

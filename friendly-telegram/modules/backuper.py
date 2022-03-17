@@ -61,7 +61,6 @@ class BackuperMod(loader.Module):
         self.db.clear()
         self.db.update(**decoded_text)
         self.db.save()
-        # print(decoded_text)
         await utils.answer(message, self.strings("db_restored", message))
         await self.allmodules.commands["restart"](await message.respond("_"))
 

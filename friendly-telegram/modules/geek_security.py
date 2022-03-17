@@ -209,7 +209,7 @@ class GeekSecurityMod(loader.Module):
     def _get_current_perms(self, command: FunctionType) -> dict:
         config = self._db.get(security.__name__, "masks", {}).get(
             f"{command.__module__}.{command.__name__}",
-            getattr(command, "security", self._client.dispatcher.security._default),
+            getattr(command, "security", self._client.dispatcher.security._default),  # skipcq: PYL-W0212
         )
 
         return self._perms_map(config)

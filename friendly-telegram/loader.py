@@ -307,7 +307,7 @@ class Modules:
         for command in instance.commands.copy():
             # Verify that command does not already exist, or,
             # if it does, the command must be from the same class name
-            if command.lower() in self.commands.keys():
+            if command.lower() in self.commands:
                 if (
                     hasattr(instance.commands[command], "__self__")
                     and hasattr(self.commands[command], "__self__")
@@ -533,7 +533,7 @@ class Modules:
 
     def add_alias(self, alias, cmd):
         """Make an alias"""
-        if cmd not in self.commands.keys():
+        if cmd not in self.commands:
             return False
 
         self.aliases[alias.lower().strip()] = cmd

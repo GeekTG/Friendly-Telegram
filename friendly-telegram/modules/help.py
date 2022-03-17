@@ -42,6 +42,19 @@ class HelpMod(loader.Module):
         "join": "👩‍💼 <b>Join the</b> <a href='https://t.me/GeekTGChat'>support chat</a>",
     }
 
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            "core_emoji",
+            "▪️",
+            lambda: "Core module bullet",
+            "geek_emoji",
+            "🕶",
+            lambda: "Geek-only module bullet",
+            "plain_emoji",
+            "▫️",
+            lambda: "Plain module bullet"
+        )
+
     def get(self, *args) -> dict:
         return self._db.get(self.strings["name"], *args)
 
@@ -176,7 +189,7 @@ class HelpMod(loader.Module):
         hidden = list(filter(lambda module: module in mods, self.get("hide", [])))
         self.set("hide", hidden)
 
-        reply = self.strings("all_header").format(count, len(hidden))
+        reply = self.strings("all_header").format(count, len(hidden) if not force else 0)
         shown_warn = False
         cats = {}
 
@@ -186,14 +199,16 @@ class HelpMod(loader.Module):
 
             cats[cat].append(mod_name)
 
-        help_ = []
+        plain_ = []
+        core_ = []
+        inline_ = []
 
         for mod in self.allmodules.modules:
             if not hasattr(mod, "commands"):
                 logger.error(f"Module {mod.__class__.__name__} is not inited yet")
                 continue
 
-            if mod.strings["name"] in self.get("hide", []):
+            if mod.strings["name"] in self.get("hide", []) and not force:
                 continue
 
             tmp = ""
@@ -219,11 +234,11 @@ class HelpMod(loader.Module):
             core = mod.__origin__ == "<file>"
 
             if core:
-                emoji = "▪️"
+                emoji = self.config['core_emoji']
             elif inline:
-                emoji = "🕶"
+                emoji = self.config['geek_emoji']
             else:
-                emoji = "▫️"
+                emoji = self.config['plain_emoji']
 
             tmp += self.strings("mod_tmpl").format(emoji, name)
 
@@ -258,9 +273,11 @@ class HelpMod(loader.Module):
             if commands or icommands:
                 tmp += " )"
                 if inline:
-                    help_ += [tmp]
+                    inline_ += [tmp]
+                elif core:
+                    core_ += [tmp]
                 else:
-                    help_ = [tmp] + help_
+                    plain_ += [tmp]
             elif not shown_warn and (mod.commands or mod.inline_handlers):
                 reply = (
                     "<i>You have permissions to execute only this commands</i>\n"
@@ -268,7 +285,7 @@ class HelpMod(loader.Module):
                 )
                 shown_warn = True
 
-        await utils.answer(message, f"{reply}\n{''.join(help_)}")
+        await utils.answer(message, f"{reply}\n{''.join(core_)}{''.join(plain_)}{''.join(inline_)}")
 
     async def supportcmd(self, message):
         """Joins the support GeekTG chat"""

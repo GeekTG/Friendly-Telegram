@@ -445,7 +445,7 @@ class LoaderMod(loader.Module):
 
             modhelp = ""
             prefix = utils.escape_html(
-                (self._db.get(main.__name__, "command_prefix", False) or ".")[0]
+                (self._db.get(main.__name__, "command_prefix", False) or ".")
             )
 
             if instance.__doc__:

@@ -52,7 +52,7 @@ from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
-__version__ = (3, 1, 23)
+__version__ = (3, 1, 24)
 try:
     from .web import core
 except ImportError:
@@ -69,7 +69,7 @@ def run_config(db, data_root, phone=None, modules=None):
     return configurator.run(db, data_root, phone, phone is None, modules)
 
 
-def get_config_key(key, again=False):
+def get_config_key(key):
     """Parse and return key from config"""
     try:
         with open("config.json", "r") as f:
@@ -77,35 +77,7 @@ def get_config_key(key, again=False):
 
         return config.get(key, False)
     except FileNotFoundError:
-        if again:
-            # If somehow we were not able to save port to file
-            return False
-
-        # In case use used ini config before, and switched
-        # to json one, we try to parse the ini one
-
-        try:
-            with open("config.ini", "r") as f:
-                config = f.read()
-        except FileNotFoundError:
-            return False
-
-        port, use_file_db = False, False
-
-        for line in config.splitlines():
-            if "port" in line:
-                port = int(line.split("=")[1].strip())
-
-            if "use_file_db" in line:
-                use_file_db = bool(int(line.split("=")[1].strip()))
-
-        # Then migrate config to json file
-        with open("config.json", "w") as f:
-            f.write(json.dumps({"port": port, "use_file_db": use_file_db}))
-
-        # We already saved config to file, so we should not
-        # get an FileNotFoundError exception (hopefully)
-        return get_config_key(key, True)
+        return False
 
 
 def save_config_key(key, value):

@@ -99,7 +99,7 @@ class GeekSecurityMod(loader.Module):
         self._db = db
         self._client = client
         self.prefix = utils.escape_html(
-            (self._db.get(main.__name__, "command_prefix", False) or ".")[0]
+            (self._db.get(main.__name__, "command_prefix", False) or ".")
         )
 
         self._me = (await client.get_me()).id

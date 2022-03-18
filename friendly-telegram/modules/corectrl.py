@@ -36,6 +36,7 @@ class CoreMod(loader.Module):
         "user_blacklisted": "✅ <b>User {} blacklisted from userbot</b>",
         "user_unblacklisted": "✅ <b>User {} unblacklisted from userbot</b>",
         "what_prefix": "❓ <b>What should the prefix be set to?</b>",
+        "prefix_incorrect": "🚫 <b>Prefix must be one symbol in length</b>",
         "prefix_set": "✅ <b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}</code> <b>to change it back</b>",
         "alias_created": "✅ <b>Alias created. Access it with</b> <code>{}</code>",
         "aliases": "<b>Aliases:</b>\n",
@@ -50,18 +51,6 @@ class CoreMod(loader.Module):
         "packs_cleared": "<b>✅ Translations cleared</b>",
         "lang_set": "<b>✅ Language changed</b>",
         "db_cleared": "<b>✅ Database cleared</b>",
-        "no_nickname_on": "<b>👍 Now commands <u>will work</u> without nickname</b>",
-        "no_nickname_off": "<b>👍 Now commands <u>won't work</u> without nickname</b>",
-        "no_nickname_status": "<b>🎬 Right now commands <u>can{}</u> be run without nickname</b>",
-        "nn_args": "🚫<b> Usage: .nonick [on/off]</b>",
-        "grep_on": "<b>👍 Now <u>grep</u> is working</b>",
-        "grep_off": "<b>👍 Now <u>grep</u> is not working</b>",
-        "grep_status": "<b>🎬 Right now you <u>can{}</u> use </b><code>| grep</code>",
-        "grep_args": "🚫<b> Usage: .grep [on/off]</b>",
-        "inlinelogs_on": "<b>🧙‍♂️ Now <u>InlineLogs</u> are working</b>",
-        "inlinelogs_off": "<b>🧙‍♂️ Now <u>InlineLogs</u> are not working</b>",
-        "inlinelogs_status": "<b>🧙‍♂️ Right now you <u>can{}</u> view logs right after command execution</b>",
-        "inlinelogs_args": "🚫<b> Usage: .ilogs [on/off]</b>",
         "geek": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}</b>\n<b>Branch: master</b>",
         "geek_beta": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}beta</b>\n<b>Branch: beta</b>\n\n<i>🔮 You're using the unstable branch (<b>beta</b>). You receive fresh but untested updates. Report any bugs to @chat_ftg or @hikari_chat</i>",
         "geek_alpha": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}alpha</b>\n<b>Branch: alpha</b>\n\n<i>🔮 You're using <b><u>very</u></b> unstable branch (<b>alpha</b>). You receive fresh but untested updates. You <b><u>can't ask for help, only report bugs</u></b></i>",
@@ -185,94 +174,18 @@ class CoreMod(loader.Module):
         )
 
     @loader.owner
-    async def nonickcmd(self, message: Message) -> None:
-        """<on|off> - Toggle No-Nickname mode (performing commands without nickname)"""
-        args = utils.get_args_raw(message)
-
-        if not args:
-            await utils.answer(
-                message,
-                self.strings("no_nickname_status", message).format(
-                    "'t"
-                    if not self._db.get(main.__name__, "no_nickname", False)
-                    else ""
-                ),
-            )
-            return
-
-        if args not in ["on", "off"]:
-            await utils.answer(message, self.strings("nn_args", message))
-            return
-
-        args = args == "on"
-
-        self._db.set(main.__name__, "no_nickname", args)
-        await utils.answer(
-            message,
-            self.strings("no_nickname_on" if args else "no_nickname_off", message),
-        )
-
-    @loader.owner
-    async def grepcmd(self, message: Message) -> None:
-        """<on|off> - Toggle 'grep' usage"""
-        args = utils.get_args_raw(message)
-
-        if not args:
-            await utils.answer(
-                message,
-                self.strings("grep_status", message).format(
-                    "'t" if not self._db.get(main.__name__, "grep", False) else ""
-                ),
-            )
-            return
-
-        if args not in ["on", "off"]:
-            await utils.answer(message, self.strings("grep_args", message))
-            return
-
-        args = args == "on"
-
-        self._db.set(main.__name__, "grep", args)
-        await utils.answer(
-            message, self.strings("grep_on" if args else "grep_off", message)
-        )
-
-    @loader.owner
-    async def ilogscmd(self, message: Message) -> None:
-        """<on|off> - Toggle 'inlinelogs' usage"""
-        args = utils.get_args_raw(message)
-
-        if not args:
-            await utils.answer(
-                message,
-                self.strings("inlinelogs_status", message).format(
-                    "'t" if not self._db.get(main.__name__, "inlinelogs", False) else ""
-                ),
-            )
-            return
-
-        if args not in ["on", "off"]:
-            await utils.answer(message, self.strings("inlinelogs_args", message))
-            return
-
-        args = args == "on"
-
-        self._db.set(main.__name__, "inlinelogs", args)
-        await utils.answer(
-            message,
-            self.strings("inlinelogs_on" if args else "inlinelogs_off", message),
-        )
-
-    @loader.owner
     async def setprefixcmd(self, message: Message) -> None:
         """Sets command prefix"""
-        args = utils.get_args(message)
+        args = utils.get_args_raw(message)
 
-        if len(args) == 0:
+        if not args:
             await utils.answer(message, self.strings("what_prefix", message))
             return
 
-        oldprefix = self._db.get(main.__name__, "command_prefix", ["."])[0]
+        if len(args) != 1:
+            await utils.answer(message, self.strings("prefix_incorrect", message))
+
+        oldprefix = self._db.get(main.__name__, "command_prefix", ".")
         self._db.set(main.__name__, "command_prefix", args)
         await utils.answer(
             message,

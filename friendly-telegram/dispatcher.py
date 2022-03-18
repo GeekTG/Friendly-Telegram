@@ -112,25 +112,19 @@ class CommandDispatcher:
             return
 
         # Empty string evaluates to False, so the `or` activates
-        prefixes = self._db.get(main.__name__, "command_prefix", False) or ["."]
-        if isinstance(prefixes, str):
-            prefixes = [prefixes]  # legacy db migration
-            self._db.set(main.__name__, "command_prefix", prefixes)
+        prefix = self._db.get(main.__name__, "command_prefix", False) or "."
+        if isinstance(prefix, list):
+            prefix = prefix[0]
+            self._db.set(main.__name__, "command_prefix", prefix)
 
-        prefix = None
         change = str.maketrans(ru_keys + en_keys, en_keys + ru_keys)
 
-        for possible_prefix in prefixes:
-            if event.message.message.startswith(possible_prefix):
-                prefix = possible_prefix
-                break
-
-            if event.message.message.startswith(
-                str.translate(possible_prefix, change)
-            ):
-                prefix = str.translate(possible_prefix, change)
-
-        if prefix is None:
+        if event.message.message.startswith(prefix):
+            translated = False
+        elif event.message.message.startswith(str.translate(prefix, change)):
+            prefix = str.translate(prefix, change)
+            translated = True
+        else:
             return
 
         logging.debug("Incoming command!")
@@ -172,17 +166,19 @@ class CommandDispatcher:
         logging.debug(message)
         # Make sure we don't get confused about spaces or other stuff in the prefix
         message.message = message.message[len(prefix) :]
+
+        if translated:
+            message.message = str.translate(message.message, change)
+
         if not message.message:
             return  # Message is just the prefix
+
         utils.relocate_entities(message.entities, -len(prefix))
 
         try:
-            initiator = event.from_id.user_id
+            initiator = event.sender_id
         except Exception:
-            try:
-                initiator = event.from_id
-            except Exception:
-                initiator = 0
+            initiator = 0
 
         command = message.message.split(maxsplit=1)[0]
         tag = command.split("@", maxsplit=1)
@@ -208,6 +204,7 @@ class CommandDispatcher:
             and command not in self._db.get(main.__name__, "nonickcmds", [])
             and initiator not in self._db.get(main.__name__, "nonickusers", [])
         ):
+            logging.debug("Ignoring message without nickname")
             return
 
         txt, func = self._modules.dispatch(tag[0])
@@ -222,6 +219,7 @@ class CommandDispatcher:
             if message.is_channel and message.is_group:
                 my_id = (await message.client.get_me(True)).user_id
                 if (await message.get_chat()).title.startswith(f"friendly-{my_id}-"):
+                    logging.warning("Ignoring message in datachat")
                     return
 
             message.message = txt + message.message[len(command) :]
@@ -407,7 +405,7 @@ class CommandDispatcher:
                     or "in" in bl[modname]
                     and message.out
                 )
-            ):  # noqa
+            ):
                 logging.debug(f"Ignored watcher of module {modname}")
                 continue
 

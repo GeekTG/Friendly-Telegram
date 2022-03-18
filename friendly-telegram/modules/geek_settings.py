@@ -6,32 +6,38 @@
     Licensed under the GNU GPLv3
 """
 
-# meta pic: https://img.icons8.com/fluency/48/000000/settings.png
+# meta pic: https://img.icons8.com/pastel-glyph/344/sun-glasses--v2.png
 # scope: inline
+# scope: geektg_only
+# meta developer: @hikariatama
 
 from .. import loader, utils, main
-import logging
 from telethon.tl.types import Message
+from aiogram.types import CallbackQuery
+import logging
 
 logger = logging.getLogger(__name__)
 
 
 @loader.tds
-class AdvancedSettingsMod(loader.Module):
-    """Advanced settings for GeekTG only"""
+class GeekSettingsMod(loader.Module):
+    """Advanced settings for GeekTG"""
 
     strings = {
-        "name": "AdvancedSettings",
-        "watchers": "👾 <b>Watchers:</b>\n\n<b>{}</b>",
-        "mod404": "👾 <b>Watcher {} not found</b>",
-        "already_disabled": "👾 <b>Watcher {} already disabled</b>",
-        "disabled": "👾 <b>Watcher {} is now disabled</b>",
-        "enabled": "👾 <b>Watcher {} is now enabled</b>",
-        "args": "👾 <b>You need to specify watcher name</b>",
+        "name": "GeekSettings",
+        "watchers": "👀 <b>Watchers:</b>\n\n<b>{}</b>",
+        "mod404": "🚫 <b>Watcher {} not found</b>",
+        "already_disabled": "👀 <b>Watcher {} is already disabled</b>",
+        "disabled": "👀 <b>Watcher {} is now <u>disabled</u></b>",
+        "enabled": "👀 <b>Watcher {} is now <u>enabled</u></b>",
+        "args": "🚫 <b>You need to specify watcher name</b>",
         "user_nn": "🔰 <b>NoNick for this user is now {}</b>",
         "no_cmd": "🔰 <b>Please, specify command to toggle NoNick for</b>",
         "cmd_nn": "🔰 <b>NoNick for </b><code>{}</code><b> is now {}</b>",
         "cmd404": "🔰 <b>Command not found</b>",
+        "inline_settings": "⚙️ <b>Here you can configure your GeekTG settings</b>",
+        "confirm_update": "🪂 <b>Please, confirm that you want to update. Your userbot will be restarted</b>",
+        "confirm_restart": "🔄 <b>Please, confirm that you want to restart</b>",
     }
 
     def get_watchers(self) -> tuple:
@@ -210,8 +216,140 @@ class AdvancedSettingsMod(loader.Module):
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(
-                    self._db.get(main.__name__, "command_prefix", ["."])[0] + args, "off"
+                    self._db.get(main.__name__, "command_prefix", ["."])[0] + args,
+                    "off",
                 ),
             )
 
         self._db.set(main.__name__, "nonickcmds", nn)
+
+    async def inline__setting(self, call: CallbackQuery, key: str, state: bool) -> None:
+        self._db.set(main.__name__, key, state)
+        await call.answer("Configuration value saved!")
+        await call.edit(
+            self.strings("inline_settings"), reply_markup=self._get_settings_markup()
+        )
+
+    async def inline__close(self, call: CallbackQuery) -> None:
+        await call.delete()
+
+    async def inline__update(
+        self, call: CallbackQuery, confirm_required: bool = False
+    ) -> None:
+        if confirm_required:
+            await call.edit(
+                self.strings("confirm_update"),
+                reply_markup=[
+                    [
+                        {"text": "🪂 Update", "callback": self.inline__update},
+                        {"text": "🚫 Cancel", "callback": self.inline__close},
+                    ]
+                ],
+            )
+            return
+
+        await call.answer("You userbot is being updated...", show_alert=True)
+        await call.delete()
+        m = await self._client.send_message("me", ".update")
+        await self.allmodules.commands["update"](m)
+
+    async def inline__restart(
+        self, call: CallbackQuery, confirm_required: bool = False
+    ) -> None:
+        if confirm_required:
+            await call.edit(
+                self.strings("confirm_restart"),
+                reply_markup=[
+                    [
+                        {"text": "🔄 Restart", "callback": self.inline__restart},
+                        {"text": "🚫 Cancel", "callback": self.inline__close},
+                    ]
+                ],
+            )
+            return
+
+        await call.answer("You userbot is being restarted...", show_alert=True)
+        await call.delete()
+        m = await self._client.send_message("me", ".restart")
+        await self.allmodules.commands["restart"](m)
+
+    def _get_settings_markup(self) -> list:
+        return [
+            [
+                (
+                    {
+                        "text": "✅ NoNick",
+                        "callback": self.inline__setting,
+                        "args": (
+                            "no_nickname",
+                            False,
+                        ),
+                    }
+                    if self._db.get(main.__name__, "no_nickname", True)
+                    else {
+                        "text": "🚫 NoNick",
+                        "callback": self.inline__setting,
+                        "args": (
+                            "no_nickname",
+                            True,
+                        ),
+                    }
+                ),
+                (
+                    {
+                        "text": "✅ Grep",
+                        "callback": self.inline__setting,
+                        "args": (
+                            "grep",
+                            False,
+                        ),
+                    }
+                    if self._db.get(main.__name__, "grep", True)
+                    else {
+                        "text": "🚫 Grep",
+                        "callback": self.inline__setting,
+                        "args": (
+                            "grep",
+                            True,
+                        ),
+                    }
+                ),
+                (
+                    {
+                        "text": "✅ InlineLogs",
+                        "callback": self.inline__setting,
+                        "args": (
+                            "inlinelogs",
+                            False,
+                        ),
+                    }
+                    if self._db.get(main.__name__, "inlinelogs", True)
+                    else {
+                        "text": "🚫 InlineLogs",
+                        "callback": self.inline__setting,
+                        "args": (
+                            "inlinelogs",
+                            True,
+                        ),
+                    }
+                ),
+            ],
+            [
+                {
+                    "text": "🔄 Restart",
+                    "callback": self.inline__restart,
+                    "args": (True,),
+                },
+                {"text": "🪂 Update", "callback": self.inline__update, "args": (True,)},
+            ],
+            [{"text": "😌 Close menu", "callback": self.inline__close}],
+        ]
+
+    @loader.owner
+    async def settingscmd(self, message: Message) -> None:
+        """Show settings menu"""
+        await self.inline.form(
+            self.strings("inline_settings"),
+            message=message,
+            reply_markup=self._get_settings_markup(),
+        )

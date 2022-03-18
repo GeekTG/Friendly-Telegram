@@ -108,7 +108,7 @@ class HelpMod(loader.Module):
             force = True
 
         prefix = utils.escape_html(
-            (self._db.get(main.__name__, "command_prefix", False) or ".")[0]
+            (self._db.get(main.__name__, "command_prefix", False) or ".")
         )
 
         if args:

@@ -208,7 +208,7 @@ class GeekSettingsMod(loader.Module):
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(
-                    self._db.get(main.__name__, "command_prefix", ["."])[0] + args, "on"
+                    self._db.get(main.__name__, "command_prefix", ".") + args, "on"
                 ),
             )
         else:
@@ -216,7 +216,7 @@ class GeekSettingsMod(loader.Module):
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(
-                    self._db.get(main.__name__, "command_prefix", ["."])[0] + args,
+                    self._db.get(main.__name__, "command_prefix", ".") + args,
                     "off",
                 ),
             )
@@ -225,7 +225,12 @@ class GeekSettingsMod(loader.Module):
 
     async def inline__setting(self, call: CallbackQuery, key: str, state: bool) -> None:
         self._db.set(main.__name__, key, state)
-        await call.answer("Configuration value saved!")
+
+        if key == "no_nickname" and state and self._db.get(main.__name__, "command_prefix", ".") == ".":
+            await call.answer("Warning! You enabled NoNick with default prefix! You may get muted in GeekTG chats. Change prefix or disable NoNick!", show_alert=True)
+        else:
+            await call.answer("Configuration value saved!")
+
         await call.edit(
             self.strings("inline_settings"), reply_markup=self._get_settings_markup()
         )

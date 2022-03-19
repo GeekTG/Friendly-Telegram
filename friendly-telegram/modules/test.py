@@ -69,11 +69,13 @@ class TestMod(loader.Module):
         """<level> - Dumps logs. Loglevels below WARNING may contain personal info."""
         if not isinstance(lvl, int):
             args = utils.get_args_raw(message)
-
             try:
-                lvl = int(args.split()[0])
-            except ValueError:
-                lvl = getattr(logging, args.split()[0].upper(), None)
+                try:
+                    lvl = int(args.split()[0])
+                except ValueError:
+                    lvl = getattr(logging, args.split()[0].upper(), None)
+            except IndexError:
+                lvl = None
 
         if not isinstance(lvl, int):
             if self.inline.init_complete:

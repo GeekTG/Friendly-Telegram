@@ -218,8 +218,12 @@ class CommandDispatcher:
 
             if message.is_channel and message.is_group:
                 my_id = (await message.client.get_me(True)).user_id
-                if (await message.get_chat()).title.startswith(f"friendly-{my_id}-"):
-                    logging.warning("Ignoring message in datachat")
+                chat = await message.get_chat()
+                if (
+                    chat.title.startswith(f"friendly-{my_id}-")
+                    or chat.title == "geektg-log"
+                ):
+                    logging.warning("Ignoring message in datachat \\ logging chat")
                     return
 
             message.message = txt + message.message[len(command) :]

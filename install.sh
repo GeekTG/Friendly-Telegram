@@ -66,17 +66,15 @@ errorout() {
 banner() {
 	clear
 	clear
-	printf '%s\n' "   ___    _             ____    "
-	printf '%s\n' "  / _/___(_)__ ___  ___/ / /_ __"
-	printf '%s\n' " / _/ __/ / -_) _ \\/ _  / / // /"
-	printf '%s\n' "/_//_/ /_/\\__/_//_/\\_,_/_/\\_, / "
-	printf '%s\n' "                         /___/  "
-	printf '%s\n' "  __      __                      "
-	printf '%s\n' " / /____ / /__ ___ ________ ___ _ "
-	printf '%s\n' "/ __/ -_) / -_) _ \`/ __/ _ \`/  ' \\"
-	printf '%s\n' "\\__/\\__/_/\\__/\\_, /_/  \\_,_/_/_/_/"
-	printf '%s\n' "             /___/                "
-	printf '%s\n' ""
+	printf "\n\e[7;30;41m                    )  \e[0m"
+	printf "\n\e[7;30;41m (               ( /(  \e[0m"
+	printf "\n\e[7;30;41m )\\ )   (   (    )\\()) \e[0m"
+	printf "\n\e[7;30;41m(()/(   )\\  )\\ |((_)\\  \e[0m"
+	printf "\n\e[7;30;41m /((\e[7;30;42m_\e[7;30;41m)\e[7;30;42m_\e[7;30;41m((\e[7;30;42m_\e[7;30;41m)((\e[7;30;42m_\e[7;30;41m)|\e[7;30;42m_\e[7;30;41m((\e[7;30;42m_\e[7;30;41m) \e[0m"
+	printf "\n\e[7;30;41m(_)\e[0m\e[7;30;42m/ __| __| __| |/ /  \e[0m"
+	printf "\n\e[7;30;42m  | (_ | _|| _|  ' <   \e[0m"
+	printf "\n\e[7;30;42m   \\___|___|___|_|\\_\\ \e[0m\n\n"
+
 }
 
 ##############################################################################
@@ -115,7 +113,7 @@ fi
 
 if [ -d "Friendly-Telegram/friendly-telegram" ]; then
 	cd Friendly-Telegram || {
-		endspin "Failed to chdir"
+		endspin "Error: Install git package and re-run installer"
 		exit 6
 	}
 	DIR_CHANGED="yes"
@@ -187,22 +185,22 @@ fi
 
 ##############################################################################
 
-runout $PKGMGR "python$PYVER" git || {
+runout $PKGMGR "python$PYVER" git || {  # skipcq
 	errorout "Core install failed."
 	exit 2
 }
 
 if echo "$OSTYPE" | grep -qE '^linux-gnu.*'; then
-	runout $PKGMGR "python$PYVER-dev"
-	runout $PKGMGR "python$PYVER-pip"
-	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2
+	runout $PKGMGR "python$PYVER-dev"  # skipcq
+	runout $PKGMGR "python$PYVER-pip"  # skipcq
+	runout $PKGMGR python3 python3-pip git python3-dev libwebp-dev libz-dev libjpeg-dev libopenjp2-7 libtiff5 ffmpeg imamgemagick libffi-dev libcairo2  # skipcq
 elif echo "$OSTYPE" | grep -qE '^linux-android.*'; then
-	runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv
+	runout $PKGMGR openssl libjpeg-turbo libwebp libffi libcairo build-essential libxslt libiconv  # skipcq
 elif echo "$OSTYPE" | grep -qE '^darwin.*'; then
-	runout $PKGMGR jpeg webp
+	runout $PKGMGR jpeg webp  # skipcq
 fi
 
-runout $PKGMGR neofetch dialog
+runout $PKGMGR neofetch dialog  # skipcq
 
 ##############################################################################
 
@@ -221,7 +219,7 @@ runout ${SUDO_CMD}git clone https://github.com/GeekTG/Friendly-Telegram || {
 	exit 3
 }
 cd Friendly-Telegram || {
-	endspin "Failed to chdir"
+	endspin "Error: Install git package and re-run installer"
 	exit 7
 }
 # shellcheck disable=SC2086

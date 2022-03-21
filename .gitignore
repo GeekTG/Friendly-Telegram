@@ -2,6 +2,7 @@
 *.pyc
 friendly-telegram/api_token.py
 friendly-telegram/FTG-Modules
+friendly-telegram/loaded_modules
 friendly-telegram*.session*
 database-*.json
 *.swp
@@ -17,3 +18,12 @@ api_token.txt
 .vscode/
 ftg-install.log
 config.ini
+.cache
+config-*.json
+config.json
+*cache*.json
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.webm

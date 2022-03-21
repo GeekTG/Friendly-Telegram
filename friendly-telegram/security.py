@@ -16,11 +16,11 @@
 
 #    Modded by GeekTG Team
 
-import functools
 import logging
 
 import telethon
 from telethon.tl.functions.channels import GetParticipantRequest
+from telethon.tl.functions.messages import GetFullChatRequest
 
 from . import main
 
@@ -40,26 +40,35 @@ GROUP_ADMIN = 1 << 10
 GROUP_MEMBER = 1 << 11
 PM = 1 << 12
 
-BITMAP = {"OWNER": OWNER,
-          "SUDO": SUDO,
-          "SUPPORT": SUPPORT,
-          "GROUP_OWNER": GROUP_OWNER,
-          "GROUP_ADMIN_ADD_ADMINS": GROUP_ADMIN_ADD_ADMINS,
-          "GROUP_ADMIN_CHANGE_INFO": GROUP_ADMIN_CHANGE_INFO,
-          "GROUP_ADMIN_BAN_USERS": GROUP_ADMIN_BAN_USERS,
-          "GROUP_ADMIN_DELETE_MESSAGES": GROUP_ADMIN_DELETE_MESSAGES,
-          "GROUP_ADMIN_PIN_MESSAGES": GROUP_ADMIN_PIN_MESSAGES,
-          "GROUP_ADMIN_INVITE_USERS": GROUP_ADMIN_INVITE_USERS,
-          "GROUP_ADMIN": GROUP_ADMIN,
-          "GROUP_MEMBER": GROUP_MEMBER,
-          "PM": PM}
+BITMAP = {
+    "OWNER": OWNER,
+    "SUDO": SUDO,
+    "SUPPORT": SUPPORT,
+    "GROUP_OWNER": GROUP_OWNER,
+    "GROUP_ADMIN_ADD_ADMINS": GROUP_ADMIN_ADD_ADMINS,
+    "GROUP_ADMIN_CHANGE_INFO": GROUP_ADMIN_CHANGE_INFO,
+    "GROUP_ADMIN_BAN_USERS": GROUP_ADMIN_BAN_USERS,
+    "GROUP_ADMIN_DELETE_MESSAGES": GROUP_ADMIN_DELETE_MESSAGES,
+    "GROUP_ADMIN_PIN_MESSAGES": GROUP_ADMIN_PIN_MESSAGES,
+    "GROUP_ADMIN_INVITE_USERS": GROUP_ADMIN_INVITE_USERS,
+    "GROUP_ADMIN": GROUP_ADMIN,
+    "GROUP_MEMBER": GROUP_MEMBER,
+    "PM": PM,
+}
 
-GROUP_ADMIN_ANY = (GROUP_ADMIN_ADD_ADMINS | GROUP_ADMIN_CHANGE_INFO | GROUP_ADMIN_BAN_USERS
-                   | GROUP_ADMIN_DELETE_MESSAGES | GROUP_ADMIN_PIN_MESSAGES | GROUP_ADMIN_INVITE_USERS | GROUP_ADMIN)
+GROUP_ADMIN_ANY = (
+    GROUP_ADMIN_ADD_ADMINS
+    | GROUP_ADMIN_CHANGE_INFO
+    | GROUP_ADMIN_BAN_USERS
+    | GROUP_ADMIN_DELETE_MESSAGES
+    | GROUP_ADMIN_PIN_MESSAGES
+    | GROUP_ADMIN_INVITE_USERS
+    | GROUP_ADMIN
+)
 
-DEFAULT_PERMISSIONS = (OWNER | SUDO)
+DEFAULT_PERMISSIONS = OWNER | SUDO
 
-PUBLIC_PERMISSIONS = (GROUP_OWNER | GROUP_ADMIN_ANY | GROUP_MEMBER | PM)
+PUBLIC_PERMISSIONS = GROUP_OWNER | GROUP_ADMIN_ANY | GROUP_MEMBER | PM
 
 ALL = (1 << 13) - 1
 
@@ -126,57 +135,53 @@ def _sec(func, flags):
     return func
 
 
-if __debug__:
-    class _SafeCoroutine:
-        def __init__(self, coroutine):
-            self._coroutine = coroutine
-
-        def __await__(self):
-            return self._coroutine.__await__()
-
-        def __bool__(self):
-            raise ValueError("Trying to compute truthiness of un-awaited security result")
-
-        def __eq__(self, other):
-            raise ValueError("Trying to compute equality of un-awaited security result")
-
-        def __repr__(self):
-            return "<unawaited secure coroutine {} at {}>".format(repr(self._coroutine), hex(id(self)))
-
-        __str__ = __repr__
-
-
 class SecurityManager:
-    def __init__(self, db, bot):
-        # We read the db during init to prevent people manipulating it at runtime
-        # TODO in the future this will be backed up by blocking the inspect module at runtime and blocking __setattr__
+    def __init__(self, db):
         self._any_admin = db.get(__name__, "any_admin", False)
         self._default = db.get(__name__, "default", DEFAULT_PERMISSIONS)
-        self._owner = db.get(__name__, "owner", []).copy()
-        self._sudo = db.get(__name__, "sudo", []).copy()
-        self._support = db.get(__name__, "support", []).copy()
-        self._bounding_mask = db.get(__name__, "bounding_mask", -1 if bot else DEFAULT_PERMISSIONS)
-        self._perms = db.get(__name__, "masks", {}).copy()
         self._db = db
+        self._reload_rights()
+
+    def _reload_rights(self) -> None:
+        self._owner = self._db.get(__name__, "owner", []).copy()
+        self._sudo = list(
+            set(
+                self._db.get(__name__, "sudo", []).copy()
+                + ([self._me] if hasattr(self, "_me") else [])
+            )
+        )
+        self._support = self._db.get(__name__, "support", []).copy()
 
     async def init(self, client):
-        if not self._owner:
-            self._owner.append((await client.get_me(True)).user_id)
+        self._client = client
+        self._me = (await client.get_me()).id
 
     def get_flags(self, func):
         if isinstance(func, int):
             config = func
         else:
-            config = self._perms.get(func.__module__ + "." + func.__name__, getattr(func, "security", self._default))
+            # Return masks there so user don't need to reboot
+            # every time he changes permissions. It doesn't
+            # decrease security at all, bc user anyway can
+            # access this attribute
+            config = self._db.get(__name__, "masks", {}).get(
+                f"{func.__module__}.{func.__name__}",
+                getattr(func, "security", self._default),
+            )
+
         if config & ~ALL:
             logger.error("Security config contains unknown bits")
             return False
-        return config & self._bounding_mask
+
+        return config & self._db.get(__name__, "bounding_mask", DEFAULT_PERMISSIONS)
 
     async def _check(self, message, func):
+        self._reload_rights()
         config = self.get_flags(func)
+
         if not config:  # Either False or 0, either way we can failfast
             return False
+
         logger.debug("Checking security match for %d", config)
 
         f_owner = config & OWNER
@@ -193,14 +198,22 @@ class SecurityManager:
         f_group_member = config & GROUP_MEMBER
         f_pm = config & PM
 
-        f_group_admin_any = (f_group_admin_add_admins or f_group_admin_change_info or f_group_admin_ban_users
-                             or f_group_admin_delete_messages or f_group_admin_pin_messages
-                             or f_group_admin_invite_users or f_group_admin)
+        f_group_admin_any = (
+            f_group_admin_add_admins
+            or f_group_admin_change_info
+            or f_group_admin_ban_users
+            or f_group_admin_delete_messages
+            or f_group_admin_pin_messages
+            or f_group_admin_invite_users
+            or f_group_admin
+        )
 
-        if f_owner and message.sender_id in self._owner:
+        if f_owner and message.sender_id in self._owner + [self._me]:
             return True
+
         if f_sudo and message.sender_id in self._sudo:
             return True
+
         if f_support and message.sender_id in self._support:
             return True
 
@@ -216,76 +229,99 @@ class SecurityManager:
         if message.is_channel:
             if not message.is_group:
                 if message.edit_date:
-                    return False  # anyone can assume identity of another in channels
-                    # TODO: iter admin log and search for the edit event, to check who edited
-                chat = await message.get_chat()
-                if not chat.creator and not (chat.admin_rights and chat.admin_rights.post_messages):
                     return False
+
+                chat = await message.get_chat()
+
+                if not chat.creator and not (
+                    chat.admin_rights and chat.admin_rights.post_messages
+                ):
+                    return False
+
                 if self._any_admin and f_group_admin_any:
                     return True
 
                 if f_group_admin:
                     return True
-
-                if message.out:
-                    if chat.creator and f_group_owner:
-                        return True
-                    me_id = (await message.client.get_me(True)).user_id
-                    if f_owner and me_id in self._owner:
-                        return True
-                    if f_sudo and me_id in self._sudo:
-                        return True
-                    if f_support and me_id in self._support:
-                        return True
-                # TODO: when running as bot, send an inline button which allows confirmation of command
             else:
                 if f_group_admin_any or f_group_owner:
-                    participant = await message.client(GetParticipantRequest(await message.get_input_chat(),
-                                                                             await message.get_input_sender()))
+                    participant = await message.client(
+                        GetParticipantRequest(
+                            await message.get_input_chat(),
+                            await message.get_input_sender(),
+                        )
+                    )
                     participant = participant.participant
-                    if isinstance(participant, telethon.types.ChannelParticipantCreator):
+
+                    if isinstance(
+                        participant, telethon.types.ChannelParticipantCreator
+                    ):
                         return True
+
                     if isinstance(participant, telethon.types.ChannelParticipantAdmin):
                         if self._any_admin and f_group_admin_any:
                             return True
                         rights = participant.admin_rights
 
-                        if f_group_admin:
+                        if (
+                            f_group_admin
+                            or f_group_admin_add_admins
+                            and rights.add_admins
+                            or f_group_admin_change_info
+                            and rights.change_info
+                            or f_group_admin_ban_users
+                            and rights.ban_users
+                            or f_group_admin_delete_messages
+                            and rights.delete_messages
+                            or f_group_admin_pin_messages
+                            and rights.pin_messages
+                            or f_group_admin_invite_users
+                            and rights.invite_users
+                        ):
                             return True
-                        if f_group_admin_add_admins and rights.add_admins:
-                            return True
-                        if f_group_admin_change_info and rights.change_info:
-                            return True
-                        if f_group_admin_ban_users and rights.ban_users:
-                            return True
-                        if f_group_admin_delete_messages and rights.delete_messages:
-                            return True
-                        if f_group_admin_pin_messages and rights.pin_messages:
-                            return True
-                        if f_group_admin_invite_users and rights.invite_users:
-                            return True
+
+                chat = await message.get_chat()
+
+            if message.out:
+                if chat.creator and f_group_owner:
+                    return True
+                me_id = (await message.client.get_me(True)).user_id
+
+                if (
+                    f_owner
+                    and me_id in self._owner
+                    or f_sudo
+                    and me_id in self._sudo
+                    or f_support
+                    and me_id in self._support
+                ):
+                    return True
+
         elif message.is_group:
             if f_group_admin_any or f_group_owner:
-                full_chat = await message.client(telethon.functions.messages.GetFullChatRequest(message.chat_id))
+                full_chat = await message.client(GetFullChatRequest(message.chat_id))
                 participants = full_chat.full_chat.participants.participants
-                participant = None
-                for possible_participant in participants:
-                    if possible_participant.user_id == message.sender_id:
-                        participant = possible_participant
-                        break
+                participant = next(
+                    (
+                        possible_participant
+                        for possible_participant in participants
+                        if possible_participant.user_id == message.sender_id
+                    ),
+                    None,
+                )
+
                 if not participant:
                     return
+
                 if isinstance(participant, telethon.types.ChatParticipantCreator):
                     return True
-                if isinstance(participant, telethon.types.ChatParticipantAdmin):
-                    if f_group_admin_any:
-                        return True
+
+            if (
+                isinstance(participant, telethon.types.ChatParticipantAdmin)
+                and f_group_admin_any
+            ):
+                return True
+
         return False
 
-    if __debug__:
-        @functools.wraps(_check)
-        def check(self, *args, **kwargs):
-            # This wrapper function will cause the function to raise if you don't await it
-            return _SafeCoroutine(self._check(*args, **kwargs))
-    else:
-        check = _check
+    check = _check

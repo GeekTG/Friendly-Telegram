@@ -1,185 +1,173 @@
-#    Friendly Telegram (telegram userbot)
-#    Copyright (C) 2018-2021 The Authors
+"""
+    █ █ ▀ █▄▀ ▄▀█ █▀█ ▀    ▄▀█ ▀█▀ ▄▀█ █▀▄▀█ ▄▀█
+    █▀█ █ █ █ █▀█ █▀▄ █ ▄  █▀█  █  █▀█ █ ▀ █ █▀█
 
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+    Copyright 2022 t.me/hikariatama
+    Licensed under the GNU GPLv3
+"""
 
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-#    Modded by GeekTG Team
-
-#   Code from @govnocodules
-
-import builtins
-import itertools
 import logging
-import sys
-import traceback
-import types
-
 import telethon
 from meval import meval
-
-from .. import loader, utils
+from .. import loader, utils, main
+from traceback import format_exc
+import itertools
+from types import ModuleType
+from telethon.tl.types import Message
+from aiogram.types import CallbackQuery
 
 logger = logging.getLogger(__name__)
 
 
+class FakeDbException(Exception):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class FakeDb:
+    def __getattr__(self, *args, **kwargs):
+        raise FakeDbException("Database read-write permission required")
+
+
 @loader.tds
 class PythonMod(loader.Module):
-	"""Python stuff"""
-	strings = {"name": "Python",
-	           "evaluated": "<b>Executed expression:</b>\n<code>{}</code>\n<b>Returned:</b>\n<code>{}</code>",
-	           "evaluate_fail": ("<b>[eval] Failed to execute the expression:</b>\n<code>{}</code>"
-	                             "\n\n<b>Error:</b>\n<code>{}</code>"),
-	           "execute_fail": ("<b>[exec] Failed to execute the expression:</b>\n<code>{}</code>"
-	                            "\n\n<b>Error:</b>\n<code>{}</code>"),
-	           "pl_fail": ("<b>[pl] Failed to execute the expression:</b>\n<code>{}</code>"
-	                       "\n\n<b>Error:</b>\n<code>{}</code>"),
-	           "no_args": "<strong>Invalid arguments</strong>",
-	           "not_found": "<strong>Command not found</strong>"}
+    """Evaluates python code"""
 
-	exceptions = ["code", "globs", "kwargs"]
+    strings = {
+        "name": "Python",
+        "eval": "<b>🎬 Code:</b>\n<code>{}</code>\n<b>🪄 Result:</b>\n<code>{}</code>",
+        "err": "<b>🎬 Code:</b>\n<code>{}</code>\n\n<b>🚫 Error:</b>\n<code>{}</code>",
+        "db_permission": "⚠️ <b>Do not use </b><code>db.set</code><b>, </b><code>db.get</code><b> and other db operations. You have core modules to control anything you want</b>\n\n<i>Theses commands may <b><u>crash</u></b> your userbot or even make it <b><u>unusable</u></b>! Do it on your own risk</i>\n\n<i>If you issue any errors after allowing this option, <b><u>you will not get any help in support chat</u></b>!</i>"
+    }
 
-	async def client_ready(self, client, db):
-		self.client = client
-		self.db = db
+    async def client_ready(self, client, db):
+        self._client = client
+        self._db = db
 
-	class FakeCommand:
-		def __init__(self, message, name, command):
-			self.context = message
-			self.name = name
-			self.command = command
+    def lookup(self, modname: str):
+        return next(
+            (
+                mod
+                for mod in self.allmodules.modules
+                if mod.name.lower() == modname.lower()
+            ),
+            False,
+        )
 
-		async def __call__(self, *args):
-			msg = "." + self.name + " " + " ".join(map(str, args))
-			reply = await self.context.get_reply_message()
-			event = await reply.reply(msg) if reply else await self.context.respond(msg)
-			await self.command(event)
+    @loader.owner
+    async def evalcmd(self, message: Message) -> None:
+        """Alias for .e command"""
+        await self.ecmd(message)
 
-	@loader.owner
-	async def plcmd(self, message):
-		"""pl [code]
-		await any_ftg_command(args: str)"""
-		arg = utils.get_args_raw(message)
+    async def inline__close(self, call: CallbackQuery) -> None:
+        await call.answer("Operation cancelled")
+        await call.delete()
 
-		env = {"message": message, "_": builtins}
-		for name, cmd in self.allmodules.commands.items():
-			if name in self.exceptions:
-				name = "_" + name
-			env[name] = self.FakeCommand(message, name, cmd)
+    async def inline__allow(self, call: CallbackQuery) -> None:
+        await call.answer("Now you can access db through .e command", show_alert=True)
+        self._db.set(main.__name__, "enable_db_eval", True)
+        await call.delete()
 
-		for name, source in self.allmodules.aliases.items():
-			if name in self.exceptions:
-				name = "_" + name
-			env[name] = self.FakeCommand(message, name, self.allmodules.commands[source])
+    @loader.owner
+    async def ecmd(self, message: Message) -> None:
+        """Evaluates python code"""
+        phone = self._client.phone
+        ret = self.strings("eval", message)
+        try:
+            it = await meval(
+                utils.get_args_raw(message), globals(), **await self.getattrs(message)
+            )
+        except FakeDbException:
+            await self.inline.form(
+                self.strings('db_permission'),
+                message=message,
+                reply_markup=[
+                    [
+                        {
+                            "text": "✅ Allow",
+                            "callback": self.inline__allow,
+                        },
+                        {
+                            "text": "🚫 Cancel",
+                            "callback": self.inline__close
+                        }
+                    ]
+                ]
+            )
+            return
+        except Exception:
+            exc = format_exc().replace(phone, "📵")
+            await utils.answer(
+                message,
+                self.strings("err", message).format(
+                    utils.escape_html(utils.get_args_raw(message)),
+                    utils.escape_html(exc),
+                ),
+            )
 
-		env.update(await self.getattrs(message))
+            return
+        ret = ret.format(
+            utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it)
+        )
+        ret = ret.replace(str(phone), "📵")
+        await utils.answer(message, ret)
 
-		try:
-			await meval(arg, globals(), **env)
+    async def getattrs(self, message):
+        reply = await message.get_reply_message()
+        return {
+            **{
+                "message": message,
+                "client": self._client,
+                "reply": reply,
+                "r": reply,
+                **self.get_sub(telethon.tl.types),
+                **self.get_sub(telethon.tl.functions),
+                "event": message,
+                "chat": message.to_id,
+                "telethon": telethon,
+                "utils": utils,
+                "main": main,
+                "loader": loader,
+                "f": telethon.tl.functions,
+                "c": self._client,
+                "m": message,
+                "loader": loader,
+                "lookup": self.lookup,
+                "self": self,
+            },
+            **(
+                {
+                    "db": self._db,
+                } if self._db.get(main.__name__, "enable_db_eval", False) else {
+                    "db": FakeDb(),
+                }
+            )
+        }
 
-		except Exception:
-			phone = message.client.phone
-			exc = sys.exc_info()
-			exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-			exc = exc.replace(str(phone), "❚" * len(str(phone)))
-			await utils.answer(message, self.strings("pl_fail", message)
-			                   .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
-
-	@loader.owner
-	async def excmd(self, message):
-		"""ex [count] [command] [args...]
-		execute ftg `command` `count` times with `args`"""
-		args = message.raw_text.split(" ", maxsplit=3)
-
-		if len(args) < 3:
-			await utils.answer(message, self.strings("no_args", message))
-			return
-
-		if args[2] in self.allmodules.aliases.keys():
-			command = self.allmodules.commands[self.allmodules.aliases[args[2]]]
-		elif args[2] in self.allmodules.commands.keys():
-			command = self.allmodules.commands[args[2]]
-		else:
-			await utils.answer(message, self.strings("not_found", message))
-			return
-		await message.delete()
-		reply = await message.get_reply_message()
-		for i in range(int(args[1])):
-			msg = "." + " ".join(args[2:]).format(n=i)
-			event = await reply.reply(msg) if reply else await message.respond(msg)
-			await command(event)
-
-	@loader.owner
-	async def printcmd(self, message):
-		"""sends args to chat as message"""
-		args = utils.get_args_raw(message)
-		if not args:
-			return await utils.answer(message, self.strings("no_args", message))
-		await utils.answer(message, args)
-
-	@loader.owner
-	async def evalcmd(self, message):
-		""".eval <expression>
-		Evaluates python code"""
-		phone = message.client.phone
-		ret = self.strings("evaluated", message)
-		try:
-			it = await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
-		except Exception:
-			exc = sys.exc_info()
-			exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-			exc = exc.replace(phone, "❚" * len(phone))
-			await utils.answer(message, self.strings("evaluate_fail", message)
-			                   .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
-			return
-		ret = ret.format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(it))
-		ret = ret.replace(str(phone), "❚" * len(str(phone)))
-		await utils.answer(message, ret)
-
-	@loader.owner
-	async def execcmd(self, message):
-		""".exec <expression>
-		Executes python code"""
-		phone = message.client.phone
-		try:
-			await meval(utils.get_args_raw(message), globals(), **await self.getattrs(message))
-		except Exception:
-			exc = sys.exc_info()
-			exc = "".join(traceback.format_exception(exc[0], exc[1], exc[2].tb_next.tb_next.tb_next))
-			exc = exc.replace(str(phone), "❚" * len(str(phone)))
-			await utils.answer(message, self.strings("execute_fail", message)
-			                   .format(utils.escape_html(utils.get_args_raw(message)), utils.escape_html(exc)))
-
-	async def getattrs(self, message):
-		return {"message": message, "client": self.client, "self": self, "db": self.db,
-		        "reply": await message.get_reply_message(), **self.get_types(), **self.get_functions(),
-		        "event": message, "chat": message.to_id}
-
-	def get_types(self):
-		return self.get_sub(telethon.tl.types)
-
-	def get_functions(self):
-		return self.get_sub(telethon.tl.functions)
-
-	def get_sub(self, it, _depth=1):
-		"""Get all callable capitalised objects in an object recursively, ignoring _*"""
-		# TODO: refactor
-		return {**dict(filter(lambda x: x[0][0] != "_" and x[0][0].upper() == x[0][0] and callable(x[1]),
-		                      it.__dict__.items())),
-		        **dict(itertools.chain.from_iterable([self.get_sub(y[1], _depth + 1).items() for y in
-		                                              filter(lambda x: x[0][0] != "_"
-		                                                               and isinstance(x[1], types.ModuleType)
-		                                                               and x[1] != it
-		                                                               and x[1].__package__.rsplit(".", _depth)[0]
-		                                                               == "telethon.tl",
-		                                                     it.__dict__.items())]))}
+    def get_sub(self, it, _depth: int = 1) -> dict:
+        """Get all callable capitalised objects in an object recursively, ignoring _*"""
+        return {
+            **dict(
+                filter(
+                    lambda x: x[0][0] != "_"
+                    and x[0][0].upper() == x[0][0]
+                    and callable(x[1]),
+                    it.__dict__.items(),
+                )
+            ),
+            **dict(
+                itertools.chain.from_iterable(
+                    [
+                        self.get_sub(y[1], _depth + 1).items()
+                        for y in filter(
+                            lambda x: x[0][0] != "_"
+                            and isinstance(x[1], ModuleType)
+                            and x[1] != it
+                            and x[1].__package__.rsplit(".", _depth)[0]
+                            == "telethon.tl",
+                            it.__dict__.items(),
+                        )
+                    ]
+                )
+            ),
+        }

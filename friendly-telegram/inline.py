@@ -369,7 +369,7 @@ class InlineManager:
             await r.delete()
 
             # Set its name to user's name + GeekTG Userbot
-            m = await conv.send_message(f"🕶 GeekTG Userbot of {self._name}")
+            m = await conv.send_message(f"🤖 GeekTG Userbot of {self._name}")
             r = await conv.get_response()
 
             await m.delete()
@@ -377,7 +377,7 @@ class InlineManager:
 
             # Generate and set random username for bot
             uid = rand(6)
-            username = f"geektg_{uid}_bot"
+            username = f"GeekTG_{uid}_Bot"
 
             m = await conv.send_message(username)
             r = await conv.get_response()
@@ -1056,7 +1056,7 @@ class InlineManager:
         """Creates inline form with callback
         Args:
                 text
-                        Content of inline form. HTML markdown supported
+                        Content of inline form. HTML markup support
                 message
                         Where to send inline. Can be either `Message` or `int`
                 reply_markup
@@ -1184,7 +1184,7 @@ class InlineManager:
         force_me: bool = False,
         always_allow: bool = False,
         ttl: int = False,
-    ) -> Union[bool, str]:
+    ) -> Union[bool, str]:  # sourcery skip: raise-specific-error
         """
         Processes inline gallery
             caption

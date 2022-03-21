@@ -451,7 +451,7 @@ class InlineManager:
 
             for row in r.reply_markup.rows:
                 for button in row.buttons:
-                    if re.search(r"@geektg_[0-9a-zA-Z]{6}_bot", button.text):
+                    if re.search(r"@geektg_[0-9a-zA-Z]{6}_bot", button.text, re.I):
                         m = await conv.send_message(button.text)
                         r = await conv.get_response()
 

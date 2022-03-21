@@ -157,12 +157,13 @@ class GeekSecurityMod(loader.Module):
         perms = self._get_current_perms(command)
         buttons = [
             {
-                "text": f"{('🚫' if not level else '✅')} {self.strings[group]}",
+                "text": f"{'✅' if level else '🚫'} {self.strings[group]}",
                 "callback": self.inline__switch_perm,
                 "args": (command.__name__[:-3], group, not level),
             }
             for group, level in perms.items()
         ]
+
 
         return chunks(buttons, 2) + [
             [{"text": self.strings("close_menu"), "callback": self.inline_close}]
@@ -172,12 +173,13 @@ class GeekSecurityMod(loader.Module):
         perms = self._get_current_bm()
         buttons = [
             {
-                "text": f"{('🚫' if not level else '✅')} {self.strings[group]}",
+                "text": f"{'✅' if level else '🚫'} {self.strings[group]}",
                 "callback": self.inline__switch_perm_bm,
                 "args": (group, not level),
             }
             for group, level in perms.items()
         ]
+
 
         return chunks(buttons, 2) + [
             [{"text": self.strings("close_menu"), "callback": self.inline_close}]
@@ -339,8 +341,9 @@ class GeekSecurityMod(loader.Module):
         self._db.set(
             security.__name__,
             group,
-            list(set(self._db.get(security.__name__, group, [])) - set([user.id])),  # skipcq: PTC-W0018
+            list(set(self._db.get(security.__name__, group, [])) - {user.id}),
         )
+
 
         m = self.strings(f"{group}_removed").format(
             user.id,

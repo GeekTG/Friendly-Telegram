@@ -188,7 +188,7 @@ class GeekSettingsMod(loader.Module):
             nn = list(set(nn))  # skipcq: PTC-W0018
             await utils.answer(message, self.strings("user_nn").format("on"))
         else:
-            nn = list(set(nn) - set([u]))  # skipcq: PTC-W0018
+            nn = list(set(nn) - {u})
             await utils.answer(message, self.strings("user_nn").format("off"))
 
         self._db.set(main.__name__, "nonickusers", nn)
@@ -212,7 +212,7 @@ class GeekSettingsMod(loader.Module):
                 ),
             )
         else:
-            nn = list(set(nn) - set([args]))  # skipcq: PTC-W0018
+            nn = list(set(nn) - {args})
             await utils.answer(
                 message,
                 self.strings("cmd_nn").format(

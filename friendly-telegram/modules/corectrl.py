@@ -120,9 +120,10 @@ class CoreMod(loader.Module):
             main.__name__,
             "blacklist_chats",
             list(
-                set(self._db.get(main.__name__, "blacklist_chats", [])) - set([chatid])  # skipcq: PTC-W0018
+                set(self._db.get(main.__name__, "blacklist_chats", [])) - {chatid}
             ),
         )
+
 
         await utils.answer(
             message, self.strings("unblacklisted", message).format(chatid)
@@ -166,8 +167,9 @@ class CoreMod(loader.Module):
         self._db.set(
             main.__name__,
             "blacklist_users",
-            list(set(self._db.get(main.__name__, "blacklist_users", [])) - set([user])),  # skipcq: PTC-W0018
+            list(set(self._db.get(main.__name__, "blacklist_users", [])) - {user}),
         )
+
 
         await utils.answer(
             message, self.strings("user_unblacklisted", message).format(user)

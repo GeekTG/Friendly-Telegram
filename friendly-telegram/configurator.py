@@ -191,8 +191,9 @@ def module_config(mod):
         for key in getattr(mod, "config", {}).keys()
     ]
     code, tag = DIALOG.menu(
-        "Module configuration for {}".format(mod.name), choices=choices
+        f"Module configuration for {mod.name}", choices=choices
     )
+
     if code == DIALOG.OK:
         code, value = DIALOG.inputbox(tag)
         if code == DIALOG.OK:

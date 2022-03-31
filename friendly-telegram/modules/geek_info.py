@@ -54,7 +54,7 @@ class GeekInfoMod(loader.Module):
             repo = git.Repo()
             ver = repo.heads[0].commit.hexsha
 
-            diff = repo.git.log(["HEAD..origin/alpha", "--oneline"])
+            diff = repo.git.log(["HEAD..origin", "--oneline"])
             upd = (
                 "⚠️ Update required </b><code>.update</code><b>"
                 if diff

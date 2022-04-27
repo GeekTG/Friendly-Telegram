@@ -50,7 +50,6 @@ class UpdaterMod(loader.Module):
         "success": "✅ <b>Restart successful!</b>",
         "heroku_warning": "⚠️ <b>Heroku API key has not been set. </b>Update was successful but updates will reset every time the bot restarts.",
         "origin_cfg_doc": "Git origin URL, for where to update from",
-        "lavhost": "🔄 <b>Restart initiated, and will be complete in 3-5 seconds.</b>\n<i>This message <b>will not</b> be edited after restart is complete!</i>",
     }
 
     def __init__(self):
@@ -63,11 +62,6 @@ class UpdaterMod(loader.Module):
     @loader.owner
     async def restartcmd(self, message: Message) -> None:
         """Restarts the userbot"""
-        if os.environ.get("LAVHOST"):
-            await utils.answer(message, self.strings("lavhost"))
-            await self._client.send_message("@lavhostbot", "/restart")
-            return
-
         msg = (
             await utils.answer(message, self.strings("restarting_caption", message))
         )[0]
@@ -151,11 +145,6 @@ class UpdaterMod(loader.Module):
     @loader.owner
     async def updatecmd(self, message: Message, hard: bool = False) -> None:
         """Downloads userbot updates"""
-        if os.environ.get("LAVHOST"):
-            await utils.answer(message, self.strings("lavhost"))
-            await self._client.send_message("@lavhostbot", "/update")
-            return
-
         # We don't really care about asyncio at this point, as we are shutting down
         if hard:
             os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")  # skipcq: BAN-B605

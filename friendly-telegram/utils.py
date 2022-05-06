@@ -39,6 +39,29 @@ from telethon.tl.types import (
 from . import __main__
 
 
+def get_platform_name():
+    """Get the name of the platform we're running on"""
+    is_termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
+    is_heroku = "DYNO" in os.environ
+    is_okteto = "OKTETO" in os.environ
+
+    is_lavhost = "LAVHOST" in os.environ
+
+    if is_lavhost:
+        return f"✌️ lavHost {os.environ['LAVHOST']}"
+    
+    if is_okteto:
+        return "☁️ Okteto"
+    
+    if is_heroku:
+        return "⛎ Heroku"
+    
+    if is_termux:
+        return "📱 Termux"
+
+    return "📻 VDS"
+
+
 def get_args(message):
     """Get arguments from message (str or Message), return list of arguments"""
     try:

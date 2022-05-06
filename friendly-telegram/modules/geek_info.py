@@ -40,7 +40,7 @@ class GeekInfoMod(loader.Module):
         self.markup = aiogram.types.inline_keyboard.InlineKeyboardMarkup()
         self.markup.row(
             aiogram.types.inline_keyboard.InlineKeyboardButton(
-                "🤵‍♀️ Support chat", url="https://t.me/chat_ftg"
+                "🤵‍♀️ Support chat", url="https://t.me/GeekTGChat"
             )
         )
 

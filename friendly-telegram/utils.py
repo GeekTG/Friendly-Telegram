@@ -49,13 +49,13 @@ def get_platform_name():
 
     if is_lavhost:
         return f"✌️ lavHost {os.environ['LAVHOST']}"
-    
+
     if is_okteto:
         return "☁️ Okteto"
-    
+
     if is_heroku:
         return "⛎ Heroku"
-    
+
     if is_termux:
         return "📱 Termux"
 

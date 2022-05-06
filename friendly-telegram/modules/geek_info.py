@@ -9,10 +9,9 @@
 # meta pic: https://img.icons8.com/external-flatart-icons-flat-flatarticons/64/000000/external-info-hotel-services-flatart-icons-flat-flatarticons.png
 # scope: inline
 
-from .. import loader, main
+from .. import loader, main, utils
 import logging
 import aiogram
-import os
 import git
 
 from telethon.utils import get_display_name
@@ -64,24 +63,7 @@ class GeekInfoMod(loader.Module):
             ver = "unknown"
             upd = ""
 
-        termux = bool(
-            os.popen('echo $PREFIX | grep -o "com.termux"').read()
-        )  # skipcq: BAN-B605, BAN-B607
-        heroku = os.environ.get("DYNO", False)
-
-        platform = (
-            "🕶 Termux"
-            if termux
-            else (
-                "⛎ Heroku"
-                if heroku
-                else (
-                    f"✌️ lavHost {os.environ['LAVHOST']}"
-                    if "LAVHOST" in os.environ
-                    else "📻 VDS"
-                )
-            )
-        )
+        platform = utils.get_platform_name()
 
         await query.answer(
             [

@@ -124,7 +124,6 @@ class PythonMod(loader.Module):
                 "telethon": telethon,
                 "utils": utils,
                 "main": main,
-                "loader": loader,
                 "f": telethon.tl.functions,
                 "c": self._client,
                 "m": message,

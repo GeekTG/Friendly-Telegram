@@ -171,8 +171,9 @@ class UpdaterMod(loader.Module):
 
                 await self.prerestart_common(message)
                 heroku.publish(self.allclients, heroku_key)
-                # If we pushed, this won't return. If the push failed, we will get thrown at.
-                # So this only happens when remote is already up to date (remote is heroku, where we are running)
+                # If we pushed, this won't return. 
+                # If the push failed, we will get thrown at.
+                # So this only happens when remote is already up to date.
                 self._db.set(__name__, "selfupdatechat", None)
                 self._db.set(__name__, "selfupdatemsg", None)
 

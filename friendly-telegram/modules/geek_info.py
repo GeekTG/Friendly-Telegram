@@ -6,7 +6,6 @@
     Licensed under the GNU GPLv3
 """
 
-# meta pic: https://img.icons8.com/external-flatart-icons-flat-flatarticons/64/000000/external-info-hotel-services-flatart-icons-flat-flatarticons.png
 # scope: inline
 
 from .. import loader, main, utils

@@ -6,10 +6,6 @@
     Licensed under the GNU GPLv3
 """
 
-# <3 title: GeekConfig [geek]
-# <3 pic: https://img.icons8.com/external-filled-outline-wichaiwi/64/000000/external-multitasking-generation-z-filled-outline-wichaiwi.png
-# <3 desc: Interactive configurator for GeekTG
-
 # scope: inline_content
 
 from .. import loader, utils

@@ -38,7 +38,7 @@ class NoCollisionsMod(loader.Module):
 
     @loader.owner
     async def cleanbotscmd(self, message):
-        """Kills all userbots except 1, selected according to which is fastest (approx)"""
+        """Kill interfering userbots."""
         try:
             await utils.answer(message, self.strings("deadbeff", message))
             await asyncio.sleep(5)

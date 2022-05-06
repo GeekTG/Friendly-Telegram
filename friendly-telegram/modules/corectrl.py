@@ -89,7 +89,9 @@ class CoreMod(loader.Module):
         """Get GeekTG version"""
         ver = getattr(main, "__version__", False)
 
-        branch = os.popen("git rev-parse --abbrev-ref HEAD").read()  # skipcq: BAN-B605, BAN-B607
+        branch = os.popen(
+            "git rev-parse --abbrev-ref HEAD"
+        ).read()  # skipcq: BAN-B605, BAN-B607
 
         if "beta" in branch:
             await utils.answer(message, self.strings("geek_beta").format(*ver))
@@ -119,11 +121,8 @@ class CoreMod(loader.Module):
         self._db.set(
             main.__name__,
             "blacklist_chats",
-            list(
-                set(self._db.get(main.__name__, "blacklist_chats", [])) - {chatid}
-            ),
+            list(set(self._db.get(main.__name__, "blacklist_chats", [])) - {chatid}),
         )
-
 
         await utils.answer(
             message, self.strings("unblacklisted", message).format(chatid)
@@ -169,7 +168,6 @@ class CoreMod(loader.Module):
             "blacklist_users",
             list(set(self._db.get(main.__name__, "blacklist_users", [])) - {user}),
         )
-
 
         await utils.answer(
             message, self.strings("user_unblacklisted", message).format(user)

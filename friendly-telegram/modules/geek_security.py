@@ -80,13 +80,13 @@ class GeekSecurityMod(loader.Module):
         "li": '⦿ <b><a href="tg://user?id={}">{}</a></b>',
         "warning": (
             '⚠️ <b>Please, confirm, that you want to add <a href="tg://user?id={}">{}</a> '
-            'to group </b><code>{}</code><b>!\nThis action may reveal personal info and grant '
-            'full or partial access to userbot to this user</b>'
+            "to group </b><code>{}</code><b>!\nThis action may reveal personal info and grant "
+            "full or partial access to userbot to this user</b>"
         ),
         "cancel": "🚫 Cancel",
         "confirm": "👑 Confirm",
         "self": "🚫 <b>You can't promote/demote yourself!</b>",
-        "restart": "<i>🔄 Restart may be required to commit changes</i>"
+        "restart": "<i>🔄 Restart may be required to commit changes</i>",
     }
 
     def get(self, *args) -> dict:
@@ -103,7 +103,7 @@ class GeekSecurityMod(loader.Module):
         )
 
         self._me = (await client.get_me()).id
-        self._is_geek = hasattr(self, 'inline')
+        self._is_geek = hasattr(self, "inline")
 
     async def inline__switch_perm(
         self, call: aiogram.types.CallbackQuery, command: str, group: str, level: bool
@@ -164,7 +164,6 @@ class GeekSecurityMod(loader.Module):
             for group, level in perms.items()
         ]
 
-
         return chunks(buttons, 2) + [
             [{"text": self.strings("close_menu"), "callback": self.inline_close}]
         ]
@@ -179,7 +178,6 @@ class GeekSecurityMod(loader.Module):
             }
             for group, level in perms.items()
         ]
-
 
         return chunks(buttons, 2) + [
             [{"text": self.strings("close_menu"), "callback": self.inline_close}]
@@ -211,7 +209,9 @@ class GeekSecurityMod(loader.Module):
     def _get_current_perms(self, command: FunctionType) -> dict:
         config = self._db.get(security.__name__, "masks", {}).get(
             f"{command.__module__}.{command.__name__}",
-            getattr(command, "security", self._client.dispatcher.security._default),  # skipcq: PYL-W0212
+            getattr(
+                command, "security", self._client.dispatcher.security._default
+            ),  # skipcq: PYL-W0212
         )
 
         return self._perms_map(config)
@@ -344,7 +344,6 @@ class GeekSecurityMod(loader.Module):
             list(set(self._db.get(security.__name__, group, [])) - {user.id}),
         )
 
-
         m = self.strings(f"{group}_removed").format(
             user.id,
             utils.escape_html(get_display_name(user)),
@@ -353,14 +352,13 @@ class GeekSecurityMod(loader.Module):
         if not self._is_geek:
             m += f"\n\n{self.strings('restart')}"
 
-        await utils.answer(
-            message,
-            m
-        )
+        await utils.answer(message, m)
 
     async def _list_group(self, message: Message, group: str) -> None:
         _resolved_users = []
-        for user in self._db.get(security.__name__, group, []) + ([self._me] if group == "owner" else []):
+        for user in self._db.get(security.__name__, group, []) + (
+            [self._me] if group == "owner" else []
+        ):
             try:
                 _resolved_users += [await self._client.get_entity(user)]
             except Exception:

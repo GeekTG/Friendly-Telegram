@@ -135,7 +135,9 @@ class TestMod(loader.Module):
         ).encode("utf-16")
 
         named_lvl = (
-            lvl if lvl not in logging._levelToName else logging._levelToName[lvl]  # skipcq: PYL-W0212
+            lvl
+            if lvl not in logging._levelToName
+            else logging._levelToName[lvl]  # skipcq: PYL-W0212
         )
 
         if (

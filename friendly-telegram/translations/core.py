@@ -48,10 +48,9 @@ class Translator:
                 try:
                     file = open(
                         os.path.join(
-                            self._data_root
-                            or os.path.dirname(utils.get_base_dir()),
+                            self._data_root or os.path.dirname(utils.get_base_dir()),
                             "translations",
-                            f'{pack}.json',
+                            f"{pack}.json",
                         ),
                         "r",
                     )

@@ -64,7 +64,9 @@ class GeekInfoMod(loader.Module):
             ver = "unknown"
             upd = ""
 
-        termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())  # skipcq: BAN-B605, BAN-B607
+        termux = bool(
+            os.popen('echo $PREFIX | grep -o "com.termux"').read()
+        )  # skipcq: BAN-B605, BAN-B607
         heroku = os.environ.get("DYNO", False)
 
         platform = (

@@ -220,7 +220,7 @@ async def answer(message, response, **kwargs):
     if not edit:
         kwargs.setdefault(
             "reply_to",
-            getattr(message, 'reply_to_msg_id', None),
+            getattr(message, "reply_to_msg_id", None),
         )
 
     parse_mode = telethon.utils.sanitize_parse_mode(
@@ -280,7 +280,7 @@ async def answer(message, response, **kwargs):
         else:
             kwargs.setdefault(
                 "reply_to",
-                getattr(message, 'reply_to_msg_id', None),
+                getattr(message, "reply_to_msg_id", None),
             )
             ret = (await message.client.send_file(message.chat_id, response, **kwargs),)
 

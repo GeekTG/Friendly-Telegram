@@ -226,8 +226,15 @@ class GeekSettingsMod(loader.Module):
     async def inline__setting(self, call: CallbackQuery, key: str, state: bool) -> None:
         self._db.set(main.__name__, key, state)
 
-        if key == "no_nickname" and state and self._db.get(main.__name__, "command_prefix", ".") == ".":
-            await call.answer("Warning! You enabled NoNick with default prefix! You may get muted in GeekTG chats. Change prefix or disable NoNick!", show_alert=True)
+        if (
+            key == "no_nickname"
+            and state
+            and self._db.get(main.__name__, "command_prefix", ".") == "."
+        ):
+            await call.answer(
+                "Warning! You enabled NoNick with default prefix! You may get muted in GeekTG chats. Change prefix or disable NoNick!",
+                show_alert=True,
+            )
         else:
             await call.answer("Configuration value saved!")
 

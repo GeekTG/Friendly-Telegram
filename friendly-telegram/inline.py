@@ -202,7 +202,9 @@ async def custom_next_handler(
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("Next ➡️", callback_data=btn_call_data))
 
-    _caption = caption if isinstance(caption, str) or not callable(caption) else caption()
+    _caption = (
+        caption if isinstance(caption, str) or not callable(caption) else caption()
+    )
 
     try:
         await self.bot.edit_message_media(
@@ -309,7 +311,9 @@ class InlineManager:
 
     def check_inline_security(self, func, user):
         """Checks if user with id `user` is allowed to run function `func`"""
-        allow = user in [self._me] + self._client.dispatcher.security._owner  # skipcq: PYL-W0212
+        allow = (
+            user in [self._me] + self._client.dispatcher.security._owner
+        )  # skipcq: PYL-W0212
 
         if not hasattr(func, "__doc__") or not func.__doc__ or allow:
             return allow
@@ -986,7 +990,8 @@ class InlineManager:
             if (
                 self._custom_map[query.data]["force_me"]
                 and query.from_user.id != self._me
-                and query.from_user.id not in self._client.dispatcher.security._owner  # skipcq: PYL-W0212
+                and query.from_user.id
+                not in self._client.dispatcher.security._owner  # skipcq: PYL-W0212
                 and query.from_user.id
                 not in self._custom_map[query.data]["always_allow"]
             ):

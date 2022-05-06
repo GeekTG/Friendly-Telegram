@@ -52,7 +52,7 @@ class HelpMod(loader.Module):
             lambda: "Geek-only module bullet",
             "plain_emoji",
             "▫️",
-            lambda: "Plain module bullet"
+            lambda: "Plain module bullet",
         )
 
     def get(self, *args) -> dict:
@@ -189,7 +189,9 @@ class HelpMod(loader.Module):
         hidden = list(filter(lambda module: module in mods, self.get("hide", [])))
         self.set("hide", hidden)
 
-        reply = self.strings("all_header").format(count, len(hidden) if not force else 0)
+        reply = self.strings("all_header").format(
+            count, len(hidden) if not force else 0
+        )
         shown_warn = False
         cats = {}
 
@@ -234,11 +236,11 @@ class HelpMod(loader.Module):
             core = mod.__origin__ == "<file>"
 
             if core:
-                emoji = self.config['core_emoji']
+                emoji = self.config["core_emoji"]
             elif inline:
-                emoji = self.config['geek_emoji']
+                emoji = self.config["geek_emoji"]
             else:
-                emoji = self.config['plain_emoji']
+                emoji = self.config["plain_emoji"]
 
             tmp += self.strings("mod_tmpl").format(emoji, name)
 
@@ -289,7 +291,9 @@ class HelpMod(loader.Module):
         core_.sort(key=lambda x: x.split()[1])
         inline_.sort(key=lambda x: x.split()[1])
 
-        await utils.answer(message, f"{reply}\n{''.join(core_)}{''.join(plain_)}{''.join(inline_)}")
+        await utils.answer(
+            message, f"{reply}\n{''.join(core_)}{''.join(plain_)}{''.join(inline_)}"
+        )
 
     async def supportcmd(self, message):
         """Joins the support GeekTG chat"""

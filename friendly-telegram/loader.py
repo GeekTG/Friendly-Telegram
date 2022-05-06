@@ -277,7 +277,7 @@ class Modules:
             if key.endswith("Mod") and issubclass(value, Module):
                 ret = value()
 
-        if hasattr(module, '__version__'):
+        if hasattr(module, "__version__"):
             ret.__version__ = module.__version__
 
         if ret is None:

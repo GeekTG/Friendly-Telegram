@@ -34,6 +34,7 @@ BASE_DIR = "/data" if is_okteto else os.path.dirname(utils.get_base_dir())
 if is_okteto:
     oktetourl = os.path.join(BASE_DIR, "okteto.json")
 
+
 class Web:
     def __init__(self, **kwargs):
         self.heroku_api_token = os.environ.get("heroku_api_token")
@@ -59,7 +60,14 @@ class Web:
     async def root(self, request):
         try:
             if is_okteto and not os.path.exists(oktetourl):
-                json.dump({"okteto": re.findall(r"worker-(.*).cloud.okteto.net", str(request.url))[0]}, open(oktetourl, "w"))
+                json.dump(
+                    {
+                        "okteto": re.findall(
+                            r"worker-(.*).cloud.okteto.net", str(request.url)
+                        )[0]
+                    },
+                    open(oktetourl, "w"),
+                )
         except Exception:
             print("Failed to write okteto.json")
         if self.clients_set.is_set():
@@ -98,9 +106,7 @@ class Web:
         ):
             return web.Response(status=400)
         with open(
-            os.path.join(
-                self.data_root or BASE_DIR, "api_token.txt"
-            ),
+            os.path.join(self.data_root or BASE_DIR, "api_token.txt"),
             "w",
         ) as f:
             f.write(api_id + "\n" + api_hash)

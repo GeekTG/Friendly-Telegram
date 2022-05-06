@@ -147,7 +147,9 @@ class UpdaterMod(loader.Module):
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
         if hard:
-            os.system(f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD")  # skipcq: BAN-B605
+            os.system(
+                f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD"
+            )  # skipcq: BAN-B605
 
         try:
             try:

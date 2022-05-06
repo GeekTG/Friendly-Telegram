@@ -179,7 +179,7 @@ def modules_config():
             if mod.name == tag:
                 # Match
                 while not module_config(mod):
-                    time.sleep(.05)
+                    time.sleep(0.05)
         return modules_config()
     return None
 
@@ -190,9 +190,7 @@ def module_config(mod):
         (key, getattr(mod.config, "getdoc", lambda k: "Undocumented key")(key))
         for key in getattr(mod, "config", {}).keys()
     ]
-    code, tag = DIALOG.menu(
-        f"Module configuration for {mod.name}", choices=choices
-    )
+    code, tag = DIALOG.menu(f"Module configuration for {mod.name}", choices=choices)
 
     if code == DIALOG.OK:
         code, value = DIALOG.inputbox(tag)
@@ -214,7 +212,7 @@ def run(database, data_root, phone, init, mods):
     TITLE = TITLE.format(phone)
     DIALOG.set_background_title(TITLE)
     while main_config(init, data_root):
-        time.sleep(.05)
+        time.sleep(0.05)
     return DB
 
 

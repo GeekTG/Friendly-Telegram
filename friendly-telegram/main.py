@@ -234,9 +234,7 @@ def get_phones(arguments):
             lambda f: f[18:-8],
             filter(
                 lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
-                os.listdir(
-                    arguments.data_root or BASE_DIR
-                ),
+                os.listdir(arguments.data_root or BASE_DIR),
             ),
         )
     }

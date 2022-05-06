@@ -16,8 +16,8 @@
 
 #    Modded by GeekTG Team
 
-# pylint: disable=R,C,W0613 
-# # This is bad code, just let it be. 
+# pylint: disable=R,C,W0613
+# # This is bad code, just let it be.
 # We will delete it at some point, perhaps?
 
 import asyncio
@@ -361,15 +361,15 @@ class RaphielgangEvents:
         class __RaphielgangShimMod__Base(loader.Module):
             instance_count = 0
 
-            # E1101 is triggered because 
-            # pylint thinks that 
+            # E1101 is triggered because
+            # pylint thinks that
             # inspect.getmro(type(self))[1] means
-            # type(super()), and it's correct, 
-            # but this is a base class and is never used. 
-            # As a result, pylint incorrectly thinks that 
-            # type(super()) resolves to loader.Module, 
+            # type(super()), and it's correct,
+            # but this is a base class and is never used.
+            # As a result, pylint incorrectly thinks that
+            # type(super()) resolves to loader.Module,
             # and can't find .instance_count.
-            # Perhaps there's a way to annotate it? 
+            # Perhaps there's a way to annotate it?
             # I don't think so.
 
             def __init__(self, events_instance):
@@ -408,8 +408,8 @@ class RaphielgangEvents:
 
         def _unknown_command(self, message):
             """
-            A command that could not be 
-            understood by the compat system, 
+            A command that could not be
+            understood by the compat system,
             you must put the raw command after.
             """
             message.message = message.message[
@@ -448,7 +448,7 @@ class RaphielgangEvents:
                     @wraps(func)
                     def commandhandler(message, pre="."):
                         """
-                        Closure to execute command when 
+                        Closure to execute command when
                         handler activated and regex matched
                         """
                         logger.debug("Command triggered")

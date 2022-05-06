@@ -117,7 +117,7 @@ class UniborgClient(MarkdownBotPassthrough):
                 @wraps(func)
                 def commandhandler(message, pre="."):
                     """
-                    Closure to execute command when 
+                    Closure to execute command when
                     handler activated and regex matched
                     """
                     logger.debug("Command triggered")
@@ -158,7 +158,7 @@ class UniborgClient(MarkdownBotPassthrough):
                 @wraps(func)
                 def watcherhandler(message):
                     """
-                    Closure to execute watcher when 
+                    Closure to execute watcher when
                     handler activated and regex matched
                     """
                     if match := re.match(
@@ -303,7 +303,7 @@ class UniborgConfig:
     OPEN_WEATHER_MAP_APPID = None
 
     # === SNIP ===
-    # this stuff should never get changed, 
+    # this stuff should never get changed,
     # because its either unused, stupid or dangerous.
     TMP_DOWNLOAD_DIRECTORY = tempfile.mkdtemp()
     MAX_MESSAGE_SIZE_LIMIT = 4095

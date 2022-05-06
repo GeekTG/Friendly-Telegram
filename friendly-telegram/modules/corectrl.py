@@ -293,7 +293,7 @@ class CoreMod(loader.Module):
 
     async def setlangcmd(self, message: Message) -> None:
         """Change the preferred language used for translations
-        Specify the language as space separated list of 
+        Specify the language as space separated list of
         ISO 639-1 language codes in order of preference
         With no parameters, all translations are disabled
         Restart required after use"""

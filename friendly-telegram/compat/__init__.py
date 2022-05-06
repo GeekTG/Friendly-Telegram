@@ -39,7 +39,7 @@ class BotCompat(
     MetaPathFinder, Loader
 ):  # pylint: disable=W0223 # It's wrong - https://kutt.it/hkjRb9
     """
-    importlib Loader that loads the 
+    importlib Loader that loads the
     classes in MODULES under their pseudonyms
     """
 

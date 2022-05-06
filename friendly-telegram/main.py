@@ -441,7 +441,7 @@ def main():  # noqa: C901
                 )
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code != 404:
-                    # The dynos don't exist on the 
+                    # The dynos don't exist on the
                     # very first deployment, so don't try to scale
                     raise
             else:
@@ -625,7 +625,7 @@ def main():  # noqa: C901
 
 async def amain_wrapper(client, *args, **kwargs):
     """
-    Wrapper around amain so we don't have to 
+    Wrapper around amain so we don't have to
     manually clear all locals on soft restart
     """
     async with client:

@@ -333,7 +333,8 @@ def sigterm(app, signum, handler):  # skipcq: PYL-W0613
                     "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
                 }
             )
-    # This ensures that we call atexit hooks and close FDs when Heroku kills us un-gracefully
+    # This ensures that we call atexit hooks
+    # and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
 
 
@@ -440,7 +441,8 @@ def main():  # noqa: C901
                 )
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code != 404:
-                    # The dynos don't exist on the very first deployment, so don't try to scale
+                    # The dynos don't exist on the 
+                    # very first deployment, so don't try to scale
                     raise
             else:
                 atexit.register(
@@ -585,7 +587,8 @@ def main():  # noqa: C901
             return
         except PhoneNumberInvalidError:
             print(
-                "Please check the phone number. Use international format (+XX...)"  # noqa: T001
+                "Please check the phone number."
+                "Use international format (+XX...)"  # noqa: T001
                 " and don't put spaces in it."
             )
             continue
@@ -621,7 +624,10 @@ def main():  # noqa: C901
 
 
 async def amain_wrapper(client, *args, **kwargs):
-    """Wrapper around amain so we don't have to manually clear all locals on soft restart"""
+    """
+    Wrapper around amain so we don't have to 
+    manually clear all locals on soft restart
+    """
     async with client:
         first = True
         while await amain(first, client, *args, **kwargs):

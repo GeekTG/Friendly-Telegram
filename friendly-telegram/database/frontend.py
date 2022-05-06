@@ -40,15 +40,20 @@ class Database(dict):
         self._loading = True
         self._waiter = asyncio.Event()
         self._sync_future = None
-        # We use a future because we need await-ability and we will be delaying by 10s, but
-        # because we are gonna frequently be changing the data, we want to avoid floodwait
-        # and to do that we will discard most requests. However, attempting to await any request
-        # should return a future corresponding to the next time that we flush the database.
-        # To achieve this, we have one future stored here (the next time we flush the db) and we
-        # always return that from set(). However, if someone decides to await set() much later
-        # than when they called set(), it will already be finished. Luckily, we return a future,
-        # not a reference to _sync_future, so it will be the correct future, and set_result will
-        # not already have been called. Simple, right?
+        # We use a future because we need 
+        # await-ability and we will be delaying by 10s, but
+        # because we are gonna frequently be changing the data, 
+        # we want to avoid floodwait and to do that we will 
+        # discard most requests. However, attempting to await any request
+        # should return a future corresponding to the next time that we 
+        # flush the database. To achieve this, we have one future stored 
+        # here (the next time we flush the db) and we always return that from set(). 
+        # However, if someone decides to await set() much later
+        # than when they called set(), it will already be finished. 
+        # Luckily, we return a future, not a reference to _sync_future, 
+        # so it will be the correct future, 
+        # and set_result will not already have been called. 
+        # Simple, right?
 
     def __repr__(self):
         return object.__repr__(self)

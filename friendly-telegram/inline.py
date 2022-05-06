@@ -122,7 +122,10 @@ async def edit(
     inline_message_id: Union[str, None] = None,
     disable_web_page_preview: bool = True,
 ) -> None:
-    """Do not edit or pass `self`, `query`, `form`, `form_uid` params, they are for internal use only"""
+    """
+    Do not edit or pass `self`, `query`, `form`, `form_uid` 
+    params, they are for internal use only
+    """
     if reply_markup is None:
         reply_markup = []
 
@@ -219,7 +222,10 @@ async def custom_next_handler(
 
 
 async def delete(self: Any = None, form: Any = None, form_uid: Any = None) -> bool:
-    """Params `self`, `form`, `form_uid` are for internal use only, do not try to pass them"""
+    """
+    Params `self`, `form`, `form_uid` are 
+    for internal use only, do not try to pass them
+    """
     try:
         await self._client.delete_messages(form["chat"], [form["message_id"]])
         del self._forms[form_uid]
@@ -230,7 +236,10 @@ async def delete(self: Any = None, form: Any = None, form_uid: Any = None) -> bo
 
 
 async def unload(self: Any = None, form_uid: Any = None) -> bool:
-    """Params `self`, `form_uid` are for internal use only, do not try to pass them"""
+    """
+    Params `self`, `form_uid` are 
+    for internal use only, do not try to pass them
+    """
     try:
         del self._forms[form_uid]
     except Exception:
@@ -1193,20 +1202,29 @@ class InlineManager:
         """
         Processes inline gallery
             caption
-                    Caption for photo, or callable, returning caption
+                    Caption for photo, 
+                    or callable, returning caption
             message
-                    Where to send inline. Can be either `Message` or `int`
+                    Where to send inline. 
+                    Can be either `Message` or `int`
             next_handler
-                    Callback function, which must return url for next photo
+                    Callback function, which must 
+                    return url for next photo
             force_me
-                    Either this form buttons must be pressed only by owner scope or no
+                    Either this form buttons must be 
+                    pressed only by owner scope or no
             always_allow
-                    Users, that are allowed to press buttons in addition to previous rules
+                    Users, that are allowed to press 
+                    buttons in addition to previous rules
             ttl
-                    Time, when the form is going to be unloaded. Unload means, that the form
-                    buttons with inline queries and callback queries will become unusable, but
-                    buttons with type url will still work as usual. Pay attention, that ttl can't
-                    be bigger, than default one (1 day) and must be either `int` or `False`
+                    Time, when the form is going to be unloaded. 
+                    Unload means, that the form
+                    buttons with inline queries and callback queries 
+                    will become unusable, but
+                    buttons with type url will still work as usual. 
+                    Pay attention, that ttl can't
+                    be bigger, than default one (1 day) 
+                    and must be either `int` or `False`
         """
 
         if not isinstance(caption, str) and not callable(caption):

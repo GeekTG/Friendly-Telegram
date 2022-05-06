@@ -110,7 +110,10 @@ tds = translatable_docstring  # Shorter name for modules to use
 
 
 def ratelimit(func):
-    """Decorator that causes ratelimiting for this command to be enforced more strictly"""
+    """
+    Decorator that causes ratelimiting 
+    for this command to be enforced more strictly
+    """
     func.ratelimit = True
     return func
 
@@ -167,7 +170,8 @@ class Module:
     async def on_unload(self):
         """Will be called after unloading / reloading module"""
 
-    # Called after client_ready, for internal use only. Must not be used by non-core modules
+    # Called after client_ready, for internal use only. 
+    # Must not be used by non-core modules
     async def _client_ready2(self, client, db):
         pass
 

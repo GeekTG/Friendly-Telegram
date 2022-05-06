@@ -21,6 +21,7 @@ import collections
 import os
 import re
 import string
+import json
 
 import aiohttp_jinja2
 import telethon
@@ -28,6 +29,10 @@ from aiohttp import web
 
 from .. import utils
 
+is_okteto = "OKTETO" in os.environ
+BASE_DIR = "/data" if is_okteto else os.path.dirname(utils.get_base_dir())
+if is_okteto:
+    oktetourl = os.path.join(BASE_DIR, "okteto.json")
 
 class Web:
     def __init__(self, **kwargs):
@@ -52,6 +57,11 @@ class Web:
         self.root_redirected = asyncio.Event()
 
     async def root(self, request):
+        try:
+            if is_okteto and not os.path.exists(oktetourl):
+                json.dump({"okteto": re.findall(r"worker-(.*).cloud.okteto.net", str(request.url))[0]}, open(oktetourl, "w"))
+        except Exception:
+            print("Failed to write okteto.json")
         if self.clients_set.is_set():
             await self.ready.wait()
         if self.redirect_url:
@@ -89,7 +99,7 @@ class Web:
             return web.Response(status=400)
         with open(
             os.path.join(
-                self.data_root or os.path.dirname(utils.get_base_dir()), "api_token.txt"
+                self.data_root or BASE_DIR, "api_token.txt"
             ),
             "w",
         ) as f:

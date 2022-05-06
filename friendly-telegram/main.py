@@ -53,6 +53,10 @@ from .dispatcher import CommandDispatcher
 from .translations.core import Translator
 
 __version__ = (3, 1, 24)
+is_okteto = "OKTETO" in os.environ
+
+BASE_DIR = "/data" if is_okteto else os.path.dirname(utils.get_base_dir())
+
 try:
     from .web import core
 except ImportError:
@@ -106,7 +110,7 @@ save_config_key("use_fs_for_modules", get_config_key("use_fs_for_modules"))
 
 def gen_port():
     # In case of heroku you always need to use 8080
-    if "DYNO" in os.environ:
+    if "DYNO" in os.environ or "OKTETO" in os.environ:
         return 8080
 
     # But for own server we generate new free port, and assign to it
@@ -231,7 +235,7 @@ def get_phones(arguments):
             filter(
                 lambda f: f.startswith("friendly-telegram-") and f.endswith(".session"),
                 os.listdir(
-                    arguments.data_root or os.path.dirname(utils.get_base_dir())
+                    arguments.data_root or BASE_DIR
                 ),
             ),
         )
@@ -277,7 +281,7 @@ def get_api_token(arguments, use_default_app=False):
     try:
         with open(
             os.path.join(
-                arguments.data_root or os.path.dirname(utils.get_base_dir()),
+                arguments.data_root or BASE_DIR,
                 "api_token.txt",
             )
         ) as f:
@@ -502,8 +506,7 @@ def main():  # noqa: C901
                 else:
                     session = SQLiteSession(
                         os.path.join(
-                            arguments.data_root
-                            or os.path.dirname(utils.get_base_dir()),
+                            arguments.data_root or BASE_DIR,
                             f"friendly-telegram-+{'X' * (len(client.phone) - 5)}{client.phone[-4:]}",
                         )
                     )
@@ -549,7 +552,7 @@ def main():  # noqa: C901
             session = StringSession()
         else:
             session = os.path.join(
-                arguments.data_root or os.path.dirname(utils.get_base_dir()),
+                arguments.data_root or BASE_DIR,
                 f"friendly-telegram{(('-' + phone_id) if phone_id else '')}",
             )
 

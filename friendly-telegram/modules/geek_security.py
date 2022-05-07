@@ -80,7 +80,8 @@ class GeekSecurityMod(loader.Module):
         "li": '⦿ <b><a href="tg://user?id={}">{}</a></b>',
         "warning": (
             '⚠️ <b>Please, confirm, that you want to add <a href="tg://user?id={}">{}</a> '
-            "to group </b><code>{}</code><b>!\nThis action may reveal personal info and grant "
+            "to group </b><code>{}</code><b>!\n"
+            "This action may reveal personal info and grant "
             "full or partial access to userbot to this user</b>"
         ),
         "cancel": "🚫 Cancel",
@@ -275,7 +276,7 @@ class GeekSecurityMod(loader.Module):
 
     async def _add_to_group(
         self,
-        message: Union[Message, "aigoram.types.CallbackQuery"],  # noqa: F821
+        message: Union[Message, "aiogram.types.CallbackQuery"],  # noqa: F821
         group: str,
         confirmed: bool = False,
         user: int = None,

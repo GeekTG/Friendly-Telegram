@@ -255,7 +255,7 @@ class RaphielgangConfig:
         ]
         self.BRAIN_CHECKER = []
         self.is_mongo_alive = lambda: self.MONGO_URI is not None
-        self.is_redis_alive = lambda: self.REDIS.ping()
+        # self.is_redis_alive = lambda: self.REDIS.ping()
         self.CURRENCY_API = None
         self.SPOTIFY_USERNAME = None
         self.SPOTIFY_PASS = None
@@ -480,7 +480,7 @@ class RaphielgangEvents:
                             commandhandler.__doc__ = "Undocumented external command"
                         self.commands[
                             cmd
-                        ] = commandhandler  # Add to list of commands so we can call later
+                        ] = commandhandler
                 elif kwargs.get("incoming", False):
                     # Watcher-based thing
 

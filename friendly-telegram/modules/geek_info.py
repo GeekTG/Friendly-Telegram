@@ -12,6 +12,7 @@ from .. import loader, main, utils
 import logging
 import aiogram
 import git
+from aiogram.types.input_message_content import InputTextMessageContent
 
 from telethon.utils import get_display_name
 from ..inline import GeekInlineQuery, rand
@@ -63,6 +64,7 @@ class GeekInfoMod(loader.Module):
             upd = ""
 
         platform = utils.get_platform_name()
+        gitlink = f"https://github.com/GeekTG/Friendly-Telegram/commit/{ver}"
 
         await query.answer(
             [
@@ -70,12 +72,12 @@ class GeekInfoMod(loader.Module):
                     id=rand(20),
                     title="Send userbot info",
                     description="ℹ This will not compromise any sensitive data",
-                    input_message_content=aiogram.types.input_message_content.InputTextMessageContent(
+                    input_message_content=InputTextMessageContent(
                         f"""
 <b>🕶 GeekTG Userbot</b>
 <b>🤴 Owner: <a href="tg://user?id={self._me.id}">{get_display_name(self._me)}</a></b>\n
 <b>🔮 Version: </b><i>{".".join(list(map(str, list(main.__version__))))}</i>
-<b>🧱 Build: </b><a href="https://github.com/GeekTG/Friendly-Telegram/commit/{ver}">{ver[:8] or "Unknown"}</a>
+<b>🧱 Build: </b><a href="{gitlink}">{ver[:8] or "Unknown"}</a>
 <b>{upd}</b>
 
 <b>{platform}</b>
@@ -83,7 +85,7 @@ class GeekInfoMod(loader.Module):
                         "HTML",
                         disable_web_page_preview=True,
                     ),
-                    thumb_url="https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png",
+                    thumb_url="https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png", # noqa: E501
                     thumb_width=128,
                     thumb_height=128,
                     reply_markup=self.markup,

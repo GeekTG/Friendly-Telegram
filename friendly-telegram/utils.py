@@ -261,7 +261,7 @@ async def answer(message, response, **kwargs):
                 await message.client.send_file(
                     message.peer_id,
                     file,
-                    caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>",
+                    caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>", # noqa: E501
                 ),
             ]
 

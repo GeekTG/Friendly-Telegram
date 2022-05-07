@@ -456,7 +456,8 @@ class Modules:
             await mod.client_ready(client, db)
         except Exception as e:
             logging.exception(
-                f"Failed to send mod init complete signal for %r due to {e}, attempting unload",
+                f"Failed to send mod init complete"
+                f"signal for %r due to {e}, attempting unload",
                 mod,
             )
             self.modules.remove(mod)

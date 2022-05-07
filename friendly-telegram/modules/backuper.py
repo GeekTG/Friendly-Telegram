@@ -6,11 +6,9 @@
     Licensed under the GNU GPLv3
 """
 
-# meta pic: https://img.icons8.com/fluency/48/000000/sync-settings.png
-
 from .. import loader, utils
 import asyncio
-import datetime
+from datetime import datetime
 import io
 import json
 
@@ -39,7 +37,7 @@ class BackuperMod(loader.Module):
     async def backupdbcmd(self, message: Message) -> None:
         """Create database backup [will be sent in pm]"""
         txt = io.BytesIO(json.dumps(self._db).encode("utf-8"))
-        txt.name = f"ftg-db-backup-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.db"
+        txt.name = f"ftg-db-backup-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.db"
         await self._client.send_file("me", txt, caption=self.strings("backup_caption"))
         await message.delete()
 
@@ -73,7 +71,7 @@ class BackuperMod(loader.Module):
             }
         )
         txt = io.BytesIO(data.encode("utf-8"))
-        txt.name = f"ftg-mods-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.mods"
+        txt.name = f"ftg-mods-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.mods"
         await self._client.send_file(
             utils.get_chat_id(message),
             txt,
@@ -116,7 +114,7 @@ class BackuperMod(loader.Module):
         """Create the backup of notes"""
         data = json.dumps(self._db.get("friendly-telegram.modules.notes", "notes", []))
         txt = io.BytesIO(data.encode("utf-8"))
-        txt.name = f"ftg-notes-{getattr(datetime, 'datetime', datetime).now().strftime('%d-%m-%Y-%H-%M')}.notes"
+        txt.name = f"ftg-notes-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.notes"
         await self._client.send_file(
             utils.get_chat_id(message),
             txt,

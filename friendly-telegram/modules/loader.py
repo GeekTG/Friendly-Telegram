@@ -163,8 +163,10 @@ class LoaderMod(loader.Module):
         "undoc_ihandler": "👁‍🗨 No docs",
         "chandler": "\n🖱 <i>Callback</i>: <code>{}</code> 👉🏻 ",
         "undoc_chandler": "👁‍🗨 No docs",
-        "inline_init_failed": """🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>
-<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>""",
+        "inline_init_failed": (
+            "🚫 <b>This module requires GeekTG inline feature and initialization of InlineManager failed</b>\n"
+            "<i>Please, remove one of your old bots from @BotFather and restart userbot to load this module</i>"
+        ),
         "version_incompatible": "🚫 <b>This module requires GeekTG {}+\nPlease, update with </b><code>.update</code>",
         "non_heroku": "♓️ <b>This module is not supported on Heroku</b>",
         "ffmpeg_required": "🚫 <b>This module requires FFMPEG, which is not installed</b>",
@@ -372,7 +374,7 @@ class LoaderMod(loader.Module):
                             message, self.strings("requirements_restart", message)
                         )
 
-                    return True  # save to database despite failure, so it will work after restart
+                    return True  # save to database despite failure
 
                 if message is not None:
                     await utils.answer(
@@ -411,7 +413,7 @@ class LoaderMod(loader.Module):
                 if message:
                     await utils.answer(message, f"🚫 <b>{utils.escape_html(str(e))}</b>")
                 return
-        except BaseException as e:  # That's okay because it might try to exit or something, who knows.
+        except BaseException as e:
             logger.exception(f"Loading external module failed due to {e}")
 
             if message is not None:

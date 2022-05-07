@@ -38,8 +38,16 @@ class GeekConfigMod(loader.Module):
         "name": "GeekConfig",
         "configure": "🎚 <b>Here you can configure your modules' configs</b>",
         "configuring_mod": "🎚 <b>Choose config option for mod</b> <code>{}</code>",
-        "configuring_option": "🎚 <b>Configuring option </b><code>{}</code><b> of mod </b><code>{}</code>\n<i>ℹ️ {}</i>\n\n<b>Default: </b><code>{}</code>\n\n<b>Current: </b><code>{}</code>",
-        "option_saved": "🎚 <b>Configuring option </b><code>{}</code><b> of mod </b><code>{}</code><b> saved!</b>\n<b>Current: </b><code>{}</code>",
+        "configuring_option": (
+            "🎚 <b>Configuring option </b><code>{}</code><b> of mod </b><code>{}</code>\n"
+            "<i>ℹ️ {}</i>\n\n"
+            "<b>Default: </b><code>{}</code>\n\n"
+            "<b>Current: </b><code>{}</code>"
+        ),
+        "option_saved": (
+            "🎚 <b>Configuring option </b><code>{}</code><b> of mod </b><code>{}</code><b> saved!</b>\n" # noqa: E501
+            "<b>Current: </b><code>{}</code>"
+        ),
     }
 
     def get(self, *args) -> dict:
@@ -120,7 +128,7 @@ class GeekConfigMod(loader.Module):
                         [
                             {
                                 "text": "✍️ Enter value",
-                                "input": "✍️ Enter new configuration value for this option",
+                                "input": "✍️ Enter new configuration value for this option", # noqa: E501
                                 "handler": self.inline__set_config,
                                 "args": (mod, config_opt, call.inline_message_id),
                             }

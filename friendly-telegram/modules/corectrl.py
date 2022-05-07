@@ -37,7 +37,11 @@ class CoreMod(loader.Module):
         "user_unblacklisted": "✅ <b>User {} unblacklisted from userbot</b>",
         "what_prefix": "❓ <b>What should the prefix be set to?</b>",
         "prefix_incorrect": "🚫 <b>Prefix must be one symbol in length</b>",
-        "prefix_set": "✅ <b>Command prefix updated. Type</b> <code>{newprefix}setprefix {oldprefix}</code> <b>to change it back</b>",
+        "prefix_set": (
+            "✅ <b>Command prefix updated.\n"
+            "Type</b> <code>{newprefix}setprefix {oldprefix}</code>"
+            "<b>to change it back</b>"
+        ),
         "alias_created": "✅ <b>Alias created. Access it with</b> <code>{}</code>",
         "aliases": "<b>Aliases:</b>\n",
         "no_command": "🚫 <b>Command</b> <code>{}</code> <b>does not exist</b>",
@@ -51,9 +55,27 @@ class CoreMod(loader.Module):
         "packs_cleared": "<b>✅ Translations cleared</b>",
         "lang_set": "<b>✅ Language changed</b>",
         "db_cleared": "<b>✅ Database cleared</b>",
-        "geek": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}</b>\n<b>Branch: master</b>",
-        "geek_beta": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}beta</b>\n<b>Branch: beta</b>\n\n<i>🔮 You're using the unstable branch (<b>beta</b>). You receive fresh but untested updates. Report any bugs to @chat_ftg or @hikari_chat</i>",
-        "geek_alpha": "🕶 <b>Congrats! You are Geek!</b>\n\n<b>GeekTG version: {}.{}.{}alpha</b>\n<b>Branch: alpha</b>\n\n<i>🔮 You're using <b><u>very</u></b> unstable branch (<b>alpha</b>). You receive fresh but untested updates. You <b><u>can't ask for help, only report bugs</u></b></i>",
+        "geek": (
+            "🕶 <b>Congrats! You are Geek!</b>\n\n"
+            "<b>GeekTG version: {}.{}.{}</b>\n"
+            "<b>Branch: master</b>"
+        ),
+        "geek_beta": (
+            "🕶 <b>Congrats! You are Geek!</b>\n\n"
+            "<b>GeekTG version: {}.{}.{}beta</b>\n"
+            "<b>Branch: beta</b>\n\n"
+            "<i>🔮 You're using the unstable branch (<b>beta</b>). "
+            "You receive fresh but untested updates. "
+            "Report any bugs to @chat_ftg or @hikari_chat</i>"
+        ),
+        "geek_alpha": (
+            "🕶 <b>Congrats! You are Geek!</b>\n\n"
+            "<b>GeekTG version: {}.{}.{}alpha</b>\n"
+            "<b>Branch: alpha</b>\n\n"
+            "<i>🔮 You're using <b><u>very</u></b> unstable branch (<b>alpha</b>). "
+            "You receive fresh but untested updates. "
+            "You <b><u>can't ask for help, only report bugs</u></b></i>"
+        ),
     }
 
     async def client_ready(self, client, db):
@@ -184,6 +206,7 @@ class CoreMod(loader.Module):
 
         if len(args) != 1:
             await utils.answer(message, self.strings("prefix_incorrect", message))
+            return
 
         oldprefix = self._db.get(main.__name__, "command_prefix", ".")
         self._db.set(main.__name__, "command_prefix", args)

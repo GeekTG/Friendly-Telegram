@@ -32,7 +32,8 @@ class OktetoMod(loader.Module):
             )
         )
 
-        self.okteto_username = json.loads(open(oktetopath, "r").read())["okteto"]
+        with open(oktetopath, "r").read() as f:
+            self.okteto_username = json.loads(f)["okteto"]
         self._task = asyncio.ensure_future(self.okteto_pinger())
 
     async def on_unload(self):

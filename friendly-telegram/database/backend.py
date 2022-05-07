@@ -193,7 +193,7 @@ class CloudBackend:
                 if isinstance(r, MessageNotModifiedError):
                     logging.debug("db not modified", exc_info=r)
                 elif isinstance(r, Exception):
-                    raise r  # Makes more sense to raise even for MessageEditTimeExpiredError
+                    raise r
                 elif not isinstance(r, Message):
                     logging.debug("unknown ret from gather, %r", r)
         except MessageEditTimeExpiredError:

@@ -408,7 +408,7 @@ def main():  # noqa: C901
                 else:
                     ipaddress = get("https://api.ipify.org").text
                     print(
-                        f"Please visit http://{ipaddress}:{port} or http://localhost:{port}"
+                        f"Please visit http://{ipaddress}:{port}"
                     )
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
@@ -495,7 +495,7 @@ def main():  # noqa: C901
                     else:
                         ipaddress = get("https://api.ipify.org").text
                         print(
-                            f"Please visit http://{ipaddress}:{port} or http://localhost:{port}"
+                            f"Please visit http://{ipaddress}:{port}"
                         )
             loop.run_until_complete(web.wait_for_clients_setup())
             arguments.heroku = web.heroku_api_token
@@ -507,7 +507,7 @@ def main():  # noqa: C901
                     session = SQLiteSession(
                         os.path.join(
                             arguments.data_root or BASE_DIR,
-                            f"friendly-telegram-+{'X' * (len(client.phone) - 5)}{client.phone[-4:]}",
+                            f"friendly-telegram-+{'X' * (len(client.phone) - 5)}{client.phone[-4:]}", # skipcq: FLK-E501
                         )
                     )
 
@@ -527,18 +527,18 @@ def main():  # noqa: C901
             except EOFError:
                 print("=" * 30)
                 print(
-                    "Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!\n"
+                    "Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!\n"  # skipcq: FLK-E501
                     "It is likely that you tried to deploy to heroku -\n"
                     "you cannot do this via the web interface.\n"
                     "\n"
                     "To deploy to heroku, go to\n"
                     "https://friendly-telegram.gitlab.io/heroku to learn more\n"
                     "\n"
-                    "In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!\n"
-                    "You should remove the forked repo, and read https://friendly-telegram.gitlab.io\n"
+                    "In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!\n"  # skipcq: FLK-E501
+                    "You should remove the forked repo, and read https://friendly-telegram.gitlab.io\n"  # skipcq: FLK-E501
                     "\n"
-                    "If you're not using Heroku, then you are using a non-interactive prompt but\n"
-                    "you have not got a session configured, meaning authentication to Telegram is\n"
+                    "If you're not using Heroku, then you are using a non-interactive prompt but\n"  # skipcq: FLK-E501
+                    "you have not got a session configured, meaning authentication to Telegram is\n"  # skipcq: FLK-E501
                     "impossible.\n"
                     "\n"
                     "THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!\n"
@@ -572,9 +572,13 @@ def main():  # noqa: C901
             clients.append(client)
         except sqlite3.OperationalError as ex:
             print(
-                f"Error initialising phone {(phone or 'unknown')} {','.join(ex.args)}\n"  # noqa
-                ": this is probably your fault. Try checking that this is the only instance running and"
-                "that the session is not copied. If that doesn't help, delete the file named"
+                f"Error initialising phone"
+                f"{(phone or 'unknown')} {','.join(ex.args)}\n"  # noqa
+                ": this is probably your fault."
+                "Try checking that this is"
+                "the only instance running and"
+                "that the session is not copied."
+                "If that doesn't help, delete the file named"
                 f"'friendly-telegram-{phone if phone else ''}.session'"
             )
             continue
@@ -756,7 +760,7 @@ async def amain(first, client, allclients, web, arguments):
             )  # skipcq: BAN-B605, BAN-B607
             is_heroku = os.environ.get("DYNO", False)
 
-            _platform = r"Termux" if termux else (r"Heroku" if is_heroku else "VDS")
+            _platform = utils.get_platform_name()
 
             logo1 = f"""
                                       )
@@ -781,7 +785,7 @@ async def amain(first, client, allclients, web, arguments):
                 f"=== VERSION: {'.'.join(list(map(str, list(__version__))))} ==="
             )
             logging.info(
-                f"=== PLATFORM: {'Termux' if termux else ('Heroku' if is_heroku else 'VDS')} ==="
+                f"=== PLATFORM: {utils.get_platform_name()} ==="
             )
         except Exception:
             logging.exception(

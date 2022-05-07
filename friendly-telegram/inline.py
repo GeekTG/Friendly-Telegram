@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 photo = io.BytesIO(
     requests.get(
-        "https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png"
+        "https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png" # noqa: E501
     ).content
 )
 photo.name = "avatar.png"
@@ -191,7 +191,8 @@ async def custom_next_handler(
         new_url = await func()
         if not isinstance(new_url, (str, bool)):
             raise Exception(
-                f"Invalid type returned by `next_handler`. Expected `str` or `False`, got `{type(new_url)}`"
+                f"Invalid type returned by `next_handler`."
+                f"Expected `str` or `False`, got `{type(new_url)}`"
             )
     except Exception:
         logger.exception("Exception while trying to parse new photo")
@@ -292,13 +293,15 @@ class InlineManager:
     def ss(self, user: Union[str, int], state: Union[str, bool]) -> bool:
         if not isinstance(user, (str, int)):
             logger.error(
-                f"Invalid type for `user` in `ss` (expected `str or int` got `{type(user)}`)"
+                f"Invalid type for `user` in `ss` "
+                f"(expected `str or int` got `{type(user)}`)"
             )
             return False
 
         if not isinstance(state, (str, bool)):
             logger.error(
-                f"Invalid type for `state` in `ss` (expected `str or bool` got `{type(state)}`)"
+                f"Invalid type for `state` in `ss` "
+                f"(expected `str or bool` got `{type(state)}`)"
             )
             return False
 
@@ -312,7 +315,8 @@ class InlineManager:
     def gs(self, user: Union[str, int]) -> Union[bool, str]:
         if not isinstance(user, (str, int)):
             logger.error(
-                f"Invalid type for `user` in `gs` (expected `str or int` got `{type(user)}`)"
+                f"Invalid type for `user` in `gs` "
+                f"(expected `str or int` got `{type(user)}`)"
             )
             return False
 
@@ -793,19 +797,26 @@ class InlineManager:
                     )
 
                     _help += f"🎹 <code>@{self.bot_username} {name}</code> - {doc}\n"
+            
+            icmds = len(_help.splitlines()) or "no"
+            itext = (
+                "😔 There is no available inline commands."
+                if not _help
+                else f"<b>ℹ️ Available inline commands:</b>\n\n{_help}"
+            )
 
             await inline_query.answer(
                 [
                     InlineQueryResultArticle(
                         id=rand(20),
                         title="Show available inline commands",
-                        description=f"You have {len(_help.splitlines())} available command(-s)",
+                        description=f"You have {icmds} available commands",
                         input_message_content=InputTextMessageContent(
-                            f"<b>ℹ️ Available inline commands:</b>\n\n{_help}",
+                            itext,
                             "HTML",
                             disable_web_page_preview=True,
                         ),
-                        thumb_url="https://img.icons8.com/fluency/50/000000/info-squared.png",
+                        thumb_url="https://img.icons8.com/fluency/50/000000/info-squared.png",  # skipcq: FLK-E501
                         thumb_width=128,
                         thumb_height=128,
                     )
@@ -959,7 +970,7 @@ class InlineManager:
                         form["force_me"]
                         and query.from_user.id != self._me
                         and query.from_user.id
-                        not in self._client.dispatcher.security._owner  # skipcq: PYL-W0212
+                        not in self._client.dispatcher.security._owner  # skipcq: PYL-W0212, FLK-E501
                         and query.from_user.id not in form["always_allow"]
                     ):
                         await query.answer("You are not allowed to press this button!")
@@ -1268,7 +1279,8 @@ class InlineManager:
             photo_url = await next_handler()
             if not isinstance(photo_url, str):
                 raise Exception(
-                    f"Got invalid result from `next_handler`. Expected `str`, got `{type(photo_url)}`"
+                    f"Got invalid result from `next_handler`. "
+                    f"Expected `str`, got `{type(photo_url)}`"
                 )
         except Exception:
             logger.exception("Error while parsing first photo in gallery")

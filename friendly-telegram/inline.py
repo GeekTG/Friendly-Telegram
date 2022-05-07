@@ -1070,27 +1070,27 @@ class InlineManager:
         """Creates inline form with callback
         Args:
                 text
-                        Content of inline form. 
+                        Content of inline form.
                         HTML markup support
                 message
-                        Where to send inline. 
+                        Where to send inline.
                         Can be either `Message` or `int`
                 reply_markup
-                        List of buttons to insert in markup. 
+                        List of buttons to insert in markup.
                         List of dicts with keys: text, callback
                 force_me
-                        Either this form buttons must be pressed 
+                        Either this form buttons must be pressed
                         only by owner scope or no
                 always_allow
-                        Users, that are allowed to press buttons 
+                        Users, that are allowed to press buttons
                         in addition to previous rules
                 ttl
-                        Time, when the form is going to be unloaded. 
+                        Time, when the form is going to be unloaded.
                         Unload means, that the form
-                        buttons with inline queries and 
+                        buttons with inline queries and
                         callback queries will become unusable, but
-                        buttons with type url will still work as usual. 
-                        Pay attention, that ttl can't be bigger, than 
+                        buttons with type url will still work as usual.
+                        Pay attention, that ttl can't be bigger, than
                         default one (1 day) and must be either `int` or `False`
         """
 

@@ -45,7 +45,8 @@ class GeekConfigMod(loader.Module):
             "<b>Current: </b><code>{}</code>"
         ),
         "option_saved": (
-            "🎚 <b>Configuring option </b><code>{}</code><b> of mod </b><code>{}</code><b> saved!</b>\n" # noqa: E501
+            "🎚 <b>Configuring option </b><code>{}</code><b>"
+            "of mod </b><code>{}</code><b> saved!</b>\n"
             "<b>Current: </b><code>{}</code>"
         ),
     }

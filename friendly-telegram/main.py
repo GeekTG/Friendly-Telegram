@@ -527,18 +527,23 @@ def main():  # noqa: C901
             except EOFError:
                 print("=" * 30)
                 print(
-                    "Hello. If you are seeing this, it means YOU ARE DOING SOMETHING WRONG!\n"  # skipcq: FLK-E501
+                    "Hello. If you are seeing this, it means"
+                    " YOU ARE DOING SOMETHING WRONG!\n"
                     "It is likely that you tried to deploy to heroku -\n"
                     "you cannot do this via the web interface.\n"
                     "\n"
                     "To deploy to heroku, go to\n"
                     "https://friendly-telegram.gitlab.io/heroku to learn more\n"
                     "\n"
-                    "In addition, you seem to have forked the friendly-telegram repo. THIS IS WRONG!\n"  # skipcq: FLK-E501
-                    "You should remove the forked repo, and read https://friendly-telegram.gitlab.io\n"  # skipcq: FLK-E501
+                    "In addition, you seem to have forked"
+                    " the friendly-telegram repo. THIS IS WRONG!\n"
+                    "You should remove the forked repo,"
+                    " and read https://friendly-telegram.gitlab.io\n"
                     "\n"
-                    "If you're not using Heroku, then you are using a non-interactive prompt but\n"  # skipcq: FLK-E501
-                    "you have not got a session configured, meaning authentication to Telegram is\n"  # skipcq: FLK-E501
+                    "If you're not using Heroku, then you"
+                    " are using a non-interactive prompt but\n"
+                    "you have not got a session configured,"
+                    " meaning authentication to Telegram is\n"
                     "impossible.\n"
                     "\n"
                     "THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!\n"
@@ -754,11 +759,6 @@ async def amain(first, client, allclients, web, arguments):
             build = repo.heads[0].commit.hexsha
             diff = repo.git.log(["HEAD..origin/master", "--oneline"])
             upd = r"\33[31mUpdate required" if diff else r"Up-to-date"
-
-            termux = bool(
-                os.popen('echo $PREFIX | grep -o "com.termux"').read()
-            )  # skipcq: BAN-B605, BAN-B607
-            is_heroku = os.environ.get("DYNO", False)
 
             _platform = utils.get_platform_name()
 

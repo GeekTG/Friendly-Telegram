@@ -38,9 +38,13 @@ class TestMod(loader.Module):
         "suspend_invalid_time": "🚫 <b>Invalid time to suspend</b>",
         "suspended": "🥶 <b>Bot suspended for</b> <code>{}</code> <b>seconds</b>",
         "results_ping": "⏱ <b>Ping:</b> <code>{}</code> <b>ms</b>",
-        "confidential": "⚠️ <b>Log level </b><code>{}</code><b> may reveal your confidential info, be careful</b>", # noqa: E501
+        "confidential":(
+            "⚠️ <b>Log level </b><code>{}</code><b> "
+            "may reveal your confidential info, be careful</b>"
+        ),
         "confidential_text": (
-            "⚠️ <b>Log level </b><code>{0}</code><b> may reveal your confidential info, be careful</b>\n" # noqa: E501
+            "⚠️ <b>Log level </b><code>{0}</code><b> "
+            "may reveal your confidential info, be careful</b>\n"
             "<b>Type </b>"
             "<code>.logs {0} force_insecure</code>"
             "<b> to ignore this warning</b>"

@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 photo = io.BytesIO(
     requests.get(
-        "https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png" # noqa: E501
+        "https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png" # noqa: E501, W505
     ).content
 )
 photo.name = "avatar.png"
@@ -797,7 +797,7 @@ class InlineManager:
                     )
 
                     _help += f"🎹 <code>@{self.bot_username} {name}</code> - {doc}\n"
-            
+
             icmds = len(_help.splitlines()) or "no"
             itext = (
                 "😔 There is no available inline commands."

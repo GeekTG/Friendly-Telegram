@@ -486,7 +486,10 @@ class RaphielgangEvents:
 
                     @wraps(func)
                     def subwatcher(message):
-                        """Closure to execute watcher when handler activated and regex matched"""
+                        """
+                        Closure to execute watcher
+                        when handler activated and regex matched
+                        """
                         match = re.match(
                             message.message, kwargs.get("pattern", r"^\b$"), re.I
                         )

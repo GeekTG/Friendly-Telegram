@@ -5,6 +5,7 @@ the [Telethon](https://github.com/GeekTG/Telethon) Library.
 
 [![DeepSource](https://deepsource.io/gh/GeekTG/Friendly-Telegram.svg/?label=active+issues&show_trend=true&token=9Zxse6cjEZ0Hwh1PJJ3mMTWw)](https://deepsource.io/gh/GeekTG/Friendly-Telegram/?ref=repository-badge)
 
+[![lavhost](https://f.lavhost.ml/images/install_to_lavhost.png)](https://t.me/lavhostbot?start=R2Vla1RH)
 ## Changes
 
 - Latest Telegram Layers with reactions, video stickers and other stuff

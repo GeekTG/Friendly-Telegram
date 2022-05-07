@@ -71,7 +71,7 @@ class Database(dict):
             try:
                 self.update(**json.loads(db))
             except Exception:
-                # Don't worry if its corrupted. 
+                # Don't worry if its corrupted.
                 # Just set it to {} and
                 # let it be fixed on next upload
                 pass

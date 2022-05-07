@@ -340,12 +340,12 @@ class RaphielgangConfig:
             pass
 
 
-# The core machinery will fail to 
+# The core machinery will fail to
 # identify any register() function in the module.
-# So we need to introspect the module 
+# So we need to introspect the module
 # and add register(), and a shimmed class to store state
 
-# Please don't refactor this class. 
+# Please don't refactor this class.
 # Even while writing it only God knew how it worked.
 
 

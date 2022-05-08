@@ -665,7 +665,7 @@ async def amain(first, client, allclients, web, arguments):
         modules = loader.Modules(arguments.use_inline)
         babelfish = Translator([], [], arguments.data_root)
         await babelfish.init(client)
-        modules.register_all(babelfish)
+        modules.register_all()
         fdb = frontend.Database(db, True)
         await fdb.init()
         modules.send_config(fdb, babelfish)
@@ -744,7 +744,7 @@ async def amain(first, client, allclients, web, arguments):
 
         client.add_event_handler(dispatcher.handle_command, events.MessageEdited())
 
-    modules.register_all(babelfish, to_load)
+    modules.register_all(to_load)
 
     modules.send_config(db, babelfish)
 

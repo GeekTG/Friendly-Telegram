@@ -46,7 +46,7 @@ class UpdaterMod(loader.Module):
         "downloading": "🔄 <b>Downloading updates...</b>",
         "downloaded": (
             "✅ <b>Downloaded successfully.\n"
-            "Please type</b>\n"
+            "Please type</b>"
             "<code>.restart</code> <b>to restart the bot.</b>"
         ),
         "already_updated": "✅ <b>Already up to date!</b>",

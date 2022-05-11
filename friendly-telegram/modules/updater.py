@@ -57,6 +57,12 @@ class UpdaterMod(loader.Module):
             "Update was successful but updates will reset every time the bot restarts."
         ),
         "origin_cfg_doc": "Git origin URL, for where to update from",
+        "heroku_support": (
+            "<b>🧸 Heroku is no longer supported. "
+            "We ask you to migrate to other platforms. "
+            "If you do not migrate, new updates will not be supported. "
+            "At the bottom, there are buttons to install on supported platforms.</b>"
+        ),
     }
 
     def __init__(self):
@@ -100,6 +106,29 @@ class UpdaterMod(loader.Module):
     @loader.owner
     async def downloadcmd(self, message: Message) -> None:
         """Downloads userbot updates"""
+        if "DYNO" in os.environ:
+            if not self.inline.init_complete:
+                return await utils.answer(
+                    message,
+                    self.strings("heroku_support"),
+                )
+            return await self.inline.form(
+                text=self.strings("heroku_support"),
+                message=message,
+                reply_markup=[
+                    [{"text": "🗄 Install to VPS", "url": "https://docs.geektg.tk/"}],
+                    [
+                        {
+                            "text": "☁️ Install to Okteto",
+                            "url": "https://cloud.okteto.com/#/deploy?repository=https://github.com/GeekTG/Friendly-Telegram",
+                        },
+                        {
+                            "text": "🖥 Install to lavhost",
+                            "url": "https://t.me/lavhostbot?start=R2Vla1RH",
+                        },
+                    ],
+                ],
+            )
         message = await utils.answer(message, self.strings("downloading", message))
         await self.download_common()
         await utils.answer(message, self.strings("downloaded", message))
@@ -153,6 +182,29 @@ class UpdaterMod(loader.Module):
     async def updatecmd(self, message: Message, hard: bool = False) -> None:
         """Downloads userbot updates"""
         # We don't really care about asyncio at this point, as we are shutting down
+        if "DYNO" in os.environ:
+            if not self.inline.init_complete:
+                return await utils.answer(
+                    message,
+                    self.strings("heroku_support"),
+                )
+            return await self.inline.form(
+                text=self.strings("heroku_support"),
+                message=message,
+                reply_markup=[
+                    [{"text": "🗄 Install to VPS", "url": "https://docs.geektg.tk/"}],
+                    [
+                        {
+                            "text": "☁️ Install to Okteto",
+                            "url": "https://cloud.okteto.com/#/deploy?repository=https://github.com/GeekTG/Friendly-Telegram",
+                        },
+                        {
+                            "text": "🖥 Install to lavhost",
+                            "url": "https://t.me/lavhostbot?start=R2Vla1RH",
+                        },
+                    ],
+                ],
+            )
         if hard:
             os.system(
                 f"cd {utils.get_base_dir()} && cd .. && git reset --hard HEAD"

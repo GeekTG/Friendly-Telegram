@@ -1,52 +1,32 @@
-![image](https://user-images.githubusercontent.com/36935426/158629190-e1d54442-f480-4ce2-a58c-6d9f1d3055e8.png)
-
-A fast, easy to set up telegram userbot running Python 3 which runs on custom version
-the [Telethon](https://github.com/GeekTG/Telethon) Library.
-
-[![DeepSource](https://deepsource.io/gh/GeekTG/Friendly-Telegram.svg/?label=active+issues&show_trend=true&token=9Zxse6cjEZ0Hwh1PJJ3mMTWw)](https://deepsource.io/gh/GeekTG/Friendly-Telegram/?ref=repository-badge)
-
-[![lavhost](https://f.lavhost.ml/images/install_to_lavhost.png)](https://t.me/lavhostbot?start=R2Vla1RH)
-## Changes
-
-- Latest Telegram Layers with reactions, video stickers and other stuff
-- Security improvements
-- UI/UX improvements
-- New core modules
-- Native FFmpeg support for Heroku
-- Quick bug fixes (compared to official FTG)
-- Inline Buttons, available not only for core modules, but for every developer
-- Inline Galleries for every developer
-- Full backward compatibility with older version and with official FTG modules
-
-![img](https://user-images.githubusercontent.com/36935426/158634458-424021a3-27c4-494f-9db2-1266f161e7a2.png)
-
-
-## Small, but useful
-
-### InlineLogs - traceback directly in message, caused error
-![img2](https://user-images.githubusercontent.com/36935426/158635869-cc08a053-3bac-4d2e-ad50-30aa77c757fd.png)
----
-### Grep - execute command and get only required lines
-![img3](https://user-images.githubusercontent.com/36935426/158636369-389241e6-bb9c-474b-bcfd-7493503d91dd.png)
----
-### NoNick, NoNickUser, NoNickCmd - enable global nonickname feature
-![img4](https://user-images.githubusercontent.com/36935426/158637220-00495363-cf4a-4e6f-a4b2-51d693906ead.png)
----
-### Requirements
-
-- Python 3.8 or above
-- Requirements from `requirements.txt`
-- API ID and Hash from [Telegram](https://my.telegram.org/apps) or use default ones
-- Some basic knowledge of terminal
-
-### Documentation
-
-We've made docs to help you to set up the bot. They can be found [here](https://ftg.geektg.ml).
-Also, check out the folder `docs` for developers' documentation
-
-### Support
-
-We also have a dedicated Telegram support group. Got any doubts or issues while setting-up? Shoot 'em here! **Please
-read the docs first** tho, to make sure your question isn't already answered!
-
-[GeekTG Support Group](https://t.me/chat_ftg "Telegram").
+<hr>
+<a href="https://deepsource.io/gh/GeekTG/Friendly-Telegram/?ref=repository-badge"><img src="https://deepsource.io/gh/GeekTG/Friendly-Telegram.svg/?label=active+issues&show_trend=true&token=9Zxse6cjEZ0Hwh1PJJ3mMTWw"></img></a>
+<a href="https://deepsource.io/gh/GeekTG/Friendly-Telegram/?ref=repository-badge" target="_blank"><img alt="DeepSource" title="DeepSource" src="https://deepsource.io/gh/GeekTG/Friendly-Telegram.svg/?label=resolved+issues&show_trend=true&token=9Zxse6cjEZ0Hwh1PJJ3mMTWw"/></a>
+<hr>
+<h2><img src="https://github.com/GeekTG/assets/raw/master/57-server-lineal.gif" align="center" width="45"> Installation</h2>
+<img src="https://github.com/GeekTG/assets/raw/master/geektg.gif"></img>
+<a href="https://cloud.okteto.com/#/deploy?repository=https://github.com/GeekTG/Friendly-Telegram"><img src="https://lilwonka.ml/temp/okteto.png" height="65"></a>
+<a href="https://t.me/lavhostbot?start=R2Vla1RH"><img src="https://github.com/GeekTG/assets/raw/master/lavhost.png" height="65"></a>
+<hr>
+<h2><img src="https://github.com/GeekTG/assets/raw/master/56-document-outline.gif" align="center" width="45">Changes</h2>
+<ul>
+    <li>📥 Latest Telegram Layers with reactions, video stickers and other stuff</li>
+    <li>🔐 Security improvements</li>
+    <li>🔮 UI/UX improvements</li>
+    <li>📼 New core modules</li>
+    <li>🔑 Quick bug fixes (compared to official FTG)</li>
+    <li>🔄 Inline Buttons, available not only for core modules, but for every developer</li>
+    <li>⏭ Inline Galleries for every developer</li>
+    <li>🌐 Full backward compatibility with older version and with official FTG modules </li>
+</ul>
+<hr>
+<h2><img src="https://github.com/GeekTG/assets/raw/master/744-pendrive-storage-lineal.gif" align="center" width="65"> Requirements</h2>
+<ul>
+    <li>📦 Python 3.8 or above</li>
+    <li>💾 Requirements from <code>requirements.txt</code></li>
+    <li>🗄 API ID and Hash from <a href="https://my.telegram.org/apps">Telegram</a> or use default ones</li>
+    <li>🗃 Some basic knowledge of terminal</li>
+</ul>
+<hr>
+<h2><img src="https://github.com/GeekTG/assets/raw/master/112-book-morph-outline.gif" align="center" width="50"> Documentation</h2>
+<b>Check out the folder <code>docs</code> for developers' documentation<br>
+User documentation is available <a href="https://docs.geektg.tk/">here</a></b>

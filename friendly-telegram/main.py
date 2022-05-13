@@ -47,7 +47,7 @@ from telethon.network.connection import ConnectionTcpMTProxyRandomizedIntermedia
 from telethon.sessions import StringSession, SQLiteSession
 from telethon.tl.functions.channels import DeleteChannelRequest
 
-from . import utils, loader, heroku
+from . import utils, loader
 from .database import backend, frontend
 from .dispatcher import CommandDispatcher
 from .translations.core import Translator
@@ -109,8 +109,7 @@ save_config_key("use_fs_for_modules", get_config_key("use_fs_for_modules"))
 
 
 def gen_port():
-    # In case of heroku you always need to use 8080
-    if "DYNO" in os.environ or "OKTETO" in os.environ:
+    if "OKTETO" in os.environ:
         return 8080
 
     # But for own server we generate new free port, and assign to it
@@ -149,7 +148,6 @@ def parse_arguments():
     )
     parser.add_argument("--phone", "-p", action="append")
     parser.add_argument("--token", "-t", action="append", dest="tokens")
-    parser.add_argument("--heroku", action="store_true")
     parser.add_argument("--no-nickname", "-nn", dest="no_nickname", action="store_true")
     parser.add_argument("--no-inline", dest="use_inline", action="store_false")
     parser.add_argument("--hosting", "-lh", dest="hosting", action="store_true")
@@ -188,26 +186,8 @@ def parse_arguments():
         help="MTProto proxy secret",
     )
     parser.add_argument(
-        "--heroku-web-internal",
-        dest="heroku_web_internal",
-        action="store_true",
-        help="This is for internal use only. If you use it, things will go wrong.",
-    )
-    parser.add_argument(
-        "--heroku-deps-internal",
-        dest="heroku_deps_internal",
-        action="store_true",
-        help="This is for internal use only. If you use it, things will go wrong.",
-    )
-    parser.add_argument(
         "--docker-deps-internal",
         dest="docker_deps_internal",
-        action="store_true",
-        help="This is for internal use only. If you use it, things will go wrong.",
-    )
-    parser.add_argument(
-        "--heroku-restart-internal",
-        dest="heroku_restart_internal",
         action="store_true",
         help="This is for internal use only. If you use it, things will go wrong.",
     )
@@ -247,16 +227,7 @@ def get_phones(arguments):
         )
     )
 
-    authtoken = os.environ.get("authorization_strings", False)  # for heroku
-    if authtoken and not arguments.setup:
-        try:
-            authtoken = json.loads(authtoken)
-        except json.decoder.JSONDecodeError:
-            logging.warning("authtoken invalid")
-            authtoken = False
-
-    if arguments.setup or (arguments.tokens and not authtoken):
-        authtoken = {}
+    authtoken = {}
     if arguments.tokens:
         for token in arguments.tokens:
             phone = sorted(filter(lambda phone: ":" not in phone, phones.values()))[0]
@@ -314,27 +285,6 @@ def get_proxy(arguments):
 
 
 def sigterm(app, signum, handler):  # skipcq: PYL-W0613
-    if app is not None:
-        dyno = os.environ["DYNO"]
-        if dyno.startswith("web") and app.process_formation()["web"].quantity:
-            # If we are just idling, start the worker, but otherwise shutdown gracefully
-            app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 1)
-        elif (
-            dyno.startswith("restarter")
-            and app.process_formation()[
-                "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK"
-            ].quantity
-        ):
-            # If this dyno is restarting, it means we should start the web dyno
-            app.batch_scale_formation_processes(
-                {
-                    "web": 1,
-                    "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
-                    "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK": 0,
-                }
-            )
-    # This ensures that we call atexit hooks
-    # and close FDs when Heroku kills us un-gracefully
     sys.exit(143)  # SIGTERM + 128
 
 
@@ -386,8 +336,6 @@ def main():  # noqa: C901
             if arguments.web
             else None
         )
-    elif arguments.heroku_web_internal:
-        raise RuntimeError("Web required but unavailable")
     else:
         web = None
 
@@ -399,65 +347,22 @@ def main():  # noqa: C901
         if web:
             loop.run_until_complete(web.start(arguments.port))
             print("Web mode ready for configuration")  # noqa: T001
-            if not arguments.heroku_web_internal:
-                port = str(web.port)
-                if platform.system() == "Linux" and not os.path.exists(
-                    "/etc/os-release"
-                ):
-                    print(f"Please visit http://localhost:{port}")
-                else:
-                    ipaddress = get("https://api.ipify.org").text
-                    print(
-                        f"Please visit http://{ipaddress}:{port}"
-                    )
+            port = str(web.port)
+            if platform.system() == "Linux" and not os.path.exists(
+                "/etc/os-release"
+            ):
+                print(f"Please visit http://localhost:{port}")
+            else:
+                ipaddress = get("https://api.ipify.org").text
+                print(
+                    f"Please visit http://{ipaddress}:{port}"
+                )
             loop.run_until_complete(web.wait_for_api_token_setup())
             api_token = web.api_token
         else:
             run_config({}, arguments.data_root)
             importlib.invalidate_caches()
             api_token = get_api_token(arguments)
-
-    if os.environ.get("authorization_strings", False):
-        if (
-            os.environ.get("DYNO", False)
-            or arguments.heroku_web_internal
-            or arguments.heroku_deps_internal
-        ):
-            app, _ = heroku.get_app(
-                os.environ["authorization_strings"],
-                os.environ["heroku_api_token"],
-                api_token,
-                False,
-                True,
-            )
-        if arguments.heroku_web_internal:
-            app.scale_formation_process("worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0)
-            signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
-        elif arguments.heroku_deps_internal:
-            try:
-                app.scale_formation_process("web", 0)
-                app.scale_formation_process(
-                    "worker-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK", 0
-                )
-            except requests.exceptions.HTTPError as e:
-                if e.response.status_code != 404:
-                    # The dynos don't exist on the
-                    # very first deployment, so don't try to scale
-                    raise
-            else:
-                atexit.register(
-                    functools.partial(
-                        app.scale_formation_process,
-                        "restarter-DO-NOT-TURN-ON-OR-THINGS-WILL-BREAK",
-                        1,
-                    )
-                )
-        elif arguments.heroku_restart_internal:
-            signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
-            while True:
-                time.sleep(60)
-        elif os.environ.get("DYNO", False):
-            signal.signal(signal.SIGTERM, functools.partial(sigterm, app))
 
     if authtoken:
         for phone, token in authtoken.items():
@@ -486,30 +391,25 @@ def main():  # noqa: C901
             if not web.running.is_set():
                 loop.run_until_complete(web.start(arguments.port))
                 print("Web mode ready for configuration")  # noqa: T001
-                if not arguments.heroku_web_internal:
-                    port = str(web.port)
-                    if platform.system() == "Linux" and not os.path.exists(
-                        "/etc/os-release"
-                    ):
-                        print(f"Please visit http://localhost:{port}")
-                    else:
-                        ipaddress = get("https://api.ipify.org").text
-                        print(
-                            f"Please visit http://{ipaddress}:{port}"
-                        )
+                port = str(web.port)
+                if platform.system() == "Linux" and not os.path.exists(
+                    "/etc/os-release"
+                ):
+                    print(f"Please visit http://localhost:{port}")
+                else:
+                    ipaddress = get("https://api.ipify.org").text
+                    print(
+                        f"Please visit http://{ipaddress}:{port}"
+                    )
             loop.run_until_complete(web.wait_for_clients_setup())
-            arguments.heroku = web.heroku_api_token
             clients = web.clients
             for client in clients:
-                if arguments.heroku:
-                    session = StringSession()
-                else:
-                    session = SQLiteSession(
-                        os.path.join(
-                            arguments.data_root or BASE_DIR,
-                            f"friendly-telegram-+{'X' * (len(client.phone) - 5)}{client.phone[-4:]}", # skipcq: FLK-E501
-                        )
+                session = SQLiteSession(
+                    os.path.join(
+                        arguments.data_root or BASE_DIR,
+                        f"friendly-telegram-+{'X' * (len(client.phone) - 5)}{client.phone[-4:]}", # skipcq: FLK-E501
                     )
+                )
 
                 session.set_dc(
                     client.session.dc_id,
@@ -517,49 +417,17 @@ def main():  # noqa: C901
                     client.session.port,
                 )
                 session.auth_key = client.session.auth_key
-                if not arguments.heroku:
-                    session.save()
+                session.save()
                 client.session = session
         else:
-            try:
-                phone = input("Please enter your phone: ")
-                phones = {phone.split(":", maxsplit=1)[0]: phone}
-            except EOFError:
-                print("=" * 30)
-                print(
-                    "Hello. If you are seeing this, it means"
-                    " YOU ARE DOING SOMETHING WRONG!\n"
-                    "It is likely that you tried to deploy to heroku -\n"
-                    "you cannot do this via the web interface.\n"
-                    "\n"
-                    "To deploy to heroku, go to\n"
-                    "https://friendly-telegram.gitlab.io/heroku to learn more\n"
-                    "\n"
-                    "In addition, you seem to have forked"
-                    " the friendly-telegram repo. THIS IS WRONG!\n"
-                    "You should remove the forked repo,"
-                    " and read https://friendly-telegram.gitlab.io\n"
-                    "\n"
-                    "If you're not using Heroku, then you"
-                    " are using a non-interactive prompt but\n"
-                    "you have not got a session configured,"
-                    " meaning authentication to Telegram is\n"
-                    "impossible.\n"
-                    "\n"
-                    "THIS ERROR IS YOUR FAULT. DO NOT REPORT IT AS A BUG!\n"
-                    "Goodbye.\n"
-                )
-
-                sys.exit(1)
+            phone = input("Please enter your phone: ")
+            phones = {phone.split(":", maxsplit=1)[0]: phone}
 
     for phone_id, phone in phones.items():
-        if arguments.heroku:
-            session = StringSession()
-        else:
-            session = os.path.join(
-                arguments.data_root or BASE_DIR,
-                f"friendly-telegram{(('-' + phone_id) if phone_id else '')}",
-            )
+        session = os.path.join(
+            arguments.data_root or BASE_DIR,
+            f"friendly-telegram{(('-' + phone_id) if phone_id else '')}",
+        )
 
         try:
             client = TelegramClient(
@@ -601,24 +469,6 @@ def main():  # noqa: C901
                 " and don't put spaces in it."
             )
             continue
-
-    if arguments.heroku:
-        if isinstance(arguments.heroku, str):
-            key = arguments.heroku
-        else:
-            key = input(
-                "Please enter your Heroku API key (from https://dashboard.heroku.com/account): "
-            ).strip()
-
-        app = heroku.publish(clients, key, api_token)
-        print(
-            "Installed to heroku successfully! Type .help in Telegram for help."
-        )  # noqa: T001
-        if web:
-            web.redirect_url = app.web_url
-            web.ready.set()
-            loop.run_until_complete(web.root_redirected.wait())
-        return
 
     loop.set_exception_handler(
         lambda _, x: logging.error(
@@ -695,7 +545,7 @@ async def amain(first, client, allclients, web, arguments):
         return False
 
     db = frontend.Database(
-        db, arguments.heroku_deps_internal or arguments.docker_deps_internal
+        db
     )
     await db.init()
 
@@ -705,8 +555,6 @@ async def amain(first, client, allclients, web, arguments):
         handler.setLevel(db.get(__name__, "loglevel", logging.WARNING))
 
     to_load = None
-    if arguments.heroku_deps_internal or arguments.docker_deps_internal:
-        to_load = ["loader.py"]
 
     babelfish = Translator(
         db.get(__name__, "langpacks", []),
@@ -719,16 +567,12 @@ async def amain(first, client, allclients, web, arguments):
     modules = loader.Modules()
     no_nickname = arguments.no_nickname
 
-    if not (arguments.heroku_deps_internal or arguments.docker_deps_internal):
-        if web:
-            await web.add_loader(client, modules, db)
-            await web.start_if_ready(len(allclients), arguments.port)
-        if not web_only:
-            dispatcher = CommandDispatcher(modules, db, no_nickname)
-            client.dispatcher = dispatcher
-    if arguments.heroku_deps_internal or arguments.docker_deps_internal:
-        # Loader has installed all dependencies
-        return  # We are done
+    if web:
+        await web.add_loader(client, modules, db)
+        await web.start_if_ready(len(allclients), arguments.port)
+    if not web_only:
+        dispatcher = CommandDispatcher(modules, db, no_nickname)
+        client.dispatcher = dispatcher
 
     if not web_only:
         await dispatcher.init(client)

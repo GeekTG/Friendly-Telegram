@@ -37,7 +37,6 @@ if is_okteto:
 
 class Web:
     def __init__(self, **kwargs):
-        self.heroku_api_token = os.environ.get("heroku_api_token")
         self.api_token = kwargs.pop("api_token")
         self.data_root = kwargs.pop("data_root")
         self.connection = kwargs.pop("connection")
@@ -60,14 +59,15 @@ class Web:
     async def root(self, request):
         try:
             if is_okteto and not os.path.exists(oktetourl):
-                json.dump(
-                    {
-                        "okteto": re.findall(
-                            r"worker-(.*).cloud.okteto.net", str(request.url)
-                        )[0]
-                    },
-                    open(oktetourl, "w"),
-                )
+                with open(oktetourl, "w") as f:
+                    json.dump(
+                        {
+                            "okteto": re.findall(
+                                r"worker-(.*).cloud.okteto.net", str(request.url)
+                            )[0]
+                        },
+                        f,
+                    )
         except Exception:
             print("Failed to write okteto.json")
         if self.clients_set.is_set():
@@ -84,7 +84,6 @@ class Web:
         return {
             "api_done": self.api_token is not None,
             "tg_done": bool(self.client_data),
-            "heroku_token": self.heroku_api_token,
             "hosting": self.hosting,
             "default_app": self.default_app,
         }
@@ -177,12 +176,5 @@ class Web:
     async def finish_login(self, request):
         if not self.clients:
             return web.Response(status=400)
-        text = await request.text()
-        if text:
-            if not re.fullmatch(r"[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}", text):
-                return web.Response(status=400)
-            self.heroku_api_token = text
-        else:
-            self.heroku_api_token = None
         self.clients_set.set()
         return web.Response()

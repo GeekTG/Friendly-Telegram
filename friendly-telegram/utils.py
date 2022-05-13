@@ -42,7 +42,6 @@ from . import __main__
 def get_platform_name():
     """Get the name of the platform we're running on"""
     is_termux = bool(os.popen('echo $PREFIX | grep -o "com.termux"').read())
-    is_heroku = "DYNO" in os.environ
     is_okteto = "OKTETO" in os.environ
 
     is_lavhost = "LAVHOST" in os.environ
@@ -52,9 +51,6 @@ def get_platform_name():
 
     if is_okteto:
         return "☁️ Okteto"
-
-    if is_heroku:
-        return "⛎ Heroku"
 
     if is_termux:
         return "📱 Termux"

@@ -52,7 +52,7 @@ class OktetoMod(loader.Module):
             lastsend += 86415
             for _ in range(5):
                 await conv.send_message(
-                    f"https://worker-{self.okteto_username}.cloud.okteto.net/",
+                    f"https://worker-{self.okteto_username}.cloud.okteto.net/?h={utils.rand(5)}",
                     schedule=lastsend,
                 )
                 lastsend += 86415

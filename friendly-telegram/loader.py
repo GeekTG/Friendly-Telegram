@@ -39,6 +39,13 @@ class LoadError(Exception):
     def __str__(self) -> str:
         return self._error
 
+class ModUnload(Exception):
+    """Silent module unloading."""
+    def __init__(self, error_message):  # skipcq: PYL-W0231
+        self._error = error_message
+
+    def __str__(self) -> str:
+        return self._error
 
 def use_fs_for_modules():
     try:
@@ -444,6 +451,9 @@ class Modules:
 
         try:
             await mod.client_ready(client, db)
+        except ModUnload:
+            logging.debug(f"Unloading module {mod}, because it raised ModUnload")
+            self.modules.remove(mod)
         except Exception as e:
             logging.exception(
                 f"Failed to send mod init complete"

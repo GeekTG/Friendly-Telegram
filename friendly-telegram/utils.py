@@ -24,6 +24,8 @@ import io
 import logging
 import os
 import shlex
+import random
+import string
 
 import telethon
 from telethon.tl.custom.message import Message
@@ -112,6 +114,13 @@ def get_args_split_by(message, sep):
 def get_chat_id(message):
     """Get the chat ID, but without -100 if its a channel"""
     return telethon.utils.resolve_id(message.chat_id)[0]
+
+
+def rand(length):
+    """Generate a random string of given length"""
+    return "".join(
+        [random.choice(string.ascii_letters + string.digits) for _ in range(length)]
+    )
 
 
 def get_entity_id(entity):
@@ -257,7 +266,7 @@ async def answer(message, response, **kwargs):
                 await message.client.send_file(
                     message.peer_id,
                     file,
-                    caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>", # noqa: E501
+                    caption="<b>📤 Command output seems to be too long, so it's sent in file.</b>",  # noqa: E501
                 ),
             ]
 

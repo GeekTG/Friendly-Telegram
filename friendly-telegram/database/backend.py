@@ -1,20 +1,18 @@
 import asyncio
 import logging
 
-import telethon
-from telethon.errors.rpcerrorlist import (
-    MessageEditTimeExpiredError,
-    MessageNotModifiedError,
-)
+
 from telethon.tl.custom import Message as CustomMessage
-from telethon.tl.functions.channels import CreateChannelRequest, DeleteChannelRequest
+from telethon.tl.functions.channels import CreateChannelRequest, EditTitleRequest
 from telethon.tl.types import Message
 import json
 import os
 
 from .. import main, utils
 
-ORIGIN = "/".join(main.__file__.split("/")[:-2])
+is_okteto = "OKTETO" in os.environ
+
+ORIGIN = "/data" if is_okteto else "/".join(main.__file__.split("/")[:-2])
 
 logger = logging.getLogger(__name__)
 
@@ -35,30 +33,6 @@ class CloudBackend:
         self._me = await self._client.get_me(True)
         self._db_path = os.path.join(ORIGIN, f"config-{self._me.user_id}.json")
         self._callback = trigger_refresh
-
-    async def _find_data_channel(self):
-        async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
-            if dialog.name == f"friendly-{self._me.user_id}-data" and dialog.is_channel:
-                members = await self._client.get_participants(dialog, limit=2)
-                if len(members) != 1:
-                    continue
-                logger.debug(f"Found data chat! It is {dialog.id}.")
-                return dialog.entity
-
-    async def _make_data_channel(self):
-        async with self._anti_double_lock:
-            if self._data_already_exists:
-                return await self._find_data_channel()
-            self._data_already_exists = True
-            return (
-                await self._client(
-                    CreateChannelRequest(
-                        f"friendly-{self._me.user_id}-data",
-                        "// Don't touch",
-                        megagroup=True,
-                    )
-                )
-            ).chats[0]
 
     async def _find_asset_channel(self):
         async for dialog in self._client.iter_dialogs(None, ignore_migrated=True):
@@ -87,44 +61,45 @@ class CloudBackend:
                 )
             ).chats[0]
 
-    async def do_download(self, force_from_data_channel=False):
+    async def do_download(self):
         """
         Attempt to download the database.
         Return the database (as unparsed JSON) or None
         """
-        if main.get_config_key("use_file_db") and not force_from_data_channel:
-            try:
-                with open(self._db_path, "r", encoding="utf-8") as f:
-                    data = json.dumps(json.loads(f.read()))
-            except Exception:
-                data = await self.do_download(force_from_data_channel=True)
+
+        is_base_saved = False
+        try:
+            with open(self._db_path, "r", encoding="utf-8") as f:
+                data = json.dumps(json.loads(f.read()))
+            is_base_saved = True
+        except Exception:
+            data = {}
+
+        if not is_base_saved:
+            chat = [
+                chat
+                async for chat in self._client.iter_dialogs(None, ignore_migrated=True)
+                if chat.name == f"friendly-{self._me.user_id}-data" and chat.is_channel
+            ]
+            if not chat:
                 await self.do_upload(data)
-
-            return data
-
-        if not self.db:
-            self.db = await self._find_data_channel()
-
-            if not self.db:
-                logging.debug("No DB, returning")
-                return None
-
-            self._client.add_event_handler(
-                self._callback,
-                telethon.events.messageedited.MessageEdited(chats=[self.db]),
+                return data
+            await self._client(
+                EditTitleRequest(channel=chat[0], title=f"old-{self._me.user_id}-data")
             )
+            logger.info("Syncing database...")
+            msgs = self._client.iter_messages(entity=chat[0], reverse=True)
 
-        msgs = self._client.iter_messages(entity=self.db, reverse=True)
+            data = ""
+            lastdata = ""
 
-        data = ""
-        lastdata = ""
-
-        async for msg in msgs:
-            if isinstance(msg, Message):
-                data += lastdata
-                lastdata = msg.message
-            else:
-                logger.debug(f"Found service message {msg}")
+            async for msg in msgs:
+                if isinstance(msg, Message):
+                    data += lastdata
+                    lastdata = msg.message
+                else:
+                    logger.debug(f"Found service message {msg}")
+            await self.do_upload(data)
 
         return data
 
@@ -134,76 +109,14 @@ class CloudBackend:
         Return True or throw
         """
 
-        if main.get_config_key("use_file_db"):
-            try:
-                with open(self._db_path, "w", encoding="utf-8") as f:
-                    f.write(data or "{}")
-            except Exception:
-                logger.exception("Database save failed!")
-                raise
-
-            return True
-
-        if not self.db:
-            self.db = await self._find_data_channel()
-            if not self.db:
-                self.db = await self._make_data_channel()
-
-            self._client.add_event_handler(
-                self._callback,
-                telethon.events.messageedited.MessageEdited(chats=[self.db]),
-            )
-
-        msgs = await self._client.get_messages(entity=self.db, reverse=True)
-
-        ops = []
-        sdata = data
-        newmsg = False
-        for msg in msgs:
-            if isinstance(msg, Message):
-                if len(sdata):
-                    if msg.id == msgs[-1].id:
-                        newmsg = True
-                    if sdata[:4096] != msg.message:
-                        ops += [
-                            msg.edit(f"<code>{utils.escape_html(sdata[:4096])}</code>")
-                        ]
-                    sdata = sdata[4096:]
-                elif msg.id != msgs[-1].id:
-                    ops += [msg.delete()]
-
-        if await self._do_ops(ops):
-            return await self.do_upload(data)
-
-        while len(
-            sdata
-        ):  # Only happens if newmsg is True or there was no message before
-            newmsg = True
-            await self._client.send_message(self.db, utils.escape_html(sdata[:4096]))
-            sdata = sdata[4096:]
-
-        if newmsg:
-            await self._client.send_message(self.db, "Please ignore this chat.")
+        try:
+            with open(self._db_path, "w", encoding="utf-8") as f:
+                f.write(data or "{}")
+        except Exception:
+            logger.exception("Database save failed!")
+            raise
 
         return True
-
-    async def _do_ops(self, ops):
-        try:
-            for r in await asyncio.gather(*ops, return_exceptions=True):
-                if isinstance(r, MessageNotModifiedError):
-                    logging.debug("db not modified", exc_info=r)
-                elif isinstance(r, Exception):
-                    raise r
-                elif not isinstance(r, Message):
-                    logging.debug("unknown ret from gather, %r", r)
-        except MessageEditTimeExpiredError:
-            logging.debug("Making new channel.")
-            _db = self.db
-            self.db = None
-            await self._client(DeleteChannelRequest(channel=_db))
-            return True
-
-        return False
 
     async def store_asset(self, message):
         if not self._assets:

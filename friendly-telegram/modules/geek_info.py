@@ -30,12 +30,12 @@ class GeekInfoMod(loader.Module):
         "_custom_button_doc": "Custom buttons.",
         "_photo_url_doc": "You can set your own photo to geek info.",
         "default_message": (
-            "🕶 GeekTG Userbot\n"
+            "<b>🕶 GeekTG Userbot</b>\n\n"
             "<b>🤴 Owner:</b> {owner}\n"
             "<b>🔮 Version:</b> <i>{version}</i>\n"
             "<b>🧱 Build:</b> {build}\n"
-            "<b>😶‍🌫️ Update: {upd}</b>\n\n"
-            "<b>{platform}</b>",
+            "<b>{upd}</b>\n\n"
+            "<b>{platform}</b>"
         ),
     }
 
@@ -80,9 +80,9 @@ class GeekInfoMod(loader.Module):
         ver, gitlink = utils.get_git_info()
         try:
             return (
-                self.strings("default_message")
-                if not self.config["custom_message"]
-                else self.config["custom_message"]
+                self.config["custom_message"]
+                if self.config["custom_message"]
+                else self.strings("default_message")
             ).format(
                 owner=f'<a href="tg://user?id={self._me.id}">{get_display_name(self._me)}</a>',
                 version=utils.get_version_raw(),

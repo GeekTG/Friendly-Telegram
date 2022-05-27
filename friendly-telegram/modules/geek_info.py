@@ -24,7 +24,20 @@ logger = logging.getLogger(__name__)
 class GeekInfoMod(loader.Module):
     """Show userbot info (geek3.1.0alpha+)"""
 
-    strings = {"name": "GeekInfo"}
+    strings = {
+        "name": "GeekInfo",
+        "_custom_msg_doc": "Custom message must have {owner}, {version}, {build}, {upd}, {platform} keywords",
+        "_custom_button_doc": "Custom buttons.",
+        "_photo_url_doc": "You can set your own photo to geek info.",
+        "default_message": (
+            "🕶 GeekTG Userbot\n"
+            "<b>🤴 Owner:</b> {owner}\n"
+            "<b>🔮 Version:</b> <i>{version}</i>\n"
+            "<b>🧱 Build:</b> {build}\n"
+            "<b>😶‍🌫️ Update: {upd}</b>\n\n"
+            "<b>{platform}</b>",
+        ),
+    }
 
     def get(self, *args) -> dict:
         return self._db.get(self.strings["name"], *args)
@@ -36,23 +49,26 @@ class GeekInfoMod(loader.Module):
         self._db = db
         self._client = client
         self._me = await client.get_me()
-        self.markup = aiogram.types.inline_keyboard.InlineKeyboardMarkup()
-        self.markup.row(
-            aiogram.types.inline_keyboard.InlineKeyboardButton(
-                "🤵‍♀️ Support chat", url="https://t.me/GeekTGChat"
-            )
+
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            "custom_message",
+            False,
+            lambda: self.strings("_custom_msg_doc"),
+            "custom_buttons",
+            {"text": "🤵‍♀️ Support chat", "url": "https://t.me/GeekTGChat"},
+            lambda: self.strings("_custom_button_doc"),
+            "photo_url",
+            "https://i.imgur.com/6FKsFcM.png",
+            lambda: self.strings("_photo_url_doc"),
         )
 
-    async def info_inline_handler(self, query: GeekInlineQuery) -> None:
+    def build_message(self):
         """
-        Send userbot info
-        @allow: all
+        Build custom message
         """
-
         try:
             repo = git.Repo()
-            ver = repo.heads[0].commit.hexsha
-
             diff = repo.git.log(["HEAD..origin", "--oneline"])
             upd = (
                 "⚠️ Update required </b><code>.update</code><b>"
@@ -60,36 +76,60 @@ class GeekInfoMod(loader.Module):
                 else "✅ Up-to-date"
             )
         except Exception:
-            ver = "unknown"
             upd = ""
+        ver, gitlink = utils.get_git_info()
+        try:
+            return (
+                self.strings("default_message")
+                if not self.config["custom_message"]
+                else self.config["custom_message"]
+            ).format(
+                owner=f'<a href="tg://user?id={self._me.id}">{get_display_name(self._me)}</a>',
+                version=utils.get_version_raw(),
+                build=f'<a href="{gitlink}">{ver[:8] or "Unknown"}</a>',
+                upd=upd,
+                platform=utils.get_platform_name(),
+            )
+        except KeyError:
+            return self.strings("default_message").format(
+                owner=f'<a href="tg://user?id={self._me.id}">{get_display_name(self._me)}</a>',
+                version=utils.get_version_raw(),
+                build=f'<a href="{gitlink}">{ver[:8] or "Unknown"}</a>',
+                upd=upd,
+                platform=utils.get_platform_name(),
+            )
 
-        platform = utils.get_platform_name()
-        gitlink = f"https://github.com/GeekTG/Friendly-Telegram/commit/{ver}"
+    async def info_inline_handler(self, query: GeekInlineQuery) -> None:
+        """
+        Send userbot info
+        @allow: all
+        """
 
         await query.answer(
             [
-                aiogram.types.inline_query_result.InlineQueryResultArticle(
+                aiogram.types.inline_query_result.InlineQueryResultPhoto(
                     id=rand(20),
+                    photo_url=self.config["photo_url"],
                     title="Send userbot info",
                     description="ℹ This will not compromise any sensitive data",
-                    input_message_content=InputTextMessageContent(
-                        f"""
-<b>🕶 GeekTG Userbot</b>
-<b>🤴 Owner: <a href="tg://user?id={self._me.id}">{get_display_name(self._me)}</a></b>\n
-<b>🔮 Version: </b><i>{".".join(list(map(str, list(main.__version__))))}</i>
-<b>🧱 Build: </b><a href="{gitlink}">{ver[:8] or "Unknown"}</a>
-<b>{upd}</b>
-
-<b>{platform}</b>
-""",
-                        "HTML",
-                        disable_web_page_preview=True,
+                    caption=self.build_message(),
+                    parse_mode="html",
+                    thumb_url="https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png",  # noqa: E501
+                    reply_markup=self.inline._generate_markup(
+                        self.config["custom_buttons"]
                     ),
-                    thumb_url="https://github.com/GeekTG/Friendly-Telegram/raw/master/friendly-telegram/bot_avatar.png", # noqa: E501
-                    thumb_width=128,
-                    thumb_height=128,
-                    reply_markup=self.markup,
                 )
             ],
             cache_time=0,
+        )
+
+    async def infocmd(self, message):
+        """
+        Send userbot info
+        """
+        return await self.inline.form(
+            message=message,
+            text=self.build_message(),
+            reply_markup=self.config["custom_buttons"],
+            photo=self.config["photo_url"],
         )

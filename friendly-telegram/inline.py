@@ -126,6 +126,11 @@ async def edit(
     Do not edit or pass `self`, `query`, `form`, `form_uid`
     params, they are for internal use only
     """
+    if reply_markup:
+        if isinstance(reply_markup, dict):
+            reply_markup = [[reply_markup]]
+        if isinstance(reply_markup[0], dict):
+            reply_markup = [[_] for _ in reply_markup]
     if reply_markup is None:
         reply_markup = []
 
@@ -697,23 +702,23 @@ class InlineManager:
         self._dp.stop_polling()
         self._cleaner_task.cancel()
 
-    def _generate_markup(self, form_uid: Union[str, list]) -> InlineKeyboardMarkup:
+    def _generate_markup(self, form_uid: Union[str, list], buttons: list = False) -> InlineKeyboardMarkup:
         """Generate markup for form"""
         markup = InlineKeyboardMarkup()
+        if form_uid:
+            for row in (
+                self._forms[form_uid]["buttons"] if isinstance(form_uid, str) else form_uid
+            ):
+                for button in row:
+                    if "callback" in button and "_callback_data" not in button:
+                        button["_callback_data"] = rand(30)
 
-        for row in (
-            self._forms[form_uid]["buttons"] if isinstance(form_uid, str) else form_uid
-        ):
-            for button in row:
-                if "callback" in button and "_callback_data" not in button:
-                    button["_callback_data"] = rand(30)
+                    if "input" in button and "_switch_query" not in button:
+                        button["_switch_query"] = rand(10)
 
-                if "input" in button and "_switch_query" not in button:
-                    button["_switch_query"] = rand(10)
+        buttons = buttons or self._forms[form_uid]["buttons"] if isinstance(form_uid, str) else form_uid
 
-        for row in (
-            self._forms[form_uid]["buttons"] if isinstance(form_uid, str) else form_uid
-        ):
+        for row in buttons:
             line = []
             for button in row:
                 try:
@@ -921,6 +926,18 @@ class InlineManager:
         # Otherwise, answer it with templated form
         await inline_query.answer(
             [
+                InlineQueryResultPhoto(
+                    id=rand(20),
+                    title="GeekTG",
+                    photo_url=self._forms[query]["photo"],
+                    caption=self._forms[query]["text"],
+                    reply_markup=self._generate_markup(query),
+                    thumb_url=self._forms[query]["photo"],
+                    parse_mode="HTML",
+                )
+            ]
+            if "photo" in self._forms[query] else
+            [
                 InlineQueryResultArticle(
                     id=rand(20),
                     title="GeekTG",
@@ -1077,6 +1094,7 @@ class InlineManager:
         force_me: bool = True,
         always_allow: List[int] = None,
         ttl: Union[int, bool] = False,
+        photo: str = None,
     ) -> Union[str, bool]:
         """Creates inline form with callback
         Args:
@@ -1104,6 +1122,12 @@ class InlineManager:
                         Pay attention, that ttl can't be bigger, than
                         default one (1 day) and must be either `int` or `False`
         """
+
+        if reply_markup:
+            if isinstance(reply_markup, dict):
+                reply_markup = [[reply_markup]]
+            if isinstance(reply_markup[0], dict):
+                reply_markup = [[_] for _ in reply_markup]
 
         if reply_markup is None:
             reply_markup = []
@@ -1175,6 +1199,7 @@ class InlineManager:
             "always_allow": always_allow,
             "chat": None,
             "message_id": None,
+            "photo": photo,
             "uid": form_uid,
         }
 

@@ -39,6 +39,8 @@ from telethon.tl.types import (
 )
 
 from . import __main__
+from . import main
+import git
 
 
 def get_platform_name():
@@ -121,6 +123,25 @@ def rand(length):
     return "".join(
         [random.choice(string.ascii_letters + string.digits) for _ in range(length)]
     )
+
+
+def get_version_raw():
+    """Get the version of the userbot"""
+    return ".".join(list(map(str, list(main.__version__))))
+
+
+def get_git_info():
+    try:
+        repo = git.Repo()
+        ver = repo.heads[0].commit.hexsha
+    except Exception:
+        ver = ""
+    return [
+        ver,
+        f"https://github.com/GeekTG/Friendly-Telegram/commit/{ver}"
+        if ver
+        else "",
+    ]
 
 
 def get_entity_id(entity):

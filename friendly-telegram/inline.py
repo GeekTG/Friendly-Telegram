@@ -936,7 +936,7 @@ class InlineManager:
                     parse_mode="HTML",
                 )
             ]
-            if "photo" in self._forms[query] else
+            if self._forms[query]["photo"] else
             [
                 InlineQueryResultArticle(
                     id=rand(20),

@@ -23,7 +23,7 @@ aiohttp_jinja2==1.5
 aiohttp
 
 # A very fast and expressive template engine.
-Jinja2==3.1.1
+Jinja2==3.1.2
 
 # Python HTTP for Humans.
 requests==2.27.1

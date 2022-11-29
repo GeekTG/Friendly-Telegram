@@ -5,7 +5,7 @@ Telethon-Mod==1.24.7
 pythondialog==3.5.3
 
 # Heroku
-heroku3==5.1.4
+heroku3==5.1.5
 
 # Python Git Library
 gitpython==3.1.27

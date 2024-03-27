@@ -390,9 +390,13 @@ class InlineManager:
             await m.delete()
             await r.delete()
 
+            await asyncio.sleep(2)
+
             # Set its name to user's name + GeekTG Userbot
             m = await conv.send_message(f"🤖 GeekTG Userbot of {self._name}")
             r = await conv.get_response()
+
+            await asyncio.sleep(2)
 
             await m.delete()
             await r.delete()
@@ -404,6 +408,8 @@ class InlineManager:
             m = await conv.send_message(username)
             r = await conv.get_response()
 
+            await asyncio.sleep(2)
+
             await m.delete()
             await r.delete()
 
@@ -411,11 +417,15 @@ class InlineManager:
             m = await conv.send_message("/setuserpic")
             r = await conv.get_response()
 
+            await asyncio.sleep(2)
+
             await m.delete()
             await r.delete()
 
             m = await conv.send_message(username)
             r = await conv.get_response()
+
+            await asyncio.sleep(2)
 
             await m.delete()
             await r.delete()
@@ -474,6 +484,9 @@ class InlineManager:
             for row in r.reply_markup.rows:
                 for button in row.buttons:
                     if re.search(r"@geektg_[0-9a-zA-Z]{6}_bot", button.text, re.I):
+
+                        await asyncio.sleep(2)
+
                         m = await conv.send_message(button.text)
                         r = await conv.get_response()
 
@@ -483,6 +496,8 @@ class InlineManager:
 
                             m = await conv.send_message("/revoke")
                             r = await conv.get_response()
+
+                            await asyncio.sleep(2)
 
                             await m.delete()
                             await r.delete()
@@ -504,11 +519,15 @@ class InlineManager:
                         m = await conv.send_message("/setinline")
                         r = await conv.get_response()
 
+                        await asyncio.sleep(2)
+
                         await m.delete()
                         await r.delete()
 
                         m = await conv.send_message(button.text)
                         r = await conv.get_response()
+
+                        await asyncio.sleep(2)
 
                         await m.delete()
                         await r.delete()
@@ -516,11 +535,15 @@ class InlineManager:
                         m = await conv.send_message("GeekQuery")
                         r = await conv.get_response()
 
+                        await asyncio.sleep(2)
+
                         await m.delete()
                         await r.delete()
 
                         m = await conv.send_message("/setinlinefeedback")
                         r = await conv.get_response()
+
+                        await asyncio.sleep(2)
 
                         await m.delete()
                         await r.delete()
@@ -528,11 +551,15 @@ class InlineManager:
                         m = await conv.send_message(button.text)
                         r = await conv.get_response()
 
+                        await asyncio.sleep(2)
+
                         await m.delete()
                         await r.delete()
 
                         m = await conv.send_message("Enabled")
                         r = await conv.get_response()
+
+                        await asyncio.sleep(2)
 
                         await m.delete()
                         await r.delete()
@@ -541,17 +568,23 @@ class InlineManager:
                         m = await conv.send_message("/setuserpic")
                         r = await conv.get_response()
 
+                        await asyncio.sleep(2)
+
                         await m.delete()
                         await r.delete()
 
                         m = await conv.send_message(button.text)
                         r = await conv.get_response()
 
+                        await asyncio.sleep(2)
+
                         await m.delete()
                         await r.delete()
 
                         m = await conv.send_file(photo)
                         r = await conv.get_response()
+
+                        await asyncio.sleep(2)
 
                         await m.delete()
                         await r.delete()
